@@ -8,6 +8,91 @@ The goal is to build a clean, maintainable, and extensible control plane for min
 
 ---
 
+
+## Current Status
+
+This repository is currently in **Phase 0 / Phase 1** (planning and bootstrap) for a Python-first rewrite.
+
+Implemented so far:
+
+- architecture direction
+- project roadmap
+- safety and operational guardrails
+- initial documentation
+
+Not implemented yet:
+
+- production Python package
+- PostgreSQL schema and migrations
+- firewall planner
+- customer CRUD
+- proxy stack management
+- abuse runner
+- local UI / Telegram integration
+
+---
+
+## Repository Scope
+
+This repository is the implementation home for the new control-plane architecture.
+
+- It defines target design, safety rules, and phased rollout expectations.
+- It must stay aligned with the forward-only gateway model.
+- It must remain lane-based (BTC, then ZEC/LTC and others through the same model).
+
+---
+
+## Phase 0/1 Execution Rule
+
+Start only with:
+
+1. Phase 0 — Architecture Freeze
+2. Phase 1 — Preflight + Bootstrap
+
+Do not start Phase 2+ until Phase 1 acceptance checks pass.
+
+---
+
+## Do Not Use In Production Yet
+
+This project must **not** be used for production traffic yet.
+
+During Phase 0/1, the project must not:
+
+- create customer firewall rules
+- create NAT redirects
+- expose backend ports
+- enable abuse automation
+- enable block automation
+- expose UI components
+- onboard production customers
+- apply firewall changes without plan/verify/rollback
+
+---
+
+## Next Implementation Outputs
+
+The next concrete outputs should be:
+
+1. `docs/ARCHITECTURE.md`
+2. `docs/SAFETY.md`
+3. initial `/etc/mpf/mpf.yaml` draft
+4. PostgreSQL schema v1
+5. Python package skeleton
+6. config/db smoke tests
+
+---
+
+## Acceptance Checklist (Near-term)
+
+- Phase 0 documents are frozen and reviewed.
+- Phase 1 preflight checklist is complete.
+- `firewall.apply_mode` remains `plan_only`.
+- No live customer/NAT/firewall production changes exist.
+- Initial config and DB planning artifacts are versioned in repository docs.
+
+---
+
 ## Project Goal
 
 This server is designed to act as a **forward-only customer gateway**:
@@ -100,6 +185,16 @@ Rules:
 - farms-over alone must not trigger hardening
 - every hard/unhard action must be auditable
 - every hard action must have a backup / restore point
+
+Abuse tests must verify:
+
+- active customers in all enabled lanes are scanned
+- farms-over alone does not harden
+- miner-over enters `over_tracking`
+- temporary recovery enters `over_grace`
+- sustained miner-over for about 3600s triggers `hard`
+- hard action creates restore point
+- manual unhard is audited
 
 ---
 
