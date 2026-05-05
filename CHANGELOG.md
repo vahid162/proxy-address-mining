@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.3 - 2026-05-05
+- Replaced `AGENTS.md` with the requested full AI agent instructions and mandatory architecture/firewall rules.
+
 ## 0.1.2 - 2026-05-05
 - Added requested documentation structure (`docs/`, `docs/source/`), `AGENTS.md`, and `.github/copilot-instructions.md`.
 
