@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import psycopg
-
 from mpf.config import MPFConfig
 
 
@@ -15,6 +13,11 @@ class DBPingResult:
 
 def ping_database(config: MPFConfig) -> DBPingResult:
     """Check PostgreSQL connectivity without creating schema or mutating state."""
+    try:
+        import psycopg
+    except ImportError as exc:
+        return DBPingResult(False, f"psycopg is not installed: {exc}")
+
     try:
         with psycopg.connect(config.database.url, connect_timeout=5) as conn:
             with conn.cursor() as cur:
