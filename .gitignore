@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local config and secrets
+.env
+*.env
+secrets.env
+secrets.d/
+/etc/mpf/
+configs/mpf.yaml
+*.secret
+*.key
+*.pem
+
+# Logs, dumps, backups
+*.log
+logs/
+*.dump
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+backups/
+restore-artifacts/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
