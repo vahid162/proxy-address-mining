@@ -1,0 +1,43 @@
+server:
+  name: farm-new-1
+  timezone: Europe/Berlin
+
+paths:
+  app: /opt/mpf-py
+  data: /var/lib/mpf
+  logs: /var/log/mpf
+  backups: /var/backups/mpf
+
+database:
+  url: postgresql:///mpf
+
+firewall:
+  backend: iptables
+  apply_mode: plan_only
+  lock_path: /run/mpf-firewall.lock
+
+lanes:
+  btc:
+    enabled: true
+    backend_port: 60010
+    chain_prefix: MPFBTC
+    upstreams:
+      - host: bitcoin.viabtc.io
+        port: 3333
+
+  zec:
+    enabled: false
+    backend_port: 60015
+    chain_prefix: MPFZEC
+    upstreams: []
+
+  ltc:
+    enabled: false
+    backend_port: 60020
+    chain_prefix: MPFLTC
+    upstreams: []
+
+abuse:
+  enabled: true
+  threshold_sec: 3600
+  grace_sec: 900
