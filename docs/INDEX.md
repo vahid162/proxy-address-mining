@@ -12,9 +12,11 @@ Read these first:
 1. `../AGENTS.md`
 2. `../README.md`
 3. `docs/INDEX.md`
+4. `docs/PHASE_STATUS.md`
 
 `AGENTS.md` is the implementation contract for AI agents.
 `README.md` is the project overview.
+`docs/PHASE_STATUS.md` is the current phase guard and decides what work is allowed now.
 This file is the documentation map.
 
 ## Core Contracts
@@ -32,8 +34,9 @@ Read these before any implementation work:
 
 Current phase documents:
 
-1. `docs/PHASE_0.md`
-2. `docs/PHASE_1.md`
+1. `docs/PHASE_STATUS.md`
+2. `docs/PHASE_0.md`
+3. `docs/PHASE_1.md`
 
 Follow phase gates in `docs/ROADMAP.md`.
 Do not implement a later phase until the current phase acceptance gate passes.
@@ -47,31 +50,34 @@ Read:
 1. `../AGENTS.md`
 2. `../README.md`
 3. `docs/INDEX.md`
-4. the document being changed
-5. related core contracts
+4. `docs/PHASE_STATUS.md`
+5. the document being changed
+6. related core contracts
 
 ### Architecture or roadmap change
 
 Read:
 
 1. `../AGENTS.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/SAFETY.md`
-4. `docs/ROADMAP.md`
-5. `docs/DATA_MODEL.md`
-6. `docs/FIREWALL.md`
-7. `docs/ABUSE.md`
-8. all phase documents affected by the change
+2. `docs/PHASE_STATUS.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/SAFETY.md`
+5. `docs/ROADMAP.md`
+6. `docs/DATA_MODEL.md`
+7. `docs/FIREWALL.md`
+8. `docs/ABUSE.md`
+9. all phase documents affected by the change
 
 ### Phase 0 work
 
 Read:
 
 1. `../AGENTS.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/SAFETY.md`
-4. `docs/ROADMAP.md`
-5. `docs/PHASE_0.md`
+2. `docs/PHASE_STATUS.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/SAFETY.md`
+5. `docs/ROADMAP.md`
+6. `docs/PHASE_0.md`
 
 Phase 0 is documentation-only.
 
@@ -80,10 +86,11 @@ Phase 0 is documentation-only.
 Read:
 
 1. `../AGENTS.md`
-2. `docs/SAFETY.md`
-3. `docs/ROADMAP.md`
-4. `docs/PHASE_0.md`
-5. `docs/PHASE_1.md`
+2. `docs/PHASE_STATUS.md`
+3. `docs/SAFETY.md`
+4. `docs/ROADMAP.md`
+5. `docs/PHASE_0.md`
+6. `docs/PHASE_1.md`
 
 Phase 1 must not change traffic.
 
@@ -92,11 +99,12 @@ Phase 1 must not change traffic.
 Read:
 
 1. `../AGENTS.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/SAFETY.md`
-4. `docs/DATA_MODEL.md`
-5. `docs/ROADMAP.md`
-6. relevant phase document
+2. `docs/PHASE_STATUS.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/SAFETY.md`
+5. `docs/DATA_MODEL.md`
+6. `docs/ROADMAP.md`
+7. relevant phase document
 
 Rules:
 
@@ -110,11 +118,12 @@ Rules:
 Read:
 
 1. `../AGENTS.md`
-2. `docs/SAFETY.md`
-3. `docs/FIREWALL.md`
-4. `docs/DATA_MODEL.md`
-5. `docs/ROADMAP.md`
-6. relevant phase document
+2. `docs/PHASE_STATUS.md`
+3. `docs/SAFETY.md`
+4. `docs/FIREWALL.md`
+5. `docs/DATA_MODEL.md`
+6. `docs/ROADMAP.md`
+7. relevant phase document
 
 Rules:
 
@@ -131,12 +140,13 @@ Rules:
 Read:
 
 1. `../AGENTS.md`
-2. `docs/SAFETY.md`
-3. `docs/ABUSE.md`
-4. `docs/DATA_MODEL.md`
-5. `docs/FIREWALL.md`
-6. `docs/ROADMAP.md`
-7. relevant phase document
+2. `docs/PHASE_STATUS.md`
+3. `docs/SAFETY.md`
+4. `docs/ABUSE.md`
+5. `docs/DATA_MODEL.md`
+6. `docs/FIREWALL.md`
+7. `docs/ROADMAP.md`
+8. relevant phase document
 
 Rules:
 
@@ -151,11 +161,12 @@ Rules:
 Read:
 
 1. `../AGENTS.md`
-2. `docs/ARCHITECTURE.md`
-3. `docs/SAFETY.md`
-4. `docs/ROADMAP.md`
-5. relevant domain document
-6. relevant phase document
+2. `docs/PHASE_STATUS.md`
+3. `docs/ARCHITECTURE.md`
+4. `docs/SAFETY.md`
+5. `docs/ROADMAP.md`
+6. relevant domain document
+7. relevant phase document
 
 Rules:
 
@@ -171,10 +182,11 @@ Rules:
 Read:
 
 1. `../AGENTS.md`
-2. `docs/SAFETY.md`
-3. `docs/DATA_MODEL.md`
-4. `docs/ROADMAP.md`
-5. relevant domain document
+2. `docs/PHASE_STATUS.md`
+3. `docs/SAFETY.md`
+4. `docs/DATA_MODEL.md`
+5. `docs/ROADMAP.md`
+6. relevant domain document
 
 Rules:
 
@@ -185,6 +197,10 @@ Rules:
 - jobs call services, not direct DB/firewall logic
 
 ## Documentation Summary
+
+### `docs/PHASE_STATUS.md`
+
+Defines the currently accepted phase, current working phase, allowed work, forbidden work, and next safe step.
 
 ### `docs/ARCHITECTURE.md`
 
