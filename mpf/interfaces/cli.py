@@ -12,6 +12,7 @@ app = typer.Typer(
     name="mpf",
     help="MPF safe CLI skeleton. Safe smoke commands only; phase-gated; no production traffic mutation.",
     no_args_is_help=True,
+    invoke_without_command=True,
 )
 config_app = typer.Typer(help="Configuration smoke commands.")
 db_app = typer.Typer(help="Database smoke commands.")
@@ -25,7 +26,12 @@ def _config_path(config: Path | None) -> Path:
 
 @app.callback()
 def main(
-    version: bool = typer.Option(False, "--version", help="Show version and exit."),
+    version: bool = typer.Option(
+        False,
+        "--version",
+        help="Show version and exit.",
+        is_eager=True,
+    ),
 ) -> None:
     if version:
         typer.echo(__version__)
