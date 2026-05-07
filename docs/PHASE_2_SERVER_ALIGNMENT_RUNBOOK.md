@@ -65,6 +65,20 @@ Telegram service
 plan_only
 ```
 
+## PostgreSQL Peer-auth Rule
+
+The target server uses a local `mpf` PostgreSQL role with peer authentication.
+
+Therefore, Alembic commands that connect to `postgresql+psycopg:///mpf` must be executed as the system user `mpf`, not as root.
+
+Recommended pattern from root:
+
+```bash
+sudo -u mpf env PYTHONPATH=/opt/mpf-py-src /opt/mpf-py-src/.venv/bin/alembic -c /opt/mpf-py-src/alembic.ini <command>
+```
+
+Running Alembic directly as root can fail or connect as the wrong database role.
+
 ## Gate A — Transfer Repository Artifact
 
 Because the server may not have reliable GitHub access, use an approved transfer method:
@@ -179,11 +193,15 @@ Do not continue if backup creation fails.
 
 ## Gate D — Prepare Repository Environment
 
-From the transferred repository directory:
+From the transferred repository directory, create a venv and install the repository there.
+
+Recommended:
 
 ```bash
 cd /opt/mpf-py-src
-python -m pip install -e '.[dev]'
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip setuptools wheel
+.venv/bin/python -m pip install -e '.[dev]'
 ```
 
 If the server has no PyPI access, do not improvise. Prepare an offline wheelhouse in a later documented step.
@@ -196,9 +214,10 @@ Allowed commands:
 
 ```bash
 cd /opt/mpf-py-src
-python -m pytest
-alembic heads
-alembic history
+.venv/bin/python -m pytest
+.venv/bin/alembic heads
+.venv/bin/alembic history
+sudo -u mpf env PYTHONPATH=/opt/mpf-py-src /opt/mpf-py-src/.venv/bin/alembic -c /opt/mpf-py-src/alembic.ini current
 ```
 
 Expected:
@@ -206,6 +225,7 @@ Expected:
 ```text
 pytest passed
 alembic sees 0001_phase2_initial_schema as head
+alembic current connects as database user mpf and shows no current revision before migration
 ```
 
 Still forbidden in Gate E:
@@ -219,8 +239,7 @@ alembic upgrade head
 Only after Gate A-E pass and the operator confirms, run:
 
 ```bash
-cd /opt/mpf-py-src
-alembic upgrade head
+sudo -u mpf env PYTHONPATH=/opt/mpf-py-src /opt/mpf-py-src/.venv/bin/alembic -c /opt/mpf-py-src/alembic.ini upgrade head
 ```
 
 This creates schema tables in the local `mpf` PostgreSQL database.
