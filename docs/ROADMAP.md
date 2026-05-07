@@ -68,7 +68,9 @@ Required core capabilities:
 15. `mpf check` final verdict
 16. systemd service/timer model
 17. local-only API/UI design for future phases
-18. Telegram notification design for future phases
+18. buyer-safe reporting design for future phases
+19. Telegram notification design for future phases
+20. worker identity and enforcement boundary for future phases
 
 ### 2.2 Out of Scope for Early Phases
 
@@ -78,12 +80,13 @@ Do not include in early implementation:
 2. public API exposure
 3. Telegram write actions
 4. multi-server central dashboard
-5. billing/accounting financial logic
+5. billing/payment execution
 6. auto-tuning policy algorithms
 7. direct nftables migration
 8. real-time packet streaming UI
 9. RBAC-heavy enterprise user system
 10. fee-aware Stratum routing
+11. production worker enforcement before evidence and adapter support
 
 ## 3. Architecture Commitments
 
@@ -122,6 +125,7 @@ Interfaces include:
 - CLI
 - internal API
 - local Web UI
+- buyer UI, later
 - Telegram bot
 - future integrations
 
@@ -131,6 +135,7 @@ Forbidden:
 CLI directly edits DB
 CLI directly runs iptables
 UI directly edits DB
+buyer UI directly mutates production state
 Telegram directly runs shell commands
 job bypasses service validation
 ```
@@ -160,18 +165,6 @@ Forbidden:
 - block automation
 - UI exposure
 - Telegram activation
-
-Required outputs:
-
-1. `docs/ARCHITECTURE.md`
-2. `docs/SAFETY.md`
-3. `docs/ABUSE.md`
-4. `docs/FIREWALL.md`
-5. `docs/DATA_MODEL.md`
-6. `docs/ROADMAP.md`
-7. `docs/PHASE_0.md`
-8. `docs/PHASE_1.md`
-9. updated `AGENTS.md`
 
 Acceptance gate:
 
@@ -256,7 +249,16 @@ Required work:
 8. event/audit model
 9. job_runs and scheduler_locks
 10. restore_points and firewall_snapshots
-11. seed BTC lane
+11. seed BTC lane contract
+12. buyer/account boundary representation
+13. plans/entitlements representation
+14. action request representation
+15. worker policy/block representation
+16. feature flag representation
+17. notification rule representation
+18. server profile/preflight history representation
+19. import staging representation
+20. health/incident/runbook representation
 
 Acceptance gate:
 
@@ -265,10 +267,17 @@ migration upgrade passes
 migration rollback or restore strategy documented
 config validation passes
 DB ping passes
-BTC lane seed exists
+BTC lane seed exists or is clearly represented
 customer policy versioning works
 abuse state is representable
+buyer accounts are separate from customer service rows
+worker blocks are not firewall-only
+feature flags do not bypass phase gates
+import staging cannot directly create production rules
 no live firewall apply exists
+no customer firewall rule exists
+no NAT redirect exists
+no proxy data-plane is started
 ```
 
 ## Phase 3 — CLI + Internal API Foundation
@@ -493,7 +502,7 @@ read-only diagnostics do not mutate state
 
 ## Phase 10 — Session / Worker / Policy Timeline
 
-Goal: provide forensic history.
+Goal: provide forensic history and worker evidence.
 
 Required work:
 
@@ -504,6 +513,7 @@ Required work:
 5. session reconcile
 6. worker binding from Stratum authorize/submit when available
 7. evidence pack
+8. worker policy reporting without enforcement
 
 Acceptance gate:
 
@@ -515,6 +525,7 @@ unique workers visible
 reject timeline visible
 worker timeline visible
 evidence pack can be generated
+worker policy can be reported without enforcement
 ```
 
 ## Phase 11 — Local Web UI Read-only
@@ -548,9 +559,42 @@ UI uses service/API layer
 no action buttons mutate state
 ```
 
-## Phase 12 — UI Actions With Confirmation
+## Phase 12 — Buyer-safe Read-only Reporting
 
-Goal: add controlled local UI actions.
+Goal: provide buyer-safe read-only visibility after local UI foundations exist.
+
+Required behavior:
+
+1. buyer account/service mapping
+2. buyer service list
+3. buyer-safe customer detail
+4. expiry and status visibility
+5. usage/report visibility
+6. abuse status visibility without dangerous actions
+7. action request creation only, where allowed
+
+Rules:
+
+- buyer UI is read-only first
+- buyer UI must not mutate customer policy
+- buyer UI must not apply firewall
+- buyer UI must not hard/unhard abuse
+- buyer UI must not create block/pause directly
+- buyer requests go through `action_requests`
+
+Acceptance gate:
+
+```text
+buyer accounts are separate from customers
+buyer reports use service/API layer
+buyer UI is read-only
+buyer action request creation is non-mutating
+no production state mutation path exists
+```
+
+## Phase 13 — UI Actions With Confirmation
+
+Goal: add controlled local operator UI actions.
 
 Required actions:
 
@@ -578,7 +622,7 @@ restore point exists where needed
 plan output is visible before apply
 ```
 
-## Phase 13 — Telegram Notifications, Read-only Commands, Restricted Actions
+## Phase 14 — Telegram Notifications, Read-only Commands, Restricted Actions
 
 Goal: add Telegram safely in stages.
 
@@ -587,15 +631,6 @@ Stages:
 1. notifications only
 2. read-only commands
 3. restricted actions with allowlist and confirmation
-
-Notification examples:
-
-- abuse entered
-- hard applied
-- backend exposure detected
-- backup failed
-- proxy down
-- customer due/expired
 
 Rules:
 
@@ -611,6 +646,35 @@ notifications work
 read-only commands work
 actions require allowlist and confirmation
 actions are audited
+```
+
+## Phase 15 — Worker Policy Enforcement
+
+Goal: enforce worker policy only after worker evidence and data-plane adapter support exist.
+
+Allowed enforcement modes:
+
+```text
+detection_only
+manual_operator_action
+stratum_proxy, only after adapter is implemented and tested
+```
+
+Rules:
+
+- worker block is not firewall-only
+- worker evidence must exist before enforcement
+- adapter failure behavior must be documented
+- enforcement must create event/audit records
+
+Acceptance gate:
+
+```text
+worker-to-session mapping is reliable
+worker policy service is tested
+adapter behavior is tested
+detection-only mode is safe
+strict enforcement does not rely on firewall-only worker names
 ```
 
 ## 6. MVP Definition
@@ -644,13 +708,15 @@ Add:
 3. policy/reject timeline
 4. advanced reports
 5. evidence pack
+6. worker policy reporting without enforcement
 
 ### MPF Python v2
 
 Add:
 
 1. local Web UI read-only
-2. local Web UI actions with confirmation
+2. buyer-safe read-only reporting
+3. local Web UI actions with confirmation
 
 ### MPF Python v3
 
@@ -660,6 +726,14 @@ Add:
 2. Telegram read-only commands
 3. restricted Telegram actions
 
+### MPF Python v4
+
+Add:
+
+1. worker policy enforcement
+2. advanced worker adapters
+3. additional backend adapters where justified
+
 ## 7. Stop Conditions
 
 Stop implementation and review when any of these happen:
@@ -667,13 +741,18 @@ Stop implementation and review when any of these happen:
 - firewall apply is introduced before Phase 6
 - abuse automation is introduced before Phase 8
 - UI writes directly to DB
+- buyer UI mutates production state directly
 - Telegram runs shell commands
-- customer rules are created during Phase 1
-- NAT redirects are created during Phase 1
+- customer rules are created during Phase 1/2
+- NAT redirects are created during Phase 1/2
 - backend is publicly exposed
 - `apply_mode=plan_only` is bypassed
 - TSV/SQLite becomes production source of truth
 - customer is excluded from abuse without valid exemption
+- worker block is implemented as firewall-only IP block
+- worker enforcement is introduced before worker evidence and adapter support
+- import directly creates production firewall/customer state
+- feature flags bypass phase gates
 
 ## 8. Required Tests by Risk Area
 
@@ -700,12 +779,16 @@ Stop implementation and review when any of these happen:
 - constraints tests
 - policy versioning tests
 - restore point relationship tests
+- buyer/customer separation tests
+- worker block boundary tests
+- extension-ready schema tests
 
 ### Interfaces
 
 - CLI uses services
 - API uses services
 - no interface directly mutates DB/firewall
+- buyer UI uses service layer and starts read-only
 
 ## 9. Final Roadmap Rule
 
