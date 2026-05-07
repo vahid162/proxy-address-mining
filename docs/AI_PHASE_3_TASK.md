@@ -38,8 +38,9 @@ Before implementing Phase 3, read in order:
 6. `docs/SAFETY.md`
 7. `docs/ROADMAP.md`
 8. `docs/DATA_MODEL.md`
-9. `docs/PHASE_2_SERVER_RESULT.md`
-10. this file
+9. `docs/TAXONOMY.md`
+10. `docs/PHASE_2_SERVER_RESULT.md`
+11. this file
 
 If documents conflict, follow the stricter safety rule and update documentation before implementation.
 
@@ -74,6 +75,53 @@ mpf doctor
 
 The commands must use services, not direct business logic in CLI handlers.
 
+## Taxonomy Foundation Requirement
+
+Phase 3 must create the code home for stable event/action/status/request vocabulary:
+
+```text
+mpf/domain/taxonomy.py
+```
+
+This foundation should not require a database migration.
+
+Minimum Phase 3 taxonomy coverage:
+
+```text
+EventSeverity
+SubjectType
+ActorType
+ResourceType
+AuditAction
+CustomerStatus
+JobStatus
+AbuseStatus
+FirewallApplyStatus
+PolicyEventType
+WorkerEventType
+RequestContext / correlation_id conventions
+```
+
+Rules:
+
+```text
+- services and interfaces should import taxonomy constants instead of inventing strings
+- do not add new mutation event/action strings outside `docs/TAXONOMY.md`
+- do not create runtime taxonomy registry tables during Phase 3 unless explicitly approved
+- taxonomy changes must remain read-only and non-traffic-changing
+```
+
+Later taxonomy gates:
+
+```text
+Before Phase 5: customer/policy event and audit taxonomy must be finalized
+Before Phase 6: firewall/restore/plan error taxonomy must be finalized
+Before Phase 7: retention, aggregation, accounting, and partitioning policy must be finalized
+Before Phase 8: abuse state/event/evidence taxonomy must be finalized
+Before Phase 10: flow/worker/evidence artifact taxonomy must be finalized
+Before Phase 11+: UI, buyer, Telegram, notification, and action request taxonomy must be finalized
+```
+
 ## Allowed Work
 
 Allowed:
@@ -87,6 +135,7 @@ Allowed:
 - DB read-only inspection
 - DB-only planning objects that do not create live firewall rules
 - tests proving CLI/API use service boundaries
+- taxonomy constants/enums and request context DTOs
 - documentation updates preserving phase gates
 ```
 
@@ -137,6 +186,9 @@ Phase 3 may define API shape or app skeleton, but runtime exposure must remain s
 Required direction:
 
 ```text
+mpf/domain/
+  taxonomy.py
+
 mpf/services/
   config_service.py
   db_service.py
@@ -317,6 +369,8 @@ lane list command is read-only
 customer list command is read-only
 job status command is read-only
 all interface commands are tested
+foundation taxonomy module exists
+services/interfaces use taxonomy constants for new values
 no live firewall apply exists
 no customer firewall rule exists
 no NAT redirect exists
@@ -334,6 +388,8 @@ Before submitting a Phase 3 patch:
 [ ] API handlers are thin.
 [ ] Services own response shaping.
 [ ] Repositories own DB reads.
+[ ] Foundation taxonomy module exists or is updated when new values are introduced.
+[ ] New event/action/status strings follow docs/TAXONOMY.md.
 [ ] Server source alignment was checked when server output is used.
 [ ] No temporary alignment backup files remain in active source directories.
 [ ] No production customer mutation was added.
