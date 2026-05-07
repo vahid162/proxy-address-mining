@@ -38,8 +38,9 @@ Current phase documents:
 2. `docs/PHASE_0.md`
 3. `docs/PHASE_1.md`
 4. `docs/PHASE_1_SERVER_RUNBOOK.md`
-5. `docs/INTRANET_INSTALL.md`
-6. `docs/AI_PHASE_2_TASK.md`
+5. `docs/PHASE_2_SERVER_RESULT.md`
+6. `docs/AI_PHASE_3_TASK.md`
+7. `docs/INTRANET_INSTALL.md`
 
 Follow phase gates in `docs/ROADMAP.md`.
 Do not implement a later phase until the current phase acceptance gate passes.
@@ -113,6 +114,23 @@ Read:
 Phase 2 is repository-only database and domain-model groundwork.
 It must not apply firewall rules, create NAT redirects, start proxy containers, or activate abuse automation.
 
+### Phase 3 work
+
+Read:
+
+1. `../AGENTS.md`
+2. `../README.md`
+3. `docs/PHASE_STATUS.md`
+4. `docs/ARCHITECTURE.md`
+5. `docs/SAFETY.md`
+6. `docs/ROADMAP.md`
+7. `docs/DATA_MODEL.md`
+8. `docs/AI_PHASE_3_TASK.md`
+9. `docs/PHASE_2_SERVER_RESULT.md`
+
+Phase 3 is CLI + Internal API Foundation work.
+It must stay read-only / non-traffic-changing and must route interface behavior through services.
+
 ### Database or migration work
 
 Read:
@@ -123,8 +141,7 @@ Read:
 4. `docs/SAFETY.md`
 5. `docs/DATA_MODEL.md`
 6. `docs/ROADMAP.md`
-7. `docs/AI_PHASE_2_TASK.md`
-8. relevant phase document
+7. relevant phase document
 
 Rules:
 
@@ -133,6 +150,7 @@ Rules:
 - Customer policy must be versioned.
 - Restore points and job_runs must be representable.
 - Do not run production migrations until reviewed and explicitly approved.
+- On farm5, run Alembic from `/opt/mpf-py-src`, not from `/root`.
 
 ### Firewall work
 
@@ -259,13 +277,21 @@ Defines preflight and bootstrap without traffic changes.
 
 Records the accepted Phase 1 bootstrap result for the target server and current operational warning about time sync.
 
+### `docs/PHASE_2_SERVER_RESULT.md`
+
+Records the accepted Phase 2 schema migration result on farm5.
+
+### `docs/AI_PHASE_3_TASK.md`
+
+Defines the active Phase 3 implementation boundary for AI coding agents.
+
 ### `docs/INTRANET_INSTALL.md`
 
 Defines the safe workflow for servers without direct GitHub or internet access.
 
 ### `docs/AI_PHASE_2_TASK.md`
 
-Defines the active Phase 2 implementation boundary for AI coding agents.
+Defines the completed Phase 2 implementation boundary for AI coding agents.
 
 ## Current Roadmap Snapshot
 
@@ -282,8 +308,10 @@ Phase 8  — Abuse 1h Core
 Phase 9  — Check / Report / Diagnostics
 Phase 10 — Session / Worker / Policy Timeline
 Phase 11 — Local Web UI Read-only
-Phase 12 — UI Actions With Confirmation
-Phase 13 — Telegram Notifications, Read-only Commands, Restricted Actions
+Phase 12 — Buyer-safe Read-only Reporting
+Phase 13 — UI Actions With Confirmation
+Phase 14 — Telegram Notifications, Read-only Commands, Restricted Actions
+Phase 15 — Worker Policy Enforcement
 ```
 
 ## Stop Conditions
@@ -292,8 +320,8 @@ Stop and revise if any change introduces:
 
 1. firewall apply before Phase 6
 2. abuse automation before Phase 8
-3. customer rules during Phase 1
-4. NAT redirects during Phase 1
+3. customer rules during Phase 1, Phase 2, or Phase 3
+4. NAT redirects during Phase 1, Phase 2, or Phase 3
 5. backend public exposure
 6. UI direct DB write
 7. Telegram shell command execution
@@ -303,6 +331,8 @@ Stop and revise if any change introduces:
 11. ad-hoc production firewall mutation
 12. missing event/audit for mutation
 13. missing restore point for dangerous action
+14. production customer mutation during Phase 3
+15. proxy data-plane activation during Phase 3
 
 ## Final Rule
 
