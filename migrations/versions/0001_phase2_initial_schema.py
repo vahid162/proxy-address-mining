@@ -12,6 +12,7 @@ from alembic import op
 
 from mpf.models import Base
 import mpf.future_models  # noqa: F401 - registers future-ready tables on Base.metadata
+import mpf.extension_models  # noqa: F401 - registers extension-ready tables on Base.metadata
 
 revision: str = "0001_phase2_initial_schema"
 down_revision: str | None = None
