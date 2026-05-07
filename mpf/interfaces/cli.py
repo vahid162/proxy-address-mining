@@ -10,7 +10,7 @@ from mpf.db import ping_database
 
 app = typer.Typer(
     name="mpf",
-    help="MPF Phase 1 CLI skeleton. Safe smoke commands only; no production traffic mutation.",
+    help="MPF safe CLI skeleton. Phase-gated smoke commands only; no production traffic mutation.",
     no_args_is_help=True,
 )
 config_app = typer.Typer(help="Configuration smoke commands.")
@@ -36,10 +36,10 @@ def main(
 def doctor(
     config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
 ) -> None:
-    """Run Phase 1 read-only diagnostics."""
+    """Run read-only diagnostics without mutating production traffic."""
     path = _config_path(config)
     ok, message = validate_config(path)
-    typer.echo("MPF Phase 1 doctor")
+    typer.echo("MPF doctor")
     typer.echo(f"config_path: {path}")
     typer.echo(f"config: {'OK' if ok else 'ERROR'}")
     if not ok:
@@ -105,8 +105,12 @@ def db_ping(
 @app.command("phase-status")
 def phase_status() -> None:
     """Print the current repository phase guard."""
-    typer.echo("current_accepted_phase: Phase 0 — Architecture Freeze")
-    typer.echo("current_working_phase: Phase 1 — Repository Bootstrap Skeleton / Preflight Preparation")
+    typer.echo("current_accepted_phase: Phase 1 — Preflight + Bootstrap Without Traffic Changes")
+    typer.echo("current_working_phase: Phase 2 — PostgreSQL + Config + Domain Model")
+    typer.echo("server_state: farm5 phase 1 bootstrapped and verified")
+    typer.echo("production_traffic: none")
     typer.echo("firewall_apply_allowed: no")
     typer.echo("abuse_automation_allowed: no")
     typer.echo("customer_onboarding_allowed: no")
+    typer.echo("ui_allowed: no")
+    typer.echo("telegram_allowed: no")
