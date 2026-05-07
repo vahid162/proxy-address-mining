@@ -29,7 +29,7 @@ def test_example_config_keeps_plan_only_and_abuse_threshold() -> None:
 def test_cli_help_works() -> None:
     result = RUNNER.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "Safe smoke commands only" in result.output
+    assert "Phase-gated read-only foundation commands" in result.output
 
 
 def test_cli_version_works_without_command() -> None:
@@ -55,8 +55,23 @@ def test_cli_config_validate_example() -> None:
     assert "OK" in result.output
 
 
-def test_cli_doctor_reports_no_traffic_changes() -> None:
+def test_cli_doctor_reports_no_traffic_changes(monkeypatch) -> None:
+    from mpf.interfaces import cli
+
+    class FakeDoctorStatus:
+        ok = True
+        config_ok = True
+        db_ok = True
+        message = "OK"
+        config_path = example_config_path()
+        apply_mode = "plan_only"
+        traffic_changes = "none"
+        firewall_mutation = "disabled"
+        abuse_automation = "disabled"
+
+    monkeypatch.setattr(cli.doctor_service, "run", lambda path: FakeDoctorStatus())
     result = RUNNER.invoke(app, ["doctor", "--config", str(example_config_path())])
     assert result.exit_code == 0
     assert "traffic_changes: none" in result.output
     assert "firewall_mutation: disabled" in result.output
+    assert "abuse_automation: disabled" in result.output
