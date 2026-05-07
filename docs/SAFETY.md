@@ -82,15 +82,41 @@ firewall:
 
 must remain unchanged.
 
-### Phase 2+
+### Phase 2: PostgreSQL + Config + Domain Model
 
-Later phases may introduce DB schema, CLI/API, Compose data plane, customer CRUD, firewall planner, usage, abuse, UI, and Telegram only after earlier acceptance checks pass.
+Allowed:
+
+- schema representation
+- migration setup
+- model contracts
+- config/domain model refinement
+- tests for schema and safety boundaries
+- extension-ready contracts for future control-plane capabilities
+
+Forbidden:
+
+- production customer onboarding
+- live firewall apply
+- NAT redirects
+- proxy data-plane activation
+- usage timers
+- abuse automation
+- UI service
+- buyer UI service
+- Telegram bot
+- runtime feature activation for dangerous behavior
+- worker enforcement
+- production import
+
+### Later Phases
+
+Later phases may introduce DB-backed CLI/API, Compose data plane, customer CRUD, firewall planner, usage, abuse, UI, buyer UI, Telegram, and worker enforcement only after earlier acceptance checks pass.
 
 ## Global Non-Negotiable Rules
 
 - PostgreSQL is the source of truth.
 - `/etc/mpf/mpf.yaml` is configuration, not mutable runtime state.
-- CLI, UI, Telegram, and future API must use the same service layer.
+- CLI, UI, buyer UI, Telegram, and future API must use the same service layer.
 - Business logic must not live in CLI handlers.
 - No interface may directly write DB tables.
 - No interface may directly run iptables commands.
@@ -102,13 +128,17 @@ Later phases may introduce DB schema, CLI/API, Compose data plane, customer CRUD
 - Backend ports must not be publicly exposed.
 - v2rayA UI must not be publicly exposed.
 - Early Web UI must not be publicly exposed.
+- Buyer UI must be read-only first.
+- Buyer accounts must remain separate from customer service/port records.
+- Worker block must not be modeled as firewall-only.
+- Feature flags must not bypass phase gates.
 
 ## API-First Safety Boundary
 
 Correct pattern:
 
 ```text
-CLI / API / UI / Telegram
+CLI / API / UI / Buyer UI / Telegram
   -> request DTO / command object
   -> service layer
   -> repository / adapter
@@ -121,11 +151,63 @@ Forbidden pattern:
 ```text
 CLI -> subprocess("iptables ...")
 UI -> direct SQL update
+Buyer UI -> direct customer/firewall/policy/abuse mutation
 Telegram -> shell command
 job -> direct table mutation without service validation
 ```
 
 The service layer owns validation, state transitions, audit, and side-effect ordering.
+
+## Buyer Safety
+
+Buyer-facing features are future work and must be read-only first.
+
+Rules:
+
+```text
+buyer UI must not mutate customer policy directly
+buyer UI must not trigger firewall apply
+buyer UI must not hard/unhard abuse state
+buyer UI must not create block/pause directly
+buyer UI must not write DB tables directly
+buyer-initiated changes create action_requests first
+operator review is required before dangerous execution
+```
+
+Buyer accounts and buyer users are identity/access concepts. Customer rows are service/port allocations.
+
+## Worker Safety
+
+Worker names are Stratum-layer identities, not firewall-layer identities.
+
+Rules:
+
+```text
+worker block must not be implemented as firewall-only IP block
+worker enforcement requires worker/session evidence
+worker enforcement requires an approved data-plane or detection adapter
+worker detection-only mode must record confidence and evidence
+worker enforcement must create event/audit records
+```
+
+Production worker enforcement is forbidden before the session/worker evidence phase and adapter support exist.
+
+## Extension Safety
+
+Extension-ready schema does not mean runtime activation.
+
+Rules:
+
+```text
+feature_flags default sensitive capabilities to disabled
+notification_rules must not hardwire Telegram as the only target
+import staging must not directly create live customers or firewall rules
+maintenance windows must not silently bypass abuse coverage
+config snapshots must not store raw secrets
+secret_references store only paths/status, not secret values
+restore drills are required before backup strategy is trusted
+incident/runbook records guide operators but do not auto-apply dangerous fixes in early phases
+```
 
 ## Firewall Safety
 
@@ -298,6 +380,7 @@ Docker published port without localhost bind
 ```
 
 UI must be read-only first.
+Buyer UI must be read-only first.
 
 Any future UI action must:
 
@@ -389,18 +472,49 @@ When config is invalid:
 - services must fail closed
 - no firewall apply may run
 
+## Stop Conditions
+
+Stop and revise if any change introduces:
+
+```text
+firewall apply before Phase 6
+abuse automation before Phase 8
+customer rule creation during Phase 1/2
+NAT redirect during Phase 1/2
+backend public exposure
+UI direct DB write
+buyer UI direct production mutation
+Telegram shell command execution
+bypassing apply_mode=plan_only
+production TSV/SQLite source of truth
+customer excluded from abuse without valid exemption
+business logic inside CLI handler
+ad-hoc production iptables mutation
+missing restore point for dangerous action
+missing event/audit for mutation
+worker block implemented as firewall-only IP block
+worker enforcement enabled before worker evidence and adapter support
+feature flag used to bypass phase gate
+import directly creating production firewall/customer state
+raw secret stored in Git or DB
+```
+
 ## AI Coding Agent Safety Checklist
 
 Before implementing or changing code, an AI agent must verify:
 
 - this file was read
 - `docs/ARCHITECTURE.md` was read
+- `docs/PHASE_STATUS.md` was read
 - relevant domain docs were read
 - change respects API-first boundaries
 - dangerous action has event/audit
 - dangerous action has restore point
 - tests exist for safety-critical behavior
 - no direct firewall or DB mutation was added through an interface
-- no Phase 0/1 forbidden action was introduced
+- no forbidden phase action was introduced
+- buyer/customer separation is preserved
+- worker block is not firewall-only
+- feature flags do not bypass phase gates
 
 A patch that weakens these rules must be rejected.
