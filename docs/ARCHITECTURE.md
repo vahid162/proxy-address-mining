@@ -47,6 +47,8 @@ The following are out of scope for the first stable control-plane version:
 - direct nftables migration
 - real-time packet streaming in UI
 - auto-tuning firewall policy
+- heavy enterprise RBAC
+- production worker-name enforcement before session/worker timeline and Stratum-aware enforcement exist
 
 ## Architecture Rule: API First
 
@@ -59,6 +61,7 @@ Interfaces must call the same service layer:
 ```text
 CLI
 Local Web UI
+Future Buyer UI
 Telegram bot
 Future internal REST API
 ```
@@ -71,6 +74,7 @@ Forbidden patterns:
 CLI parses command -> directly edits DB
 CLI parses command -> directly runs iptables
 UI form -> directly writes DB
+Buyer UI -> directly mutates customer policy/firewall/abuse state
 Telegram command -> directly runs shell command
 Job runner -> bypasses service validation
 ```
@@ -96,6 +100,7 @@ The CLI is a thin operator client, not the core application.
     domain/
       abuse.py
       blocks.py
+      buyers.py
       customers.py
       events.py
       firewall_model.py
@@ -107,19 +112,23 @@ The CLI is a thin operator client, not the core application.
     services/
       abuse_service.py
       block_service.py
+      buyer_service.py
       customer_service.py
       firewall_service.py
       job_service.py
       report_service.py
       usage_service.py
+      worker_policy_service.py
 
     repositories/
       abuse_repo.py
+      buyer_repo.py
       customer_repo.py
       event_repo.py
       firewall_repo.py
       job_repo.py
       usage_repo.py
+      worker_repo.py
 
     adapters/
       db.py
@@ -129,11 +138,13 @@ The CLI is a thin operator client, not the core application.
       firewall_nft.py
       tcpdump.py
       notifier_telegram.py
+      worker_enforcement.py
 
     interfaces/
       cli.py
       api.py
       ui.py
+      buyer_ui.py
       telegram_bot.py
 
     jobs/
@@ -166,6 +177,8 @@ Examples:
 - abuse state transition
 - lane collision rules
 - firewall desired model objects
+- buyer account/service access rules
+- worker policy matching rules
 
 ### Services
 
@@ -179,6 +192,9 @@ Examples:
 - apply firewall plan
 - run abuse scan
 - create restore point
+- produce buyer-safe service report
+- create buyer action request
+- evaluate worker policy, later
 
 ### Repositories
 
@@ -196,6 +212,7 @@ Adapters are the only modules allowed to talk to external systems:
 - tcpdump
 - systemd, if needed
 - Telegram, later
+- worker enforcement adapter, later
 
 ### Interfaces
 
@@ -283,6 +300,36 @@ Forbidden uses:
 - primary usage state database
 - split production state across multiple SQLite files
 
+## Buyer Account Boundary
+
+Buyer accounts are future work, but the boundary must exist early.
+
+Rules:
+
+- `customers` are service/port records, not human login identities.
+- buyer accounts and buyer users are separate from operators.
+- first buyer UI must be read-only.
+- buyer reports must come from report services, not direct table access.
+- buyer-initiated changes should create reviewed action requests, not directly mutate production state.
+- buyer UI must never directly mutate firewall, abuse state, customer policy, blocks, pauses, or usage state.
+
+## Worker Policy and Enforcement Boundary
+
+Worker names are Stratum-layer identities.
+Firewall rules alone cannot reliably enforce a worker-name block.
+
+Required future direction:
+
+```text
+worker observation / session timeline
+  -> worker policy service
+  -> worker enforcement adapter, later
+  -> event/audit/evidence
+```
+
+Phase 2 may model worker identity and worker policy state.
+Production worker enforcement must wait until session/worker evidence and a suitable data-plane enforcement adapter exist.
+
 ## Firewall Lifecycle
 
 Every firewall operation must follow this lifecycle:
@@ -336,19 +383,23 @@ Required event categories:
 - backup created / failed
 - restore point created
 - job succeeded / failed
+- buyer action requested, later
+- worker policy event, later
 
 Events must be structured enough for CLI, UI, reports, and Telegram notifications.
 
-## Local UI and Telegram
+## Local UI, Buyer UI, and Telegram
 
 UI and Telegram are future interfaces only.
 
 Rules:
 
 - local UI must bind only to `127.0.0.1` or Unix socket
-- first UI version is read-only
+- first local UI version is read-only
+- first buyer UI version is read-only
 - no UI direct DB writes
 - no UI direct firewall writes
+- no buyer UI direct policy/firewall/abuse writes
 - Telegram starts as notifications only
 - Telegram actions require allowlist and confirmation, later
 
@@ -371,8 +422,10 @@ Recommended order:
 9. check / report / diagnostics
 10. session / worker / policy timeline
 11. local UI read-only
-12. UI actions with confirmation
-13. Telegram notifications / commands
+12. buyer-safe read-only reporting, after local UI foundations
+13. UI actions with confirmation
+14. Telegram notifications / commands
+15. worker policy enforcement, only after worker evidence and data-plane support
 ```
 
 ## AI Coding Rules
@@ -385,5 +438,7 @@ AI coding agents must preserve these invariants:
 - no production firewall apply while `apply_mode=plan_only`
 - no customer can be excluded from abuse scanning unless explicit exemption with reason and expiry exists
 - no lane-specific copied command tree
+- no buyer account stored as a customer service row
+- no worker block represented as firewall-only
 - no secrets in repository
 - no destructive action without event and restore point
