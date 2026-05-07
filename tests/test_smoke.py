@@ -32,6 +32,13 @@ def test_cli_help_works() -> None:
     assert "Safe smoke commands only" in result.output
 
 
+def test_cli_version_works_without_command() -> None:
+    result = RUNNER.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert "0.1.0" in result.output
+    assert "Missing command" not in result.output
+
+
 def test_cli_phase_status_is_safe() -> None:
     result = RUNNER.invoke(app, ["phase-status"])
     assert result.exit_code == 0
