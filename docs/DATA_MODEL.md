@@ -29,6 +29,8 @@ Allowed non-primary uses:
 - All mutations go through services/repositories.
 - Every dangerous mutation creates event/audit records.
 - Every destructive or risky action creates a restore point.
+- Buyer accounts are separate from customer service/port records.
+- Worker block policy is not a firewall-only concept.
 
 ## Migration Tooling
 
@@ -93,6 +95,13 @@ lanes and customers:
   customer_policies
   customer_ip_pins
 
+future buyer boundary:
+  buyer_accounts
+  buyer_users
+  customer_service_links
+  customer_service_permissions
+  action_requests
+
 operations:
   events
   audit_log
@@ -112,6 +121,10 @@ usage and observability:
   flow_events
   worker_events
   customer_workers
+  worker_identities
+  worker_policies
+  worker_blocks
+  worker_enforcement_events
 
 abuse:
   abuse_states
@@ -133,53 +146,13 @@ backup:
   backups
 ```
 
-## Lanes
-
-### `lanes`
-
-Purpose: enabled coin/proxy lanes.
-
-Required fields:
-
-```text
-id
-name                    unique, e.g. btc
-enabled                 bool
-backend_port            integer, unique among enabled lanes
-chain_prefix            text
-protocol                text, e.g. stratum
-created_at
-updated_at
-```
-
-Rules:
-
-- BTC lane uses backend `60010`.
-- Additional coins must be added as lanes.
-- Do not clone command trees per coin.
-
-### `lane_upstreams`
-
-Purpose: mining pool endpoints per lane.
-
-Required fields:
-
-```text
-id
-lane_id
-host
-port
-priority
-enabled
-created_at
-updated_at
-```
-
-## Customers
+## Customers and Buyer Accounts
 
 ### `customers`
 
-Purpose: stable customer identity and port assignment.
+Purpose: stable customer service identity and port assignment.
+
+Important: this table is not a human login account. A customer row represents a mining service/port allocation.
 
 Required fields:
 
@@ -211,6 +184,115 @@ paused   -> reject/pause behavior
 expired  -> no normal forwarding unless explicit grace policy exists
 deleted  -> removed from desired firewall model after safe deletion
 ```
+
+### `buyer_accounts`
+
+Purpose: future buyer/customer account boundary for a buyer-facing panel.
+
+Required fields:
+
+```text
+id
+account_key             unique stable account reference
+display_name
+status                  active / suspended / closed
+notes
+created_at
+updated_at
+```
+
+Rules:
+
+- Buyer accounts must not be stored inside `customers`.
+- A buyer account can own zero or more customer service records through `customer_service_links`.
+- Buyer UI must be read-only first.
+
+### `buyer_users`
+
+Purpose: future login identities under a buyer account.
+
+Required fields:
+
+```text
+id
+buyer_account_id
+email
+display_name
+password_hash           nullable until auth is implemented
+status
+last_login_at
+created_at
+updated_at
+```
+
+Rules:
+
+- Do not implement public login until the UI/auth phase.
+- Store hashes only. Never store raw passwords.
+
+### `customer_service_links`
+
+Purpose: link buyer accounts to customer service/port records.
+
+Required fields:
+
+```text
+id
+buyer_account_id
+customer_id
+status
+starts_at
+ends_at
+created_at
+created_by
+reason
+```
+
+### `customer_service_permissions`
+
+Purpose: lightweight future permissions for buyer-visible services.
+
+Required fields:
+
+```text
+id
+buyer_user_id
+customer_id
+scope                   view_report / view_usage / request_action, later
+enabled
+created_at
+created_by
+```
+
+This is intentionally not a heavy enterprise RBAC system.
+
+### `action_requests`
+
+Purpose: future request/approval queue for buyer-safe actions.
+
+Required fields:
+
+```text
+id
+requester_type          buyer / operator / system
+requester_id
+action_type             renew_request / unpause_request / support_request / ip_change_request, later
+target_type
+target_id
+status                  pending / approved / rejected / executed / cancelled
+payload_json
+created_at
+reviewed_by
+reviewed_at
+review_reason
+```
+
+Rules:
+
+- Buyer UI should create requests, not directly mutate customers, firewall, abuse, blocks, pauses, or policies.
+- Dangerous requests must require operator review and event/audit in later phases.
+
+## Customer Policies
 
 ### `customer_policies`
 
@@ -260,6 +342,128 @@ created_at
 created_by
 reason
 ```
+
+## Lanes
+
+### `lanes`
+
+Purpose: enabled coin/proxy lanes.
+
+Required fields:
+
+```text
+id
+name                    unique, e.g. btc
+enabled                 bool
+backend_port            integer, unique among enabled lanes
+chain_prefix            text
+protocol                text, e.g. stratum
+created_at
+updated_at
+```
+
+Rules:
+
+- BTC lane uses backend `60010`.
+- Additional coins must be added as lanes.
+- Do not clone command trees per coin.
+
+### `lane_upstreams`
+
+Purpose: mining pool endpoints per lane.
+
+Required fields:
+
+```text
+id
+lane_id
+host
+port
+priority
+enabled
+created_at
+updated_at
+```
+
+## Worker Policy and Enforcement Boundary
+
+Worker names are Stratum-layer identities. Firewall rules can block IPs and ports, but cannot reliably understand a worker name by themselves.
+
+### `worker_identities`
+
+Purpose: observed and normalized worker identities.
+
+Required fields:
+
+```text
+id
+customer_id
+worker_name
+normalized_worker_name
+first_seen_at
+last_seen_at
+status
+```
+
+### `worker_policies`
+
+Purpose: future worker policy mode per customer.
+
+Required fields:
+
+```text
+id
+customer_id
+mode                    allow_all / block_list / allow_list
+created_at
+created_by
+reason
+```
+
+### `worker_blocks`
+
+Purpose: future worker block rules.
+
+Required fields:
+
+```text
+id
+customer_id
+worker_name
+match_type              exact / prefix / regex
+reason
+starts_at
+expires_at
+status                  active / expired / removed
+created_at
+created_by
+removed_at
+removed_by
+```
+
+### `worker_enforcement_events`
+
+Purpose: evidence/audit trail for worker enforcement decisions.
+
+Required fields:
+
+```text
+id
+customer_id
+worker_name
+src_ip
+action                  observed / blocked / rejected / killed_session
+adapter                 detection_only / stratum_proxy / manual, later
+evidence_json
+created_at
+created_by
+```
+
+Rules:
+
+- Worker blocking is not accepted as firewall-only.
+- Strict worker enforcement requires future Stratum-aware data-plane support.
+- Detection-only worker actions must record confidence and evidence.
 
 ## Events and Audit
 
@@ -649,7 +853,7 @@ Locks required for:
 
 ### `blocks`
 
-Purpose: global or customer-scoped blocks.
+Purpose: global or customer-scoped IP/port blocks.
 
 Required fields:
 
@@ -668,6 +872,8 @@ created_by
 removed_at
 removed_by
 ```
+
+IP/port blocks are separate from worker blocks.
 
 ### `pauses`
 
@@ -798,6 +1004,8 @@ Service ownership:
 
 ```text
 customer_service owns customers/customer_policies/customer_ip_pins
+buyer_service owns buyer_accounts/buyer_users/customer_service_links/customer_service_permissions/action_requests
+worker_policy_service owns worker_identities/worker_policies/worker_blocks/worker_enforcement_events
 firewall_service owns firewall_* and restore_points for firewall operations
 abuse_service owns abuse_states/abuse_events and calls firewall_service for hard/unhard
 usage_service owns usage_samples/policy_events
@@ -817,10 +1025,17 @@ customers(port)
 customers(status)
 customers(lane_id, status)
 customer_policies(customer_id, is_current)
+buyer_accounts(account_key)
+buyer_users(buyer_account_id, email)
+customer_service_links(buyer_account_id, status)
+action_requests(status, created_at)
 usage_samples(customer_id, sampled_at)
 policy_events(customer_id, seen_at)
 flow_sessions(customer_id, last_seen_at)
 worker_events(customer_id, seen_at)
+worker_identities(customer_id, status)
+worker_blocks(customer_id, status)
+worker_enforcement_events(customer_id, created_at)
 abuse_states(status)
 events(subject_type, subject_id, created_at)
 audit_log(resource_type, resource_id, created_at)
@@ -838,6 +1053,7 @@ Retention policy must be explicit for large tables:
 - flow_sessions
 - flow_events
 - worker_events
+- worker_enforcement_events
 - notifications
 - job_runs
 - application logs outside DB
@@ -875,9 +1091,13 @@ Forbidden:
 ```text
 CLI directly updates customers
 UI directly updates customer_policies
+buyer UI directly updates customer_policies
+buyer UI directly triggers firewall/apply/abuse/block/pause
+UI directly updates abuse_states
 Telegram directly inserts blocks
 job directly edits abuse_states without abuse_service
 firewall adapter writes customer policy
+worker block implemented as firewall-only IP block
 ```
 
 Allowed:
@@ -886,6 +1106,9 @@ Allowed:
 CLI -> customer_service.add_customer() -> repositories -> event/audit
 abuse job -> abuse_service.run_scan() -> repositories + firewall_service
 UI -> report_service.get_customer_report()
+buyer UI -> buyer_report_service.get_service_report()
+buyer UI -> action_request_service.create_request()
+worker policy service -> worker enforcement adapter, later
 ```
 
 ## Tests Required
@@ -901,6 +1124,8 @@ Minimum tests:
 - hard action references restore point and policy backup
 - job run records success/failure
 - API tokens store hashes only
+- buyer accounts remain separate from customer service records
+- worker blocks are not modeled as firewall-only IP blocks
 - import does not bypass service validation
 
 ## Acceptance Checklist
@@ -915,6 +1140,8 @@ Data model is accepted only when:
 - firewall restore/apply history is representable
 - job runs and locks are representable
 - event/audit is mandatory for mutations
+- future buyer UI needs are represented without mixing buyer accounts with customer service rows
+- future worker block needs are represented without pretending firewall can block worker names alone
 - UI/API/Telegram future needs are represented without direct table writes
 - tests cover constraints and critical relationships
 
