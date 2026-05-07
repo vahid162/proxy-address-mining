@@ -13,8 +13,9 @@ Read it together with:
 5. `docs/SAFETY.md`
 6. `docs/DATA_MODEL.md`
 7. `docs/ROADMAP.md`
-8. `docs/PHASE_1_SERVER_RUNBOOK.md`
-9. `docs/INTRANET_INSTALL.md`
+8. `docs/FUTURE_EXTENSIONS.md`
+9. `docs/PHASE_1_SERVER_RUNBOOK.md`
+10. `docs/INTRANET_INSTALL.md`
 
 ## Current Allowed Scope
 
@@ -36,6 +37,7 @@ Allowed work:
 - config/domain model refinement
 - repository skeletons without production mutations
 - documentation that preserves phase gates
+- extension-ready schema contracts without runtime activation
 ```
 
 Forbidden work:
@@ -52,8 +54,12 @@ Forbidden work:
 - abuse runner automation
 - block or pause automation
 - local UI service
+- buyer UI service
 - Telegram bot
 - production customer import
+- runtime feature flag activation for dangerous behavior
+- worker enforcement
+- Stratum-aware production proxy changes
 - any command that changes traffic
 ```
 
@@ -105,6 +111,45 @@ backups
 settings
 ```
 
+Future-ready boundaries that must remain represented:
+
+```text
+buyer_accounts
+buyer_users
+customer_service_links
+customer_service_permissions
+action_requests
+plans
+plan_versions
+subscriptions
+subscription_items
+service_entitlements
+customer_policy_overrides
+worker_identities
+worker_policies
+worker_blocks
+worker_enforcement_events
+feature_flags
+notification_rules
+config_snapshots
+restore_drills
+server_profiles
+preflight_runs
+preflight_findings
+import_batches
+import_staged_customers
+import_validation_errors
+customer_health_snapshots
+incidents
+incident_events
+runbook_steps
+maintenance_windows
+secret_references
+abuse_profiles
+```
+
+These future-ready tables are schema contracts only. They do not permit runtime implementation before later phase gates.
+
 ## Abuse Representation Requirement
 
 The one-hour abuse state machine must be representable from Phase 2, even though the abuse runner is not active yet.
@@ -118,6 +163,35 @@ exemption requires reason and expiry
 hard references restore point and policy backup
 manual unhard must be auditable in later phases
 ```
+
+## Buyer Boundary Requirement
+
+Buyer-facing identity must be separate from customer service/port records.
+
+Required representation:
+
+```text
+buyer_accounts / buyer_users
+  -> customer_service_links
+  -> customers as service/port records
+```
+
+Buyer actions must be represented as action requests, not direct mutations.
+
+## Worker Boundary Requirement
+
+Worker names are Stratum-layer identities and must not be modeled as firewall-only IP blocks.
+
+Required representation:
+
+```text
+worker_identities
+worker_policies
+worker_blocks
+worker_enforcement_events
+```
+
+Production worker enforcement must wait for worker/session evidence and an approved adapter in later phases.
 
 ## Firewall Representation Requirement
 
@@ -159,6 +233,14 @@ Phase 2 can be accepted only when:
 [ ] Tests cover critical schema groups.
 [ ] Customer policy versioning is represented.
 [ ] Abuse state machine is represented.
+[ ] Buyer accounts are separate from customer service rows.
+[ ] Buyer action requests are represented.
+[ ] Worker policy state is represented.
+[ ] Worker blocks are not firewall-only.
+[ ] Feature flags are represented but do not bypass phase gates.
+[ ] Notification rules are represented without activating Telegram.
+[ ] Server profile / preflight history is represented.
+[ ] Import staging is represented and cannot directly create production rules.
 [ ] Firewall restore/apply history is represented.
 [ ] job_runs and scheduler_locks are represented.
 [ ] No live firewall apply exists.
