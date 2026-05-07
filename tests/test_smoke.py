@@ -42,11 +42,12 @@ def test_cli_version_works_without_command() -> None:
 def test_cli_phase_status_matches_current_phase_guard() -> None:
     result = RUNNER.invoke(app, ["phase-status"])
     assert result.exit_code == 0
-    assert "current_accepted_phase: Phase 2" in result.output
-    assert "current_working_phase: Phase 3" in result.output
-    assert "server_state: farm5 phase 2 schema migration completed and verified" in result.output
+    assert "current_accepted_phase: Phase 3" in result.output
+    assert "current_working_phase: Phase 4" in result.output
+    assert "server_state: farm5 phase 3 read-only CLI/API foundation completed and verified" in result.output
     assert "firewall_apply_allowed: no" in result.output
     assert "abuse_automation_allowed: no" in result.output
+    assert "proxy_data_plane_allowed: planning_only" in result.output
 
 
 def test_cli_config_validate_example() -> None:
