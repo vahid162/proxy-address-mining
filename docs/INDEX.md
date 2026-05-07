@@ -37,6 +37,9 @@ Current phase documents:
 1. `docs/PHASE_STATUS.md`
 2. `docs/PHASE_0.md`
 3. `docs/PHASE_1.md`
+4. `docs/PHASE_1_SERVER_RUNBOOK.md`
+5. `docs/INTRANET_INSTALL.md`
+6. `docs/AI_PHASE_2_TASK.md`
 
 Follow phase gates in `docs/ROADMAP.md`.
 Do not implement a later phase until the current phase acceptance gate passes.
@@ -91,8 +94,24 @@ Read:
 4. `docs/ROADMAP.md`
 5. `docs/PHASE_0.md`
 6. `docs/PHASE_1.md`
+7. `docs/INTRANET_INSTALL.md`, if the server has no direct GitHub access
 
 Phase 1 must not change traffic.
+
+### Phase 2 work
+
+Read:
+
+1. `../AGENTS.md`
+2. `docs/PHASE_STATUS.md`
+3. `docs/SAFETY.md`
+4. `docs/DATA_MODEL.md`
+5. `docs/ROADMAP.md`
+6. `docs/AI_PHASE_2_TASK.md`
+7. `docs/PHASE_1_SERVER_RUNBOOK.md`
+
+Phase 2 is repository-only database and domain-model groundwork.
+It must not apply firewall rules, create NAT redirects, start proxy containers, or activate abuse automation.
 
 ### Database or migration work
 
@@ -104,7 +123,8 @@ Read:
 4. `docs/SAFETY.md`
 5. `docs/DATA_MODEL.md`
 6. `docs/ROADMAP.md`
-7. relevant phase document
+7. `docs/AI_PHASE_2_TASK.md`
+8. relevant phase document
 
 Rules:
 
@@ -112,6 +132,7 @@ Rules:
 - Migrations are required.
 - Customer policy must be versioned.
 - Restore points and job_runs must be representable.
+- Do not run production migrations until reviewed and explicitly approved.
 
 ### Firewall work
 
@@ -233,6 +254,18 @@ Defines documentation-only architecture freeze.
 ### `docs/PHASE_1.md`
 
 Defines preflight and bootstrap without traffic changes.
+
+### `docs/PHASE_1_SERVER_RUNBOOK.md`
+
+Records the accepted Phase 1 bootstrap result for the target server and current operational warning about time sync.
+
+### `docs/INTRANET_INSTALL.md`
+
+Defines the safe workflow for servers without direct GitHub or internet access.
+
+### `docs/AI_PHASE_2_TASK.md`
+
+Defines the active Phase 2 implementation boundary for AI coding agents.
 
 ## Current Roadmap Snapshot
 
