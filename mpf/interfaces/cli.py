@@ -10,7 +10,7 @@ from mpf.db import ping_database
 
 app = typer.Typer(
     name="mpf",
-    help="MPF safe CLI skeleton. Phase-gated smoke commands only; no production traffic mutation.",
+    help="MPF safe CLI skeleton. Safe smoke commands only; phase-gated; no production traffic mutation.",
     no_args_is_help=True,
 )
 config_app = typer.Typer(help="Configuration smoke commands.")
