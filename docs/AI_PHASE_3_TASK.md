@@ -246,6 +246,37 @@ policy mutation from abuse
 firewall apply from abuse
 ```
 
+## Server Source Alignment Rule
+
+GitHub `main` is the repository source of truth for Phase 3 work.
+
+The server source artifact at `/opt/mpf-py-src` can temporarily lag behind GitHub because `farm5` has no direct GitHub/internet workflow. Do not treat a stale `/opt/mpf-py-src` copy as a repository truth conflict.
+
+Before using server output to judge a Phase 3 repository patch, explicitly verify that `/opt/mpf-py-src` was aligned with the intended GitHub `main` commit or with an equivalent copied source artifact.
+
+Required server-side alignment checks after any Phase 3 repository patch:
+
+```bash
+cd /opt/mpf-py-src
+
+/opt/mpf-py-src/.venv/bin/python -m pytest
+/opt/mpf-py-src/.venv/bin/mpf phase-status
+
+grep -RIn --exclude-dir=.venv --exclude-dir=__pycache__ \
+  "current_accepted_phase: Phase 1\|current_working_phase: Phase 2\|farm5 phase 1" \
+  mpf tests docs/PHASE_STATUS.md
+```
+
+Expected result:
+
+```text
+pytest passes
+mpf phase-status reports Phase 2 accepted and Phase 3 working
+grep returns no old Phase 1/2 guard strings in active source files
+```
+
+Do not leave temporary alignment backups such as `*.before-phase3-align` inside active source directories. If temporary backups are needed during manual server repair, remove them before final validation so search results do not confuse future AI agents.
+
 ## Server Execution Notes
 
 The accepted farm5 Phase 2 source artifact is:
@@ -303,6 +334,8 @@ Before submitting a Phase 3 patch:
 [ ] API handlers are thin.
 [ ] Services own response shaping.
 [ ] Repositories own DB reads.
+[ ] Server source alignment was checked when server output is used.
+[ ] No temporary alignment backup files remain in active source directories.
 [ ] No production customer mutation was added.
 [ ] No firewall mutation was added.
 [ ] No NAT redirect was added.
