@@ -111,9 +111,9 @@ def db_ping(
 @app.command("phase-status")
 def phase_status() -> None:
     """Print the current repository phase guard."""
-    typer.echo("current_accepted_phase: Phase 1 — Preflight + Bootstrap Without Traffic Changes")
-    typer.echo("current_working_phase: Phase 2 — PostgreSQL + Config + Domain Model")
-    typer.echo("server_state: farm5 phase 1 bootstrapped and verified")
+    typer.echo("current_accepted_phase: Phase 2 — PostgreSQL + Config + Domain Model")
+    typer.echo("current_working_phase: Phase 3 — CLI + Internal API Foundation Planning")
+    typer.echo("server_state: farm5 phase 2 schema migration completed and verified")
     typer.echo("production_traffic: none")
     typer.echo("firewall_apply_allowed: no")
     typer.echo("abuse_automation_allowed: no")
