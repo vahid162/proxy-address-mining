@@ -48,13 +48,15 @@ SHA256SUMS
 
 Alembic was executed as the system user `mpf` to match local PostgreSQL peer-auth behavior.
 
-Required command pattern:
+Operational note: Alembic checks and migrations on `farm5` must be launched from the project directory `/opt/mpf-py-src`. Running the same commands for the `mpf` user while the working directory is `/root` can fail because project-local metadata such as `pyproject.toml` is not readable from that location.
 
-```bash
-sudo -u mpf env PYTHONPATH=/opt/mpf-py-src \
-  /opt/mpf-py-src/.venv/bin/alembic \
-  -c /opt/mpf-py-src/alembic.ini \
-  upgrade head
+Use this working-directory rule for all Alembic operations:
+
+```text
+working_directory: /opt/mpf-py-src
+PYTHONPATH: /opt/mpf-py-src
+alembic_config: alembic.ini
+execution_user: mpf
 ```
 
 ## Verification Result
