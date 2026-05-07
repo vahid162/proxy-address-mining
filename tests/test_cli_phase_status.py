@@ -10,8 +10,9 @@ def test_phase_status_matches_current_phase_guard() -> None:
     result = runner.invoke(app, ["phase-status"])
 
     assert result.exit_code == 0
-    assert "current_accepted_phase: Phase 1" in result.stdout
-    assert "current_working_phase: Phase 2" in result.stdout
+    assert "current_accepted_phase: Phase 2" in result.stdout
+    assert "current_working_phase: Phase 3" in result.stdout
+    assert "server_state: farm5 phase 2 schema migration completed and verified" in result.stdout
     assert "firewall_apply_allowed: no" in result.stdout
     assert "abuse_automation_allowed: no" in result.stdout
     assert "customer_onboarding_allowed: no" in result.stdout
