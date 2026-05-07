@@ -9,22 +9,36 @@ This file is mandatory reading for every human contributor and AI coding agent b
 
 ## 1. Mandatory Reading Order
 
-Before changing documentation, code, tests, scripts, config, or deployment artifacts, read these files in order:
+Before changing documentation, code, tests, scripts, config, deployment artifacts, services, jobs, migrations, or interfaces, read these files in order:
 
 1. `README.md`
 2. `docs/INDEX.md`
-3. `docs/ARCHITECTURE.md`
-4. `docs/SAFETY.md`
-5. `docs/ROADMAP.md`
-6. `docs/PHASE_0.md`
-7. `docs/PHASE_1.md`
+3. `docs/PHASE_STATUS.md`
+4. `docs/AI_CODING_RULES.md`
+5. `docs/ARCHITECTURE.md`
+6. `docs/SAFETY.md`
+7. `docs/ROADMAP.md`
 8. `docs/DATA_MODEL.md`
-9. `docs/FIREWALL.md`
-10. `docs/ABUSE.md`
-11. the relevant phase document for the task
-12. the relevant domain document for the task
+9. `docs/TAXONOMY.md`
+10. `docs/FIREWALL.md`
+11. `docs/ABUSE.md`
+12. the relevant phase document for the task
+13. the relevant domain document for the task
 
-If these documents conflict, follow the stricter safety rule and update the documentation before implementing code.
+For Phase 3.1 or Phase 4-adjacent work, also read:
+
+```text
+docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
+docs/BACKEND_PORT_POLICY.md
+```
+
+For hash-rate, share, worker, reporting, or charting work, also read:
+
+```text
+docs/OBSERVABILITY_HASHRATE.md
+```
+
+If documents conflict, follow the stricter safety rule and update the documentation before implementing code.
 
 ## 2. Project Identity
 
@@ -38,7 +52,7 @@ service-layer based
 lane-based
 firewall-plan based
 safety-gated
-future-ready for local UI, buyer UI, and Telegram without changing core business logic
+future-ready for local UI, buyer UI, Telegram, worker intelligence, and hash-rate/share observability
 ```
 
 This project is not:
@@ -52,9 +66,58 @@ a public web panel in early phases
 a Telegram-first automation system
 a buyer-account system hidden inside customer service rows
 a firewall-only worker blocker
+a UI-only hash-rate calculator
+an unstructured share log collector
 ```
 
-## 3. Fixed Architecture Decisions
+## 3. Current Gate
+
+The current phase is defined only in:
+
+```text
+docs/PHASE_STATUS.md
+```
+
+At the time this rule was added, the active gate is:
+
+```text
+Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
+```
+
+Phase 4 must not continue until Phase 3.1 is accepted on the server and recorded.
+
+Phase 3.1 allowed work:
+
+```text
+runtime alignment wrapper for the official mpf command
+read-only verification scripts
+documentation and contract improvements
+hash-rate/share data-model planning
+backend internal/external reachability rules
+no traffic-changing behavior
+```
+
+Phase 3.1 forbidden work:
+
+```text
+Docker proxy container startup
+v2rayA startup
+forwarder/gost startup
+customer CRUD mutation
+customer firewall rules
+NAT redirects
+firewall apply
+usage timers
+hash-rate/share collectors
+abuse automation
+block/pause automation
+UI service
+Telegram bot
+production import
+worker enforcement
+```
+
+## 4. Fixed Architecture Decisions
 
 These decisions are frozen for the initial implementation:
 
@@ -76,7 +139,7 @@ initial firewall mode: plan_only
 local API/UI binding: 127.0.0.1 or Unix socket only
 ```
 
-## 4. API-First Rule
+## 5. API-First Rule
 
 Business logic must live in domain/service modules, not in interfaces.
 
@@ -105,54 +168,67 @@ adapter owns business decisions
 Interfaces must be thin.
 Services own validation, business transitions, audit, and side-effect ordering.
 Repositories own persistence.
-Adapters own external system interaction.
+Adapters own external-system interaction.
 
-## 5. Source of Truth Rule
+## 6. Source of Truth Rule
 
 PostgreSQL is the production source of truth.
 
 Allowed uses of flat files or SQLite:
 
-- import from old scripts
-- export/debug artifacts
-- temporary migration tooling
-- generated restore artifacts
-- backup files
+```text
+import from old scripts
+export/debug artifacts
+temporary migration tooling
+generated restore artifacts
+backup files
+```
 
 Forbidden uses:
 
-- production customer database
-- production abuse state
-- production usage state
-- production firewall desired state
-- multiple scattered SQLite databases as active runtime state
-- TSV as the main customer source of truth
+```text
+production customer database
+production abuse state
+production usage state
+production hash-rate/share state
+production firewall desired state
+multiple scattered SQLite databases as active runtime state
+TSV as the main customer source of truth
+```
 
-## 6. Lane Rule
+## 7. Lane Rule
 
 Multi-lane support is required from day one.
 
 BTC is the first lane and uses backend port `60010`.
 Future coins such as ZEC/LTC must be implemented through lanes.
 
+Do not copy scripts or command trees per coin.
+
+## 8. Backend Port Rule
+
+Backend ports are internal service ports. They must be blocked from direct external/public access while remaining reachable from valid internal server and Docker paths.
+
+Required future doctor split:
+
+```text
+internal_backend_reachable = OK
+external_backend_exposed = NO
+```
+
 Forbidden:
 
 ```text
-copy scripts per coin
-copy command trees per coin
-hardcode BTC-only assumptions into service logic
+blocking loopback access to backend ports
+blocking required Docker/internal bridge access
+blocking MPF-owned NAT redirect path
+using normal OUTPUT drops to hide backend ports
+allowing public inbound access to backend ports
+publishing backend ports on 0.0.0.0 through Docker
+marking internal reachability failure as healthy
 ```
 
-Allowed:
-
-```text
-lane config
-lane database records
-lane-aware services
-lane-specific adapters only where unavoidable
-```
-
-## 7. Firewall Safety Rules
+## 9. Firewall Safety Rules
 
 All production firewall changes must go through the firewall service and firewall adapter.
 
@@ -174,18 +250,6 @@ read DB/config
   -> rollback or rollback-plan on failure
 ```
 
-Forbidden production mutations:
-
-```text
-iptables -A ...
-iptables -D ...
-iptables -I ...
-iptables -F ...
-one-off NAT redirect commands
-ad-hoc DOCKER-USER edits
-interface-triggered firewall shell commands
-```
-
 Allowed apply mechanism:
 
 ```text
@@ -195,46 +259,7 @@ iptables-restore
 
 Direct firewall commands may appear only in diagnostics, tests, or generated emergency restore artifacts, not as normal production state mutation.
 
-## 8. Phase Gates
-
-Follow phase order from `docs/ROADMAP.md`.
-
-### Phase 0
-
-Documentation-only.
-
-Forbidden:
-
-- package installation
-- server mutation
-- service activation
-- firewall mutation
-- NAT redirects
-- customer onboarding
-- automation activation
-
-### Phase 1
-
-Preflight and bootstrap without traffic changes.
-
-Forbidden:
-
-- customer firewall rules
-- NAT redirects
-- backend exposure
-- abuse automation
-- block automation
-- pause automation
-- UI actions
-- Telegram actions
-- switching away from `firewall.apply_mode=plan_only`
-
-### Later Phases
-
-Do not implement a later phase until the current phase acceptance gate passes.
-A phase is complete only when its tests and acceptance checks pass.
-
-## 9. Abuse Requirement
+## 10. Abuse Requirement
 
 The one-hour miner-abuse state machine is mandatory.
 
@@ -246,20 +271,44 @@ normal -> over_tracking -> over_grace -> hard
 
 Required rules:
 
-- all active customers in all enabled lanes must be scanned
-- no silent skip is allowed
-- exemption requires reason and expiry
-- farms-over alone must not harden
-- sustained miner-abuse hardens after about 3600 seconds
-- hard creates restore point
-- hard creates policy backup
-- hard uses firewall plan/apply/verify path
-- hard flushes affected conntrack scope
-- manual unhard is audited
+```text
+all active customers in all enabled lanes must be scanned
+no silent skip is allowed
+exemption requires reason and expiry
+farms-over alone must not harden
+sustained miner-abuse hardens after about 3600 seconds
+hard creates restore point
+hard creates policy backup
+hard uses firewall plan/apply/verify path
+hard flushes affected conntrack scope
+manual unhard is audited
+```
 
 A patch that weakens this requirement must be rejected.
 
-## 10. Events, Audit, and Restore Points
+## 11. Hash-rate and Share Observability Rule
+
+Accepted/rejected hash-rate per device is a future first-class capability.
+
+It must be implemented through structured services and data models, not as UI-only calculations or loose log parsing.
+
+Required future layers:
+
+```text
+Stratum/share evidence collection
+share_events evidence table
+device_hashrate_samples aggregated time-series
+customer_hashrate_samples aggregated time-series
+report service/API response DTOs
+UI charts from aggregated samples
+retention policy before high-volume collection
+```
+
+Worker name alone must not be treated as a guaranteed physical device identity.
+
+No high-volume share/hash-rate collector may be activated before retention and partitioning are reviewed.
+
+## 12. Events, Audit, and Restore Points
 
 Every meaningful mutation must record an event.
 
@@ -267,52 +316,41 @@ Every dangerous or destructive action must create a restore point.
 
 Required before these actions:
 
-- firewall apply
-- firewall rollback
-- abuse hard
-- manual unhard
-- bulk customer policy change
-- block sync
-- pause sync
-- risky schema migration
+```text
+firewall apply
+firewall rollback
+abuse hard
+manual unhard
+bulk customer policy change
+block sync
+pause sync
+risky schema migration
+```
 
-Audit is required for:
+Audit is required for customer changes, policy changes, firewall apply/rollback, abuse hard/unhard, block/pause changes, backup/restore operations, UI actions later, and Telegram actions later.
 
-- customer create/edit/delete/renew
-- policy changes
-- firewall apply/rollback
-- abuse hard/unhard
-- block/pause changes
-- backup/restore operations
-- UI actions, later
-- Telegram actions, later
-
-## 11. Jobs and Scheduling
+## 13. Jobs and Scheduling
 
 Use systemd timers, not mixed cron and systemd.
 
 Every recurring job must write `job_runs`.
 Every job that can overlap must use `scheduler_locks`.
+Jobs must call services and must not bypass service validation.
 
-Required job safety:
-
-- idempotent where possible
-- no silent partial state
-- clear failed/degraded status
-- event references for meaningful actions
-- no bypass of service validation
-
-## 12. Secrets
+## 14. Secrets
 
 Never commit secrets.
 
 Forbidden in repository:
 
-- Telegram bot tokens
-- database passwords
-- pool credentials
-- private proxy subscription URLs
-- production customer private secrets
+```text
+Telegram bot tokens
+database passwords
+pool credentials
+private proxy subscription URLs
+production customer private secrets
+raw API tokens
+```
 
 Secrets belong outside Git, for example:
 
@@ -321,14 +359,7 @@ Secrets belong outside Git, for example:
 /etc/mpf/secrets.d/
 ```
 
-Recommended permissions:
-
-```text
-0600 for secret files
-0750 for secret directories
-```
-
-## 13. UI, API, Telegram, and Buyer Accounts
+## 15. UI, API, Telegram, and Buyer Accounts
 
 Early API/UI must bind only locally:
 
@@ -337,28 +368,13 @@ Early API/UI must bind only locally:
 Unix socket
 ```
 
-Forbidden in early phases:
-
-```text
-0.0.0.0 binding
-public IP binding
-public Docker port for UI/API
-UI direct DB writes
-UI direct firewall commands
-Telegram direct DB writes
-Telegram direct shell commands
-buyer UI direct policy/firewall/abuse mutation
-```
-
-UI is read-only first.
-Telegram is notification-only first.
-Actions come later with allowlist, confirmation, event/audit, and restore points when needed.
-
-Buyer-facing UI is future work and must be read-only first. Buyer accounts must be modeled separately from customer service/port records.
-A customer record represents an allocated service/port, not a human login identity.
+Buyer-facing UI is future work and must be read-only first.
+Buyer accounts must be modeled separately from customer service/port records.
 Future buyer actions should create reviewed `action_requests` rather than directly mutating customers, firewall state, abuse state, blocks, pauses, or policy.
 
-## 14. Worker Identity and Worker Blocking Rule
+Telegram starts as notification-only and must not run shell commands.
+
+## 16. Worker Identity and Worker Blocking Rule
 
 Worker names are Stratum-layer identities, not firewall-layer identities.
 
@@ -379,72 +395,62 @@ worker observation / worker timeline
   -> event/audit/evidence
 ```
 
-Early worker work may model `worker_identities`, `worker_policies`, `worker_blocks`, and `worker_enforcement_events`, but production enforcement must wait for the appropriate session/worker and data-plane phase.
-
-## 15. Test Expectations
+## 17. Test Expectations
 
 Safety-critical code must include tests.
 
 Minimum risk areas:
 
-### Firewall
+```text
+config validation
+database migrations
+schema constraints
+policy versioning
+buyer/customer separation
+worker block boundary
+lane collision
+port collision
+backend external exposure detection
+backend internal reachability detection
+firewall planner/diff/rollback
+abuse state machine
+all-active-customer abuse coverage
+usage counter delta
+hash-rate/share aggregation contracts
+job locking
+backup/restore
+interface boundary tests
+```
 
-- planner generation
-- port collision
-- lane collision
-- backend exposure detection
-- orphan chain detection
-- desired/live drift
-- rollback from snapshot
-- failed verify behavior
-
-### Abuse
-
-- state machine transitions
-- all active customers scanned
-- farms-over alone does not harden
-- exemption expiry
-- hard creates restore point and policy backup
-- manual unhard audit
-
-### Data Model
-
-- migrations
-- constraints
-- policy versioning
-- restore point relationships
-- job_runs and scheduler_locks
-- buyer account separate from customer service records
-- worker policy/block representation separate from firewall IP block representation
-
-### Interfaces
-
-- CLI uses services
-- API uses services
-- no direct DB/firewall mutation from interface layer
-
-## 16. Stop Conditions
+## 18. Stop Conditions
 
 Stop and revise before continuing if a change introduces any of these:
 
-1. firewall apply before Phase 6
-2. abuse automation before Phase 8
-3. customer rule creation during Phase 1
-4. NAT redirect during Phase 1
-5. backend public exposure
-6. UI direct DB write
-7. Telegram shell command execution
-8. bypassing `apply_mode=plan_only`
-9. production TSV/SQLite source of truth
-10. customer excluded from abuse without valid exemption
-11. business logic inside CLI handler
-12. ad-hoc production iptables mutation
-13. missing restore point for dangerous action
-14. missing event/audit for mutation
-15. treating buyer accounts as customer service rows
-16. treating worker blocking as firewall-only
+```text
+firewall apply before Phase 6
+abuse automation before Phase 8
+customer mutation before Phase 5
+customer firewall rules before Phase 6
+NAT redirects before their accepted phase
+backend public exposure
+backend internal reachability failure
+UI direct DB write
+Telegram shell command execution
+bypassing apply_mode=plan_only
+production TSV/SQLite source of truth
+customer excluded from abuse without valid exemption
+business logic inside CLI handler
+ad-hoc production iptables mutation
+missing restore point for dangerous action
+missing event/audit for mutation
+treating buyer accounts as customer service rows
+treating worker blocking as firewall-only
+high-volume share/hash-rate collection without retention policy
+UI charts reading raw high-volume share events directly
+secrets committed to the repository
+```
 
-## 17. Before Submitting a Patch
+## 19. Before Submitting a Patch
 
 Check:
 
@@ -455,9 +461,11 @@ Check:
 [ ] API-first boundary is preserved.
 [ ] PostgreSQL remains source of truth.
 [ ] Firewall changes go through planner/service.
+[ ] Backend internal/external policy is preserved.
 [ ] Abuse 1h rule is preserved.
 [ ] Buyer accounts remain separate from customer service/port records.
 [ ] Worker block is not modeled as firewall-only.
+[ ] Hash-rate/share data is not added as unstructured or UI-only state.
 [ ] Events/audit are added for mutations.
 [ ] Restore points are added for dangerous actions.
 [ ] Tests cover safety-critical behavior.
@@ -465,18 +473,21 @@ Check:
 [ ] UI/API/Telegram exposure remains local/safe.
 ```
 
-## 18. Review Standard
+## 20. Review Standard
 
 A change is not acceptable just because it works locally.
 
 It must also:
 
-- respect phase gates
-- preserve safety invariants
-- be testable
-- be auditable
-- avoid hidden side effects
-- avoid direct production firewall mutation
-- avoid direct interface-to-database writes
+```text
+respect phase gates
+preserve safety invariants
+be testable
+be auditable
+avoid hidden side effects
+avoid direct production firewall mutation
+avoid direct interface-to-database writes
+avoid future schema dead ends
+```
 
 When in doubt, choose the safer implementation and document the tradeoff.
