@@ -15,18 +15,19 @@ docs/PHASE_STATUS.md
 Current repository/server state:
 
 ```text
-accepted_phase: Phase 2 — PostgreSQL + Config + Domain Model
-working_phase: Phase 3 — CLI + Internal API Foundation Planning
-server_state: farm5 Phase 2 schema migration completed and verified
+accepted_phase: Phase 3 — CLI + Internal API Foundation
+working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning
+server_state: farm5 Phase 3 read-only CLI/API foundation completed and verified
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
 customer_onboarding_allowed: no
+proxy_data_plane_allowed: planning_only
 ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 3 is repository-first interface groundwork. It may add read-only CLI commands, an internal API foundation, service/repository skeletons, DB read-only inspection, and interface-boundary tests. It must not activate production traffic.
+Phase 4 is planning-only until a dedicated runbook/task is accepted. It may prepare Compose/proxy doctor design and safe read-only inspection helpers, but it must not start proxy data-plane containers yet.
 
 Do not use this repository for production traffic yet.
 
@@ -42,6 +43,11 @@ SQLAlchemy model skeletons
 Alembic bootstrap
 Phase 2 schema representation
 Phase 2 migration accepted on farm5
+Phase 3 read-only CLI/API foundation accepted on farm5
+read-only DB status, lane list, customer list, and job status commands
+service/repository boundaries for Phase 3 commands
+internal API foundation with stable read-only response DTOs
+foundation taxonomy and request context/correlation_id contracts
 future-ready buyer/account and worker-policy boundaries
 extension-ready control-plane schema contracts
 pytest CI on GitHub Actions
@@ -268,13 +274,15 @@ docs/DATA_MODEL.md
 docs/FIREWALL.md
 docs/ABUSE.md
 docs/FUTURE_EXTENSIONS.md
+docs/TAXONOMY.md
 ```
 
-Current phase contracts:
+Current phase contracts/results:
 
 ```text
 docs/PHASE_1_SERVER_RUNBOOK.md
 docs/PHASE_2_SERVER_RESULT.md
+docs/PHASE_3_SERVER_RESULT.md
 docs/AI_PHASE_3_TASK.md
 docs/INTRANET_INSTALL.md
 ```
@@ -302,17 +310,17 @@ Phase 15 — Worker Policy Enforcement, after worker evidence and adapter suppor
 
 Do not start a later phase until the current phase acceptance gate passes.
 
-## Phase 3 Execution Rule
+## Phase 4 Planning Rule
 
-Phase 3 may only change repository code, tests, read-only interface foundations, service/repository skeletons, and documentation.
+Phase 4 work must begin with planning and runbook definition.
 
-During Phase 3, the project must not:
+During Phase 4 planning, the project must not:
 
 ```text
 create or mutate production customers
 create customer firewall rules
 create NAT redirects
-start proxy containers
+start proxy containers without an accepted Phase 4 execution runbook
 run usage timers
 activate abuse automation
 activate block/pause automation
@@ -325,7 +333,7 @@ switch away from firewall.apply_mode=plan_only
 
 ## Current Server Warnings
 
-`farm5` passed Phase 2 schema migration checks, but time synchronization is still not confirmed. This must be fixed before production traffic, usage accuracy, or abuse automation because the one-hour abuse process depends on reliable timestamps.
+`farm5` passed Phase 3 read-only CLI/API foundation checks, but time synchronization is still not confirmed. This must be fixed before production traffic, usage accuracy, or abuse automation because the one-hour abuse process depends on reliable timestamps.
 
 ## Testing Strategy
 
