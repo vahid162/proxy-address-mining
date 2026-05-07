@@ -8,13 +8,14 @@ It must be checked before writing code, scripts, deployment files, services, job
 ## Current State
 
 ```text
-current_accepted_phase: Phase 2 — PostgreSQL + Config + Domain Model
-current_working_phase: Phase 3 — CLI + Internal API Foundation Planning
-server_state: farm5 phase 2 schema migration completed and verified
+current_accepted_phase: Phase 3 — CLI + Internal API Foundation
+current_working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning
+server_state: farm5 phase 3 read-only CLI/API foundation completed and verified
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
 customer_onboarding_allowed: no
+proxy_data_plane_allowed: planning_only
 ui_allowed: no
 telegram_allowed: no
 ```
@@ -45,7 +46,7 @@ system clock synchronization is not confirmed
 systemd-timesyncd is active, but public NTP replies timed out
 ```
 
-This warning is not a Phase 1 or Phase 2 blocker, but it must be fixed before production traffic, usage accuracy, or abuse automation.
+This warning is not a Phase 1, Phase 2, or Phase 3 blocker, but it must be fixed before production traffic, usage accuracy, or abuse automation.
 
 ## Phase 2 Server Result
 
@@ -77,6 +78,46 @@ Backup artifact recorded on server:
 /var/backups/mpf/phase2-align-20260507T085831Z
 ```
 
+## Phase 3 Server Result
+
+Phase 3 read-only CLI/API foundation has been completed and verified on `farm5`.
+
+Accepted Phase 3 checks:
+
+```text
+source aligned from uploaded GitHub main archive
+backup created before source alignment
+pytest passed: 48 passed
+mpf config validate OK
+mpf doctor OK
+mpf db ping OK
+mpf db status OK
+mpf lanes list OK and read-only
+mpf customer list OK and read-only
+mpf jobs status OK and read-only
+alembic current/head = 0001_phase2_initial_schema
+public schema table count = 64
+runtime tables remain empty
+Docker has no containers
+No MPF firewall or NAT rules exist
+No MPF systemd units/timers exist
+No MPF cron jobs exist
+firewall.apply_mode remains plan_only
+no production traffic was changed
+```
+
+Backup artifact recorded on server:
+
+```text
+/var/backups/mpf/phase3-source-align-20260507T140233Z
+```
+
+See also:
+
+```text
+docs/PHASE_3_SERVER_RESULT.md
+```
+
 Current server source artifact:
 
 ```text
@@ -92,19 +133,19 @@ Current production runtime remains unchanged:
 
 ## What Is Allowed Now
 
-Allowed work is limited to safe Phase 3 planning and repository implementation:
+Allowed work is limited to safe Phase 4 planning and repository implementation:
 
 ```text
-- CLI read-only commands through services
-- internal API foundation design
-- service/repository skeletons without production traffic mutation
-- DB read-only inspection commands
-- DB-only planning commands that do not create live firewall rules
-- tests for interface/service boundaries
+- Phase 4 runbook/task documentation
+- Compose/proxy doctor design
+- local-only proxy data-plane planning
+- safe configuration schema refinement for proxy doctor needs
+- read-only Docker/Compose inspection helpers
+- tests for proxy doctor boundaries
 - documentation updates that preserve phase gates
 ```
 
-Phase 3 may prepare CLI/API foundations, but it must not activate production traffic.
+Phase 4 may prepare Compose forward-only and proxy doctor foundations, but runtime activation must wait for an explicit Phase 4 task/runbook and server validation plan.
 
 ## What Is Forbidden Now
 
@@ -112,11 +153,10 @@ Do not implement or activate:
 
 ```text
 - live customer onboarding
+- customer CRUD mutation
 - customer firewall rules
 - live firewall apply
 - NAT redirects
-- Docker proxy data-plane
-- v2rayA or forwarder activation
 - usage timers
 - abuse runner automation
 - block or pause automation
@@ -125,7 +165,10 @@ Do not implement or activate:
 - Telegram bot
 - production customer import
 - worker enforcement
+- public API binding
 ```
+
+Do not start Docker proxy data-plane containers, v2rayA, or forwarders until the dedicated Phase 4 execution task/runbook is written and accepted.
 
 Customer CRUD commands that mutate production customer state are not allowed yet. Customer schema/model work is already represented, but live customer operations must wait for the proper later phase.
 
@@ -139,32 +182,26 @@ firewall.apply_mode = plan_only
 
 Any patch that bypasses `plan_only` or introduces traffic-changing behavior before the correct phase must be rejected.
 
-## Phase 3 Completion Gate
+## Phase 4 Planning Gate
 
-Phase 3 is complete only after these are true:
+Before any Phase 4 runtime activation, these must exist:
 
 ```text
-CLI uses services, not direct business logic
-internal API foundation uses services
-read-only DB-backed commands work
-DB status command works
-lane list command is read-only
-customer list command is read-only
-job status command is read-only
-all interface commands are tested
-no live firewall apply exists
-no customer firewall rule exists
-no NAT redirect exists
-no proxy data-plane is started
-no production customer mutation exists
+Phase 4 task/runbook
+local-only v2rayA/forwarder binding plan
+proxy doctor acceptance checks
+backend direct exposure detection plan
+Docker Compose rollback/stop plan
+server validation script
+explicit confirmation that no customer NAT redirect will be created
 ```
 
 ## Next Planned Step
 
-Plan and implement Phase 3 in the repository first:
+Plan Phase 4 in the repository first:
 
 ```text
-CLI + Internal API Foundation
+Compose Forward-only + Proxy Doctor
 ```
 
-Do not move to customer CRUD, firewall apply, proxy containers, usage timers, or abuse automation until the relevant later phase gates pass.
+Do not move to customer CRUD, firewall apply, customer NAT redirects, usage timers, or abuse automation until the relevant later phase gates pass.
