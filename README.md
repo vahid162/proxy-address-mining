@@ -15,9 +15,9 @@ docs/PHASE_STATUS.md
 Current repository/server state:
 
 ```text
-accepted_phase: Phase 1 — Preflight + Bootstrap Without Traffic Changes
-working_phase: Phase 2 — PostgreSQL + Config + Domain Model
-server_state: farm5 Phase 1 bootstrapped and verified
+accepted_phase: Phase 2 — PostgreSQL + Config + Domain Model
+working_phase: Phase 3 — CLI + Internal API Foundation Planning
+server_state: farm5 Phase 2 schema migration completed and verified
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -26,7 +26,7 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 2 is repository-only groundwork. It may define schema, migrations, model boundaries, tests, and documentation. It must not activate production traffic.
+Phase 3 is repository-first interface groundwork. It may add read-only CLI commands, an internal API foundation, service/repository skeletons, DB read-only inspection, and interface-boundary tests. It must not activate production traffic.
 
 Do not use this repository for production traffic yet.
 
@@ -41,6 +41,7 @@ PostgreSQL DB ping helper
 SQLAlchemy model skeletons
 Alembic bootstrap
 Phase 2 schema representation
+Phase 2 migration accepted on farm5
 future-ready buyer/account and worker-policy boundaries
 extension-ready control-plane schema contracts
 pytest CI on GitHub Actions
@@ -273,8 +274,9 @@ Current phase contracts:
 
 ```text
 docs/PHASE_1_SERVER_RUNBOOK.md
+docs/PHASE_2_SERVER_RESULT.md
+docs/AI_PHASE_3_TASK.md
 docs/INTRANET_INSTALL.md
-docs/AI_PHASE_2_TASK.md
 ```
 
 ## Roadmap Summary
@@ -300,13 +302,14 @@ Phase 15 — Worker Policy Enforcement, after worker evidence and adapter suppor
 
 Do not start a later phase until the current phase acceptance gate passes.
 
-## Phase 2 Execution Rule
+## Phase 3 Execution Rule
 
-Phase 2 may only change repository code, tests, schema contracts, and documentation.
+Phase 3 may only change repository code, tests, read-only interface foundations, service/repository skeletons, and documentation.
 
-During Phase 2, the project must not:
+During Phase 3, the project must not:
 
 ```text
+create or mutate production customers
 create customer firewall rules
 create NAT redirects
 start proxy containers
@@ -320,9 +323,9 @@ run production import
 switch away from firewall.apply_mode=plan_only
 ```
 
-## Phase 1 Server Warning
+## Current Server Warnings
 
-`farm5` passed Phase 1 bootstrap checks, but time synchronization is not confirmed. This must be fixed before production traffic, usage accuracy, or abuse automation because the one-hour abuse process depends on reliable timestamps.
+`farm5` passed Phase 2 schema migration checks, but time synchronization is still not confirmed. This must be fixed before production traffic, usage accuracy, or abuse automation because the one-hour abuse process depends on reliable timestamps.
 
 ## Testing Strategy
 
