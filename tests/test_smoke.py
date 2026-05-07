@@ -19,7 +19,7 @@ def test_example_config_validates() -> None:
     assert ok, message
 
 
-def test_example_config_keeps_phase1_plan_only() -> None:
+def test_example_config_keeps_plan_only_and_abuse_threshold() -> None:
     config = load_config(example_config_path())
     assert config.firewall.apply_mode == "plan_only"
     assert config.lanes["btc"].backend_port == 60010
@@ -39,9 +39,12 @@ def test_cli_version_works_without_command() -> None:
     assert "Missing command" not in result.output
 
 
-def test_cli_phase_status_is_safe() -> None:
+def test_cli_phase_status_matches_current_phase_guard() -> None:
     result = RUNNER.invoke(app, ["phase-status"])
     assert result.exit_code == 0
+    assert "current_accepted_phase: Phase 2" in result.output
+    assert "current_working_phase: Phase 3" in result.output
+    assert "server_state: farm5 phase 2 schema migration completed and verified" in result.output
     assert "firewall_apply_allowed: no" in result.output
     assert "abuse_automation_allowed: no" in result.output
 
