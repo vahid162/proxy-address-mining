@@ -27,8 +27,9 @@ Read these before any implementation work:
 2. `docs/SAFETY.md`
 3. `docs/ROADMAP.md`
 4. `docs/DATA_MODEL.md`
-5. `docs/FIREWALL.md`
-6. `docs/ABUSE.md`
+5. `docs/TAXONOMY.md`
+6. `docs/FIREWALL.md`
+7. `docs/ABUSE.md`
 
 ## Phase Contracts
 
@@ -68,9 +69,10 @@ Read:
 4. `docs/SAFETY.md`
 5. `docs/ROADMAP.md`
 6. `docs/DATA_MODEL.md`
-7. `docs/FIREWALL.md`
-8. `docs/ABUSE.md`
-9. all phase documents affected by the change
+7. `docs/TAXONOMY.md`
+8. `docs/FIREWALL.md`
+9. `docs/ABUSE.md`
+10. all phase documents affected by the change
 
 ### Phase 0 work
 
@@ -107,9 +109,10 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/SAFETY.md`
 4. `docs/DATA_MODEL.md`
-5. `docs/ROADMAP.md`
-6. `docs/AI_PHASE_2_TASK.md`
-7. `docs/PHASE_1_SERVER_RUNBOOK.md`
+5. `docs/TAXONOMY.md`
+6. `docs/ROADMAP.md`
+7. `docs/AI_PHASE_2_TASK.md`
+8. `docs/PHASE_1_SERVER_RUNBOOK.md`
 
 Phase 2 is repository-only database and domain-model groundwork.
 It must not apply firewall rules, create NAT redirects, start proxy containers, or activate abuse automation.
@@ -125,11 +128,13 @@ Read:
 5. `docs/SAFETY.md`
 6. `docs/ROADMAP.md`
 7. `docs/DATA_MODEL.md`
-8. `docs/AI_PHASE_3_TASK.md`
-9. `docs/PHASE_2_SERVER_RESULT.md`
+8. `docs/TAXONOMY.md`
+9. `docs/AI_PHASE_3_TASK.md`
+10. `docs/PHASE_2_SERVER_RESULT.md`
 
 Phase 3 is CLI + Internal API Foundation work.
 It must stay read-only / non-traffic-changing and must route interface behavior through services.
+It should create the code home for taxonomy without requiring a database migration.
 
 ### Database or migration work
 
@@ -140,8 +145,9 @@ Read:
 3. `docs/ARCHITECTURE.md`
 4. `docs/SAFETY.md`
 5. `docs/DATA_MODEL.md`
-6. `docs/ROADMAP.md`
-7. relevant phase document
+6. `docs/TAXONOMY.md`
+7. `docs/ROADMAP.md`
+8. relevant phase document
 
 Rules:
 
@@ -151,6 +157,7 @@ Rules:
 - Restore points and job_runs must be representable.
 - Do not run production migrations until reviewed and explicitly approved.
 - On farm5, run Alembic from `/opt/mpf-py-src`, not from `/root`.
+- Taxonomy changes should start as code/docs; reference tables require reviewed migrations.
 
 ### Firewall work
 
@@ -161,8 +168,9 @@ Read:
 3. `docs/SAFETY.md`
 4. `docs/FIREWALL.md`
 5. `docs/DATA_MODEL.md`
-6. `docs/ROADMAP.md`
-7. relevant phase document
+6. `docs/TAXONOMY.md`
+7. `docs/ROADMAP.md`
+8. relevant phase document
 
 Rules:
 
@@ -173,6 +181,7 @@ Rules:
 - atomic apply through `iptables-restore`
 - verify after apply
 - rollback from stored artifacts
+- firewall event/status/restore taxonomy must be finalized before Phase 6 apply work
 
 ### Abuse work
 
@@ -183,9 +192,10 @@ Read:
 3. `docs/SAFETY.md`
 4. `docs/ABUSE.md`
 5. `docs/DATA_MODEL.md`
-6. `docs/FIREWALL.md`
-7. `docs/ROADMAP.md`
-8. relevant phase document
+6. `docs/TAXONOMY.md`
+7. `docs/FIREWALL.md`
+8. `docs/ROADMAP.md`
+9. relevant phase document
 
 Rules:
 
@@ -194,6 +204,7 @@ Rules:
 - farms-over alone must not harden
 - sustained miner-abuse hardens after about 3600 seconds
 - hard/unhard must use restore points, events, audit, and firewall service
+- abuse state/event/evidence taxonomy must be finalized before Phase 8 automation
 
 ### CLI/API/UI/Telegram interface work
 
@@ -204,8 +215,9 @@ Read:
 3. `docs/ARCHITECTURE.md`
 4. `docs/SAFETY.md`
 5. `docs/ROADMAP.md`
-6. relevant domain document
-7. relevant phase document
+6. `docs/TAXONOMY.md`
+7. relevant domain document
+8. relevant phase document
 
 Rules:
 
@@ -215,6 +227,7 @@ Rules:
 - call services only
 - UI/API bind local-only in early phases
 - Telegram starts notification-only
+- interfaces must not invent event/action/status strings outside taxonomy
 
 ### Job or scheduler work
 
@@ -224,8 +237,9 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/SAFETY.md`
 4. `docs/DATA_MODEL.md`
-5. `docs/ROADMAP.md`
-6. relevant domain document
+5. `docs/TAXONOMY.md`
+6. `docs/ROADMAP.md`
+7. relevant domain document
 
 Rules:
 
@@ -234,6 +248,7 @@ Rules:
 - every job writes `job_runs`
 - overlapping jobs use `scheduler_locks`
 - jobs call services, not direct DB/firewall logic
+- job statuses and lock names should follow `docs/TAXONOMY.md`
 
 ## Documentation Summary
 
@@ -256,6 +271,10 @@ Defines numbered phases, acceptance gates, MVP scope, stop conditions, and requi
 ### `docs/DATA_MODEL.md`
 
 Defines PostgreSQL schema contract, table groups, relationships, ownership by services, indexes, retention, imports, and acceptance checklist.
+
+### `docs/TAXONOMY.md`
+
+Defines event/action/status taxonomy, actor/request context, phase gates for taxonomy completion, retention/partitioning timing, aggregate reporting timing, and evidence artifact reference rules.
 
 ### `docs/FIREWALL.md`
 
@@ -314,6 +333,18 @@ Phase 14 — Telegram Notifications, Read-only Commands, Restricted Actions
 Phase 15 — Worker Policy Enforcement
 ```
 
+## Taxonomy Gates by Future Phase
+
+```text
+Phase 3: create foundation taxonomy module and use constants in services/interfaces
+Before Phase 5: finalize customer/policy event and audit taxonomy
+Before Phase 6: finalize firewall/restore/plan error taxonomy
+Before Phase 7: finalize retention, aggregation, accounting, and partitioning policy
+Before Phase 8: finalize abuse state/event/evidence taxonomy
+Before Phase 10: finalize flow/worker/evidence artifact taxonomy
+Before Phase 11+: finalize UI, buyer, Telegram, notification, and action request taxonomy
+```
+
 ## Stop Conditions
 
 Stop and revise if any change introduces:
@@ -333,6 +364,8 @@ Stop and revise if any change introduces:
 13. missing restore point for dangerous action
 14. production customer mutation during Phase 3
 15. proxy data-plane activation during Phase 3
+16. new event/action/status strings invented outside taxonomy once the related taxonomy gate has passed
+17. high-volume collection started before retention/partitioning has been reviewed
 
 ## Final Rule
 
