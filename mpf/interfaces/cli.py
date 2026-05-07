@@ -5,23 +5,33 @@ from pathlib import Path
 import typer
 
 from mpf import __version__
-from mpf.config import DEFAULT_CONFIG_PATH, load_config, validate_config
-from mpf.db import ping_database
+from mpf.config import DEFAULT_CONFIG_PATH, load_config
+from mpf.services import config_service, customer_read_service, db_service, doctor_service, job_service, lane_service
 
 app = typer.Typer(
     name="mpf",
-    help="MPF safe CLI skeleton. Safe smoke commands only; phase-gated; no production traffic mutation.",
+    help="MPF safe CLI. Phase-gated read-only foundation commands; no production traffic mutation.",
     no_args_is_help=True,
     invoke_without_command=True,
 )
-config_app = typer.Typer(help="Configuration smoke commands.")
-db_app = typer.Typer(help="Database smoke commands.")
+config_app = typer.Typer(help="Configuration read-only commands.")
+db_app = typer.Typer(help="Database read-only commands.")
+lanes_app = typer.Typer(help="Lane read-only commands.")
+customer_app = typer.Typer(help="Customer read-only commands.")
+jobs_app = typer.Typer(help="Job read-only commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
+app.add_typer(lanes_app, name="lanes")
+app.add_typer(customer_app, name="customer")
+app.add_typer(jobs_app, name="jobs")
 
 
 def _config_path(config: Path | None) -> Path:
     return config or DEFAULT_CONFIG_PATH
+
+
+def _load(config: Path | None):
+    return load_config(_config_path(config))
 
 
 @app.callback()
@@ -44,19 +54,19 @@ def doctor(
 ) -> None:
     """Run read-only diagnostics without mutating production traffic."""
     path = _config_path(config)
-    ok, message = validate_config(path)
+    result = doctor_service.run(path)
     typer.echo("MPF doctor")
-    typer.echo(f"config_path: {path}")
-    typer.echo(f"config: {'OK' if ok else 'ERROR'}")
-    if not ok:
-        typer.echo(f"config_error: {message}")
+    typer.echo(f"config_path: {result.config_path}")
+    typer.echo(f"config: {'OK' if result.config_ok else 'ERROR'}")
+    if result.config_ok:
+        typer.echo(f"database: {'OK' if result.db_ok else 'ERROR'}")
+        typer.echo(f"apply_mode: {result.apply_mode}")
+        typer.echo(f"traffic_changes: {result.traffic_changes}")
+        typer.echo(f"firewall_mutation: {result.firewall_mutation}")
+        typer.echo(f"abuse_automation: {result.abuse_automation}")
+    if not result.ok:
+        typer.echo(f"message: {result.message}")
         raise typer.Exit(1)
-
-    cfg = load_config(path)
-    typer.echo(f"apply_mode: {cfg.firewall.apply_mode}")
-    typer.echo("traffic_changes: none")
-    typer.echo("firewall_mutation: disabled")
-    typer.echo("abuse_automation: disabled")
 
 
 @config_app.command("validate")
@@ -64,8 +74,7 @@ def config_validate(
     config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
 ) -> None:
     """Validate config without mutating anything."""
-    path = _config_path(config)
-    ok, message = validate_config(path)
+    ok, message = config_service.validate(_config_path(config))
     if ok:
         typer.echo("OK")
         return
@@ -78,8 +87,8 @@ def config_show(
     config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
 ) -> None:
     """Show normalized safe config summary."""
-    path = _config_path(config)
-    cfg = load_config(path)
+    summary = config_service.show(_config_path(config))
+    cfg = summary.config
     typer.echo(f"server.name: {cfg.server.name}")
     typer.echo(f"server.timezone: {cfg.server.timezone}")
     typer.echo(f"database.url: {cfg.database.url}")
@@ -99,13 +108,88 @@ def db_ping(
     config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
 ) -> None:
     """Ping PostgreSQL without creating schema or mutating state."""
-    cfg = load_config(_config_path(config))
-    result = ping_database(cfg)
-    if result.ok:
+    ok, message = db_service.ping(_load(config))
+    if ok:
         typer.echo("OK")
         return
-    typer.echo(result.message)
+    typer.echo(message)
     raise typer.Exit(1)
+
+
+@db_app.command("status")
+def db_status(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
+) -> None:
+    """Show read-only PostgreSQL schema/runtime status."""
+    result = db_service.status(_load(config))
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    typer.echo("database: OK")
+    typer.echo(f"alembic_version: {result.alembic_version}")
+    typer.echo(f"public_table_count: {result.public_table_count}")
+    typer.echo(f"lanes: {result.lanes}")
+    typer.echo(f"customers: {result.customers}")
+    typer.echo(f"job_runs: {result.job_runs}")
+    typer.echo(f"firewall_applies: {result.firewall_applies}")
+    typer.echo(f"abuse_states: {result.abuse_states}")
+
+
+@lanes_app.command("list")
+def lanes_list(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
+) -> None:
+    """List lanes read-only from DB, falling back to config if DB is empty."""
+    result = lane_service.list_lane_status(_load(config))
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    typer.echo(result.message)
+    if not result.lanes:
+        typer.echo("no lanes")
+        return
+    for lane in result.lanes:
+        typer.echo(
+            f"{lane.name}\tenabled={lane.enabled}\tbackend_port={lane.backend_port}\tchain_prefix={lane.chain_prefix}\tprotocol={lane.protocol}\tsource={lane.source}"
+        )
+
+
+@customer_app.command("list")
+def customer_list(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
+    limit: int = typer.Option(100, "--limit", min=1, max=1000, help="Maximum rows to show."),
+) -> None:
+    """List customers read-only. Customer mutation belongs to Phase 5."""
+    result = customer_read_service.list_customer_status(_load(config), limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.customers:
+        typer.echo("no customers")
+        return
+    for customer in result.customers:
+        typer.echo(
+            f"{customer.id}\t{customer.lane}\t{customer.name}\tport={customer.port}\tstatus={customer.status}\texpires_at={customer.expires_at}"
+        )
+
+
+@jobs_app.command("status")
+def jobs_status(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
+    limit: int = typer.Option(20, "--limit", min=1, max=100, help="Maximum rows to show."),
+) -> None:
+    """Show recent job status read-only. Running jobs belongs to later phases."""
+    result = job_service.list_job_status(_load(config), limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.jobs:
+        typer.echo("no job runs")
+        return
+    for job in result.jobs:
+        typer.echo(
+            f"{job.id}\t{job.job_name}\tstatus={job.status}\tstarted_at={job.started_at}\tfinished_at={job.finished_at}\tduration_ms={job.duration_ms}"
+        )
 
 
 @app.command("phase-status")
