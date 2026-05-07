@@ -38,6 +38,7 @@ service-layer based
 lane-based
 firewall-plan based
 safety-gated
+future-ready for local UI, buyer UI, and Telegram without changing core business logic
 ```
 
 This project is not:
@@ -49,6 +50,8 @@ a random iptables command generator
 a SQLite/TSV production state system
 a public web panel in early phases
 a Telegram-first automation system
+a buyer-account system hidden inside customer service rows
+a firewall-only worker blocker
 ```
 
 ## 3. Fixed Architecture Decisions
@@ -325,7 +328,7 @@ Recommended permissions:
 0750 for secret directories
 ```
 
-## 13. UI, API, and Telegram
+## 13. UI, API, Telegram, and Buyer Accounts
 
 Early API/UI must bind only locally:
 
@@ -344,13 +347,41 @@ UI direct DB writes
 UI direct firewall commands
 Telegram direct DB writes
 Telegram direct shell commands
+buyer UI direct policy/firewall/abuse mutation
 ```
 
 UI is read-only first.
 Telegram is notification-only first.
 Actions come later with allowlist, confirmation, event/audit, and restore points when needed.
 
-## 14. Test Expectations
+Buyer-facing UI is future work and must be read-only first. Buyer accounts must be modeled separately from customer service/port records.
+A customer record represents an allocated service/port, not a human login identity.
+Future buyer actions should create reviewed `action_requests` rather than directly mutating customers, firewall state, abuse state, blocks, pauses, or policy.
+
+## 14. Worker Identity and Worker Blocking Rule
+
+Worker names are Stratum-layer identities, not firewall-layer identities.
+
+Forbidden:
+
+```text
+assuming worker block can be implemented by firewall rules alone
+storing worker block state only as IP blocks
+hardcoding worker parsing inside UI, Telegram, or CLI handlers
+```
+
+Required future boundary:
+
+```text
+worker observation / worker timeline
+  -> worker policy service
+  -> worker enforcement adapter, later
+  -> event/audit/evidence
+```
+
+Early worker work may model `worker_identities`, `worker_policies`, `worker_blocks`, and `worker_enforcement_events`, but production enforcement must wait for the appropriate session/worker and data-plane phase.
+
+## 15. Test Expectations
 
 Safety-critical code must include tests.
 
@@ -383,6 +414,8 @@ Minimum risk areas:
 - policy versioning
 - restore point relationships
 - job_runs and scheduler_locks
+- buyer account separate from customer service records
+- worker policy/block representation separate from firewall IP block representation
 
 ### Interfaces
 
@@ -390,7 +423,7 @@ Minimum risk areas:
 - API uses services
 - no direct DB/firewall mutation from interface layer
 
-## 15. Stop Conditions
+## 16. Stop Conditions
 
 Stop and revise before continuing if a change introduces any of these:
 
@@ -408,8 +441,10 @@ Stop and revise before continuing if a change introduces any of these:
 12. ad-hoc production iptables mutation
 13. missing restore point for dangerous action
 14. missing event/audit for mutation
+15. treating buyer accounts as customer service rows
+16. treating worker blocking as firewall-only
 
-## 16. Before Submitting a Patch
+## 17. Before Submitting a Patch
 
 Check:
 
@@ -421,6 +456,8 @@ Check:
 [ ] PostgreSQL remains source of truth.
 [ ] Firewall changes go through planner/service.
 [ ] Abuse 1h rule is preserved.
+[ ] Buyer accounts remain separate from customer service/port records.
+[ ] Worker block is not modeled as firewall-only.
 [ ] Events/audit are added for mutations.
 [ ] Restore points are added for dangerous actions.
 [ ] Tests cover safety-critical behavior.
@@ -428,7 +465,7 @@ Check:
 [ ] UI/API/Telegram exposure remains local/safe.
 ```
 
-## 17. Review Standard
+## 18. Review Standard
 
 A change is not acceptable just because it works locally.
 
