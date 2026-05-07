@@ -16,18 +16,18 @@ Current repository/server state:
 
 ```text
 accepted_phase: Phase 3 — CLI + Internal API Foundation
-working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning
-server_state: farm5 Phase 3 read-only CLI/API foundation completed and verified
+working_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
+server_state: farm5 Phase 3 source verified, official mpf runtime alignment still required
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
 customer_onboarding_allowed: no
-proxy_data_plane_allowed: planning_only
+proxy_data_plane_allowed: no
 ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4 is planning-only until a dedicated runbook/task is accepted. It may prepare Compose/proxy doctor design and safe read-only inspection helpers, but it must not start proxy data-plane containers yet.
+Phase 4 planning must not continue until Phase 3.1 is completed and recorded.
 
 Do not use this repository for production traffic yet.
 
@@ -43,7 +43,7 @@ SQLAlchemy model skeletons
 Alembic bootstrap
 Phase 2 schema representation
 Phase 2 migration accepted on farm5
-Phase 3 read-only CLI/API foundation accepted on farm5
+Phase 3 read-only CLI/API foundation accepted in source artifact
 read-only DB status, lane list, customer list, and job status commands
 service/repository boundaries for Phase 3 commands
 internal API foundation with stable read-only response DTOs
@@ -51,6 +51,34 @@ foundation taxonomy and request context/correlation_id contracts
 future-ready buyer/account and worker-policy boundaries
 extension-ready control-plane schema contracts
 pytest CI on GitHub Actions
+Phase 3.1 alignment gate documentation
+backend internal/external reachability policy contract
+accepted/rejected hash-rate and share observability contract
+AI coding rules for phase-gated development
+```
+
+## Required Before Phase 4
+
+Phase 3.1 must align the official server runtime command with the accepted Phase 3 source artifact.
+
+On `farm5`, verification showed:
+
+```text
+/opt/mpf-py-src      Phase 3 source artifact, tests pass
+/usr/local/bin/mpf   older Phase 1 smoke CLI
+```
+
+Before Phase 4 work resumes, run and record:
+
+```bash
+sudo bash /opt/mpf-py-src/scripts/promote_phase3_runtime.sh
+sudo bash /opt/mpf-py-src/scripts/verify_phase3_1_alignment.sh
+```
+
+Required invariant remains:
+
+```text
+firewall.apply_mode = plan_only
 ```
 
 ## Not Implemented Yet
@@ -61,6 +89,7 @@ live firewall planner/apply
 NAT redirects
 proxy data-plane containers
 usage timers
+hash-rate/share collectors
 abuse runner automation
 block/pause automation
 local UI
@@ -85,7 +114,7 @@ service-layer based
 lane-based
 firewall-plan based
 safety-gated
-future-ready for local UI, buyer UI, Telegram, and worker intelligence
+future-ready for local UI, buyer UI, Telegram, worker intelligence, and hash-rate/share observability
 ```
 
 ## Target Data Plane
@@ -171,7 +200,7 @@ generated restore artifacts
 backups
 ```
 
-They must not become production customer, firewall, usage, or abuse state.
+They must not become production customer, firewall, usage, abuse, hash-rate, or share state.
 
 ## Mandatory Abuse Requirement
 
@@ -198,6 +227,51 @@ manual unhard is audited
 ```
 
 A patch that weakens this requirement must be rejected.
+
+## Backend Port Policy
+
+Backend ports are internal service ports.
+
+They must be blocked from direct external/public access only, while remaining reachable from valid internal server and Docker paths.
+
+Required future doctor split:
+
+```text
+internal_backend_reachable = OK
+external_backend_exposed = NO
+```
+
+Do not block loopback, required Docker/internal paths, or the future MPF-owned NAT redirect path just to hide backend ports externally.
+
+See:
+
+```text
+docs/BACKEND_PORT_POLICY.md
+```
+
+## Hash-rate and Share Observability
+
+Accepted/rejected hash-rate per device is a future first-class capability.
+
+It must be planned through structured data and services:
+
+```text
+share evidence
+share_events
+device_hashrate_samples
+customer_hashrate_samples
+report services
+UI charts from aggregate samples
+retention before high-volume collection
+```
+
+Do not add this later as UI-only calculations, unstructured logs, or raw chart queries over high-volume events.
+
+See:
+
+```text
+docs/OBSERVABILITY_HASHRATE.md
+```
 
 ## Future-Ready Boundaries Already Reserved
 
@@ -262,6 +336,7 @@ AGENTS.md
 README.md
 docs/INDEX.md
 docs/PHASE_STATUS.md
+docs/AI_CODING_RULES.md
 ```
 
 Core contracts:
@@ -275,6 +350,8 @@ docs/FIREWALL.md
 docs/ABUSE.md
 docs/FUTURE_EXTENSIONS.md
 docs/TAXONOMY.md
+docs/BACKEND_PORT_POLICY.md
+docs/OBSERVABILITY_HASHRATE.md
 ```
 
 Current phase contracts/results:
@@ -283,6 +360,7 @@ Current phase contracts/results:
 docs/PHASE_1_SERVER_RUNBOOK.md
 docs/PHASE_2_SERVER_RESULT.md
 docs/PHASE_3_SERVER_RESULT.md
+docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
 docs/AI_PHASE_3_TASK.md
 docs/INTRANET_INSTALL.md
 ```
@@ -294,13 +372,14 @@ Phase 0  — Architecture Freeze
 Phase 1  — Preflight + Bootstrap Without Traffic Changes
 Phase 2  — PostgreSQL + Config + Domain Model
 Phase 3  — CLI + Internal API Foundation
+Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
 Phase 4  — Compose Forward-only + Proxy Doctor
 Phase 5  — Customer CRUD in DB Only
 Phase 6  — Firewall Planner + Apply/Verify/Rollback
 Phase 7  — Usage + Policy/Reject Accounting
 Phase 8  — Abuse 1h Core
 Phase 9  — Check / Report / Diagnostics
-Phase 10 — Session / Worker / Policy Timeline
+Phase 10 — Session / Worker / Policy / Share Timeline
 Phase 11 — Local Web UI Read-only
 Phase 12 — Buyer-safe Read-only Reporting
 Phase 13 — UI Actions With Confirmation
@@ -310,9 +389,9 @@ Phase 15 — Worker Policy Enforcement, after worker evidence and adapter suppor
 
 Do not start a later phase until the current phase acceptance gate passes.
 
-## Phase 4 Planning Rule
+## Phase 4 Rule
 
-Phase 4 work must begin with planning and runbook definition.
+Phase 4 work must begin only after Phase 3.1 acceptance.
 
 During Phase 4 planning, the project must not:
 
@@ -322,6 +401,7 @@ create customer firewall rules
 create NAT redirects
 start proxy containers without an accepted Phase 4 execution runbook
 run usage timers
+activate hash-rate/share collectors
 activate abuse automation
 activate block/pause automation
 expose UI components
@@ -333,7 +413,7 @@ switch away from firewall.apply_mode=plan_only
 
 ## Current Server Warnings
 
-`farm5` passed Phase 3 read-only CLI/API foundation checks, but time synchronization is still not confirmed. This must be fixed before production traffic, usage accuracy, or abuse automation because the one-hour abuse process depends on reliable timestamps.
+`farm5` passed Phase 3 source checks, but the official runtime still needs Phase 3.1 alignment and time synchronization is still not confirmed. Time sync must be fixed before production traffic, usage accuracy, hash-rate time-series collection, or abuse automation because those processes depend on reliable timestamps.
 
 ## Testing Strategy
 
@@ -351,10 +431,12 @@ port collision
 firewall planner
 firewall drift detection
 backend exposure detection
+backend internal reachability detection
 firewall rollback
 abuse state machine
 all-active-customer abuse coverage
 usage counter delta
+hash-rate/share aggregation contracts
 job locking
 backup/restore
 interface boundary tests
@@ -364,6 +446,7 @@ interface boundary tests
 
 ```text
 never expose backend ports publicly
+never block backend ports from valid internal paths
 never expose v2rayA UI publicly
 never expose early Web UI/API publicly
 never hardcode Telegram tokens
@@ -374,6 +457,7 @@ direct DB edits are not normal operation
 direct iptables edits are not normal operation
 buyer UI must not directly mutate production state
 worker block must not be modeled as firewall-only
+hash-rate/share collectors need retention before activation
 ```
 
 ## License
