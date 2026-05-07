@@ -2,56 +2,67 @@
 
 `proxy-address-mining` is a Python-first, API-first, PostgreSQL-backed rewrite of a mining customer gateway control plane.
 
-The goal is to build a clean, maintainable, safe, and extensible system for:
-
-- customer ports
-- firewall policy
-- NAT redirects
-- usage accounting
-- abuse handling
-- reporting and diagnostics
-- future local Web UI
-- future Telegram integration
-
 This is a **greenfield implementation**, not a direct migration or patching of old shell scripts.
-
----
 
 ## Current Status
 
-This repository is currently in:
+Source of truth for the current phase:
 
 ```text
-Phase 0 — Architecture Freeze
-Phase 1 — Preflight + Bootstrap Without Traffic Changes
+docs/PHASE_STATUS.md
 ```
 
-Current focus:
+Current repository/server state:
 
-- architecture standard
-- safety rules
-- API-first boundaries
-- data model contract
-- firewall planner contract
-- mandatory abuse state machine
-- roadmap and phase gates
-- Phase 1 preflight/bootstrap contract
+```text
+accepted_phase: Phase 1 — Preflight + Bootstrap Without Traffic Changes
+working_phase: Phase 2 — PostgreSQL + Config + Domain Model
+server_state: farm5 Phase 1 bootstrapped and verified
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: no
+ui_allowed: no
+telegram_allowed: no
+```
 
-Not implemented yet:
-
-- production Python package
-- PostgreSQL migrations
-- customer CRUD
-- live firewall planner/apply
-- proxy stack management
-- usage accounting
-- abuse runner
-- local UI
-- Telegram integration
+Phase 2 is repository-only groundwork. It may define schema, migrations, model boundaries, tests, and documentation. It must not activate production traffic.
 
 Do not use this repository for production traffic yet.
 
----
+## Implemented So Far
+
+```text
+Phase 0 architecture and safety contracts
+Phase 1 preflight/bootstrap runbook and Ubuntu 24.04 bootstrap script
+safe CLI smoke skeleton
+config validator
+PostgreSQL DB ping helper
+SQLAlchemy model skeletons
+Alembic bootstrap
+Phase 2 schema representation
+future-ready buyer/account and worker-policy boundaries
+extension-ready control-plane schema contracts
+pytest CI on GitHub Actions
+```
+
+## Not Implemented Yet
+
+```text
+production customer CRUD
+live firewall planner/apply
+NAT redirects
+proxy data-plane containers
+usage timers
+abuse runner automation
+block/pause automation
+local UI
+buyer UI
+Telegram bot
+authentication/billing
+worker enforcement
+production import
+```
 
 ## Project Objective
 
@@ -67,11 +78,8 @@ service-layer based
 lane-based
 firewall-plan based
 safety-gated
+future-ready for local UI, buyer UI, Telegram, and worker intelligence
 ```
-
-The system must support future UI and Telegram integrations without rewriting business logic.
-
----
 
 ## Target Data Plane
 
@@ -96,11 +104,7 @@ BTC customer ports -> backend 60010 -> forwarder -> v2rayA -> pool
 Future coins such as ZEC and LTC must be implemented through the lane model.
 Do not clone scripts per coin.
 
----
-
 ## Fixed Architecture Decisions
-
-Initial implementation decisions:
 
 ```text
 server role: forward-only customer gateway
@@ -119,8 +123,6 @@ scheduler: systemd timers
 initial firewall mode: plan_only
 local API/UI binding: 127.0.0.1 or Unix socket only
 ```
-
----
 
 ## API-First Rule
 
@@ -143,11 +145,10 @@ Forbidden:
 CLI directly edits DB
 CLI directly runs iptables
 UI directly writes DB
+buyer UI directly mutates production state
 Telegram directly runs shell commands
 job bypasses service validation
 ```
-
----
 
 ## Source of Truth
 
@@ -155,15 +156,15 @@ PostgreSQL is the production source of truth.
 
 Flat files and SQLite may be used only for:
 
-- import from old scripts
-- export/debug artifacts
-- temporary migration tooling
-- generated restore artifacts
-- backups
+```text
+import from old scripts
+export/debug artifacts
+temporary migration tooling
+generated restore artifacts
+backups
+```
 
 They must not become production customer, firewall, usage, or abuse state.
-
----
 
 ## Mandatory Abuse Requirement
 
@@ -177,19 +178,43 @@ normal -> over_tracking -> over_grace -> hard
 
 Rules:
 
-- all active customers in all enabled lanes must be scanned
-- no silent skip is allowed
-- exemption requires reason and expiry
-- farms-over alone must not harden
-- sustained miner-abuse hardens after about 3600 seconds
-- hard creates restore point and policy backup
-- hard uses firewall plan/apply/verify path
-- hard flushes affected conntrack scope
-- manual unhard is audited
+```text
+all active customers in all enabled lanes must be scanned
+no silent skip is allowed
+exemption requires reason and expiry
+farms-over alone must not harden
+sustained miner-abuse hardens after about 3600 seconds
+hard creates restore point and policy backup
+hard uses firewall plan/apply/verify path
+hard flushes affected conntrack scope
+manual unhard is audited
+```
 
 A patch that weakens this requirement must be rejected.
 
----
+## Future-Ready Boundaries Already Reserved
+
+These are allowed as schema/contracts in Phase 2, but not active runtime features yet:
+
+```text
+buyer_accounts / buyer_users
+customer_service_links / permissions
+action_requests
+plans / plan_versions
+subscriptions / entitlements
+feature_flags
+notification_rules
+customer_health_snapshots
+incidents / runbook_steps
+config_snapshots
+secret_references
+restore_drills
+maintenance_windows
+import_staging
+server_profiles / preflight_runs
+worker_identities / worker_policies / worker_blocks
+abuse_profiles
+```
 
 ## Firewall Safety Model
 
@@ -221,77 +246,6 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
----
-
-## Standard Paths
-
-Recommended production paths:
-
-```text
-Code:    /opt/mpf-py
-Config:  /etc/mpf/mpf.yaml
-Data:    /var/lib/mpf
-Logs:    /var/log/mpf
-Backups: /var/backups/mpf
-CLI:     mpf
-```
-
----
-
-## Initial Configuration Model
-
-Example `/etc/mpf/mpf.yaml`:
-
-```yaml
-server:
-  name: farm-new-1
-  timezone: Europe/Berlin
-
-paths:
-  app: /opt/mpf-py
-  data: /var/lib/mpf
-  logs: /var/log/mpf
-  backups: /var/backups/mpf
-
-database:
-  url: postgresql:///mpf
-
-firewall:
-  backend: iptables
-  apply_mode: plan_only
-  lock_path: /run/mpf-firewall.lock
-
-lanes:
-  btc:
-    enabled: true
-    backend_port: 60010
-    chain_prefix: MPFBTC
-    upstreams:
-      - host: bitcoin.viabtc.io
-        port: 3333
-
-  zec:
-    enabled: false
-    backend_port: 60015
-    chain_prefix: MPFZEC
-    upstreams: []
-
-  ltc:
-    enabled: false
-    backend_port: 60020
-    chain_prefix: MPFLTC
-    upstreams: []
-
-abuse:
-  enabled: true
-  threshold_sec: 3600
-  grace_sec: 900
-```
-
-During early phases, `firewall.apply_mode` must remain `plan_only`.
-
----
-
 ## Documentation Map
 
 Start here:
@@ -300,6 +254,7 @@ Start here:
 AGENTS.md
 README.md
 docs/INDEX.md
+docs/PHASE_STATUS.md
 ```
 
 Core contracts:
@@ -311,16 +266,16 @@ docs/ROADMAP.md
 docs/DATA_MODEL.md
 docs/FIREWALL.md
 docs/ABUSE.md
+docs/FUTURE_EXTENSIONS.md
 ```
 
 Current phase contracts:
 
 ```text
-docs/PHASE_0.md
-docs/PHASE_1.md
+docs/PHASE_1_SERVER_RUNBOOK.md
+docs/INTRANET_INSTALL.md
+docs/AI_PHASE_2_TASK.md
 ```
-
----
 
 ## Roadmap Summary
 
@@ -337,65 +292,37 @@ Phase 8  — Abuse 1h Core
 Phase 9  — Check / Report / Diagnostics
 Phase 10 — Session / Worker / Policy Timeline
 Phase 11 — Local Web UI Read-only
-Phase 12 — UI Actions With Confirmation
-Phase 13 — Telegram Notifications, Read-only Commands, Restricted Actions
+Phase 12 — Buyer-safe Read-only Reporting
+Phase 13 — UI Actions With Confirmation
+Phase 14 — Telegram Notifications, Read-only Commands, Restricted Actions
+Phase 15 — Worker Policy Enforcement, after worker evidence and adapter support
 ```
 
 Do not start a later phase until the current phase acceptance gate passes.
 
----
+## Phase 2 Execution Rule
 
-## Phase 0/1 Execution Rule
+Phase 2 may only change repository code, tests, schema contracts, and documentation.
 
-Start only with:
-
-1. Phase 0 — Architecture Freeze
-2. Phase 1 — Preflight + Bootstrap Without Traffic Changes
-
-During Phase 0/1, the project must not:
-
-- create customer firewall rules
-- create NAT redirects
-- expose backend ports
-- enable abuse automation
-- enable block automation
-- expose UI components
-- activate Telegram
-- onboard production customers
-- switch away from `firewall.apply_mode=plan_only`
-
----
-
-## Phase 1 Acceptance Snapshot
-
-Phase 1 is accepted only when these pass:
-
-```bash
-mpf --help
-mpf doctor
-mpf config validate
-mpf config show
-mpf db ping
-python -m pytest
-systemctl status postgresql
-docker version
-docker compose version
-conntrack -V
-iptables --version
-```
-
-And these remain true:
+During Phase 2, the project must not:
 
 ```text
-no customer firewall rule exists
-no NAT redirect exists
-no backend public exposure exists
-no abuse automation is active
-no block automation is active
-firewall.apply_mode is still plan_only
+create customer firewall rules
+create NAT redirects
+start proxy containers
+run usage timers
+activate abuse automation
+activate block/pause automation
+expose UI components
+activate Telegram
+onboard production customers
+run production import
+switch away from firewall.apply_mode=plan_only
 ```
 
----
+## Phase 1 Server Warning
+
+`farm5` passed Phase 1 bootstrap checks, but time synchronization is not confirmed. This must be fixed before production traffic, usage accuracy, or abuse automation because the one-hour abuse process depends on reliable timestamps.
 
 ## Testing Strategy
 
@@ -404,7 +331,10 @@ Minimum risk areas:
 ```text
 config validation
 database migrations
+schema constraints
 policy versioning
+buyer/customer separation
+worker block boundary
 lane collision
 port collision
 firewall planner
@@ -419,21 +349,21 @@ backup/restore
 interface boundary tests
 ```
 
----
-
 ## Security Guardrails
 
-- never expose backend ports publicly
-- never expose v2rayA UI publicly
-- never expose early Web UI/API publicly
-- never hardcode Telegram tokens
-- secrets must live outside the repository
-- firewall changes must be auditable
-- dangerous actions need restore points
-- direct DB edits are not normal operation
-- direct iptables edits are not normal operation
-
----
+```text
+never expose backend ports publicly
+never expose v2rayA UI publicly
+never expose early Web UI/API publicly
+never hardcode Telegram tokens
+secrets must live outside the repository
+firewall changes must be auditable
+dangerous actions need restore points
+direct DB edits are not normal operation
+direct iptables edits are not normal operation
+buyer UI must not directly mutate production state
+worker block must not be modeled as firewall-only
+```
 
 ## License
 
