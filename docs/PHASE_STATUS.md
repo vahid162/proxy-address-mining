@@ -8,9 +8,9 @@ It must be checked before writing code, scripts, deployment files, services, job
 ## Current State
 
 ```text
-current_accepted_phase: Phase 0 — Architecture Freeze
-current_working_phase: Phase 1 — Repository Bootstrap Skeleton / Preflight Preparation
-server_state: raw server, not bootstrapped
+current_accepted_phase: Phase 1 — Preflight + Bootstrap Without Traffic Changes
+current_working_phase: Phase 2 — PostgreSQL + Config + Domain Model Planning
+server_state: farm5 phase 1 bootstrapped and verified
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -19,28 +19,63 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-## What Is Allowed Now
+## Phase 1 Server Result
 
-Allowed work is limited to safe repository preparation for Phase 1:
+Phase 1 bootstrap has been completed and verified on the target server `farm5`.
+
+Accepted Phase 1 checks:
 
 ```text
-- minimal Python package skeleton
-- safe CLI smoke commands
-- config loader and validator
-- DB ping helper
-- read-only preflight script
-- example config with firewall.apply_mode=plan_only
-- smoke tests
+PostgreSQL active
+Docker active
+containerd active
+mpf config validate OK
+mpf doctor OK
+mpf db ping OK
+pytest passed
+Docker has no containers
+No MPF firewall rules exist
+firewall.apply_mode remains plan_only
+```
+
+Current warning:
+
+```text
+system clock synchronization is not confirmed
+systemd-timesyncd is active, but public NTP replies timed out
+```
+
+This warning is not a Phase 1 blocker, but it must be fixed before production traffic or abuse automation.
+
+## What Is Allowed Now
+
+Allowed work is limited to safe Phase 2 repository implementation and documentation:
+
+```text
+- PostgreSQL schema design
+- Alembic migration setup
+- SQLAlchemy model skeletons
+- config/domain model refinement
+- lane model
+- customer model in schema only
+- policy model in schema only
+- abuse state representation in schema only
+- event/audit representation
+- job_runs and scheduler_locks representation
+- restore_points and firewall_snapshots representation
+- tests for schema constraints and config safety
 - documentation updates that preserve phase gates
 ```
+
+Phase 2 may prepare database schema and domain contracts, but it must not activate production traffic.
 
 ## What Is Forbidden Now
 
 Do not implement or activate:
 
 ```text
-- customer CRUD
-- production PostgreSQL migrations
+- live customer onboarding
+- customer firewall rules
 - live firewall planner/apply
 - NAT redirects
 - Docker proxy data-plane
@@ -53,11 +88,11 @@ Do not implement or activate:
 - production customer import
 ```
 
+Customer CRUD commands that mutate production customer state are not allowed yet. Customer schema/model work is allowed only as Phase 2 groundwork.
+
 ## Current Safety Invariant
 
-During this phase, the repository may contain code, tests, and scripts, but no code path may mutate production traffic state.
-
-Required invariant:
+The accepted server and repository must preserve:
 
 ```text
 firewall.apply_mode = plan_only
@@ -65,36 +100,35 @@ firewall.apply_mode = plan_only
 
 Any patch that bypasses `plan_only` or introduces traffic-changing behavior before the correct phase must be rejected.
 
-## Phase 1 Completion Gate
+## Phase 2 Completion Gate
 
-Phase 1 is complete only after the real server preflight is reviewed and these checks pass on the target server:
-
-```bash
-mpf --help
-mpf doctor
-mpf config validate
-mpf config show
-mpf db ping
-python -m pytest
-systemctl status postgresql
-docker version
-docker compose version
-conntrack -V
-iptables --version
-```
-
-And these remain true:
+Phase 2 is complete only after these are true:
 
 ```text
+PostgreSQL schema is implemented through migrations
+migration upgrade works
+rollback or restore strategy is documented
+config validation passes
+DB ping passes
+BTC lane seed exists or is clearly represented
+customer policy versioning is represented
+abuse state machine is representable
+firewall restore/apply history is representable
+job_runs and scheduler_locks are representable
+event/audit is mandatory for mutations in later phases
+tests cover critical constraints and relationships
+no live firewall apply exists
 no customer firewall rule exists
 no NAT redirect exists
-no backend public exposure exists
-no abuse automation is active
-no block automation is active
-firewall.apply_mode is still plan_only
+no proxy data-plane is started
 ```
 
 ## Next Planned Step
 
-Prepare and test the Phase 1 repository skeleton only.
-After that, run the read-only preflight on the raw server and review the output before writing any server bootstrap commands.
+Implement Phase 2 in the repository only:
+
+```text
+PostgreSQL + Config + Domain Model
+```
+
+Do not move to customer CRUD, firewall apply, proxy containers, usage timers, or abuse automation until the relevant later phase gates pass.
