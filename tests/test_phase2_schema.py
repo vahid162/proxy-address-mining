@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import mpf.future_models  # noqa: F401 - registers future-ready tables on Base.metadata
 from mpf.models import Base
 
 
@@ -46,6 +47,38 @@ def test_phase2_required_tables_exist() -> None:
         "backups",
     }
     assert required <= table_names()
+
+
+def test_future_buyer_account_boundary_is_represented() -> None:
+    required = {
+        "buyer_accounts",
+        "buyer_users",
+        "customer_service_links",
+        "customer_service_permissions",
+        "action_requests",
+    }
+    assert required <= table_names()
+    assert {"account_key", "display_name", "status"} <= columns("buyer_accounts")
+    assert {"buyer_account_id", "email", "password_hash", "status"} <= columns("buyer_users")
+    assert {"buyer_account_id", "customer_id", "status"} <= columns("customer_service_links")
+    assert {"buyer_user_id", "customer_id", "scope", "enabled"} <= columns("customer_service_permissions")
+    assert {"requester_type", "action_type", "target_type", "status", "payload_json"} <= columns("action_requests")
+
+
+def test_future_worker_policy_boundary_is_represented() -> None:
+    required = {
+        "worker_identities",
+        "worker_policies",
+        "worker_blocks",
+        "worker_enforcement_events",
+    }
+    assert required <= table_names()
+    assert {"customer_id", "worker_name", "normalized_worker_name", "status"} <= columns("worker_identities")
+    assert {"customer_id", "mode", "reason"} <= columns("worker_policies")
+    assert {"customer_id", "worker_name", "match_type", "reason", "status"} <= columns("worker_blocks")
+    assert {"customer_id", "worker_name", "src_ip", "action", "adapter", "evidence_json"} <= columns(
+        "worker_enforcement_events"
+    )
 
 
 def test_lane_and_customer_core_fields_are_represented() -> None:
@@ -108,6 +141,16 @@ def test_firewall_history_and_restore_are_represented() -> None:
 def test_job_runs_and_scheduler_locks_are_represented() -> None:
     assert {"job_name", "status", "started_at", "finished_at", "duration_ms", "data_json"} <= columns("job_runs")
     assert {"lock_name", "owner", "acquired_at", "expires_at", "metadata_json"} <= columns("scheduler_locks")
+
+
+def test_customers_are_not_buyer_accounts() -> None:
+    assert "buyer_account_id" not in columns("customers")
+    assert "customer_id" in columns("customer_service_links")
+
+
+def test_worker_blocks_are_not_firewall_only() -> None:
+    assert "worker_name" in columns("worker_blocks")
+    assert "adapter" in columns("worker_enforcement_events")
 
 
 def test_no_sqlite_source_of_truth_tables_are_introduced() -> None:
