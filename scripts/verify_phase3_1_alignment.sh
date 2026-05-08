@@ -12,8 +12,8 @@ hostname
 section 'OFFICIAL MPF RUNTIME'
 command -v mpf || true
 ls -l /usr/local/bin/mpf 2>/dev/null || true
-mpf --version 2>&1 || true
-mpf phase-status 2>&1 || true
+mpf --version
+mpf phase-status
 
 section 'PHASE 3 READ-ONLY COMMANDS'
 mpf config validate
@@ -76,19 +76,30 @@ fi
 echo 'OK: no MPF firewall/NAT rules detected'
 
 section 'SYSTEMD AND CRON SAFETY'
-if systemctl list-unit-files --no-pager | grep -Ei 'mpf|v2raya|gost|forwarder'; then
+unit_matches="$(systemctl list-unit-files --no-pager --plain 2>/dev/null | awk '{print $1}' | grep -E '^(mpf|v2raya|gost|forwarder)[@._-].*\.(service|timer|socket)$|^(mpf|v2raya|gost|forwarder)\.(service|timer|socket)$' || true)"
+if [ -n "$unit_matches" ]; then
+  echo "$unit_matches"
   echo 'CRITICAL: MPF/proxy unit files exist before allowed phase'
   exit 1
 fi
-if grep -RInE 'mpf|v2raya|gost|forwarder' /etc/cron* /var/spool/cron/crontabs 2>/dev/null; then
+active_matches="$(systemctl --type=service --type=timer --type=socket --state=active --no-pager --plain 2>/dev/null | awk '{print $1}' | grep -E '^(mpf|v2raya|gost|forwarder)[@._-].*\.(service|timer|socket)$|^(mpf|v2raya|gost|forwarder)\.(service|timer|socket)$' || true)"
+if [ -n "$active_matches" ]; then
+  echo "$active_matches"
+  echo 'CRITICAL: MPF/proxy active units exist before allowed phase'
+  exit 1
+fi
+cron_matches="$(grep -RInE '(^|[^A-Za-z0-9_-])(mpf|v2raya|gost|forwarder)([^A-Za-z0-9_-]|$)' /etc/cron* /var/spool/cron/crontabs 2>/dev/null || true)"
+if [ -n "$cron_matches" ]; then
+  echo "$cron_matches"
   echo 'CRITICAL: MPF/proxy cron references exist before allowed phase'
   exit 1
 fi
 echo 'OK: no MPF systemd/cron automation detected'
 
 section 'LISTENING PORT SAFETY'
-ss -lntup | grep -E ':(60010|2014|20170|20171|20172|22070|22071|22072)\b' || true
-if ss -lntup | grep -E ':(60010|2014|20170|20171|20172|22070|22071|22072)\b'; then
+port_matches="$(ss -lntup 2>/dev/null | grep -E ':(60010|2014|20170|20171|20172|22070|22071|22072)\b' || true)"
+if [ -n "$port_matches" ]; then
+  echo "$port_matches"
   echo 'CRITICAL: risky backend/UI port is listening before Phase 4 runtime activation'
   exit 1
 fi
