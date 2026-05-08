@@ -18,6 +18,13 @@ required_files=(
   docs/AI_CODING_RULES.md
   docs/AI_PHASE_4_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
+  docs/OFFLINE_SYNC_RUNBOOK.md
+  scripts/sync_main_zip_on_server.sh
+  mpf/domain/health.py
+  mpf/services/proxy_doctor_service.py
+  mpf/adapters/docker_compose.py
+  mpf/adapters/socket_inspector.py
+  tests/test_phase4_proxy.py
 )
 for file in "${required_files[@]}"; do
   if [ ! -f "$file" ]; then
@@ -97,6 +104,15 @@ if [ -f /etc/mpf/mpf.yaml ]; then
   echo 'OK: /etc/mpf/mpf.yaml remains plan_only'
 else
   echo 'WARN: /etc/mpf/mpf.yaml not found; skipping server config check'
+fi
+
+section 'PROXY CLI SAFETY'
+if command -v mpf >/dev/null 2>&1; then
+  mpf proxy config-check
+  mpf proxy status
+  mpf proxy doctor
+else
+  echo 'WARN: mpf command not found; skipping proxy CLI checks'
 fi
 
 section 'DOCKER SAFETY'
