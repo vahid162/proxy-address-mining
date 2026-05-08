@@ -42,7 +42,8 @@ section 'BACKUP CURRENT RUNTIME'
 install -d -m 0750 -o mpf -g mpf "$BACKUP_DIR"
 if [ -e "$RUNTIME_LINK" ] || [ -L "$RUNTIME_LINK" ]; then
   cp -a "$RUNTIME_LINK" "$BACKUP_DIR/mpf.current"
-  readlink -f "$RUNTIME_LINK" > "$BACKUP_DIR/mpf.current.realpath" || true
+  readlink "$RUNTIME_LINK" > "$BACKUP_DIR/mpf.current.readlink" 2>/dev/null || true
+  readlink -f "$RUNTIME_LINK" > "$BACKUP_DIR/mpf.current.realpath" 2>/dev/null || true
 fi
 if [ -d /opt/mpf-py ]; then
   tar -C /opt -czf "$BACKUP_DIR/opt-mpf-py-before.tar.gz" mpf-py
@@ -53,13 +54,18 @@ chown -R mpf:mpf "$BACKUP_DIR"
 echo "backup_dir: $BACKUP_DIR"
 
 section 'INSTALL OFFICIAL MPF WRAPPER'
-cat > /usr/local/bin/mpf <<'EOF'
+TMP_WRAPPER="$(mktemp)"
+cat > "$TMP_WRAPPER" <<'EOF'
 #!/usr/bin/env bash
 set -Eeuo pipefail
 export PYTHONPATH="/opt/mpf-py-src${PYTHONPATH:+:${PYTHONPATH}}"
-exec /opt/mpf-py-src/.venv/bin/python -m mpf.interfaces.cli "$@"
+exec /opt/mpf-py-src/.venv/bin/python -c 'from mpf.interfaces.cli import app; app()' "$@"
 EOF
-chmod 0755 /usr/local/bin/mpf
+chmod 0755 "$TMP_WRAPPER"
+rm -f "$RUNTIME_LINK"
+install -m 0755 "$TMP_WRAPPER" "$RUNTIME_LINK"
+rm -f "$TMP_WRAPPER"
+ls -l "$RUNTIME_LINK"
 
 section 'VERIFY PHASE 3 COMMANDS'
 mpf --version
