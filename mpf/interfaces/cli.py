@@ -196,12 +196,12 @@ def jobs_status(
 def phase_status() -> None:
     """Print the current repository phase guard."""
     typer.echo("current_accepted_phase: Phase 3 — CLI + Internal API Foundation")
-    typer.echo("current_working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning")
-    typer.echo("server_state: farm5 phase 3 read-only CLI/API foundation completed and verified")
+    typer.echo("current_working_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts")
+    typer.echo("server_state: farm5 Phase 3 source artifact verified; official mpf runtime alignment required")
     typer.echo("production_traffic: none")
     typer.echo("firewall_apply_allowed: no")
     typer.echo("abuse_automation_allowed: no")
     typer.echo("customer_onboarding_allowed: no")
-    typer.echo("proxy_data_plane_allowed: planning_only")
+    typer.echo("proxy_data_plane_allowed: no")
     typer.echo("ui_allowed: no")
     typer.echo("telegram_allowed: no")
