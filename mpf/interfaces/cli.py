@@ -6,7 +6,16 @@ import typer
 
 from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH, load_config
-from mpf.services import config_service, customer_read_service, db_service, doctor_service, job_service, lane_service
+from mpf.domain.health import HealthReport
+from mpf.services import (
+    config_service,
+    customer_read_service,
+    db_service,
+    doctor_service,
+    job_service,
+    lane_service,
+    proxy_doctor_service,
+)
 
 app = typer.Typer(
     name="mpf",
@@ -19,11 +28,13 @@ db_app = typer.Typer(help="Database read-only commands.")
 lanes_app = typer.Typer(help="Lane read-only commands.")
 customer_app = typer.Typer(help="Customer read-only commands.")
 jobs_app = typer.Typer(help="Job read-only commands.")
+proxy_app = typer.Typer(help="Proxy read-only planning and doctor commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
 app.add_typer(customer_app, name="customer")
 app.add_typer(jobs_app, name="jobs")
+app.add_typer(proxy_app, name="proxy")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -32,6 +43,15 @@ def _config_path(config: Path | None) -> Path:
 
 def _load(config: Path | None):
     return load_config(_config_path(config))
+
+
+def _emit_health_report(report: HealthReport) -> None:
+    typer.echo(f"component: {report.component}")
+    typer.echo(f"final_verdict: {report.final_verdict.value}")
+    for check in report.checks:
+        typer.echo(f"{check.status.value}\t{check.key}\t{check.message}")
+        if check.remediation:
+            typer.echo(f"  remediation: {check.remediation}")
 
 
 @app.callback()
@@ -94,10 +114,20 @@ def config_show(
     typer.echo(f"database.url: {cfg.database.url}")
     typer.echo(f"firewall.backend: {cfg.firewall.backend}")
     typer.echo(f"firewall.apply_mode: {cfg.firewall.apply_mode}")
+    typer.echo(f"proxy.compose_file: {cfg.proxy.compose_file}")
+    typer.echo(f"proxy.project_name: {cfg.proxy.project_name}")
+    typer.echo(f"proxy.runtime_activation_allowed: {cfg.proxy.runtime_activation_allowed}")
+    typer.echo(f"v2raya.ui_bind_host: {cfg.v2raya.ui_bind_host}")
+    typer.echo(f"v2raya.ui_port: {cfg.v2raya.ui_port}")
     for lane_name, lane in sorted(cfg.lanes.items()):
         typer.echo(
             f"lane.{lane_name}: enabled={lane.enabled} backend_port={lane.backend_port} chain_prefix={lane.chain_prefix}"
         )
+        if lane.forwarder:
+            typer.echo(
+                f"lane.{lane_name}.forwarder: service_name={lane.forwarder.service_name} "
+                f"bind_host={lane.forwarder.bind_host} listen_port={lane.forwarder.listen_port or lane.backend_port}"
+            )
     typer.echo(f"abuse.enabled: {cfg.abuse.enabled}")
     typer.echo(f"abuse.threshold_sec: {cfg.abuse.threshold_sec}")
     typer.echo(f"abuse.grace_sec: {cfg.abuse.grace_sec}")
@@ -190,6 +220,30 @@ def jobs_status(
         typer.echo(
             f"{job.id}\t{job.job_name}\tstatus={job.status}\tstarted_at={job.started_at}\tfinished_at={job.finished_at}\tduration_ms={job.duration_ms}"
         )
+
+
+@proxy_app.command("doctor")
+def proxy_doctor(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
+) -> None:
+    """Run read-only Phase 4 proxy doctor checks."""
+    _emit_health_report(proxy_doctor_service.run(_config_path(config)))
+
+
+@proxy_app.command("status")
+def proxy_status(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
+) -> None:
+    """Inspect proxy status without starting or stopping containers."""
+    _emit_health_report(proxy_doctor_service.status(_config_path(config)))
+
+
+@proxy_app.command("config-check")
+def proxy_config_check(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
+) -> None:
+    """Validate proxy planning config without runtime activation."""
+    _emit_health_report(proxy_doctor_service.config_check(_config_path(config)))
 
 
 @app.command("phase-status")
