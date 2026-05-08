@@ -8,30 +8,19 @@ It must be checked before writing code, scripts, deployment files, services, job
 ## Current State
 
 ```text
-current_accepted_phase: Phase 3 — CLI + Internal API Foundation
-current_working_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
-server_state: farm5 Phase 3 source artifact verified, but official mpf runtime still needs Phase 3 alignment
+current_accepted_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
+current_working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning
+server_state: farm5 Phase 3.1 runtime alignment completed and verified
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
 customer_onboarding_allowed: no
-proxy_data_plane_allowed: no
+proxy_data_plane_allowed: planning_only
 ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4 planning and runtime activation must not continue until Phase 3.1 is completed and recorded.
-
-## Why Phase 3.1 Exists
-
-The farm5 verification showed:
-
-```text
-/opt/mpf-py-src contains Phase 3 source and pytest passes
-/usr/local/bin/mpf still points to the older Phase 1 smoke CLI
-```
-
-This is safe because no traffic-changing behavior is active, but it is not acceptable to start Phase 4 while the official operator command is older than the accepted repository phase.
+Phase 4 is planning-only until a dedicated Phase 4 runbook/task is accepted. It may prepare Compose/proxy doctor design and safe read-only inspection helpers, but it must not start proxy data-plane containers yet.
 
 ## Phase 1 Server Result
 
@@ -51,15 +40,6 @@ Docker has no containers
 No MPF firewall rules exist
 firewall.apply_mode remains plan_only
 ```
-
-Current warning:
-
-```text
-system clock synchronization is not confirmed
-systemd-timesyncd is active, but public NTP replies timed out
-```
-
-This warning is not a Phase 1, Phase 2, Phase 3, or Phase 3.1 blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, or abuse automation.
 
 ## Phase 2 Server Result
 
@@ -135,33 +115,81 @@ See also:
 docs/PHASE_3_SERVER_RESULT.md
 ```
 
-## Phase 3.1 Required Work
+## Phase 3.1 Server Result
 
-Allowed work is limited to safe alignment and contracts:
+Phase 3.1 runtime alignment was completed and verified on `farm5`.
 
-```text
-- promote official /usr/local/bin/mpf runtime to the accepted Phase 3 CLI wrapper
-- run scripts/verify_phase3_1_alignment.sh
-- preserve firewall.apply_mode=plan_only
-- preserve empty runtime tables
-- preserve no Docker proxy containers
-- preserve no MPF firewall/NAT rules
-- preserve no MPF systemd/cron automation
-- document backend internal/external reachability policy
-- document hash-rate/share observability contracts
-- update AI coding rules and documentation map
-```
-
-Relevant files:
+Accepted Phase 3.1 checks:
 
 ```text
-docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
-docs/AI_CODING_RULES.md
-docs/BACKEND_PORT_POLICY.md
-docs/OBSERVABILITY_HASHRATE.md
-scripts/promote_phase3_runtime.sh
-scripts/verify_phase3_1_alignment.sh
+official /usr/local/bin/mpf runtime exposes Phase 3 read-only commands
+mpf --version reported 0.1.0
+mpf phase-status reported Phase 3 accepted / Phase 3.1 working during verification
+mpf config validate OK
+mpf config show OK
+mpf doctor OK
+mpf db ping OK
+mpf db status OK
+mpf lanes list OK and read-only
+mpf customer list OK and read-only
+mpf jobs status OK and read-only
+pytest passed: 48 passed
+alembic current/head = 0001_phase2_initial_schema
+runtime-facing tables remain empty
+Docker has no containers
+No MPF firewall/NAT rules exist
+No MPF systemd/cron automation exists
+No risky backend/UI ports are listening
+firewall.apply_mode remains plan_only
+no production traffic was changed
 ```
+
+Source backup before final Phase 3.1 verification:
+
+```text
+/var/backups/mpf/source-before-phase3-1-20260508T133637Z
+```
+
+Runtime backup before final promotion:
+
+```text
+/var/backups/mpf/phase3-runtime-promote-20260508T133650Z
+```
+
+See also:
+
+```text
+docs/PHASE_3_1_SERVER_RESULT.md
+```
+
+## Current Server Warning
+
+Time synchronization is still not confirmed on `farm5`:
+
+```text
+System clock synchronized: no
+NTP service: active
+```
+
+This warning is not a Phase 1, Phase 2, Phase 3, or Phase 3.1 blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+
+## What Is Allowed Now
+
+Allowed work is limited to safe Phase 4 planning and repository implementation:
+
+```text
+- Phase 4 runbook/task documentation
+- Compose/proxy doctor design
+- backend internal reachability probe design
+- backend external exposure probe design
+- local-only v2rayA/forwarder binding plan
+- safe configuration schema refinement for proxy doctor needs
+- read-only Docker/Compose inspection helpers
+- tests for proxy doctor boundaries
+- documentation updates that preserve phase gates
+```
+
+Phase 4 may prepare Compose forward-only and proxy doctor foundations, but runtime activation must wait for an explicit Phase 4 execution task/runbook and server validation plan.
 
 ## What Is Forbidden Now
 
@@ -177,9 +205,9 @@ Do not implement or activate:
 - hash-rate/share collectors
 - abuse runner automation
 - block or pause automation
-- Docker proxy data-plane containers
-- v2rayA runtime
-- forwarder/gost runtime
+- Docker proxy data-plane containers without an accepted Phase 4 execution runbook
+- v2rayA runtime without an accepted Phase 4 execution runbook
+- forwarder/gost runtime without an accepted Phase 4 execution runbook
 - local UI service
 - buyer UI service
 - Telegram bot
@@ -231,34 +259,25 @@ retention before high-volume collection
 
 Do not implement it later as UI-only calculations or unstructured log parsing.
 
-## Phase 3.1 Acceptance Gate
+## Phase 4 Planning Gate
 
-Before Phase 4 planning resumes, this must pass on farm5:
-
-```bash
-sudo bash /opt/mpf-py-src/scripts/promote_phase3_runtime.sh
-sudo bash /opt/mpf-py-src/scripts/verify_phase3_1_alignment.sh
-```
-
-Acceptance criteria:
+Before any Phase 4 runtime activation, these must exist:
 
 ```text
-official mpf runtime exposes Phase 3 read-only commands
-Phase 3 tests pass
-Alembic current/head remain 0001_phase2_initial_schema
-runtime-facing tables remain empty
-Docker still has no proxy containers
-No MPF firewall/NAT rules exist
-No MPF systemd/cron automation exists
-firewall.apply_mode remains plan_only
-no production traffic changed
+Phase 4 task/runbook
+local-only v2rayA/forwarder binding plan
+proxy doctor acceptance checks
+backend internal reachability check
+backend direct exposure detection plan
+Docker Compose rollback/stop plan
+server validation script
+explicit confirmation that no customer NAT redirect will be created
+explicit confirmation that firewall.apply_mode remains plan_only
 ```
 
 ## Next Planned Step
 
-Complete Phase 3.1 first.
-
-After Phase 3.1 is recorded, Phase 4 may return to repository-only planning for:
+Plan Phase 4 in the repository first:
 
 ```text
 Compose Forward-only + Proxy Doctor
