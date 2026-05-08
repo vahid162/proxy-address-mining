@@ -16,11 +16,25 @@ firewall:
   apply_mode: plan_only
   lock_path: /run/mpf-firewall.lock
 
+proxy:
+  compose_file: /opt/mpf-py-src/compose/mpf-proxy.compose.yaml
+  project_name: mpf-proxy
+  runtime_activation_allowed: false
+
+v2raya:
+  ui_bind_host: 127.0.0.1
+  ui_port: 2014
+
 lanes:
   btc:
     enabled: true
     backend_port: 60010
     chain_prefix: MPFBTC
+    forwarder:
+      service_name: mpf-forwarder-btc
+      bind_host: 127.0.0.1
+      listen_port: 60010
+      upstream_socks: v2raya:22070
     upstreams:
       - host: bitcoin.viabtc.io
         port: 3333
