@@ -42,7 +42,11 @@ def validate_compose_config(compose_file: Path, project_name: str) -> ComposeCon
         "config",
         "--quiet",
     ]
-    result = subprocess.run(cmd, text=True, capture_output=True)
+    try:
+        result = subprocess.run(cmd, text=True, capture_output=True)
+    except FileNotFoundError:
+        return ComposeConfigResult(False, "docker command is not available", compose_file)
+
     if result.returncode != 0:
         message = result.stderr.strip() or result.stdout.strip() or "docker compose config failed"
         return ComposeConfigResult(False, message, compose_file)
@@ -60,7 +64,11 @@ def list_project_containers(project_name: str) -> list[DockerContainerSummary]:
         "--format",
         "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}",
     ]
-    result = subprocess.run(cmd, text=True, capture_output=True)
+    try:
+        result = subprocess.run(cmd, text=True, capture_output=True)
+    except FileNotFoundError:
+        return []
+
     if result.returncode != 0:
         return []
 
