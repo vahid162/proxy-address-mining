@@ -37,21 +37,32 @@ Read these before implementation work:
 
 ## Current Phase Contracts
 
-Current active phase:
+Current accepted phase:
 
 ```text
 Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
 ```
 
+Current working phase:
+
+```text
+Phase 4 — Compose Forward-only + Proxy Doctor Planning
+```
+
 Read:
 
 1. `docs/PHASE_STATUS.md`
-2. `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
-3. `docs/PHASE_3_SERVER_RESULT.md`
-4. `docs/PHASE_3_1_SERVER_RESULT.md`
-5. `docs/INTRANET_INSTALL.md`
+2. `docs/AI_PHASE_4_TASK.md`
+3. `docs/PHASE_4_SERVER_RUNBOOK.md`
+4. `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
+5. `docs/PHASE_3_SERVER_RESULT.md`
+6. `docs/PHASE_3_1_SERVER_RESULT.md`
+7. `docs/BACKEND_PORT_POLICY.md`
+8. `docs/OBSERVABILITY_HASHRATE.md`
+9. `docs/INTRANET_INSTALL.md`
 
-Phase 4 must not continue until Phase 3.1 is accepted on the server and recorded.
+Phase 4 is planning-only until a dedicated Phase 4 runtime activation task is accepted.
+It must not start proxy containers, create NAT redirects, apply firewall rules, onboard customers, or activate usage/abuse automation.
 
 ## Reading Order by Task
 
@@ -83,7 +94,25 @@ Read:
 10. `docs/ABUSE.md`
 11. all phase/domain documents affected by the change
 
-### Phase 3.1 work
+### Phase 4 planning work
+
+Read:
+
+1. `../AGENTS.md`
+2. `../README.md`
+3. `docs/PHASE_STATUS.md`
+4. `docs/AI_CODING_RULES.md`
+5. `docs/AI_PHASE_4_TASK.md`
+6. `docs/PHASE_4_SERVER_RUNBOOK.md`
+7. `docs/ROADMAP.md`
+8. `docs/SAFETY.md`
+9. `docs/FIREWALL.md`
+10. `docs/BACKEND_PORT_POLICY.md`
+
+Phase 4 planning may add Compose/proxy doctor design, read-only inspection helpers, validation scripts, and tests.
+It must not activate Docker data-plane, firewall apply, NAT redirects, customers, usage timers, hash-rate collectors, abuse automation, UI, or Telegram.
+
+### Phase 3.1 reference work
 
 Read:
 
@@ -97,8 +126,7 @@ Read:
 8. `docs/OBSERVABILITY_HASHRATE.md`
 9. `docs/INTRANET_INSTALL.md`
 
-Phase 3.1 is limited to runtime alignment, read-only verification, and future contracts.
-It must not activate Docker data-plane, firewall apply, NAT redirects, customers, usage timers, hash-rate collectors, or abuse automation.
+Phase 3.1 is accepted and recorded on farm5. Its result remains a safety baseline for Phase 4 planning.
 
 ### Database or migration work
 
@@ -132,7 +160,9 @@ Read:
 5. `docs/FIREWALL.md`
 6. `docs/BACKEND_PORT_POLICY.md`
 7. `docs/DATA_MODEL.md`
-8. relevant phase/domain document
+8. `docs/AI_PHASE_4_TASK.md`
+9. `docs/PHASE_4_SERVER_RUNBOOK.md`
+10. relevant phase/domain document
 
 Rules:
 
@@ -144,6 +174,7 @@ Rules:
 - backend direct external exposure is critical
 - backend internal reachability failure is also critical
 - never hide backend ports by breaking valid internal paths
+- Phase 4 proxy doctor work is read-only until runtime activation is explicitly accepted
 
 ### Hash-rate, share, worker, or observability work
 
@@ -186,6 +217,7 @@ Rules:
 - farms-over alone must not harden
 - sustained miner-abuse hardens after about 3600 seconds
 - hard/unhard must use restore points, events, audit, and firewall service
+- abuse automation remains forbidden until Phase 8
 
 ### CLI/API/UI/Telegram interface work
 
@@ -235,13 +267,21 @@ Rules:
 
 Defines the accepted phase, current working phase, allowed work, forbidden work, and next safe step.
 
+### `docs/AI_PHASE_4_TASK.md`
+
+Defines the repository-side Phase 4 AI task, allowed planning work, forbidden runtime behavior, required proxy doctor checks, tests, and stop conditions.
+
+### `docs/PHASE_4_SERVER_RUNBOOK.md`
+
+Defines Phase 4 server safety boundaries, allowed read-only checks, forbidden runtime actions, Compose requirements, proxy doctor acceptance fields, and the future runtime activation gate.
+
 ### `docs/AI_CODING_RULES.md`
 
-Defines current AI coding rules, Phase 3.1 limits, runtime alignment rules, backend port rules, hash-rate/share planning rules, and stop conditions.
+Defines current AI coding rules, phase limits, runtime alignment rules, backend port rules, hash-rate/share planning rules, and stop conditions.
 
 ### `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
 
-Defines the required server alignment gate before Phase 4 can continue.
+Defines the required server alignment gate that was completed before Phase 4 planning.
 
 ### `docs/BACKEND_PORT_POLICY.md`
 
@@ -323,6 +363,8 @@ Stop and revise if any change introduces:
 16. proxy data-plane activation before accepted Phase 4 runtime runbook
 17. high-volume share/hash-rate collection before retention and partitioning review
 18. UI charts reading raw high-volume share events directly
+19. Phase 4 planning code that starts Docker/proxy runtime
+20. public v2rayA UI exposure
 
 ## Final Rule
 
