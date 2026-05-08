@@ -97,6 +97,7 @@ required_files=(
   docs/AI_PHASE_4_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
   docs/OFFLINE_SYNC_RUNBOOK.md
+  docs/MIGRATION_POLICY.md
   scripts/verify_phase4_planning_gate.sh
   scripts/sync_main_zip_on_server.sh
   mpf/config.py
