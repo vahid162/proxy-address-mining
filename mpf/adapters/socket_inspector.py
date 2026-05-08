@@ -24,7 +24,11 @@ def list_listening_tcp_sockets() -> list[ListeningSocket]:
 
     This function is read-only and must not alter sockets or services.
     """
-    result = subprocess.run(["ss", "-lntp"], text=True, capture_output=True)
+    try:
+        result = subprocess.run(["ss", "-lntp"], text=True, capture_output=True)
+    except FileNotFoundError:
+        return []
+
     if result.returncode != 0:
         return []
 
