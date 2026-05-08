@@ -15,19 +15,19 @@ docs/PHASE_STATUS.md
 Current repository/server state:
 
 ```text
-accepted_phase: Phase 3 — CLI + Internal API Foundation
-working_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
-server_state: farm5 Phase 3 source verified, official mpf runtime alignment still required
+accepted_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
+working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning
+server_state: farm5 Phase 3.1 runtime alignment completed and verified
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
 customer_onboarding_allowed: no
-proxy_data_plane_allowed: no
+proxy_data_plane_allowed: planning_only
 ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4 planning must not continue until Phase 3.1 is completed and recorded.
+Phase 4 is planning-only until a dedicated server runtime task/runbook is accepted.
 
 Do not use this repository for production traffic yet.
 
@@ -44,6 +44,7 @@ Alembic bootstrap
 Phase 2 schema representation
 Phase 2 migration accepted on farm5
 Phase 3 read-only CLI/API foundation accepted in source artifact
+Phase 3.1 official runtime alignment accepted on farm5
 read-only DB status, lane list, customer list, and job status commands
 service/repository boundaries for Phase 3 commands
 internal API foundation with stable read-only response DTOs
@@ -51,28 +52,49 @@ foundation taxonomy and request context/correlation_id contracts
 future-ready buyer/account and worker-policy boundaries
 extension-ready control-plane schema contracts
 pytest CI on GitHub Actions
-Phase 3.1 alignment gate documentation
 backend internal/external reachability policy contract
 accepted/rejected hash-rate and share observability contract
 AI coding rules for phase-gated development
+Phase 4 planning task and server runbook foundations
 ```
 
-## Required Before Phase 4
+## Current Phase 4 Planning Scope
 
-Phase 3.1 must align the official server runtime command with the accepted Phase 3 source artifact.
-
-On `farm5`, verification showed:
+Allowed now:
 
 ```text
-/opt/mpf-py-src      Phase 3 source artifact, tests pass
-/usr/local/bin/mpf   older Phase 1 smoke CLI
+Phase 4 runbook/task documentation
+Compose/proxy doctor design
+backend internal reachability probe design
+backend external exposure probe design
+local-only v2rayA/forwarder binding plan
+safe configuration schema refinement for proxy doctor needs
+read-only Docker/Compose inspection helpers
+tests for proxy doctor boundaries
+documentation updates that preserve phase gates
 ```
 
-Before Phase 4 work resumes, run and record:
+Forbidden now:
 
-```bash
-sudo bash /opt/mpf-py-src/scripts/promote_phase3_runtime.sh
-sudo bash /opt/mpf-py-src/scripts/verify_phase3_1_alignment.sh
+```text
+live customer onboarding
+customer CRUD mutation
+customer firewall rules
+live firewall apply
+NAT redirects
+usage timers
+hash-rate/share collectors
+abuse runner automation
+block or pause automation
+Docker proxy data-plane containers without an accepted Phase 4 execution runbook
+v2rayA runtime without an accepted Phase 4 execution runbook
+forwarder/gost runtime without an accepted Phase 4 execution runbook
+local UI service
+buyer UI service
+Telegram bot
+production customer import
+worker enforcement
+public API binding
 ```
 
 Required invariant remains:
@@ -81,13 +103,32 @@ Required invariant remains:
 firewall.apply_mode = plan_only
 ```
 
+## Required Before Phase 4 Runtime Activation
+
+Phase 4 planning must produce and preserve:
+
+```text
+docs/AI_PHASE_4_TASK.md
+docs/PHASE_4_SERVER_RUNBOOK.md
+scripts/verify_phase4_planning_gate.sh
+local-only v2rayA/forwarder binding plan
+proxy doctor acceptance checks
+backend internal reachability check
+backend direct exposure detection plan
+Docker Compose rollback/stop plan
+explicit confirmation that no customer NAT redirect will be created
+explicit confirmation that firewall.apply_mode remains plan_only
+```
+
+A later explicit runtime activation task is required before starting containers.
+
 ## Not Implemented Yet
 
 ```text
 production customer CRUD
 live firewall planner/apply
 NAT redirects
-proxy data-plane containers
+proxy data-plane runtime activation
 usage timers
 hash-rate/share collectors
 abuse runner automation
@@ -273,30 +314,6 @@ See:
 docs/OBSERVABILITY_HASHRATE.md
 ```
 
-## Future-Ready Boundaries Already Reserved
-
-These are allowed as schema/contracts in Phase 2, but not active runtime features yet:
-
-```text
-buyer_accounts / buyer_users
-customer_service_links / permissions
-action_requests
-plans / plan_versions
-subscriptions / entitlements
-feature_flags
-notification_rules
-customer_health_snapshots
-incidents / runbook_steps
-config_snapshots
-secret_references
-restore_drills
-maintenance_windows
-import_staging
-server_profiles / preflight_runs
-worker_identities / worker_policies / worker_blocks
-abuse_profiles
-```
-
 ## Firewall Safety Model
 
 Firewall changes must be model-driven.
@@ -357,63 +374,48 @@ docs/OBSERVABILITY_HASHRATE.md
 Current phase contracts/results:
 
 ```text
-docs/PHASE_1_SERVER_RUNBOOK.md
-docs/PHASE_2_SERVER_RESULT.md
 docs/PHASE_3_SERVER_RESULT.md
 docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
-docs/AI_PHASE_3_TASK.md
+docs/PHASE_3_1_SERVER_RESULT.md
+docs/AI_PHASE_4_TASK.md
+docs/PHASE_4_SERVER_RUNBOOK.md
 docs/INTRANET_INSTALL.md
 ```
 
 ## Roadmap Summary
 
 ```text
-Phase 0  — Architecture Freeze
-Phase 1  — Preflight + Bootstrap Without Traffic Changes
-Phase 2  — PostgreSQL + Config + Domain Model
-Phase 3  — CLI + Internal API Foundation
+Phase 0   — Architecture Freeze
+Phase 1   — Preflight + Bootstrap Without Traffic Changes
+Phase 2   — PostgreSQL + Config + Domain Model
+Phase 3   — CLI + Internal API Foundation
 Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
-Phase 4  — Compose Forward-only + Proxy Doctor
-Phase 5  — Customer CRUD in DB Only
-Phase 6  — Firewall Planner + Apply/Verify/Rollback
-Phase 7  — Usage + Policy/Reject Accounting
-Phase 8  — Abuse 1h Core
-Phase 9  — Check / Report / Diagnostics
-Phase 10 — Session / Worker / Policy / Share Timeline
-Phase 11 — Local Web UI Read-only
-Phase 12 — Buyer-safe Read-only Reporting
-Phase 13 — UI Actions With Confirmation
-Phase 14 — Telegram Notifications, Read-only Commands, Restricted Actions
-Phase 15 — Worker Policy Enforcement, after worker evidence and adapter support
+Phase 4   — Compose Forward-only + Proxy Doctor
+Phase 5   — Customer CRUD in DB Only
+Phase 6   — Firewall Planner + Apply/Verify/Rollback
+Phase 7   — Usage + Policy/Reject Accounting
+Phase 8   — Abuse 1h Core
+Phase 9   — Check / Report / Diagnostics
+Phase 10  — Session / Worker / Policy / Share Timeline
+Phase 11  — Local Web UI Read-only
+Phase 12  — Buyer-safe Read-only Reporting
+Phase 13  — UI Actions With Confirmation
+Phase 14  — Telegram Notifications, Read-only Commands, Restricted Actions
+Phase 15  — Worker Policy Enforcement
 ```
 
 Do not start a later phase until the current phase acceptance gate passes.
 
-## Phase 4 Rule
+## Current Server Warning
 
-Phase 4 work must begin only after Phase 3.1 acceptance.
-
-During Phase 4 planning, the project must not:
+Time synchronization is still not confirmed on `farm5`:
 
 ```text
-create or mutate production customers
-create customer firewall rules
-create NAT redirects
-start proxy containers without an accepted Phase 4 execution runbook
-run usage timers
-activate hash-rate/share collectors
-activate abuse automation
-activate block/pause automation
-expose UI components
-activate Telegram
-onboard production customers
-run production import
-switch away from firewall.apply_mode=plan_only
+System clock synchronized: no
+NTP service: active
 ```
 
-## Current Server Warnings
-
-`farm5` passed Phase 3 source checks, but the official runtime still needs Phase 3.1 alignment and time synchronization is still not confirmed. Time sync must be fixed before production traffic, usage accuracy, hash-rate time-series collection, or abuse automation because those processes depend on reliable timestamps.
+This warning is not a Phase 1, Phase 2, Phase 3, or Phase 3.1 blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## Testing Strategy
 
@@ -440,6 +442,7 @@ hash-rate/share aggregation contracts
 job locking
 backup/restore
 interface boundary tests
+proxy doctor classification
 ```
 
 ## Security Guardrails
