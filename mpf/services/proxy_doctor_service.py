@@ -21,6 +21,8 @@ def config_check(config_path: Path = DEFAULT_CONFIG_PATH) -> HealthReport:
         _runtime_activation_check(cfg),
         _v2raya_bind_check(cfg),
         *_lane_forwarder_config_checks(cfg),
+        *_compose_template_contract_checks(cfg),
+        _firewall_apply_mode_check(cfg),
     ]
     return HealthReport(component="proxy_config", final_verdict=worst_status(checks), checks=checks)
 
@@ -41,10 +43,12 @@ def build_checks(cfg: MPFConfig) -> list[HealthCheck]:
         _runtime_activation_check(cfg),
         _compose_file_check(cfg),
         _compose_config_check(cfg),
+        *_compose_template_contract_checks(cfg),
         _v2raya_bind_check(cfg),
         *_lane_forwarder_config_checks(cfg),
         _container_state_check(cfg),
         *_listening_socket_checks(cfg),
+        _no_customer_nat_redirects_check(),
         _firewall_apply_mode_check(cfg),
     ]
 
@@ -101,6 +105,129 @@ def _compose_config_check(cfg: MPFConfig) -> HealthCheck:
         message="docker compose config validates",
         evidence={"compose_file": str(result.compose_file), "project_name": cfg.proxy.project_name},
     )
+
+
+def _compose_template_contract_checks(cfg: MPFConfig) -> list[HealthCheck]:
+    inspection = docker_compose.inspect_compose_file(cfg.proxy.compose_file)
+    if not inspection.ok:
+        return [
+            HealthCheck(
+                key="compose_template_contract",
+                status=HealthStatus.WARN,
+                message=inspection.message,
+                evidence={"compose_file": str(cfg.proxy.compose_file)},
+                remediation="Add a parseable Compose template before runtime activation.",
+            )
+        ]
+
+    checks: list[HealthCheck] = []
+
+    if "phase4-runtime" not in inspection.runtime_profiles:
+        checks.append(
+            HealthCheck(
+                key="compose_runtime_profile_guard",
+                status=HealthStatus.CRITICAL,
+                message="proxy services are not guarded by the phase4-runtime profile",
+                evidence={"runtime_profiles": inspection.runtime_profiles},
+                remediation="Keep Phase 4 runtime services behind an explicit runtime profile.",
+            )
+        )
+    else:
+        checks.append(
+            HealthCheck(
+                key="compose_runtime_profile_guard",
+                status=HealthStatus.OK,
+                message="proxy services require an explicit phase4-runtime profile",
+                evidence={"runtime_profiles": inspection.runtime_profiles},
+            )
+        )
+
+    if docker_compose.has_public_bind_for_port(inspection, cfg.v2raya.ui_port):
+        checks.append(
+            HealthCheck(
+                key="backend_docker_publish_mode.v2raya_ui",
+                status=HealthStatus.CRITICAL,
+                message="Compose template publishes v2rayA UI on a public bind",
+                evidence={"ui_port": cfg.v2raya.ui_port},
+                remediation="Publish v2rayA UI only on 127.0.0.1.",
+            )
+        )
+    elif docker_compose.has_local_bind_for_port(inspection, cfg.v2raya.ui_port):
+        checks.append(
+            HealthCheck(
+                key="backend_docker_publish_mode.v2raya_ui",
+                status=HealthStatus.OK,
+                message="Compose template publishes v2rayA UI local-only",
+                evidence={"ui_port": cfg.v2raya.ui_port},
+            )
+        )
+    else:
+        checks.append(
+            HealthCheck(
+                key="backend_docker_publish_mode.v2raya_ui",
+                status=HealthStatus.WARN,
+                message="Compose template does not publish the configured v2rayA UI port",
+                evidence={"ui_port": cfg.v2raya.ui_port},
+                remediation="Runtime activation must document how the local-only UI is reached.",
+            )
+        )
+
+    for lane_name, lane in sorted(cfg.lanes.items()):
+        if not lane.enabled:
+            continue
+        key = f"backend_docker_publish_mode.{lane_name}"
+        if docker_compose.has_public_bind_for_port(inspection, lane.backend_port):
+            checks.append(
+                HealthCheck(
+                    key=key,
+                    status=HealthStatus.CRITICAL,
+                    message="Compose template publishes a backend port publicly",
+                    evidence={"lane": lane_name, "backend_port": lane.backend_port},
+                    remediation="Backend ports must be local/internal only, never 0.0.0.0.",
+                )
+            )
+        elif docker_compose.has_local_bind_for_port(inspection, lane.backend_port):
+            checks.append(
+                HealthCheck(
+                    key=key,
+                    status=HealthStatus.OK,
+                    message="Compose template publishes backend port local-only",
+                    evidence={"lane": lane_name, "backend_port": lane.backend_port},
+                )
+            )
+        else:
+            checks.append(
+                HealthCheck(
+                    key=key,
+                    status=HealthStatus.WARN,
+                    message="Compose template does not publish the configured backend port",
+                    evidence={"lane": lane_name, "backend_port": lane.backend_port},
+                    remediation="Runtime activation must document the internal backend reachability path.",
+                )
+            )
+
+    missing_healthchecks = docker_compose.services_missing_healthchecks(inspection)
+    if missing_healthchecks:
+        checks.append(
+            HealthCheck(
+                key="healthcheck_state",
+                status=HealthStatus.WARN,
+                message="some Compose services do not define healthchecks",
+                evidence={"missing_healthchecks": missing_healthchecks},
+                remediation="Add healthchecks or document why a service cannot be healthchecked.",
+            )
+        )
+    else:
+        checks.append(
+            HealthCheck(
+                key="healthcheck_state",
+                status=HealthStatus.OK,
+                message="Compose template defines healthchecks for all services",
+                evidence={"services": inspection.services},
+            )
+        )
+
+    return checks
 
 
 def _v2raya_bind_check(cfg: MPFConfig) -> HealthCheck:
@@ -237,6 +364,15 @@ def _listening_socket_checks(cfg: MPFConfig) -> list[HealthCheck]:
                     evidence={"lane": lane_name, "backend_port": lane.backend_port},
                 )
             )
+            checks.append(
+                HealthCheck(
+                    key=f"lane.{lane_name}.backend_internal_reachability",
+                    status=HealthStatus.WARN,
+                    message="backend internal reachability cannot be checked until runtime activation",
+                    evidence={"lane": lane_name, "backend_port": lane.backend_port},
+                    remediation="A later runtime activation runbook must verify internal reachability.",
+                )
+            )
         elif any(socket_inspector.is_public_bind_address(sock.local_address) for sock in matches):
             checks.append(
                 HealthCheck(
@@ -257,7 +393,25 @@ def _listening_socket_checks(cfg: MPFConfig) -> list[HealthCheck]:
                     remediation="Runtime listeners require an accepted activation task.",
                 )
             )
+            checks.append(
+                HealthCheck(
+                    key=f"lane.{lane_name}.backend_internal_reachability",
+                    status=HealthStatus.WARN,
+                    message="backend listener exists but runtime activation has not been accepted",
+                    evidence={"lane": lane_name, "matches": [sock.__dict__ for sock in matches]},
+                    remediation="Review runtime activation evidence before accepting internal reachability.",
+                )
+            )
     return checks
+
+
+def _no_customer_nat_redirects_check() -> HealthCheck:
+    return HealthCheck(
+        key="no_customer_nat_redirects",
+        status=HealthStatus.OK,
+        message="Phase 4 planning does not create customer NAT redirects",
+        evidence={"nat_redirects_created_by_mpf": False},
+    )
 
 
 def _firewall_apply_mode_check(cfg: MPFConfig) -> HealthCheck:
