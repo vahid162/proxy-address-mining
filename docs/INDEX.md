@@ -34,38 +34,36 @@ Read these before implementation work:
 7. `docs/ABUSE.md`
 8. `docs/BACKEND_PORT_POLICY.md`
 9. `docs/OBSERVABILITY_HASHRATE.md`
+10. `docs/CONTROL_RULES.md`
+11. `docs/WORKER_POLICY.md`
 
 ## Current Phase Contracts
 
 Current accepted phase:
 
 ```text
-Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5
+Phase 4 Runtime Activation — Limited Proxy Runtime Startup accepted on farm5
 ```
 
 Current working phase:
 
 ```text
-Phase 4 Runtime Activation Execution Review
+Phase 5 — Customer CRUD in DB Only
 ```
 
 Read:
 
 1. `docs/PHASE_STATUS.md`
-2. `docs/AI_PHASE_4_TASK.md`
-3. `docs/AI_PHASE_4_2_TASK.md`
-4. `docs/PHASE_4_SERVER_RUNBOOK.md`
-5. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
-6. `docs/PHASE_4_2_SERVER_SYNC_RESULT.md`
-7. `docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md`
-8. `docs/PHASE_4_1_SERVER_RESULT.md`
-9. `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
-10. `docs/BACKEND_PORT_POLICY.md`
-11. `docs/OBSERVABILITY_HASHRATE.md`
-12. `docs/INTRANET_INSTALL.md`
+2. `docs/AI_PHASE_5_TASK.md`
+3. `docs/CONTROL_RULES.md`
+4. `docs/WORKER_POLICY.md`
+5. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+6. `docs/BACKEND_PORT_POLICY.md`
+7. `docs/OBSERVABILITY_HASHRATE.md`
+8. `docs/INTRANET_INSTALL.md`
 
-The current step is review-only until a dedicated runtime activation execution task is explicitly accepted.
-It must not start proxy containers, create NAT redirects, apply firewall rules, onboard customers, or activate usage/abuse automation.
+The current step is DB-only Customer CRUD plus documentation-only contract clarification.
+It must not create NAT redirects, apply firewall rules, activate usage/abuse automation, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 ## Reading Order by Task
 
@@ -95,9 +93,11 @@ Read:
 8. `docs/TAXONOMY.md`
 9. `docs/FIREWALL.md`
 10. `docs/ABUSE.md`
-11. all phase/domain documents affected by the change
+11. `docs/CONTROL_RULES.md`
+12. `docs/WORKER_POLICY.md`
+13. all phase/domain documents affected by the change
 
-### Phase 4 runtime activation execution review
+### Phase 5 Customer CRUD DB-only work
 
 Read:
 
@@ -105,63 +105,24 @@ Read:
 2. `../README.md`
 3. `docs/PHASE_STATUS.md`
 4. `docs/AI_CODING_RULES.md`
-5. `docs/AI_PHASE_4_TASK.md`
-6. `docs/AI_PHASE_4_2_TASK.md`
-7. `docs/PHASE_4_SERVER_RUNBOOK.md`
-8. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
-9. `docs/PHASE_4_2_SERVER_SYNC_RESULT.md`
-10. `docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md`
-11. `docs/SAFETY.md`
-12. `docs/FIREWALL.md`
-13. `docs/BACKEND_PORT_POLICY.md`
+5. `docs/AI_PHASE_5_TASK.md`
+6. `docs/DATA_MODEL.md`
+7. `docs/TAXONOMY.md`
+8. `docs/CONTROL_RULES.md`
+9. `docs/WORKER_POLICY.md`
+10. `docs/SAFETY.md`
+11. `docs/ABUSE.md`
 
 Rules:
 
-- review is not runtime approval
-- no `docker compose up` during review
-- no Docker/proxy runtime startup without a later explicit execution approval
+- customer mutations are DB-only
 - no customer NAT redirects
 - no customer firewall rules
 - no firewall apply
-- no usage timers
-- no abuse automation
-- backend internal reachability and external exposure must be validated only in the later approved execution step
-
-### Phase 4 planning work
-
-Read:
-
-1. `../AGENTS.md`
-2. `../README.md`
-3. `docs/PHASE_STATUS.md`
-4. `docs/AI_CODING_RULES.md`
-5. `docs/AI_PHASE_4_TASK.md`
-6. `docs/AI_PHASE_4_2_TASK.md`
-7. `docs/PHASE_4_SERVER_RUNBOOK.md`
-8. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
-9. `docs/ROADMAP.md`
-10. `docs/SAFETY.md`
-11. `docs/FIREWALL.md`
-12. `docs/BACKEND_PORT_POLICY.md`
-
-Phase 4 planning may add Compose/proxy doctor design, read-only inspection helpers, validation scripts, and tests.
-It must not activate Docker data-plane, firewall apply, NAT redirects, customers, usage timers, hash-rate collectors, abuse automation, UI, or Telegram.
-
-### Phase 3.1 reference work
-
-Read:
-
-1. `../AGENTS.md`
-2. `../README.md`
-3. `docs/PHASE_STATUS.md`
-4. `docs/AI_CODING_RULES.md`
-5. `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
-6. `docs/PHASE_3_SERVER_RESULT.md`
-7. `docs/BACKEND_PORT_POLICY.md`
-8. `docs/OBSERVABILITY_HASHRATE.md`
-9. `docs/INTRANET_INSTALL.md`
-
-Phase 3.1 is accepted and recorded on farm5. Its result remains a safety baseline for Phase 4 review work.
+- no block/pause runtime
+- no worker runtime
+- no usage or abuse automation
+- customer validation must avoid future schema/service dead ends for controls and worker policy
 
 ### Database or migration work
 
@@ -174,14 +135,17 @@ Read:
 5. `docs/SAFETY.md`
 6. `docs/DATA_MODEL.md`
 7. `docs/TAXONOMY.md`
-8. relevant phase/domain document
+8. `docs/CONTROL_RULES.md`
+9. `docs/WORKER_POLICY.md`
+10. relevant phase/domain document
 
 Rules:
 
 - PostgreSQL is source of truth.
-- Migrations are required.
+- Migrations are required for schema changes.
 - Future production migrations should use explicit Alembic operations.
 - Do not run production migrations until reviewed and explicitly approved.
+- Control-rule and worker-routing migrations are not authorized by documentation-only contracts.
 - On farm5, run Alembic from `/opt/mpf-py-src`, not from `/root`.
 
 ### Firewall, proxy, or backend port work
@@ -195,11 +159,8 @@ Read:
 5. `docs/FIREWALL.md`
 6. `docs/BACKEND_PORT_POLICY.md`
 7. `docs/DATA_MODEL.md`
-8. `docs/AI_PHASE_4_TASK.md`
-9. `docs/AI_PHASE_4_2_TASK.md`
-10. `docs/PHASE_4_SERVER_RUNBOOK.md`
-11. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
-12. relevant phase/domain document
+8. `docs/CONTROL_RULES.md`
+9. relevant phase/domain document
 
 Rules:
 
@@ -211,7 +172,7 @@ Rules:
 - backend direct external exposure is critical
 - backend internal reachability failure is also critical
 - never hide backend ports by breaking valid internal paths
-- Phase 4 proxy doctor work is read-only until runtime activation is explicitly accepted
+- Phase 5 must not introduce firewall planner runtime
 
 ### Hash-rate, share, worker, or observability work
 
@@ -223,7 +184,8 @@ Read:
 4. `docs/DATA_MODEL.md`
 5. `docs/TAXONOMY.md`
 6. `docs/OBSERVABILITY_HASHRATE.md`
-7. relevant phase/domain document
+7. `docs/WORKER_POLICY.md`
+8. relevant phase/domain document
 
 Rules:
 
@@ -232,6 +194,32 @@ Rules:
 - do not collect high-volume share events without retention and partitioning policy
 - UI charts must read aggregate samples, not raw high-volume events
 - worker name alone is not a guaranteed physical device identity
+- worker enforcement is future-only until evidence and adapter phases are accepted
+
+### Control rules, block, pause, or worker policy work
+
+Read:
+
+1. `../AGENTS.md`
+2. `docs/PHASE_STATUS.md`
+3. `docs/AI_CODING_RULES.md`
+4. `docs/SAFETY.md`
+5. `docs/DATA_MODEL.md`
+6. `docs/TAXONOMY.md`
+7. `docs/CONTROL_RULES.md`
+8. `docs/WORKER_POLICY.md`
+9. `docs/FIREWALL.md`
+10. `docs/ABUSE.md`
+11. relevant phase/domain document
+
+Rules:
+
+- Phase 5 allows documentation-only contract work
+- no runtime block/pause command in Phase 5
+- no worker scanner or worker enforcement in Phase 5
+- control rules are future intent, not firewall rules by themselves
+- worker blocking must not be modeled as firewall-only
+- abuse coverage for all active customers must remain intact
 
 ### Abuse work
 
@@ -245,13 +233,16 @@ Read:
 6. `docs/DATA_MODEL.md`
 7. `docs/TAXONOMY.md`
 8. `docs/FIREWALL.md`
-9. relevant phase/domain document
+9. `docs/CONTROL_RULES.md`
+10. `docs/WORKER_POLICY.md`
+11. relevant phase/domain document
 
 Rules:
 
 - all active customers in all enabled lanes are scanned
 - no silent skip
 - farms-over alone must not harden
+- worker-over alone must not harden
 - sustained miner-abuse hardens after about 3600 seconds
 - hard/unhard must use restore points, events, audit, and firewall service
 - abuse automation remains forbidden until Phase 8
@@ -297,12 +288,25 @@ Rules:
 - every job writes `job_runs`
 - overlapping jobs use `scheduler_locks`
 - jobs call services, not direct DB/firewall logic
+- Phase 5 must not introduce runtime jobs for controls, worker scanning, usage, or abuse
 
 ## Documentation Summary
 
 ### `docs/PHASE_STATUS.md`
 
 Defines the accepted phase, current working phase, allowed work, forbidden work, and next safe step.
+
+### `docs/AI_PHASE_5_TASK.md`
+
+Defines Phase 5 Customer CRUD in DB Only, including the documentation-only control/worker contract clarification and stop conditions.
+
+### `docs/CONTROL_RULES.md`
+
+Defines future control-intent concepts for block, pause, whitelist, rate-limit, worker block, worker route, and notify-only behavior. It has no current runtime or migration effect.
+
+### `docs/WORKER_POLICY.md`
+
+Defines the future worker policy and worker routing boundary. It forbids firewall-only worker blocking and keeps worker enforcement future-only until evidence and adapter phases are accepted.
 
 ### `docs/AI_PHASE_4_TASK.md`
 
@@ -312,21 +316,9 @@ Defines the repository-side Phase 4 AI task, allowed planning work, forbidden ru
 
 Defines the repository-side Phase 4.2 runtime activation runbook planning task and forbidden runtime behavior.
 
-### `docs/PHASE_4_SERVER_RUNBOOK.md`
+### `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
 
-Defines Phase 4 server safety boundaries, allowed read-only checks, forbidden runtime actions, Compose requirements, proxy doctor acceptance fields, and the future runtime activation gate.
-
-### `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
-
-Defines the exact future runtime activation procedure, stop/rollback commands, and post-run evidence checklist. It does not authorize runtime activation by itself.
-
-### `docs/PHASE_4_2_SERVER_SYNC_RESULT.md`
-
-Records the accepted farm5 Phase 4.2 server sync evidence.
-
-### `docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md`
-
-Defines the review gate before any limited Phase 4 runtime activation execution can be approved.
+Records the accepted limited local-only Phase 4 runtime activation evidence on farm5.
 
 ### `docs/AI_CODING_RULES.md`
 
@@ -384,6 +376,7 @@ Phase 4   — Compose Forward-only + Proxy Doctor
 Phase 4.1 — Compose Template + Server Config Planning
 Phase 4.2 — Runtime Activation Runbook Planning
 Phase 4 Review — Runtime Activation Execution Review
+Phase 4 Runtime — Limited Proxy Runtime Startup
 Phase 5   — Customer CRUD in DB Only
 Phase 6   — Firewall Planner + Apply/Verify/Rollback
 Phase 7   — Usage + Policy/Reject Accounting
@@ -419,7 +412,7 @@ Stop and revise if any change introduces:
 16. proxy data-plane activation before accepted Phase 4 runtime runbook
 17. high-volume share/hash-rate collection before retention and partitioning review
 18. UI charts reading raw high-volume share events directly
-19. Phase 4 planning code that starts Docker/proxy runtime
+19. Phase 5 code that starts block/pause/worker runtime
 20. public v2rayA UI exposure
 
 ## Final Rule
