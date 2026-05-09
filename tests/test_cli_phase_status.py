@@ -10,8 +10,8 @@ def test_phase_status_matches_current_phase_guard() -> None:
     result = runner.invoke(app, ["phase-status"])
 
     assert result.exit_code == 0
-    assert "current_accepted_phase: Phase 4.1" in result.stdout
-    assert "current_working_phase: Phase 4.2" in result.stdout
+    assert "current_accepted_phase: Phase 4.2" in result.stdout
+    assert "current_working_phase: Phase 4 Runtime Activation Execution Review" in result.stdout
     assert "server_state: farm5 Phase 4.2 planning synced and verified" in result.stdout
     assert "firewall_apply_allowed: no" in result.stdout
     assert "abuse_automation_allowed: no" in result.stdout
@@ -19,5 +19,7 @@ def test_phase_status_matches_current_phase_guard() -> None:
     assert "proxy_data_plane_allowed: planning_only" in result.stdout
     assert "ui_allowed: no" in result.stdout
     assert "telegram_allowed: no" in result.stdout
+    assert "compatibility_previous_current_accepted_phase: Phase 4.1" in result.stdout
+    assert "compatibility_previous_current_working_phase: Phase 4.2" in result.stdout
     assert "Phase 0" not in result.stdout
     assert "Repository Bootstrap Skeleton" not in result.stdout
