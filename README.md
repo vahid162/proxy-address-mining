@@ -15,9 +15,9 @@ docs/PHASE_STATUS.md
 Current repository/server state:
 
 ```text
-accepted_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
-working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning
-server_state: farm5 Phase 3.1 runtime alignment completed and verified
+accepted_phase: Phase 4.1 — Compose Template + Server Config Planning
+working_phase: Phase 4.2 — Runtime Activation Runbook Planning
+server_state: farm5 Phase 4.1 config planning accepted in GitHub; server still requires ZIP sync confirmation
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -27,7 +27,7 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4 is planning-only until a dedicated server runtime task/runbook is accepted.
+Phase 4.2 is runbook planning only. It does not authorize starting containers.
 
 Do not use this repository for production traffic yet.
 
@@ -56,27 +56,32 @@ backend internal/external reachability policy contract
 accepted/rejected hash-rate and share observability contract
 AI coding rules for phase-gated development
 Phase 4 planning task and server runbook foundations
+Phase 4.1 Compose template and server config planning result recorded
 ```
 
-## Current Phase 4 Planning Scope
+## Current Phase 4.2 Planning Scope
 
 Allowed now:
 
 ```text
-Phase 4 runbook/task documentation
-Compose/proxy doctor design
-backend internal reachability probe design
-backend external exposure probe design
-local-only v2rayA/forwarder binding plan
-safe configuration schema refinement for proxy doctor needs
-read-only Docker/Compose inspection helpers
-tests for proxy doctor boundaries
+Phase 4.2 runtime activation runbook documentation
+exact future docker compose config validation commands
+exact future startup command with explicit profile, documented only
+backend internal reachability test plan
+backend external exposure test plan
+v2rayA UI local-only test plan
+Docker Compose stop/rollback plan
+post-run evidence checklist
+server validation script updates that do not start runtime
 documentation updates that preserve phase gates
+tests that verify forbidden runtime commands remain unavailable
 ```
 
 Forbidden now:
 
 ```text
+docker compose up
+docker run
 live customer onboarding
 customer CRUD mutation
 customer firewall rules
@@ -86,9 +91,9 @@ usage timers
 hash-rate/share collectors
 abuse runner automation
 block or pause automation
-Docker proxy data-plane containers without an accepted Phase 4 execution runbook
-v2rayA runtime without an accepted Phase 4 execution runbook
-forwarder/gost runtime without an accepted Phase 4 execution runbook
+Docker proxy data-plane containers without an accepted runtime activation execution step
+v2rayA runtime without an accepted runtime activation execution step
+forwarder/gost runtime without an accepted runtime activation execution step
 local UI service
 buyer UI service
 Telegram bot
@@ -97,30 +102,34 @@ worker enforcement
 public API binding
 ```
 
-Required invariant remains:
+Required invariants remain:
 
 ```text
 firewall.apply_mode = plan_only
+proxy.runtime_activation_allowed = false
+proxy_data_plane_allowed = planning_only
 ```
 
-## Required Before Phase 4 Runtime Activation
+## Required Before Any Runtime Activation
 
-Phase 4 planning must produce and preserve:
+Phase 4.2 planning must produce and preserve:
 
 ```text
-docs/AI_PHASE_4_TASK.md
-docs/PHASE_4_SERVER_RUNBOOK.md
+docs/AI_PHASE_4_2_TASK.md
+docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
 scripts/verify_phase4_planning_gate.sh
 local-only v2rayA/forwarder binding plan
 proxy doctor acceptance checks
 backend internal reachability check
 backend direct exposure detection plan
-Docker Compose rollback/stop plan
+Docker Compose stop/rollback plan
 explicit confirmation that no customer NAT redirect will be created
 explicit confirmation that firewall.apply_mode remains plan_only
+explicit confirmation that proxy.runtime_activation_allowed remains false until runtime approval
+post-run evidence checklist
 ```
 
-A later explicit runtime activation task is required before starting containers.
+A later explicit runtime execution decision is required before starting containers.
 
 ## Not Implemented Yet
 
@@ -377,8 +386,11 @@ Current phase contracts/results:
 docs/PHASE_3_SERVER_RESULT.md
 docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
 docs/PHASE_3_1_SERVER_RESULT.md
+docs/PHASE_4_1_SERVER_RESULT.md
 docs/AI_PHASE_4_TASK.md
+docs/AI_PHASE_4_2_TASK.md
 docs/PHASE_4_SERVER_RUNBOOK.md
+docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
 docs/INTRANET_INSTALL.md
 ```
 
@@ -391,6 +403,8 @@ Phase 2   — PostgreSQL + Config + Domain Model
 Phase 3   — CLI + Internal API Foundation
 Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
 Phase 4   — Compose Forward-only + Proxy Doctor
+Phase 4.1 — Compose Template + Server Config Planning
+Phase 4.2 — Runtime Activation Runbook Planning
 Phase 5   — Customer CRUD in DB Only
 Phase 6   — Firewall Planner + Apply/Verify/Rollback
 Phase 7   — Usage + Policy/Reject Accounting
@@ -408,14 +422,14 @@ Do not start a later phase until the current phase acceptance gate passes.
 
 ## Current Server Warning
 
-Time synchronization is still not confirmed on `farm5`:
+Time synchronization has previously been reported as not confirmed on `farm5`:
 
 ```text
 System clock synchronized: no
 NTP service: active
 ```
 
-This warning is not a Phase 1, Phase 2, Phase 3, or Phase 3.1 blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This warning is not a Phase 4.2 documentation blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## Testing Strategy
 
