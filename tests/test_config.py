@@ -24,7 +24,7 @@ def test_example_config_has_phase4_proxy_planning_contract() -> None:
     assert str(cfg.proxy.compose_file).endswith("mpf-proxy.compose.yaml")
     assert cfg.proxy.runtime_activation_allowed is False
     assert cfg.v2raya.ui_bind_host == "127.0.0.1"
-    assert cfg.v2raya.ui_port == 2014
+    assert cfg.v2raya.ui_port == 2015
 
 
 def test_btc_lane_backend_port_is_frozen() -> None:
