@@ -21,7 +21,9 @@ Read before changing code, tests, scripts, docs, migrations, services, or interf
 9. `docs/TAXONOMY.md`
 10. `docs/FIREWALL.md`
 11. `docs/ABUSE.md`
-12. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+12. `docs/CONTROL_RULES.md`
+13. `docs/WORKER_POLICY.md`
+14. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
 
 If documents conflict, follow the stricter safety rule and update documentation before implementing code.
 
@@ -45,6 +47,41 @@ Implement safe customer CRUD against PostgreSQL through domain/service/repositor
 
 Phase 5 may create or update customer records in the database only. It must not connect those records to live traffic yet.
 
+## Phase 5 Contract Clarification
+
+Phase 5 may refine architecture contracts for later controls, worker policy, routing, reporting, UI, and automation **only as documentation and tests that preserve the DB-only gate**.
+
+Allowed contract-only work:
+
+```text
+control-rule intent documentation
+worker policy boundary documentation
+future schema notes without migration
+service ownership notes
+phase placement notes
+tests that the project remains Phase 5 DB-only
+```
+
+Forbidden contract work:
+
+```text
+control_rules migration without explicit phase approval
+worker_routing_rules migration without explicit phase approval
+runtime block command
+runtime pause command
+worker scanner
+worker guard
+firewall planner integration
+systemd timer
+conntrack/tcpdump job
+iptables path
+production import
+```
+
+Customer CRUD implementation must not hardcode assumptions that future block, pause, whitelist, worker policy, or control intent cannot exist.
+
+It must also not implement those future controls prematurely.
+
 ## Allowed Work
 
 ```text
@@ -60,6 +97,7 @@ expiry field validation
 read-only and DB-only tests
 migration-safe schema usage
 future audit/event hooks or event records if already supported by schema
+future-control awareness that does not create runtime behavior
 ```
 
 ## Forbidden Work
@@ -79,6 +117,7 @@ buyer UI service
 Telegram bot
 production customer import
 worker enforcement
+worker routing enforcement
 public API binding
 public v2rayA UI exposure
 public backend exposure
@@ -120,6 +159,8 @@ Reserved ports include at least:
 60020 # future LTC backend
 ```
 
+Future control-rule awareness means Phase 5 validation should avoid naming or schema choices that prevent later customer-scoped block, pause, whitelist, worker policy, or action-request support.
+
 ## Required Service Boundary
 
 Interfaces must call services, not direct database or firewall operations:
@@ -135,7 +176,20 @@ CLI directly writes DB
 API directly writes DB
 service directly runs iptables
 customer CRUD creates Docker or firewall state
+customer CRUD activates control rules
+customer CRUD activates worker policy
 ```
+
+## Abuse Invariant
+
+Customer CRUD and future control contracts must preserve the mandatory abuse requirement:
+
+```text
+all active customers in all enabled lanes remain evaluatable by abuse runner
+unless a valid abuse exemption exists with reason, expiry, actor, and event/audit record
+```
+
+Phase 5 must not introduce any path that silently excludes active customers from future abuse evaluation.
 
 ## Required Tests
 
@@ -152,6 +206,7 @@ reject unknown lane
 reject disabled lane unless explicitly allowed by a reviewed rule
 verify no firewall apply code path is called
 verify no NAT/firewall scripts are introduced
+verify no block/pause/worker runtime is introduced
 verify phase-status remains Phase 5 DB-only
 ```
 
@@ -164,6 +219,7 @@ pytest passes
 customer CRUD is DB-only
 no firewall/NAT/customer traffic mutation exists
 no usage or abuse automation exists
+no block/pause/worker runtime exists
 server sync evidence is reviewed
 customer CRUD evidence shows DB rows only
 runtime proxy remains limited local-only
@@ -180,6 +236,10 @@ NAT redirects
 customer live port reachability
 usage timers
 abuse automation
+block/pause automation
+worker scanner
+worker enforcement
+worker routing enforcement
 UI or Telegram runtime
 public API binding
 public backend/UI exposure
