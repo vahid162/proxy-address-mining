@@ -44,7 +44,7 @@ def test_cli_phase_status_matches_current_phase_guard() -> None:
     assert result.exit_code == 0
     assert "current_accepted_phase: Phase 4.1" in result.output
     assert "current_working_phase: Phase 4.2" in result.output
-    assert "server_state: farm5 Phase 4.1 config planning accepted in GitHub" in result.output
+    assert "server_state: farm5 Phase 4.2 planning synced and verified" in result.output
     assert "firewall_apply_allowed: no" in result.output
     assert "abuse_automation_allowed: no" in result.output
     assert "proxy_data_plane_allowed: planning_only" in result.output
