@@ -10,7 +10,7 @@ STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_DIR="${BACKUP_BASE}/phase4-runtime-activation-${STAMP}"
 COMPOSE_CONFIG_OUT="/tmp/mpf-phase4-runtime-compose-config.out"
 V2RAYA_HOST_PORT="2015"
-V2RAYA_CONTAINER_PORT="2014"
+V2RAYA_CONTAINER_PORT="2017"
 BTC_BACKEND_PORT="60010"
 COMPOSE=(docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --profile phase4-runtime)
 
@@ -260,5 +260,5 @@ case "$ACTION" in
   start) start_runtime ;;
   status) status_runtime ;;
   stop|rollback) stop_runtime ;;
-  *) echo "Usage: $0 {start|status|stop|rollback}"; exit 2 ;;
+  *) echo "Usage: $0 {start|status|rollback}"; exit 2 ;;
 esac
