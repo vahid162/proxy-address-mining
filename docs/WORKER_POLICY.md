@@ -21,6 +21,8 @@ Phase 5 — Customer CRUD in DB Only
 
 This document does **not** authorize worker runtime behavior.
 
+Contract clarity: **worker enforcement is future-only** until the required evidence and adapter phases are accepted.
+
 Forbidden now:
 
 ```text
