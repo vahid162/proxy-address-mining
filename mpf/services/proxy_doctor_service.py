@@ -6,9 +6,11 @@ from mpf.adapters import docker_compose, socket_inspector
 from mpf.config import DEFAULT_CONFIG_PATH, MPFConfig, load_config
 from mpf.domain.health import HealthCheck, HealthReport, HealthStatus, worst_status
 
+EXPECTED_RUNTIME_CONTAINERS = {"mpf-v2raya", "mpf-forwarder-btc"}
+
 
 def run(config_path: Path = DEFAULT_CONFIG_PATH) -> HealthReport:
-    """Run Phase 4 proxy doctor checks without mutating runtime state."""
+    """Run proxy doctor checks without mutating runtime state."""
     cfg = load_config(config_path)
     checks = build_checks(cfg)
     return HealthReport(component="proxy", final_verdict=worst_status(checks), checks=checks)
@@ -58,14 +60,14 @@ def _runtime_activation_check(cfg: MPFConfig) -> HealthCheck:
         return HealthCheck(
             key="proxy.runtime_activation_allowed",
             status=HealthStatus.CRITICAL,
-            message="proxy runtime activation is enabled during Phase 4 planning",
+            message="proxy runtime activation is enabled through general app/config state",
             evidence={"runtime_activation_allowed": True},
-            remediation="Set proxy.runtime_activation_allowed to false until a runtime activation task is accepted.",
+            remediation="Keep proxy.runtime_activation_allowed=false; Phase 4 runtime is limited to the guarded operator Compose path.",
         )
     return HealthCheck(
         key="proxy.runtime_activation_allowed",
         status=HealthStatus.OK,
-        message="proxy runtime activation remains disabled",
+        message="proxy runtime activation remains disabled for general app/API mutation",
         evidence={"runtime_activation_allowed": False},
     )
 
@@ -297,22 +299,46 @@ def _lane_forwarder_config_checks(cfg: MPFConfig) -> list[HealthCheck]:
 
 def _container_state_check(cfg: MPFConfig) -> HealthCheck:
     containers = docker_compose.list_project_containers(cfg.proxy.project_name)
+    container_names = {container.name for container in containers}
     if not containers:
         return HealthCheck(
             key="proxy_container_state",
-            status=HealthStatus.OK,
-            message="no proxy project containers are present during planning",
+            status=HealthStatus.WARN,
+            message="accepted limited proxy runtime containers are not present",
             evidence={"project_name": cfg.proxy.project_name, "containers": []},
+            remediation="The accepted Phase 4 runtime should be running before Phase 5 server validation.",
         )
+
+    missing = sorted(EXPECTED_RUNTIME_CONTAINERS - container_names)
+    if missing:
+        return HealthCheck(
+            key="proxy_container_state",
+            status=HealthStatus.CRITICAL,
+            message="accepted limited proxy runtime is missing required containers",
+            evidence={"missing": missing, "containers": [container.__dict__ for container in containers]},
+            remediation="Restart the guarded Phase 4 runtime or stop and review evidence.",
+        )
+
+    unhealthy = [container for container in containers if "unhealthy" in container.status.lower()]
+    not_running = [container for container in containers if not container.status.lower().startswith("up")]
+    if unhealthy or not_running:
+        return HealthCheck(
+            key="proxy_container_state",
+            status=HealthStatus.CRITICAL,
+            message="accepted limited proxy runtime containers are not healthy/running",
+            evidence={
+                "unhealthy": [container.__dict__ for container in unhealthy],
+                "not_running": [container.__dict__ for container in not_running],
+                "containers": [container.__dict__ for container in containers],
+            },
+            remediation="Inspect Docker logs and restart only through the guarded Phase 4 runtime script.",
+        )
+
     return HealthCheck(
         key="proxy_container_state",
-        status=HealthStatus.WARN,
-        message="proxy project containers exist during planning",
-        evidence={
-            "project_name": cfg.proxy.project_name,
-            "containers": [container.__dict__ for container in containers],
-        },
-        remediation="Do not start proxy runtime before an accepted runtime activation task.",
+        status=HealthStatus.OK,
+        message="accepted limited proxy runtime containers are present and running",
+        evidence={"project_name": cfg.proxy.project_name, "containers": [container.__dict__ for container in containers]},
     )
 
 
@@ -325,9 +351,10 @@ def _listening_socket_checks(cfg: MPFConfig) -> list[HealthCheck]:
         checks.append(
             HealthCheck(
                 key="v2raya_ui_listener_state",
-                status=HealthStatus.OK,
-                message="v2rayA UI port is not listening during planning",
+                status=HealthStatus.WARN,
+                message="accepted v2rayA UI runtime listener is not present",
                 evidence={"ui_port": cfg.v2raya.ui_port},
+                remediation="Verify the accepted Phase 4 runtime is running through the guarded script.",
             )
         )
     elif any(socket_inspector.is_public_bind_address(sock.local_address) for sock in ui_matches):
@@ -344,10 +371,9 @@ def _listening_socket_checks(cfg: MPFConfig) -> list[HealthCheck]:
         checks.append(
             HealthCheck(
                 key="v2raya_ui_listener_state",
-                status=HealthStatus.WARN,
-                message="v2rayA UI port is already listening during planning",
+                status=HealthStatus.OK,
+                message="accepted v2rayA UI runtime listener is local-only",
                 evidence={"matches": [sock.__dict__ for sock in ui_matches]},
-                remediation="Runtime listeners require an accepted activation task.",
             )
         )
 
@@ -359,18 +385,19 @@ def _listening_socket_checks(cfg: MPFConfig) -> list[HealthCheck]:
             checks.append(
                 HealthCheck(
                     key=f"lane.{lane_name}.backend_listener_state",
-                    status=HealthStatus.OK,
-                    message="backend port is not listening during planning",
+                    status=HealthStatus.WARN,
+                    message="accepted backend runtime listener is not present",
                     evidence={"lane": lane_name, "backend_port": lane.backend_port},
+                    remediation="Verify the accepted Phase 4 runtime is running through the guarded script.",
                 )
             )
             checks.append(
                 HealthCheck(
                     key=f"lane.{lane_name}.backend_internal_reachability",
                     status=HealthStatus.WARN,
-                    message="backend internal reachability cannot be checked until runtime activation",
+                    message="backend internal reachability cannot be confirmed because listener is absent",
                     evidence={"lane": lane_name, "backend_port": lane.backend_port},
-                    remediation="A later runtime activation runbook must verify internal reachability.",
+                    remediation="Start/review the guarded limited runtime before Phase 5 server validation.",
                 )
             )
         elif any(socket_inspector.is_public_bind_address(sock.local_address) for sock in matches):
@@ -387,19 +414,17 @@ def _listening_socket_checks(cfg: MPFConfig) -> list[HealthCheck]:
             checks.append(
                 HealthCheck(
                     key=f"lane.{lane_name}.backend_listener_state",
-                    status=HealthStatus.WARN,
-                    message="backend port is already listening during planning",
+                    status=HealthStatus.OK,
+                    message="accepted backend runtime listener is local-only",
                     evidence={"lane": lane_name, "matches": [sock.__dict__ for sock in matches]},
-                    remediation="Runtime listeners require an accepted activation task.",
                 )
             )
             checks.append(
                 HealthCheck(
                     key=f"lane.{lane_name}.backend_internal_reachability",
-                    status=HealthStatus.WARN,
-                    message="backend listener exists but runtime activation has not been accepted",
+                    status=HealthStatus.OK,
+                    message="backend internal reachability is accepted through local-only runtime listener",
                     evidence={"lane": lane_name, "matches": [sock.__dict__ for sock in matches]},
-                    remediation="Review runtime activation evidence before accepting internal reachability.",
                 )
             )
     return checks
@@ -409,7 +434,7 @@ def _no_customer_nat_redirects_check() -> HealthCheck:
     return HealthCheck(
         key="no_customer_nat_redirects",
         status=HealthStatus.OK,
-        message="Phase 4 planning does not create customer NAT redirects",
+        message="accepted Phase 4 runtime does not create MPF customer NAT redirects",
         evidence={"nat_redirects_created_by_mpf": False},
     )
 
@@ -421,7 +446,7 @@ def _firewall_apply_mode_check(cfg: MPFConfig) -> HealthCheck:
             status=HealthStatus.CRITICAL,
             message="firewall apply mode is not plan_only",
             evidence={"apply_mode": cfg.firewall.apply_mode},
-            remediation="Set firewall.apply_mode to plan_only before continuing Phase 4 planning.",
+            remediation="Set firewall.apply_mode to plan_only before continuing Phase 5 DB-only customer work.",
         )
     return HealthCheck(
         key="firewall_apply_mode_plan_only",
