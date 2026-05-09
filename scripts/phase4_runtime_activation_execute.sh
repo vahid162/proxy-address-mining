@@ -108,14 +108,32 @@ assert_compose_template_safety() {
   echo "OK: compose template validates and publishes only local-only ports"
 }
 
-assert_no_mpf_firewall_refs() {
-  section "FIREWALL SAFETY"
+assert_no_mpf_customer_firewall_refs() {
+  section "MPF CUSTOMER FIREWALL SAFETY"
   local v4="" v6=""
-  v4="$(iptables-save | grep -Ei "MPF|MPFBTC|MPFC_|MPFO_|${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}" || true)"
-  v6="$(ip6tables-save | grep -Ei "MPF|MPFBTC|MPFC_|MPFO_|${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}" || true)"
-  if [ -n "$v4" ]; then echo "$v4"; fail "MPF/backend IPv4 firewall references exist"; fi
-  if [ -n "$v6" ]; then echo "$v6"; fail "MPF/backend IPv6 firewall references exist"; fi
-  echo "OK: no MPF/backend firewall references detected"
+  v4="$(iptables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_' || true)"
+  v6="$(ip6tables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_' || true)"
+  if [ -n "$v4" ]; then echo "$v4"; fail "MPF/customer IPv4 firewall references exist"; fi
+  if [ -n "$v6" ]; then echo "$v6"; fail "MPF/customer IPv6 firewall references exist"; fi
+  echo "OK: no MPF/customer firewall references detected"
+}
+
+show_docker_local_publish_firewall_refs() {
+  section "DOCKER LOCAL PUBLISH FIREWALL REFERENCES"
+  local v4="" v6=""
+  v4="$(iptables-save | grep -Ei "${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}" || true)"
+  v6="$(ip6tables-save | grep -Ei "${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}" || true)"
+  if [ -n "$v4" ]; then
+    echo "$v4"
+  else
+    echo "OK: no IPv4 Docker/backend/UI publish references found"
+  fi
+  if [ -n "$v6" ]; then
+    echo "$v6"
+  else
+    echo "OK: no IPv6 Docker/backend/UI publish references found"
+  fi
+  echo "OK: Docker-managed local publish rules are informational; external exposure is enforced by listener binding checks"
 }
 
 risky_port_regex() { printf ':(%s|%s|2014|20170|20171|20172|22070|22071|22072)\\b' "$BTC_BACKEND_PORT" "$V2RAYA_HOST_PORT"; }
@@ -186,7 +204,7 @@ start_runtime() {
   assert_config_safety
   assert_no_customers_or_jobs
   assert_compose_template_safety
-  assert_no_mpf_firewall_refs
+  assert_no_mpf_customer_firewall_refs
   assert_no_risky_ports_before_start
   backup_state
   section "START LIMITED PHASE 4 RUNTIME"
@@ -195,7 +213,8 @@ start_runtime() {
   show_docker_state
   assert_post_start_ports
   assert_backend_reachable
-  assert_no_mpf_firewall_refs
+  assert_no_mpf_customer_firewall_refs
+  show_docker_local_publish_firewall_refs
   run_proxy_doctor
   section "FINAL VERDICT"
   echo "OK: limited Phase 4 proxy runtime started."
@@ -215,7 +234,8 @@ status_runtime() {
   show_docker_state
   section "PORTS"
   ss -lntup | grep -E "$(risky_port_regex)" || true
-  assert_no_mpf_firewall_refs
+  assert_no_mpf_customer_firewall_refs
+  show_docker_local_publish_firewall_refs
   run_proxy_doctor
 }
 
@@ -230,7 +250,7 @@ stop_runtime() {
   local matches=""
   matches="$(ss -lntup 2>/dev/null | grep -E "$(risky_port_regex)" || true)"
   if [ -n "$matches" ]; then echo "$matches"; fail "risky backend/UI ports still listening after stop"; fi
-  assert_no_mpf_firewall_refs
+  assert_no_mpf_customer_firewall_refs
   run_proxy_doctor
   section "FINAL VERDICT"
   echo "OK: limited Phase 4 proxy runtime stopped."
