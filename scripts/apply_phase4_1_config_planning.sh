@@ -83,7 +83,7 @@ proxy["runtime_activation_allowed"] = False
 
 v2raya = ensure_dict(data, "v2raya")
 v2raya["ui_bind_host"] = "127.0.0.1"
-v2raya["ui_port"] = 2014
+v2raya["ui_port"] = 2015
 
 lanes = ensure_dict(data, "lanes")
 btc = ensure_dict(lanes, "btc")
@@ -127,5 +127,6 @@ bash "$APP_DIR/scripts/verify_phase4_planning_gate.sh"
 section "FINAL VERDICT"
 
 echo "OK: Phase 4.1 server config planning fields are applied."
+echo "OK: v2rayA UI operator port is 2015."
 echo "OK: Runtime activation is still NOT authorized."
 echo "Backup: $BACKUP_DIR"
