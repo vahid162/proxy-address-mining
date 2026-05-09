@@ -7,9 +7,9 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 ## Current State
 
 ```text
-current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning
-current_working_phase: Phase 4.2 — Runtime Activation Runbook Planning
-server_state: farm5 Phase 4.1 config planning accepted in GitHub; server still requires ZIP sync confirmation
+current_accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5
+current_working_phase: Phase 4 Runtime Activation Execution Review
+server_state: farm5 Phase 4.2 planning synced and verified; runtime activation still not authorized
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -19,15 +19,17 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4.2 is **runbook planning only**. It may prepare exact runtime activation documentation, validation scripts, and rollback/evidence checklists, but it must not start proxy data-plane containers yet.
+Phase 4 runtime activation execution is **not authorized yet**. The current step is review only. It may prepare an explicit approval decision for a limited proxy runtime activation execution step, but it must not start proxy data-plane containers yet.
 
-Compatibility note for one server sync from an older gate script:
+Compatibility notes for server sync from older gate scripts:
 
 ```text
 compatibility_previous_current_accepted_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
+compatibility_previous_current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning
+compatibility_previous_current_working_phase: Phase 4.2 — Runtime Activation Runbook Planning
 ```
 
-The compatibility note is not the current gate. The current gate is the `Current State` block above.
+The compatibility notes are not the current gate. The current gate is the `Current State` block above.
 
 ## Accepted Server Results
 
@@ -133,13 +135,46 @@ no abuse automation
 no UI or Telegram runtime
 ```
 
+### Phase 4.2 Server Sync Result
+
+Phase 4.2 planning artifacts were synced and verified on farm5.
+
+See:
+
+```text
+docs/PHASE_4_2_SERVER_SYNC_RESULT.md
+```
+
+Accepted evidence recorded there:
+
+```text
+pytest passed: 60 passed
+mpf config validate OK
+mpf doctor OK
+mpf db ping OK
+mpf db status OK
+mpf proxy config-check final_verdict: OK
+mpf proxy status final_verdict: WARN
+mpf proxy doctor final_verdict: WARN
+Phase 4.2 planning gate passed
+Runtime activation is still NOT authorized
+Docker has no proxy runtime containers
+no MPF/backend firewall references detected
+no risky backend/UI ports listening
+no customer NAT redirects
+no customer firewall rules
+no usage timers
+no abuse automation
+no UI or Telegram runtime
+```
+
 The expected remaining warning is:
 
 ```text
 lane.btc.backend_internal_reachability: WARN
 ```
 
-Reason: backend internal reachability cannot be checked until a later explicitly approved runtime activation task starts proxy containers.
+Reason: backend internal reachability cannot be checked until a later explicitly approved runtime activation execution step starts proxy containers.
 
 ## Current Server Warning
 
@@ -150,17 +185,18 @@ System clock synchronized: no
 NTP service: active
 ```
 
-This is not a Phase 4.2 documentation blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This is not a Phase 4 runtime activation execution review blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## What Is Allowed Now
 
-Allowed work is limited to safe Phase 4.2 planning and repository implementation:
+Allowed work is limited to safe review and repository implementation:
 
 ```text
-- Phase 4.2 runtime activation task documentation
+- review Phase 4 runtime activation execution readiness
+- document operator approval requirements
 - exact future Docker Compose validation commands
 - exact future startup command with explicit profile, documented only
-- local-only v2rayA/forwarder binding checks
+- local-only v2rayA/forwarder binding checks, documented only
 - backend internal reachability test plan
 - backend external exposure test plan
 - v2rayA UI local-only test plan
@@ -228,31 +264,33 @@ Do not hide backend ports by blocking loopback, local server paths, required Doc
 
 Accepted/rejected hash-rate per device is a future first-class capability. It must be planned through structured evidence, aggregate samples, services, retention, and UI/reporting boundaries. It must not be implemented as UI-only calculations or unstructured log parsing.
 
-## Phase 4.2 Planning Gate
+## Phase 4 Runtime Activation Execution Review Gate
 
-Before any later runtime activation can be considered, these must exist and be reviewed:
+Before any runtime activation execution can be approved, these must exist and be reviewed:
 
 ```text
 docs/AI_PHASE_4_2_TASK.md
 docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
+docs/PHASE_4_2_SERVER_SYNC_RESULT.md
+docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md
 local-only v2rayA/forwarder binding plan
 proxy doctor acceptance checks
 backend internal reachability check
 backend direct exposure detection plan
 Docker Compose stop/rollback plan
-server validation script
+server validation evidence
 explicit confirmation that no customer NAT redirect will be created
 explicit confirmation that firewall.apply_mode remains plan_only
-explicit confirmation that proxy.runtime_activation_allowed remains false until runtime approval
+explicit confirmation that proxy.runtime_activation_allowed remains false until explicit runtime approval
 post-run evidence checklist
 ```
 
 ## Next Planned Step
 
-Plan Phase 4.2 in the repository first:
+Review whether to approve a limited Phase 4 runtime activation execution step:
 
 ```text
-Runtime Activation Runbook Planning
+Phase 4 Runtime Activation Execution Review
 ```
 
-Do not move to proxy runtime activation, customer CRUD, firewall apply, customer NAT redirects, usage timers, hash-rate collectors, or abuse automation until the relevant later phase gates pass.
+Do not move to proxy runtime activation, customer CRUD, firewall apply, customer NAT redirects, usage timers, hash-rate collectors, or abuse automation until the relevant explicit approval and later phase gates pass.
