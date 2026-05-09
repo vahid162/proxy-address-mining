@@ -15,9 +15,9 @@ docs/PHASE_STATUS.md
 Current repository/server state:
 
 ```text
-accepted_phase: Phase 4.1 — Compose Template + Server Config Planning
-working_phase: Phase 4.2 — Runtime Activation Runbook Planning
-server_state: farm5 Phase 4.1 config planning accepted in GitHub; server still requires ZIP sync confirmation
+accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5
+working_phase: Phase 4 Runtime Activation Execution Review
+server_state: farm5 Phase 4.2 planning synced and verified; runtime activation still not authorized
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -27,7 +27,7 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4.2 is runbook planning only. It does not authorize starting containers.
+Phase 4 runtime activation execution is under review only. It does not authorize starting containers.
 
 Do not use this repository for production traffic yet.
 
@@ -57,14 +57,17 @@ accepted/rejected hash-rate and share observability contract
 AI coding rules for phase-gated development
 Phase 4 planning task and server runbook foundations
 Phase 4.1 Compose template and server config planning result recorded
+Phase 4.2 runtime activation runbook planning synced and verified on farm5
+Phase 4 runtime activation execution review document added
 ```
 
-## Current Phase 4.2 Planning Scope
+## Current Phase 4 Review Scope
 
 Allowed now:
 
 ```text
-Phase 4.2 runtime activation runbook documentation
+review Phase 4 runtime activation execution readiness
+operator approval requirements
 exact future docker compose config validation commands
 exact future startup command with explicit profile, documented only
 backend internal reachability test plan
@@ -112,11 +115,13 @@ proxy_data_plane_allowed = planning_only
 
 ## Required Before Any Runtime Activation
 
-Phase 4.2 planning must produce and preserve:
+Runtime activation execution review must preserve:
 
 ```text
 docs/AI_PHASE_4_2_TASK.md
 docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
+docs/PHASE_4_2_SERVER_SYNC_RESULT.md
+docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md
 scripts/verify_phase4_planning_gate.sh
 local-only v2rayA/forwarder binding plan
 proxy doctor acceptance checks
@@ -125,7 +130,7 @@ backend direct exposure detection plan
 Docker Compose stop/rollback plan
 explicit confirmation that no customer NAT redirect will be created
 explicit confirmation that firewall.apply_mode remains plan_only
-explicit confirmation that proxy.runtime_activation_allowed remains false until runtime approval
+explicit confirmation that proxy.runtime_activation_allowed remains false until explicit runtime approval
 post-run evidence checklist
 ```
 
@@ -387,10 +392,12 @@ docs/PHASE_3_SERVER_RESULT.md
 docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
 docs/PHASE_3_1_SERVER_RESULT.md
 docs/PHASE_4_1_SERVER_RESULT.md
+docs/PHASE_4_2_SERVER_SYNC_RESULT.md
 docs/AI_PHASE_4_TASK.md
 docs/AI_PHASE_4_2_TASK.md
 docs/PHASE_4_SERVER_RUNBOOK.md
 docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
+docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md
 docs/INTRANET_INSTALL.md
 ```
 
@@ -405,6 +412,7 @@ Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
 Phase 4   — Compose Forward-only + Proxy Doctor
 Phase 4.1 — Compose Template + Server Config Planning
 Phase 4.2 — Runtime Activation Runbook Planning
+Phase 4 Review — Runtime Activation Execution Review
 Phase 5   — Customer CRUD in DB Only
 Phase 6   — Firewall Planner + Apply/Verify/Rollback
 Phase 7   — Usage + Policy/Reject Accounting
@@ -429,7 +437,7 @@ System clock synchronized: no
 NTP service: active
 ```
 
-This warning is not a Phase 4.2 documentation blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This warning is not a Phase 4 runtime activation execution review blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## Testing Strategy
 
