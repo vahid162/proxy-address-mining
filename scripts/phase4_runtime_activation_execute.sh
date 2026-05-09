@@ -9,26 +9,15 @@ BACKUP_BASE="/var/backups/mpf"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_DIR="${BACKUP_BASE}/phase4-runtime-activation-${STAMP}"
 COMPOSE_CONFIG_OUT="/tmp/mpf-phase4-runtime-compose-config.out"
+V2RAYA_HOST_PORT="2015"
+V2RAYA_CONTAINER_PORT="2014"
+BTC_BACKEND_PORT="60010"
 COMPOSE=(docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --profile phase4-runtime)
 
-section() {
-  printf '\n===== %s =====\n' "$1"
-}
-
-fail() {
-  echo "CRITICAL: $*"
-  exit 1
-}
-
-require_root() {
-  if [ "$(id -u)" -ne 0 ]; then
-    fail "run as root"
-  fi
-}
-
-require_command() {
-  command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"
-}
+section() { printf '\n===== %s =====\n' "$1"; }
+fail() { echo "CRITICAL: $*"; exit 1; }
+require_root() { [ "$(id -u)" -eq 0 ] || fail "run as root"; }
+require_command() { command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"; }
 
 show_phase_and_config() {
   section "PHASE / CONFIG"
@@ -63,7 +52,8 @@ assert_config_safety() {
   mpf config validate
   mpf config show | grep -q 'firewall.apply_mode: plan_only' || fail "firewall.apply_mode is not plan_only"
   mpf config show | grep -q 'proxy.runtime_activation_allowed: False' || fail "proxy.runtime_activation_allowed is not false"
-  echo "OK: config remains plan_only with general runtime activation disabled"
+  mpf config show | grep -q 'v2raya.ui_port: 2015' || fail "v2rayA UI operator port is not 2015"
+  echo "OK: config remains plan_only with general runtime activation disabled and v2rayA UI on 2015"
 }
 
 assert_no_customers_or_jobs() {
@@ -79,22 +69,20 @@ assert_no_customers_or_jobs() {
 }
 
 assert_compose_source_local_publish() {
-  local port="$1"
-  local label="$2"
-  if ! grep -Eq "['\"]127\.0\.0\.1:${port}:${port}['\"]" "$COMPOSE_FILE"; then
-    fail "$label is not local-only in compose source: expected 127.0.0.1:${port}:${port}"
+  local published_port="$1" target_port="$2" label="$3"
+  if ! grep -Eq "['\"]127\.0\.0\.1:${published_port}:${target_port}['\"]" "$COMPOSE_FILE"; then
+    fail "$label is not local-only in compose source: expected 127.0.0.1:${published_port}:${target_port}"
   fi
 }
 
 assert_compose_rendered_port() {
-  local port="$1"
-  local label="$2"
-  if grep -Eq "127\.0\.0\.1:${port}:${port}" "$COMPOSE_CONFIG_OUT"; then
+  local published_port="$1" target_port="$2" label="$3"
+  if grep -Eq "127\.0\.0\.1:${published_port}:${target_port}" "$COMPOSE_CONFIG_OUT"; then
     return 0
   fi
   if grep -q 'host_ip: 127.0.0.1' "$COMPOSE_CONFIG_OUT" \
-    && grep -Eq "published: ['\"]?${port}['\"]?" "$COMPOSE_CONFIG_OUT" \
-    && grep -Eq "target: ${port}" "$COMPOSE_CONFIG_OUT"; then
+    && grep -Eq "published: ['\"]?${published_port}['\"]?" "$COMPOSE_CONFIG_OUT" \
+    && grep -Eq "target: ${target_port}" "$COMPOSE_CONFIG_OUT"; then
     return 0
   fi
   echo "----- docker compose config output -----"
@@ -107,13 +95,13 @@ assert_compose_template_safety() {
   section "COMPOSE TEMPLATE SAFETY"
   [ -f "$COMPOSE_FILE" ] || fail "compose file missing: $COMPOSE_FILE"
   "${COMPOSE[@]}" config >"$COMPOSE_CONFIG_OUT"
-  assert_compose_source_local_publish 2014 "v2rayA UI"
-  assert_compose_source_local_publish 60010 "BTC backend"
-  assert_compose_rendered_port 2014 "v2rayA UI"
-  assert_compose_rendered_port 60010 "BTC backend"
+  assert_compose_source_local_publish "$V2RAYA_HOST_PORT" "$V2RAYA_CONTAINER_PORT" "v2rayA UI"
+  assert_compose_source_local_publish "$BTC_BACKEND_PORT" "$BTC_BACKEND_PORT" "BTC backend"
+  assert_compose_rendered_port "$V2RAYA_HOST_PORT" "$V2RAYA_CONTAINER_PORT" "v2rayA UI"
+  assert_compose_rendered_port "$BTC_BACKEND_PORT" "$BTC_BACKEND_PORT" "BTC backend"
   grep -q 'mpf-forwarder-btc' "$COMPOSE_CONFIG_OUT" || fail "BTC forwarder service missing in compose config"
   grep -q 'mpf-v2raya' "$COMPOSE_CONFIG_OUT" || fail "v2rayA service missing in compose config"
-  if grep -Eq '0\.0\.0\.0:(2014|60010)|host_ip: 0\.0\.0\.0|\[::\]:(2014|60010)|host_ip: ::' "$COMPOSE_CONFIG_OUT"; then
+  if grep -Eq "0\.0\.0\.0:(${V2RAYA_HOST_PORT}|${BTC_BACKEND_PORT})|host_ip: 0\.0\.0\.0|\[::\]:(${V2RAYA_HOST_PORT}|${BTC_BACKEND_PORT})|host_ip: ::" "$COMPOSE_CONFIG_OUT"; then
     cat "$COMPOSE_CONFIG_OUT"
     fail "compose config contains public backend/UI binding"
   fi
@@ -123,27 +111,20 @@ assert_compose_template_safety() {
 assert_no_mpf_firewall_refs() {
   section "FIREWALL SAFETY"
   local v4="" v6=""
-  v4="$(iptables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_|60010|2014' || true)"
-  v6="$(ip6tables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_|60010|2014' || true)"
-  if [ -n "$v4" ]; then
-    echo "$v4"
-    fail "MPF/backend IPv4 firewall references exist"
-  fi
-  if [ -n "$v6" ]; then
-    echo "$v6"
-    fail "MPF/backend IPv6 firewall references exist"
-  fi
+  v4="$(iptables-save | grep -Ei "MPF|MPFBTC|MPFC_|MPFO_|${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}" || true)"
+  v6="$(ip6tables-save | grep -Ei "MPF|MPFBTC|MPFC_|MPFO_|${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}" || true)"
+  if [ -n "$v4" ]; then echo "$v4"; fail "MPF/backend IPv4 firewall references exist"; fi
+  if [ -n "$v6" ]; then echo "$v6"; fail "MPF/backend IPv6 firewall references exist"; fi
   echo "OK: no MPF/backend firewall references detected"
 }
+
+risky_port_regex() { printf ':(%s|%s|2014|20170|20171|20172|22070|22071|22072)\\b' "$BTC_BACKEND_PORT" "$V2RAYA_HOST_PORT"; }
 
 assert_no_risky_ports_before_start() {
   section "PRE-RUNTIME PORT SAFETY"
   local matches=""
-  matches="$(ss -lntup 2>/dev/null | grep -E ':(60010|2014|20170|20171|20172|22070|22071|22072)\b' || true)"
-  if [ -n "$matches" ]; then
-    echo "$matches"
-    fail "risky backend/UI port is already listening before runtime startup"
-  fi
+  matches="$(ss -lntup 2>/dev/null | grep -E "$(risky_port_regex)" || true)"
+  if [ -n "$matches" ]; then echo "$matches"; fail "risky backend/UI port is already listening before runtime startup"; fi
   echo "OK: no risky backend/UI ports are listening before startup"
 }
 
@@ -168,11 +149,11 @@ show_docker_state() {
 assert_post_start_ports() {
   section "POST-START PORT SAFETY"
   local listen=""
-  listen="$(ss -lntup 2>/dev/null | grep -E ':(60010|2014)\b' || true)"
+  listen="$(ss -lntup 2>/dev/null | grep -E ":(${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT})\\b" || true)"
   echo "$listen"
-  echo "$listen" | grep -q '127.0.0.1:2014' || fail "v2rayA UI is not listening on 127.0.0.1:2014"
-  echo "$listen" | grep -q '127.0.0.1:60010' || fail "BTC backend is not listening on 127.0.0.1:60010"
-  if echo "$listen" | grep -Eq '0\.0\.0\.0:(2014|60010)|\[::\]:(2014|60010)|:::2014|:::60010'; then
+  echo "$listen" | grep -q "127.0.0.1:${V2RAYA_HOST_PORT}" || fail "v2rayA UI is not listening on 127.0.0.1:${V2RAYA_HOST_PORT}"
+  echo "$listen" | grep -q "127.0.0.1:${BTC_BACKEND_PORT}" || fail "BTC backend is not listening on 127.0.0.1:${BTC_BACKEND_PORT}"
+  if echo "$listen" | grep -Eq "0\.0\.0\.0:(${V2RAYA_HOST_PORT}|${BTC_BACKEND_PORT})|\[::\]:(${V2RAYA_HOST_PORT}|${BTC_BACKEND_PORT})|:::${V2RAYA_HOST_PORT}|:::${BTC_BACKEND_PORT}"; then
     fail "backend/UI is publicly bound"
   fi
   echo "OK: backend/UI ports are local-only"
@@ -180,8 +161,8 @@ assert_post_start_ports() {
 
 assert_backend_reachable() {
   section "BACKEND INTERNAL REACHABILITY"
-  nc -zv 127.0.0.1 60010
-  echo "OK: BTC backend is internally reachable on 127.0.0.1:60010"
+  nc -zv 127.0.0.1 "$BTC_BACKEND_PORT"
+  echo "OK: BTC backend is internally reachable on 127.0.0.1:${BTC_BACKEND_PORT}"
 }
 
 run_proxy_doctor() {
@@ -218,8 +199,8 @@ start_runtime() {
   run_proxy_doctor
   section "FINAL VERDICT"
   echo "OK: limited Phase 4 proxy runtime started."
-  echo "OK: v2rayA UI is local-only."
-  echo "OK: BTC backend 60010 is local-only and internally reachable."
+  echo "OK: v2rayA UI is local-only on 127.0.0.1:${V2RAYA_HOST_PORT}."
+  echo "OK: BTC backend ${BTC_BACKEND_PORT} is local-only and internally reachable."
   echo "OK: no customer NAT redirects or customer firewall rules were created."
   echo "OK: firewall.apply_mode remains plan_only."
   echo "OK: proxy.runtime_activation_allowed remains false for general app/API runtime mutation."
@@ -233,7 +214,7 @@ status_runtime() {
   show_database_readonly
   show_docker_state
   section "PORTS"
-  ss -lntup | grep -E ':(60010|2014|20170|20171|20172|22070|22071|22072)\b' || true
+  ss -lntup | grep -E "$(risky_port_regex)" || true
   assert_no_mpf_firewall_refs
   run_proxy_doctor
 }
@@ -247,11 +228,8 @@ stop_runtime() {
   show_docker_state
   section "POST-STOP PORTS"
   local matches=""
-  matches="$(ss -lntup 2>/dev/null | grep -E ':(60010|2014|20170|20171|20172|22070|22071|22072)\b' || true)"
-  if [ -n "$matches" ]; then
-    echo "$matches"
-    fail "risky backend/UI ports still listening after stop"
-  fi
+  matches="$(ss -lntup 2>/dev/null | grep -E "$(risky_port_regex)" || true)"
+  if [ -n "$matches" ]; then echo "$matches"; fail "risky backend/UI ports still listening after stop"; fi
   assert_no_mpf_firewall_refs
   run_proxy_doctor
   section "FINAL VERDICT"
@@ -259,17 +237,8 @@ stop_runtime() {
 }
 
 case "$ACTION" in
-  start)
-    start_runtime
-    ;;
-  status)
-    status_runtime
-    ;;
-  stop|rollback)
-    stop_runtime
-    ;;
-  *)
-    echo "Usage: $0 {start|status|stop|rollback}"
-    exit 2
-    ;;
+  start) start_runtime ;;
+  status) status_runtime ;;
+  stop|rollback) stop_runtime ;;
+  *) echo "Usage: $0 {start|status|stop|rollback}"; exit 2 ;;
 esac
