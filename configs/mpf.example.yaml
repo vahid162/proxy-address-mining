@@ -23,7 +23,7 @@ proxy:
 
 v2raya:
   ui_bind_host: 127.0.0.1
-  ui_port: 2014
+  ui_port: 2015
 
 lanes:
   btc:
