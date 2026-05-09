@@ -1,6 +1,6 @@
 # Phase 4 Runtime Activation Server Result — Limited Proxy Runtime Startup
 
-Status: accepted server evidence pending final phase-status promotion
+Status: accepted server evidence
 
 Server: `farm5`
 
@@ -8,6 +8,12 @@ Evidence timestamp:
 
 ```text
 2026-05-09T16:25:09+03:30
+```
+
+Follow-up validation timestamp:
+
+```text
+2026-05-09T17:18:18+03:30
 ```
 
 ## Scope
@@ -18,7 +24,7 @@ A limited Phase 4 proxy runtime activation was executed on `farm5` using the gua
 sudo bash /opt/mpf-py-src/scripts/phase4_runtime_activation_execute.sh start
 ```
 
-This result accepts only the limited proxy runtime startup evidence.
+This result accepts only the limited local-only proxy runtime startup evidence.
 It does not authorize production customer traffic, customer NAT redirects, customer firewall rules, firewall apply, usage timers, abuse automation, UI, Telegram, or customer mutation.
 
 ## Accepted Runtime Evidence
@@ -31,8 +37,10 @@ mpf doctor OK
 mpf db ping OK
 mpf db status OK
 mpf proxy config-check final_verdict: OK
-mpf-v2raya container started
-mpf-forwarder-btc container started
+mpf proxy status final_verdict: OK
+mpf proxy doctor final_verdict: OK
+mpf-v2raya container started and healthy
+mpf-forwarder-btc container started and healthy
 mpf-v2raya health: healthy
 mpf-forwarder-btc health: healthy
 v2rayA UI host/operator listener: 127.0.0.1:2015
@@ -109,16 +117,25 @@ The sync step before runtime created this backup:
 /var/backups/mpf/source-before-zip-sync-20260509T125458Z
 ```
 
-## Remaining Proxy Doctor Warning
+The final promotion sync created this backup:
 
-`mpf proxy status` and `mpf proxy doctor` still reported `WARN` because the repository phase guard still described runtime activation as review-only at the time of evidence capture.
+```text
+/var/backups/mpf/source-before-zip-sync-20260509T134809Z
+```
 
-The warning is expected for that code state and should be resolved by the follow-up phase-status/proxy-doctor promotion patch after CI is green.
+## Follow-up Proxy Doctor Result
+
+After the repository was promoted to accepted Phase 4 runtime / Phase 5 DB-only work, both proxy status and proxy doctor reported `OK`.
+
+```text
+mpf proxy status final_verdict: OK
+mpf proxy doctor final_verdict: OK
+```
 
 ## Still Forbidden After This Result
 
 ```text
-customer CRUD mutation
+customer CRUD mutation that bypasses Phase 5 service/repository rules
 customer NAT redirects
 customer firewall rules
 firewall apply
@@ -139,6 +156,6 @@ public backend exposure
 
 ## Next Step
 
-Promote the repository phase state from runtime activation review to accepted limited Phase 4 runtime activation, then begin Phase 5 planning for DB-only customer CRUD.
+Proceed to Phase 5: Customer CRUD in DB Only.
 
 Phase 5 must remain DB-only until a later firewall/NAT phase is accepted.
