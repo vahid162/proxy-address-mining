@@ -56,12 +56,7 @@ def _emit_health_report(report: HealthReport) -> None:
 
 @app.callback()
 def main(
-    version: bool = typer.Option(
-        False,
-        "--version",
-        help="Show version and exit.",
-        is_eager=True,
-    ),
+    version: bool = typer.Option(False, "--version", help="Show version and exit.", is_eager=True),
 ) -> None:
     if version:
         typer.echo(__version__)
@@ -69,9 +64,7 @@ def main(
 
 
 @app.command()
-def doctor(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def doctor(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Run read-only diagnostics without mutating production traffic."""
     path = _config_path(config)
     result = doctor_service.run(path)
@@ -90,9 +83,7 @@ def doctor(
 
 
 @config_app.command("validate")
-def config_validate(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def config_validate(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Validate config without mutating anything."""
     ok, message = config_service.validate(_config_path(config))
     if ok:
@@ -103,9 +94,7 @@ def config_validate(
 
 
 @config_app.command("show")
-def config_show(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def config_show(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Show normalized safe config summary."""
     summary = config_service.show(_config_path(config))
     cfg = summary.config
@@ -120,23 +109,16 @@ def config_show(
     typer.echo(f"v2raya.ui_bind_host: {cfg.v2raya.ui_bind_host}")
     typer.echo(f"v2raya.ui_port: {cfg.v2raya.ui_port}")
     for lane_name, lane in sorted(cfg.lanes.items()):
-        typer.echo(
-            f"lane.{lane_name}: enabled={lane.enabled} backend_port={lane.backend_port} chain_prefix={lane.chain_prefix}"
-        )
+        typer.echo(f"lane.{lane_name}: enabled={lane.enabled} backend_port={lane.backend_port} chain_prefix={lane.chain_prefix}")
         if lane.forwarder:
-            typer.echo(
-                f"lane.{lane_name}.forwarder: service_name={lane.forwarder.service_name} "
-                f"bind_host={lane.forwarder.bind_host} listen_port={lane.forwarder.listen_port or lane.backend_port}"
-            )
+            typer.echo(f"lane.{lane_name}.forwarder: service_name={lane.forwarder.service_name} bind_host={lane.forwarder.bind_host} listen_port={lane.forwarder.listen_port or lane.backend_port}")
     typer.echo(f"abuse.enabled: {cfg.abuse.enabled}")
     typer.echo(f"abuse.threshold_sec: {cfg.abuse.threshold_sec}")
     typer.echo(f"abuse.grace_sec: {cfg.abuse.grace_sec}")
 
 
 @db_app.command("ping")
-def db_ping(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def db_ping(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Ping PostgreSQL without creating schema or mutating state."""
     ok, message = db_service.ping(_load(config))
     if ok:
@@ -147,9 +129,7 @@ def db_ping(
 
 
 @db_app.command("status")
-def db_status(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def db_status(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Show read-only PostgreSQL schema/runtime status."""
     result = db_service.status(_load(config))
     if not result.ok:
@@ -166,9 +146,7 @@ def db_status(
 
 
 @lanes_app.command("list")
-def lanes_list(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def lanes_list(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """List lanes read-only from DB, falling back to config if DB is empty."""
     result = lane_service.list_lane_status(_load(config))
     if not result.ok:
@@ -179,16 +157,11 @@ def lanes_list(
         typer.echo("no lanes")
         return
     for lane in result.lanes:
-        typer.echo(
-            f"{lane.name}\tenabled={lane.enabled}\tbackend_port={lane.backend_port}\tchain_prefix={lane.chain_prefix}\tprotocol={lane.protocol}\tsource={lane.source}"
-        )
+        typer.echo(f"{lane.name}\tenabled={lane.enabled}\tbackend_port={lane.backend_port}\tchain_prefix={lane.chain_prefix}\tprotocol={lane.protocol}\tsource={lane.source}")
 
 
 @customer_app.command("list")
-def customer_list(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-    limit: int = typer.Option(100, "--limit", min=1, max=1000, help="Maximum rows to show."),
-) -> None:
+def customer_list(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), limit: int = typer.Option(100, "--limit", min=1, max=1000, help="Maximum rows to show.")) -> None:
     """List customers read-only. Customer mutation belongs to Phase 5."""
     result = customer_read_service.list_customer_status(_load(config), limit=limit)
     if not result.ok:
@@ -198,16 +171,11 @@ def customer_list(
         typer.echo("no customers")
         return
     for customer in result.customers:
-        typer.echo(
-            f"{customer.id}\t{customer.lane}\t{customer.name}\tport={customer.port}\tstatus={customer.status}\texpires_at={customer.expires_at}"
-        )
+        typer.echo(f"{customer.id}\t{customer.lane}\t{customer.name}\tport={customer.port}\tstatus={customer.status}\texpires_at={customer.expires_at}")
 
 
 @jobs_app.command("status")
-def jobs_status(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-    limit: int = typer.Option(20, "--limit", min=1, max=100, help="Maximum rows to show."),
-) -> None:
+def jobs_status(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), limit: int = typer.Option(20, "--limit", min=1, max=100, help="Maximum rows to show.")) -> None:
     """Show recent job status read-only. Running jobs belongs to later phases."""
     result = job_service.list_job_status(_load(config), limit=limit)
     if not result.ok:
@@ -217,31 +185,23 @@ def jobs_status(
         typer.echo("no job runs")
         return
     for job in result.jobs:
-        typer.echo(
-            f"{job.id}\t{job.job_name}\tstatus={job.status}\tstarted_at={job.started_at}\tfinished_at={job.finished_at}\tduration_ms={job.duration_ms}"
-        )
+        typer.echo(f"{job.id}\t{job.job_name}\tstatus={job.status}\tstarted_at={job.started_at}\tfinished_at={job.finished_at}\tduration_ms={job.duration_ms}")
 
 
 @proxy_app.command("doctor")
-def proxy_doctor(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def proxy_doctor(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Run read-only Phase 4 proxy doctor checks."""
     _emit_health_report(proxy_doctor_service.run(_config_path(config)))
 
 
 @proxy_app.command("status")
-def proxy_status(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def proxy_status(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Inspect proxy status without starting or stopping containers."""
     _emit_health_report(proxy_doctor_service.status(_config_path(config)))
 
 
 @proxy_app.command("config-check")
-def proxy_config_check(
-    config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."),
-) -> None:
+def proxy_config_check(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Validate proxy planning config without runtime activation."""
     _emit_health_report(proxy_doctor_service.config_check(_config_path(config)))
 
@@ -249,15 +209,16 @@ def proxy_config_check(
 @app.command("phase-status")
 def phase_status() -> None:
     """Print the current repository phase guard."""
-    typer.echo("current_accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5")
-    typer.echo("current_working_phase: Phase 4 Runtime Activation Execution Review")
-    typer.echo("server_state: farm5 Phase 4.2 planning synced and verified; runtime activation still not authorized")
+    typer.echo("current_accepted_phase: Phase 4 Runtime Activation — Limited Proxy Runtime Startup accepted on farm5")
+    typer.echo("current_working_phase: Phase 5 — Customer CRUD in DB Only")
+    typer.echo("server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active")
     typer.echo("production_traffic: none")
     typer.echo("firewall_apply_allowed: no")
     typer.echo("abuse_automation_allowed: no")
-    typer.echo("customer_onboarding_allowed: no")
-    typer.echo("proxy_data_plane_allowed: planning_only")
+    typer.echo("customer_onboarding_allowed: db_only_after_phase5_gate")
+    typer.echo("proxy_data_plane_allowed: limited_runtime_local_only")
     typer.echo("ui_allowed: no")
     typer.echo("telegram_allowed: no")
-    typer.echo("compatibility_previous_current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning")
-    typer.echo("compatibility_previous_current_working_phase: Phase 4.2 — Runtime Activation Runbook Planning")
+    typer.echo("compatibility_previous_current_accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5")
+    typer.echo("compatibility_previous_current_working_phase: Phase 4 Runtime Activation Execution Review")
+    typer.echo("compatibility_previous_proxy_data_plane_allowed: planning_only")
