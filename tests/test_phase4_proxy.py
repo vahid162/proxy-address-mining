@@ -103,8 +103,8 @@ def test_public_backend_publish_in_compose_is_critical(tmp_path: Path) -> None:
 def test_public_v2raya_publish_in_compose_is_critical(tmp_path: Path) -> None:
     compose_path = tmp_path / "mpf-proxy.compose.yaml"
     compose_text = COMPOSE_TEMPLATE.read_text(encoding="utf-8").replace(
-        '"127.0.0.1:2015:2014"',
-        '"0.0.0.0:2015:2014"',
+        '"127.0.0.1:2015:2017"',
+        '"0.0.0.0:2015:2017"',
     )
     compose_path.write_text(compose_text, encoding="utf-8")
 
