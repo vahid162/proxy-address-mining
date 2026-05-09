@@ -8,7 +8,7 @@ PROJECT_NAME="mpf-proxy"
 COMPOSE_CONFIG_OUT="/tmp/mpf-phase4-offline-images-compose-config.out"
 REQUIRED_IMAGES=(
   "mzz2017/v2raya:latest"
-  "gogost/gost:latest"
+  "ginuerzh/gost:latest"
 )
 
 section() {
@@ -53,6 +53,7 @@ validate_compose_images() {
 show_existing_images() {
   section "EXISTING IMAGES"
   docker image ls mzz2017/v2raya || true
+  docker image ls ginuerzh/gost || true
   docker image ls gogost/gost || true
 }
 
