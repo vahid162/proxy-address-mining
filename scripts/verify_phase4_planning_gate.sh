@@ -21,7 +21,9 @@ required_files=(
   docs/AI_PHASE_4_2_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
   docs/PHASE_4_1_SERVER_RESULT.md
+  docs/PHASE_4_2_SERVER_SYNC_RESULT.md
   docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
+  docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md
   docs/OFFLINE_SYNC_RUNBOOK.md
   scripts/apply_phase4_1_config_planning.sh
   scripts/sync_main_zip_on_server.sh
@@ -42,12 +44,16 @@ for file in "${required_files[@]}"; do
 done
 
 section 'PHASE STATUS CONTENT'
-if ! grep -q 'current_accepted_phase: Phase 4.1' docs/PHASE_STATUS.md; then
-  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 4.1 as accepted'
+if ! grep -q 'current_accepted_phase: Phase 4.2' docs/PHASE_STATUS.md; then
+  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 4.2 as accepted'
   exit 1
 fi
-if ! grep -q 'current_working_phase: Phase 4.2' docs/PHASE_STATUS.md; then
-  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 4.2 as current working phase'
+if ! grep -q 'current_working_phase: Phase 4 Runtime Activation Execution Review' docs/PHASE_STATUS.md; then
+  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 4 runtime activation execution review as current working phase'
+  exit 1
+fi
+if ! grep -q 'runtime activation still not authorized' docs/PHASE_STATUS.md; then
+  echo 'CRITICAL: docs/PHASE_STATUS.md does not keep runtime activation unauthorized'
   exit 1
 fi
 if ! grep -q 'proxy_data_plane_allowed: planning_only' docs/PHASE_STATUS.md; then
@@ -58,15 +64,19 @@ if ! grep -q 'proxy.runtime_activation_allowed = false' docs/PHASE_STATUS.md; th
   echo 'CRITICAL: docs/PHASE_STATUS.md does not preserve proxy.runtime_activation_allowed=false'
   exit 1
 fi
-echo 'OK: phase status is Phase 4.2 planning only'
+echo 'OK: phase status is runtime activation review only'
 
 section 'README CONTENT'
-if ! grep -q 'accepted_phase: Phase 4.1' README.md; then
-  echo 'CRITICAL: README.md does not show Phase 4.1 as accepted'
+if ! grep -q 'accepted_phase: Phase 4.2' README.md; then
+  echo 'CRITICAL: README.md does not show Phase 4.2 as accepted'
   exit 1
 fi
-if ! grep -q 'working_phase: Phase 4.2' README.md; then
-  echo 'CRITICAL: README.md does not show Phase 4.2 as current working phase'
+if ! grep -q 'working_phase: Phase 4 Runtime Activation Execution Review' README.md; then
+  echo 'CRITICAL: README.md does not show runtime activation execution review as current working phase'
+  exit 1
+fi
+if ! grep -q 'runtime activation still not authorized' README.md; then
+  echo 'CRITICAL: README.md does not keep runtime activation unauthorized'
   exit 1
 fi
 if ! grep -q 'proxy_data_plane_allowed: planning_only' README.md; then
@@ -79,33 +89,37 @@ if ! grep -q 'proxy.runtime_activation_allowed = false' README.md; then
 fi
 echo 'OK: README phase summary is aligned'
 
-section 'PHASE 4.2 DOC CONTENT'
+section 'PHASE 4 REVIEW DOC CONTENT'
 for needle in \
-  'does not authorize server runtime activation' \
+  'does not authorize runtime activation by itself' \
   'docker compose up' \
-  'forbidden during Phase 4.2 planning' \
+  'Do not run during this review step' \
   'customer NAT redirects' \
   'firewall.apply_mode' \
   'proxy.runtime_activation_allowed' \
   'internal_backend_reachable = OK' \
   'external_backend_exposed = NO' \
-  'stop / rollback commands'; do
-  if ! grep -qi "$needle" docs/AI_PHASE_4_2_TASK.md docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md; then
-    echo "CRITICAL: missing Phase 4.2 safety phrase: $needle"
+  'stop/rollback'; do
+  if ! grep -qi "$needle" docs/AI_PHASE_4_2_TASK.md docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md; then
+    echo "CRITICAL: missing Phase 4 review safety phrase: $needle"
     exit 1
   fi
 done
-echo 'OK: Phase 4.2 safety phrases are present'
+echo 'OK: Phase 4 review safety phrases are present'
 
 section 'CLI PHASE STATUS'
 if command -v mpf >/dev/null 2>&1; then
   mpf phase-status
-  if ! mpf phase-status | grep -q 'current_accepted_phase: Phase 4.1'; then
-    echo 'CRITICAL: mpf phase-status is not aligned with Phase 4.1 accepted'
+  if ! mpf phase-status | grep -q 'current_accepted_phase: Phase 4.2'; then
+    echo 'CRITICAL: mpf phase-status is not aligned with Phase 4.2 accepted'
     exit 1
   fi
-  if ! mpf phase-status | grep -q 'current_working_phase: Phase 4.2'; then
-    echo 'CRITICAL: mpf phase-status is not aligned with Phase 4.2 planning'
+  if ! mpf phase-status | grep -q 'current_working_phase: Phase 4 Runtime Activation Execution Review'; then
+    echo 'CRITICAL: mpf phase-status is not aligned with runtime activation execution review'
+    exit 1
+  fi
+  if ! mpf phase-status | grep -q 'runtime activation still not authorized'; then
+    echo 'CRITICAL: mpf phase-status does not keep runtime activation unauthorized'
     exit 1
   fi
 else
@@ -147,7 +161,7 @@ fi
 section 'FIREWALL SAFETY'
 if command -v iptables-save >/dev/null 2>&1; then
   if iptables-save | grep -Eiq 'MPF|MPFBTC|MPFC_|MPFO_|60010'; then
-    echo 'CRITICAL: MPF or backend references found in iptables-save during planning gate'
+    echo 'CRITICAL: MPF or backend references found in iptables-save during review gate'
     iptables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_|60010' || true
     exit 1
   fi
@@ -158,7 +172,7 @@ fi
 
 if command -v ip6tables-save >/dev/null 2>&1; then
   if ip6tables-save | grep -Eiq 'MPF|MPFBTC|MPFC_|MPFO_|60010'; then
-    echo 'CRITICAL: MPF or backend references found in ip6tables-save during planning gate'
+    echo 'CRITICAL: MPF or backend references found in ip6tables-save during review gate'
     ip6tables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_|60010' || true
     exit 1
   fi
@@ -172,7 +186,7 @@ if command -v ss >/dev/null 2>&1; then
   port_matches="$(ss -lntup 2>/dev/null | grep -E ':(60010|2014|20170|20171|20172|22070|22071|22072)\b' || true)"
   if [ -n "$port_matches" ]; then
     echo "$port_matches"
-    echo 'CRITICAL: risky backend/UI port is listening during planning gate'
+    echo 'CRITICAL: risky backend/UI port is listening during review gate'
     exit 1
   fi
   echo 'OK: no risky backend/UI ports listening'
@@ -180,5 +194,5 @@ else
   echo 'WARN: ss not found; skipping listening port inspection'
 fi
 
-section 'PHASE 4.2 PLANNING GATE VERDICT'
-echo 'OK: Phase 4.2 planning gate passed. Runtime activation is still not authorized.'
+section 'PHASE 4 RUNTIME ACTIVATION REVIEW GATE VERDICT'
+echo 'OK: Phase 4 runtime activation execution review gate passed. Runtime activation is still not authorized.'
