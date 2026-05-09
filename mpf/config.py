@@ -48,7 +48,7 @@ class ProxyConfig(BaseModel):
 
 class V2RayAConfig(BaseModel):
     ui_bind_host: str = "127.0.0.1"
-    ui_port: int = Field(default=2014, gt=0, le=65535)
+    ui_port: int = Field(default=2015, gt=0, le=65535)
 
 
 class UpstreamConfig(BaseModel):
