@@ -31,7 +31,7 @@ services:
       - mpf-proxy-internal
 
   mpf-forwarder-btc:
-    image: ${MPF_FORWARDER_IMAGE:-gogost/gost:latest}
+    image: ${MPF_FORWARDER_IMAGE:-ginuerzh/gost:latest}
     container_name: mpf-forwarder-btc
     profiles:
       - phase4-runtime
