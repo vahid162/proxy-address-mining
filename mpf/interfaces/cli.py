@@ -249,9 +249,9 @@ def proxy_config_check(
 @app.command("phase-status")
 def phase_status() -> None:
     """Print the current repository phase guard."""
-    typer.echo("current_accepted_phase: Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts")
-    typer.echo("current_working_phase: Phase 4 — Compose Forward-only + Proxy Doctor Planning")
-    typer.echo("server_state: farm5 Phase 3.1 runtime alignment completed and verified")
+    typer.echo("current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning")
+    typer.echo("current_working_phase: Phase 4.2 — Runtime Activation Runbook Planning")
+    typer.echo("server_state: farm5 Phase 4.1 config planning accepted in GitHub; server still requires ZIP sync confirmation")
     typer.echo("production_traffic: none")
     typer.echo("firewall_apply_allowed: no")
     typer.echo("abuse_automation_allowed: no")
