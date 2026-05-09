@@ -13,12 +13,14 @@ section 'REQUIRED REPOSITORY FILES'
 required_files=(
   AGENTS.md
   README.md
+  compose/mpf-proxy.compose.yaml
   docs/INDEX.md
   docs/PHASE_STATUS.md
   docs/AI_CODING_RULES.md
   docs/AI_PHASE_4_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
   docs/OFFLINE_SYNC_RUNBOOK.md
+  scripts/apply_phase4_1_config_planning.sh
   scripts/sync_main_zip_on_server.sh
   mpf/domain/health.py
   mpf/services/proxy_doctor_service.py
