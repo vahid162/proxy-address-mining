@@ -90,7 +90,7 @@ def test_public_backend_publish_in_compose_is_critical(tmp_path: Path) -> None:
 
     config_path = tmp_path / "mpf.yaml"
     config_text = EXAMPLE_CONFIG.read_text(encoding="utf-8").replace(
-        "/opt/mpf-py-src/compose/mpf-proxy.compose.yaml",
+        "compose/mpf-proxy.compose.yaml",
         str(compose_path),
     )
     config_path.write_text(config_text, encoding="utf-8")
@@ -110,7 +110,7 @@ def test_public_v2raya_publish_in_compose_is_critical(tmp_path: Path) -> None:
 
     config_path = tmp_path / "mpf.yaml"
     config_text = EXAMPLE_CONFIG.read_text(encoding="utf-8").replace(
-        "/opt/mpf-py-src/compose/mpf-proxy.compose.yaml",
+        "compose/mpf-proxy.compose.yaml",
         str(compose_path),
     )
     config_path.write_text(config_text, encoding="utf-8")
