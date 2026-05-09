@@ -42,14 +42,15 @@ def test_cli_version_works_without_command() -> None:
 def test_cli_phase_status_matches_current_phase_guard() -> None:
     result = RUNNER.invoke(app, ["phase-status"])
     assert result.exit_code == 0
-    assert "current_accepted_phase: Phase 4.2" in result.output
-    assert "current_working_phase: Phase 4 Runtime Activation Execution Review" in result.output
-    assert "server_state: farm5 Phase 4.2 planning synced and verified" in result.output
+    assert "current_accepted_phase: Phase 4 Runtime Activation" in result.output
+    assert "current_working_phase: Phase 5" in result.output
+    assert "server_state: farm5 limited Phase 4 proxy runtime is running and accepted" in result.output
     assert "firewall_apply_allowed: no" in result.output
     assert "abuse_automation_allowed: no" in result.output
-    assert "proxy_data_plane_allowed: planning_only" in result.output
-    assert "compatibility_previous_current_accepted_phase: Phase 4.1" in result.output
-    assert "compatibility_previous_current_working_phase: Phase 4.2" in result.output
+    assert "proxy_data_plane_allowed: limited_runtime_local_only" in result.output
+    assert "customer_onboarding_allowed: db_only_after_phase5_gate" in result.output
+    assert "compatibility_previous_current_accepted_phase: Phase 4.2" in result.output
+    assert "compatibility_previous_current_working_phase: Phase 4 Runtime Activation Execution Review" in result.output
 
 
 def test_cli_config_validate_example() -> None:
