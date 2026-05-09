@@ -33,12 +33,14 @@ required_files=(
   docs/AI_CODING_RULES.md
   docs/AI_PHASE_4_TASK.md
   docs/AI_PHASE_4_2_TASK.md
+  docs/AI_PHASE_5_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
   docs/PHASE_4_1_SERVER_RESULT.md
   docs/PHASE_4_2_SERVER_SYNC_RESULT.md
   docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
   docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md
   docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_TASK.md
+  docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
   docs/OFFLINE_SYNC_RUNBOOK.md
   scripts/apply_phase4_1_config_planning.sh
   scripts/sync_main_zip_on_server.sh
@@ -59,45 +61,53 @@ for file in "${required_files[@]}"; do
 done
 
 section 'PHASE STATUS CONTENT'
-grep -q 'current_accepted_phase: Phase 4.2' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 4.2 as accepted'
-grep -q 'current_working_phase: Phase 4 Runtime Activation Execution Review' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 4 runtime activation execution review as current working phase'
-grep -q 'runtime activation still not authorized' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep runtime activation unauthorized'
-grep -q 'proxy_data_plane_allowed: planning_only' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep proxy_data_plane_allowed as planning_only'
+grep -q 'current_accepted_phase: Phase 4 Runtime Activation' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show accepted Phase 4 runtime activation'
+grep -q 'current_working_phase: Phase 5' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 5 as current working phase'
+grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep proxy_data_plane_allowed as limited_runtime_local_only'
+grep -q 'customer_onboarding_allowed: db_only_after_phase5_gate' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep customer onboarding DB-only'
+grep -q 'firewall_apply_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep firewall apply disabled'
+grep -q 'abuse_automation_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep abuse automation disabled'
 grep -q 'proxy.runtime_activation_allowed = false' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not preserve proxy.runtime_activation_allowed=false'
-echo 'OK: phase status is runtime activation review only'
+echo 'OK: phase status is accepted Phase 4 runtime with Phase 5 DB-only work'
 
 section 'README CONTENT'
-grep -q 'accepted_phase: Phase 4.2' README.md || fail 'README.md does not show Phase 4.2 as accepted'
-grep -q 'working_phase: Phase 4 Runtime Activation Execution Review' README.md || fail 'README.md does not show runtime activation execution review as current working phase'
-grep -q 'runtime activation still not authorized' README.md || fail 'README.md does not keep runtime activation unauthorized'
-grep -q 'proxy_data_plane_allowed: planning_only' README.md || fail 'README.md does not show proxy data-plane as planning_only'
+grep -q 'accepted_phase: Phase 4 Runtime Activation' README.md || fail 'README.md does not show accepted Phase 4 runtime activation'
+grep -q 'working_phase: Phase 5' README.md || fail 'README.md does not show Phase 5 as current working phase'
+grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' README.md || fail 'README.md does not show proxy data-plane as limited_runtime_local_only'
+grep -q 'customer_onboarding_allowed: db_only_after_phase5_gate' README.md || fail 'README.md does not preserve Phase 5 DB-only customer boundary'
 grep -q 'proxy.runtime_activation_allowed = false' README.md || fail 'README.md does not preserve proxy.runtime_activation_allowed=false'
 echo 'OK: README phase summary is aligned'
 
-section 'PHASE 4 REVIEW DOC CONTENT'
+section 'PHASE 4 RUNTIME RESULT CONTENT'
+grep -q 'mpf-v2raya container started and healthy' docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md || fail 'Phase 4 runtime server result does not record healthy v2rayA'
+grep -q 'mpf-forwarder-btc container started and healthy' docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md || fail 'Phase 4 runtime server result does not record healthy forwarder'
+grep -q '127.0.0.1:2015' docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md || fail 'Phase 4 runtime server result does not record local-only v2rayA UI port'
+grep -q '127.0.0.1:60010' docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md || fail 'Phase 4 runtime server result does not record local-only BTC backend port'
+echo 'OK: Phase 4 runtime result evidence is present'
+
+section 'PHASE 5 DOC CONTENT'
 for needle in \
-  'does not authorize runtime activation by itself' \
-  'docker compose up' \
-  'Do not run during this review step' \
-  'customer NAT redirects' \
-  'firewall.apply_mode' \
-  'proxy.runtime_activation_allowed' \
-  'internal_backend_reachable = OK' \
-  'external_backend_exposed = NO' \
-  'stop/rollback'; do
-  if ! grep -qi "$needle" docs/AI_PHASE_4_2_TASK.md docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md; then
-    fail "missing Phase 4 review safety phrase: $needle"
+  'Customer CRUD in DB Only' \
+  'customer CRUD remains DB-only' \
+  'no firewall apply is introduced' \
+  'no NAT redirect is introduced' \
+  'firewall.apply_mode = plan_only' \
+  'proxy.runtime_activation_allowed = false' \
+  'reject reserved backend/UI ports' \
+  'verify no firewall apply code path is called'; do
+  if ! grep -qi "$needle" docs/AI_PHASE_5_TASK.md docs/PHASE_STATUS.md README.md; then
+    fail "missing Phase 5 safety phrase: $needle"
   fi
 done
-grep -q 'phase4_runtime_activation_execute.sh' docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_TASK.md || fail 'runtime execution task does not reference approved script'
-echo 'OK: Phase 4 review safety phrases are present'
+echo 'OK: Phase 5 DB-only safety phrases are present'
 
 section 'CLI PHASE STATUS'
 if command -v mpf >/dev/null 2>&1; then
   mpf phase-status
-  mpf phase-status | grep -q 'current_accepted_phase: Phase 4.2' || fail 'mpf phase-status is not aligned with Phase 4.2 accepted'
-  mpf phase-status | grep -q 'current_working_phase: Phase 4 Runtime Activation Execution Review' || fail 'mpf phase-status is not aligned with runtime activation execution review'
-  mpf phase-status | grep -q 'runtime activation still not authorized' || fail 'mpf phase-status does not keep runtime activation unauthorized'
+  mpf phase-status | grep -q 'current_accepted_phase: Phase 4 Runtime Activation' || fail 'mpf phase-status is not aligned with accepted Phase 4 runtime'
+  mpf phase-status | grep -q 'current_working_phase: Phase 5' || fail 'mpf phase-status is not aligned with Phase 5'
+  mpf phase-status | grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' || fail 'mpf phase-status does not show limited_runtime_local_only'
+  mpf phase-status | grep -q 'customer_onboarding_allowed: db_only_after_phase5_gate' || fail 'mpf phase-status does not keep customer onboarding DB-only'
 else
   echo 'WARN: mpf command not found; skipping runtime CLI check'
 fi
@@ -107,7 +117,7 @@ if [ -f /etc/mpf/mpf.yaml ]; then
   grep -n 'apply_mode\|runtime_activation_allowed' /etc/mpf/mpf.yaml || true
   grep -q 'apply_mode: plan_only' /etc/mpf/mpf.yaml || fail '/etc/mpf/mpf.yaml is not in plan_only mode'
   grep -q 'runtime_activation_allowed: false' /etc/mpf/mpf.yaml || fail '/etc/mpf/mpf.yaml does not keep proxy runtime activation disabled'
-  echo 'OK: /etc/mpf/mpf.yaml remains plan_only with runtime disabled'
+  echo 'OK: /etc/mpf/mpf.yaml remains plan_only with runtime disabled for general app/API mutation'
 else
   echo 'WARN: /etc/mpf/mpf.yaml not found; skipping server config check'
 fi
@@ -131,7 +141,7 @@ fi
 section 'MPF CUSTOMER FIREWALL SAFETY'
 if command -v iptables-save >/dev/null 2>&1; then
   if iptables-save | grep -Eiq 'MPF|MPFBTC|MPFC_|MPFO_'; then
-    echo 'CRITICAL: MPF/customer references found in iptables-save during review gate'
+    echo 'CRITICAL: MPF/customer references found in iptables-save during Phase 5 gate'
     iptables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_' || true
     exit 1
   fi
@@ -142,7 +152,7 @@ fi
 
 if command -v ip6tables-save >/dev/null 2>&1; then
   if ip6tables-save | grep -Eiq 'MPF|MPFBTC|MPFC_|MPFO_'; then
-    echo 'CRITICAL: MPF/customer references found in ip6tables-save during review gate'
+    echo 'CRITICAL: MPF/customer references found in ip6tables-save during Phase 5 gate'
     ip6tables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_' || true
     exit 1
   fi
@@ -162,12 +172,12 @@ if command -v ss >/dev/null 2>&1; then
       if echo "$port_matches" | grep -Eq "0\.0\.0\.0:(${V2RAYA_HOST_PORT}|${BTC_BACKEND_PORT})|\[::\]:(${V2RAYA_HOST_PORT}|${BTC_BACKEND_PORT})|:::${V2RAYA_HOST_PORT}|:::${BTC_BACKEND_PORT}"; then
         fail 'runtime backend/UI listener is publicly bound'
       fi
-      echo 'OK: limited runtime listeners are local-only'
+      echo 'OK: accepted limited runtime listeners are local-only'
     else
-      fail 'risky backend/UI port is listening before runtime execution acceptance'
+      fail 'accepted limited runtime ports are listening without Compose runtime containers'
     fi
   else
-    echo 'OK: no risky backend/UI ports listening'
+    fail 'accepted limited runtime listeners are missing'
   fi
 else
   echo 'WARN: ss not found; skipping listening port inspection'
@@ -176,11 +186,11 @@ fi
 section 'DOCKER LOCAL PUBLISH FIREWALL REFERENCES'
 if runtime_running && command -v iptables-save >/dev/null 2>&1; then
   iptables-save | grep -Ei "${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}" || true
-  echo 'OK: Docker-managed local publish rules are informational during limited runtime review.'
+  echo 'OK: Docker-managed local publish rules are informational during accepted limited runtime.'
   echo 'OK: external exposure is enforced by listener binding checks.'
 else
-  echo 'OK: no limited runtime Docker publish inspection needed'
+  echo 'WARN: limited runtime Docker publish inspection skipped'
 fi
 
-section 'PHASE 4 RUNTIME ACTIVATION REVIEW GATE VERDICT'
-echo 'OK: Phase 4 runtime activation execution review gate passed. Runtime activation remains limited and operator-controlled.'
+section 'PHASE 5 DB-ONLY GATE VERDICT'
+echo 'OK: accepted Phase 4 runtime / Phase 5 DB-only gate passed. Production customer traffic remains disabled.'
