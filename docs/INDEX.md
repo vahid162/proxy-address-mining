@@ -40,28 +40,31 @@ Read these before implementation work:
 Current accepted phase:
 
 ```text
-Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
+Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5
 ```
 
 Current working phase:
 
 ```text
-Phase 4 — Compose Forward-only + Proxy Doctor Planning
+Phase 4 Runtime Activation Execution Review
 ```
 
 Read:
 
 1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_4_TASK.md`
-3. `docs/PHASE_4_SERVER_RUNBOOK.md`
-4. `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
-5. `docs/PHASE_3_SERVER_RESULT.md`
-6. `docs/PHASE_3_1_SERVER_RESULT.md`
-7. `docs/BACKEND_PORT_POLICY.md`
-8. `docs/OBSERVABILITY_HASHRATE.md`
-9. `docs/INTRANET_INSTALL.md`
+3. `docs/AI_PHASE_4_2_TASK.md`
+4. `docs/PHASE_4_SERVER_RUNBOOK.md`
+5. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
+6. `docs/PHASE_4_2_SERVER_SYNC_RESULT.md`
+7. `docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md`
+8. `docs/PHASE_4_1_SERVER_RESULT.md`
+9. `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
+10. `docs/BACKEND_PORT_POLICY.md`
+11. `docs/OBSERVABILITY_HASHRATE.md`
+12. `docs/INTRANET_INSTALL.md`
 
-Phase 4 is planning-only until a dedicated Phase 4 runtime activation task is accepted.
+The current step is review-only until a dedicated runtime activation execution task is explicitly accepted.
 It must not start proxy containers, create NAT redirects, apply firewall rules, onboard customers, or activate usage/abuse automation.
 
 ## Reading Order by Task
@@ -94,6 +97,36 @@ Read:
 10. `docs/ABUSE.md`
 11. all phase/domain documents affected by the change
 
+### Phase 4 runtime activation execution review
+
+Read:
+
+1. `../AGENTS.md`
+2. `../README.md`
+3. `docs/PHASE_STATUS.md`
+4. `docs/AI_CODING_RULES.md`
+5. `docs/AI_PHASE_4_TASK.md`
+6. `docs/AI_PHASE_4_2_TASK.md`
+7. `docs/PHASE_4_SERVER_RUNBOOK.md`
+8. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
+9. `docs/PHASE_4_2_SERVER_SYNC_RESULT.md`
+10. `docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md`
+11. `docs/SAFETY.md`
+12. `docs/FIREWALL.md`
+13. `docs/BACKEND_PORT_POLICY.md`
+
+Rules:
+
+- review is not runtime approval
+- no `docker compose up` during review
+- no Docker/proxy runtime startup without a later explicit execution approval
+- no customer NAT redirects
+- no customer firewall rules
+- no firewall apply
+- no usage timers
+- no abuse automation
+- backend internal reachability and external exposure must be validated only in the later approved execution step
+
 ### Phase 4 planning work
 
 Read:
@@ -103,11 +136,13 @@ Read:
 3. `docs/PHASE_STATUS.md`
 4. `docs/AI_CODING_RULES.md`
 5. `docs/AI_PHASE_4_TASK.md`
-6. `docs/PHASE_4_SERVER_RUNBOOK.md`
-7. `docs/ROADMAP.md`
-8. `docs/SAFETY.md`
-9. `docs/FIREWALL.md`
-10. `docs/BACKEND_PORT_POLICY.md`
+6. `docs/AI_PHASE_4_2_TASK.md`
+7. `docs/PHASE_4_SERVER_RUNBOOK.md`
+8. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
+9. `docs/ROADMAP.md`
+10. `docs/SAFETY.md`
+11. `docs/FIREWALL.md`
+12. `docs/BACKEND_PORT_POLICY.md`
 
 Phase 4 planning may add Compose/proxy doctor design, read-only inspection helpers, validation scripts, and tests.
 It must not activate Docker data-plane, firewall apply, NAT redirects, customers, usage timers, hash-rate collectors, abuse automation, UI, or Telegram.
@@ -126,7 +161,7 @@ Read:
 8. `docs/OBSERVABILITY_HASHRATE.md`
 9. `docs/INTRANET_INSTALL.md`
 
-Phase 3.1 is accepted and recorded on farm5. Its result remains a safety baseline for Phase 4 planning.
+Phase 3.1 is accepted and recorded on farm5. Its result remains a safety baseline for Phase 4 review work.
 
 ### Database or migration work
 
@@ -161,8 +196,10 @@ Read:
 6. `docs/BACKEND_PORT_POLICY.md`
 7. `docs/DATA_MODEL.md`
 8. `docs/AI_PHASE_4_TASK.md`
-9. `docs/PHASE_4_SERVER_RUNBOOK.md`
-10. relevant phase/domain document
+9. `docs/AI_PHASE_4_2_TASK.md`
+10. `docs/PHASE_4_SERVER_RUNBOOK.md`
+11. `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
+12. relevant phase/domain document
 
 Rules:
 
@@ -271,9 +308,25 @@ Defines the accepted phase, current working phase, allowed work, forbidden work,
 
 Defines the repository-side Phase 4 AI task, allowed planning work, forbidden runtime behavior, required proxy doctor checks, tests, and stop conditions.
 
+### `docs/AI_PHASE_4_2_TASK.md`
+
+Defines the repository-side Phase 4.2 runtime activation runbook planning task and forbidden runtime behavior.
+
 ### `docs/PHASE_4_SERVER_RUNBOOK.md`
 
 Defines Phase 4 server safety boundaries, allowed read-only checks, forbidden runtime actions, Compose requirements, proxy doctor acceptance fields, and the future runtime activation gate.
+
+### `docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md`
+
+Defines the exact future runtime activation procedure, stop/rollback commands, and post-run evidence checklist. It does not authorize runtime activation by itself.
+
+### `docs/PHASE_4_2_SERVER_SYNC_RESULT.md`
+
+Records the accepted farm5 Phase 4.2 server sync evidence.
+
+### `docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md`
+
+Defines the review gate before any limited Phase 4 runtime activation execution can be approved.
 
 ### `docs/AI_CODING_RULES.md`
 
@@ -328,6 +381,9 @@ Phase 2   — PostgreSQL + Config + Domain Model
 Phase 3   — CLI + Internal API Foundation
 Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
 Phase 4   — Compose Forward-only + Proxy Doctor
+Phase 4.1 — Compose Template + Server Config Planning
+Phase 4.2 — Runtime Activation Runbook Planning
+Phase 4 Review — Runtime Activation Execution Review
 Phase 5   — Customer CRUD in DB Only
 Phase 6   — Firewall Planner + Apply/Verify/Rollback
 Phase 7   — Usage + Policy/Reject Accounting
