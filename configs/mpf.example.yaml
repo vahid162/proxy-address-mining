@@ -17,7 +17,7 @@ firewall:
   lock_path: /run/mpf-firewall.lock
 
 proxy:
-  compose_file: /opt/mpf-py-src/compose/mpf-proxy.compose.yaml
+  compose_file: compose/mpf-proxy.compose.yaml
   project_name: mpf-proxy
   runtime_activation_allowed: false
 
