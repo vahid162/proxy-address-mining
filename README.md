@@ -15,21 +15,26 @@ docs/PHASE_STATUS.md
 Current repository/server state:
 
 ```text
-accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5
-working_phase: Phase 4 Runtime Activation Execution Review
-server_state: farm5 Phase 4.2 planning synced and verified; runtime activation still not authorized
+accepted_phase: Phase 4 Runtime Activation — Limited Proxy Runtime Startup accepted on farm5
+working_phase: Phase 5 — Customer CRUD in DB Only
+server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
-customer_onboarding_allowed: no
-proxy_data_plane_allowed: planning_only
+customer_onboarding_allowed: db_only_after_phase5_gate
+proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4 runtime activation execution is under review only. It does not authorize starting containers.
+The accepted Phase 4 runtime is intentionally limited and local-only:
 
-Do not use this repository for production traffic yet.
+```text
+v2rayA UI: 127.0.0.1:2015 -> container 2017
+BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
+```
+
+Do not use this repository for production customer traffic yet.
 
 ## Implemented So Far
 
@@ -58,51 +63,45 @@ AI coding rules for phase-gated development
 Phase 4 planning task and server runbook foundations
 Phase 4.1 Compose template and server config planning result recorded
 Phase 4.2 runtime activation runbook planning synced and verified on farm5
-Phase 4 runtime activation execution review document added
+Phase 4 runtime activation execution review completed
+Phase 4 limited runtime activation accepted on farm5
 ```
 
-## Current Phase 4 Review Scope
+## Current Phase 5 Scope
 
 Allowed now:
 
 ```text
-review Phase 4 runtime activation execution readiness
-operator approval requirements
-exact future docker compose config validation commands
-exact future startup command with explicit profile, documented only
-backend internal reachability test plan
-backend external exposure test plan
-v2rayA UI local-only test plan
-Docker Compose stop/rollback plan
-post-run evidence checklist
-server validation script updates that do not start runtime
+customer domain DTOs and service contracts
+DB-only customer create/read/update/disable planning
+DB-only validation for lane, port, expiry, and status
+repository tests for customer CRUD state transitions
+CLI/API contracts that do not touch firewall/NAT
+audit/event planning for future mutation tracking
 documentation updates that preserve phase gates
-tests that verify forbidden runtime commands remain unavailable
+proxy doctor/status refinements for the accepted limited runtime state
 ```
 
 Forbidden now:
 
 ```text
-docker compose up
-docker run
-live customer onboarding
-customer CRUD mutation
+production traffic
+customer NAT redirects
 customer firewall rules
 live firewall apply
-NAT redirects
+iptables-restore
 usage timers
 hash-rate/share collectors
 abuse runner automation
 block or pause automation
-Docker proxy data-plane containers without an accepted runtime activation execution step
-v2rayA runtime without an accepted runtime activation execution step
-forwarder/gost runtime without an accepted runtime activation execution step
 local UI service
 buyer UI service
 Telegram bot
 production customer import
 worker enforcement
 public API binding
+public v2rayA UI exposure
+public backend exposure
 ```
 
 Required invariants remain:
@@ -110,39 +109,32 @@ Required invariants remain:
 ```text
 firewall.apply_mode = plan_only
 proxy.runtime_activation_allowed = false
-proxy_data_plane_allowed = planning_only
+proxy_data_plane_allowed = limited_runtime_local_only
 ```
 
-## Required Before Any Runtime Activation
+## Required Before Phase 5 Acceptance
 
-Runtime activation execution review must preserve:
+Phase 5 must remain DB-only:
 
 ```text
-docs/AI_PHASE_4_2_TASK.md
-docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
-docs/PHASE_4_2_SERVER_SYNC_RESULT.md
-docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md
-scripts/verify_phase4_planning_gate.sh
-local-only v2rayA/forwarder binding plan
-proxy doctor acceptance checks
-backend internal reachability check
-backend direct exposure detection plan
-Docker Compose stop/rollback plan
-explicit confirmation that no customer NAT redirect will be created
-explicit confirmation that firewall.apply_mode remains plan_only
-explicit confirmation that proxy.runtime_activation_allowed remains false until explicit runtime approval
-post-run evidence checklist
+docs/AI_PHASE_5_TASK.md exists
+customer CRUD remains DB-only
+no firewall apply is introduced
+no NAT redirect is introduced
+no production customer traffic is enabled
+all customer mutations go through service/repository boundaries
+ports are validated against lane and collision rules
+customer state changes are auditable or prepared for audit/event recording
+pytest passes
+server sync evidence is reviewed
 ```
-
-A later explicit runtime execution decision is required before starting containers.
 
 ## Not Implemented Yet
 
 ```text
-production customer CRUD
+production customer traffic
 live firewall planner/apply
 NAT redirects
-proxy data-plane runtime activation
 usage timers
 hash-rate/share collectors
 abuse runner automation
@@ -393,11 +385,8 @@ docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
 docs/PHASE_3_1_SERVER_RESULT.md
 docs/PHASE_4_1_SERVER_RESULT.md
 docs/PHASE_4_2_SERVER_SYNC_RESULT.md
-docs/AI_PHASE_4_TASK.md
-docs/AI_PHASE_4_2_TASK.md
-docs/PHASE_4_SERVER_RUNBOOK.md
-docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
-docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_REVIEW.md
+docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
+docs/AI_PHASE_5_TASK.md
 docs/INTRANET_INSTALL.md
 ```
 
@@ -413,6 +402,7 @@ Phase 4   — Compose Forward-only + Proxy Doctor
 Phase 4.1 — Compose Template + Server Config Planning
 Phase 4.2 — Runtime Activation Runbook Planning
 Phase 4 Review — Runtime Activation Execution Review
+Phase 4 Runtime — Limited Proxy Runtime Startup
 Phase 5   — Customer CRUD in DB Only
 Phase 6   — Firewall Planner + Apply/Verify/Rollback
 Phase 7   — Usage + Policy/Reject Accounting
@@ -437,7 +427,7 @@ System clock synchronized: no
 NTP service: active
 ```
 
-This warning is not a Phase 4 runtime activation execution review blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This warning is not a Phase 5 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## Testing Strategy
 
