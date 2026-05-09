@@ -1,6 +1,6 @@
 # Phase 4.1 planning template only.
 # This file is safe to validate with `docker compose config`.
-# Do not run `docker compose up` until a separate Phase 4 runtime activation task is accepted.
+# Do not start this Compose project until a separate Phase 4 runtime activation task is accepted.
 
 name: mpf-proxy
 
