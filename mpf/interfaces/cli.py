@@ -249,8 +249,8 @@ def proxy_config_check(
 @app.command("phase-status")
 def phase_status() -> None:
     """Print the current repository phase guard."""
-    typer.echo("current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning")
-    typer.echo("current_working_phase: Phase 4.2 — Runtime Activation Runbook Planning")
+    typer.echo("current_accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5")
+    typer.echo("current_working_phase: Phase 4 Runtime Activation Execution Review")
     typer.echo("server_state: farm5 Phase 4.2 planning synced and verified; runtime activation still not authorized")
     typer.echo("production_traffic: none")
     typer.echo("firewall_apply_allowed: no")
@@ -259,3 +259,5 @@ def phase_status() -> None:
     typer.echo("proxy_data_plane_allowed: planning_only")
     typer.echo("ui_allowed: no")
     typer.echo("telegram_allowed: no")
+    typer.echo("compatibility_previous_current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning")
+    typer.echo("compatibility_previous_current_working_phase: Phase 4.2 — Runtime Activation Runbook Planning")
