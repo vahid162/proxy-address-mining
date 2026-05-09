@@ -96,7 +96,10 @@ required_files=(
   docs/INDEX.md
   docs/PHASE_STATUS.md
   docs/AI_PHASE_4_TASK.md
+  docs/AI_PHASE_4_2_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
+  docs/PHASE_4_1_SERVER_RESULT.md
+  docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
   docs/OFFLINE_SYNC_RUNBOOK.md
   docs/MIGRATION_POLICY.md
   scripts/verify_phase4_planning_gate.sh
@@ -120,13 +123,13 @@ for file in "${required_files[@]}"; do
   echo "OK: $file"
 done
 
-if ! grep -q 'current_accepted_phase: Phase 3.1' "$NEW_SRC/docs/PHASE_STATUS.md"; then
-  echo "CRITICAL: new PHASE_STATUS does not show Phase 3.1 accepted"
+if ! grep -q 'current_accepted_phase: Phase 4.1' "$NEW_SRC/docs/PHASE_STATUS.md"; then
+  echo "CRITICAL: new PHASE_STATUS does not show Phase 4.1 accepted"
   exit 1
 fi
 
-if ! grep -q 'current_working_phase: Phase 4' "$NEW_SRC/docs/PHASE_STATUS.md"; then
-  echo "CRITICAL: new PHASE_STATUS does not show Phase 4 planning"
+if ! grep -q 'current_working_phase: Phase 4.2' "$NEW_SRC/docs/PHASE_STATUS.md"; then
+  echo "CRITICAL: new PHASE_STATUS does not show Phase 4.2 planning"
   exit 1
 fi
 
@@ -137,6 +140,16 @@ fi
 
 if ! grep -q 'runtime_activation_allowed: false' "$NEW_SRC/configs/mpf.example.yaml"; then
   echo "CRITICAL: example config does not keep proxy runtime activation disabled"
+  exit 1
+fi
+
+if ! grep -q 'docker compose up' "$NEW_SRC/docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md"; then
+  echo "CRITICAL: Phase 4.2 runbook does not document the future startup command"
+  exit 1
+fi
+
+if ! grep -q 'forbidden during Phase 4.2 planning' "$NEW_SRC/docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md"; then
+  echo "CRITICAL: Phase 4.2 runbook does not keep runtime startup forbidden during planning"
   exit 1
 fi
 
@@ -171,13 +184,13 @@ cd "$APP_DIR"
 mpf --version
 mpf phase-status
 
-if ! mpf phase-status | grep -q 'current_accepted_phase: Phase 3.1'; then
-  echo "CRITICAL: mpf phase-status still not aligned with Phase 3.1"
+if ! mpf phase-status | grep -q 'current_accepted_phase: Phase 4.1'; then
+  echo "CRITICAL: mpf phase-status is not aligned with Phase 4.1 accepted"
   exit 1
 fi
 
-if ! mpf phase-status | grep -q 'current_working_phase: Phase 4'; then
-  echo "CRITICAL: mpf phase-status still not aligned with Phase 4 planning"
+if ! mpf phase-status | grep -q 'current_working_phase: Phase 4.2'; then
+  echo "CRITICAL: mpf phase-status is not aligned with Phase 4.2 planning"
   exit 1
 fi
 
@@ -203,7 +216,7 @@ mpf proxy config-check
 mpf proxy status
 mpf proxy doctor
 
-section "RUN PHASE 4 PLANNING GATE"
+section "RUN PHASE 4.2 PLANNING GATE"
 
 bash "$APP_DIR/scripts/verify_phase4_planning_gate.sh"
 
@@ -211,6 +224,6 @@ section "FINAL VERDICT"
 
 echo "OK: GitHub main zip synced successfully."
 echo "OK: server source is aligned with GitHub zip."
-echo "OK: Phase 4 planning gate is installed and verified."
+echo "OK: Phase 4.2 planning gate is installed and verified."
 echo "OK: Runtime activation is still NOT authorized."
 echo "Backup: $BACKUP_DIR"
