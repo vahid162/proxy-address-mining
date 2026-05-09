@@ -15,7 +15,8 @@ services:
       V2RAYA_LOG_FILE: /tmp/v2raya.log
     ports:
       # v2rayA UI must remain local-only.
-      - "127.0.0.1:2014:2014"
+      # Host/operator port is 2015; container v2rayA UI remains 2014.
+      - "127.0.0.1:2015:2014"
     expose:
       - "22070"
     volumes:
