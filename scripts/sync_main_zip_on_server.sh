@@ -92,6 +92,7 @@ required_files=(
   pyproject.toml
   README.md
   AGENTS.md
+  compose/mpf-proxy.compose.yaml
   docs/INDEX.md
   docs/PHASE_STATUS.md
   docs/AI_PHASE_4_TASK.md
