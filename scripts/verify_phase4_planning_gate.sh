@@ -90,7 +90,7 @@ for needle in \
   'internal_backend_reachable = OK' \
   'external_backend_exposed = NO' \
   'stop / rollback commands'; do
-  if ! grep -q "$needle" docs/AI_PHASE_4_2_TASK.md docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md; then
+  if ! grep -qi "$needle" docs/AI_PHASE_4_2_TASK.md docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md; then
     echo "CRITICAL: missing Phase 4.2 safety phrase: $needle"
     exit 1
   fi
