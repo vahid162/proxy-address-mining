@@ -1,0 +1,63 @@
+# Phase 4.1 planning template only.
+# This file is safe to validate with `docker compose config`.
+# Do not run `docker compose up` until a separate Phase 4 runtime activation task is accepted.
+
+name: mpf-proxy
+
+services:
+  mpf-v2raya:
+    image: ${MPF_V2RAYA_IMAGE:-mzz2017/v2raya:latest}
+    container_name: mpf-v2raya
+    profiles:
+      - phase4-runtime
+    restart: unless-stopped
+    environment:
+      V2RAYA_LOG_FILE: /tmp/v2raya.log
+    ports:
+      # v2rayA UI must remain local-only.
+      - "127.0.0.1:2014:2014"
+    expose:
+      - "22070"
+    volumes:
+      - mpf-v2raya-data:/etc/v2raya
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:2014 >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - mpf-proxy-internal
+
+  mpf-forwarder-btc:
+    image: ${MPF_FORWARDER_IMAGE:-gogost/gost:latest}
+    container_name: mpf-forwarder-btc
+    profiles:
+      - phase4-runtime
+    restart: unless-stopped
+    depends_on:
+      mpf-v2raya:
+        condition: service_started
+    command:
+      - "-L=tcp://:60010/${MPF_BTC_POOL_HOST:-bitcoin.viabtc.io}:${MPF_BTC_POOL_PORT:-3333}"
+      - "-F=socks5://mpf-v2raya:22070"
+    ports:
+      # BTC backend is local-only. It must never be published on 0.0.0.0.
+      - "127.0.0.1:60010:60010"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 60010 >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - mpf-proxy-internal
+
+networks:
+  mpf-proxy-internal:
+    name: mpf-proxy-internal
+    driver: bridge
+
+volumes:
+  mpf-v2raya-data:
+    name: mpf-v2raya-data
