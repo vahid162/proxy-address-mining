@@ -18,7 +18,10 @@ required_files=(
   docs/PHASE_STATUS.md
   docs/AI_CODING_RULES.md
   docs/AI_PHASE_4_TASK.md
+  docs/AI_PHASE_4_2_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
+  docs/PHASE_4_1_SERVER_RESULT.md
+  docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md
   docs/OFFLINE_SYNC_RUNBOOK.md
   scripts/apply_phase4_1_config_planning.sh
   scripts/sync_main_zip_on_server.sh
@@ -26,6 +29,8 @@ required_files=(
   mpf/services/proxy_doctor_service.py
   mpf/adapters/docker_compose.py
   mpf/adapters/socket_inspector.py
+  tests/test_cli_phase_status.py
+  tests/test_smoke.py
   tests/test_phase4_proxy.py
 )
 for file in "${required_files[@]}"; do
@@ -37,59 +42,70 @@ for file in "${required_files[@]}"; do
 done
 
 section 'PHASE STATUS CONTENT'
-if ! grep -q 'current_accepted_phase: Phase 3.1' docs/PHASE_STATUS.md; then
-  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 3.1 as accepted'
+if ! grep -q 'current_accepted_phase: Phase 4.1' docs/PHASE_STATUS.md; then
+  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 4.1 as accepted'
   exit 1
 fi
-if ! grep -q 'current_working_phase: Phase 4' docs/PHASE_STATUS.md; then
-  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 4 as current working phase'
+if ! grep -q 'current_working_phase: Phase 4.2' docs/PHASE_STATUS.md; then
+  echo 'CRITICAL: docs/PHASE_STATUS.md does not show Phase 4.2 as current working phase'
   exit 1
 fi
 if ! grep -q 'proxy_data_plane_allowed: planning_only' docs/PHASE_STATUS.md; then
   echo 'CRITICAL: docs/PHASE_STATUS.md does not keep proxy_data_plane_allowed as planning_only'
   exit 1
 fi
-echo 'OK: phase status is Phase 4 planning only'
-
-section 'README CONTENT'
-if ! grep -q 'accepted_phase: Phase 3.1' README.md; then
-  echo 'CRITICAL: README.md does not show Phase 3.1 as accepted'
+if ! grep -q 'proxy.runtime_activation_allowed = false' docs/PHASE_STATUS.md; then
+  echo 'CRITICAL: docs/PHASE_STATUS.md does not preserve proxy.runtime_activation_allowed=false'
   exit 1
 fi
-if ! grep -q 'working_phase: Phase 4' README.md; then
-  echo 'CRITICAL: README.md does not show Phase 4 as current working phase'
+echo 'OK: phase status is Phase 4.2 planning only'
+
+section 'README CONTENT'
+if ! grep -q 'accepted_phase: Phase 4.1' README.md; then
+  echo 'CRITICAL: README.md does not show Phase 4.1 as accepted'
+  exit 1
+fi
+if ! grep -q 'working_phase: Phase 4.2' README.md; then
+  echo 'CRITICAL: README.md does not show Phase 4.2 as current working phase'
   exit 1
 fi
 if ! grep -q 'proxy_data_plane_allowed: planning_only' README.md; then
-  echo 'CRITICAL: README.md does not show Phase 4 as planning_only'
+  echo 'CRITICAL: README.md does not show proxy data-plane as planning_only'
+  exit 1
+fi
+if ! grep -q 'proxy.runtime_activation_allowed = false' README.md; then
+  echo 'CRITICAL: README.md does not preserve proxy.runtime_activation_allowed=false'
   exit 1
 fi
 echo 'OK: README phase summary is aligned'
 
-section 'PHASE 4 DOC CONTENT'
+section 'PHASE 4.2 DOC CONTENT'
 for needle in \
   'does not authorize server runtime activation' \
+  'docker compose up' \
+  'forbidden during Phase 4.2 planning' \
   'customer NAT redirects' \
   'firewall.apply_mode' \
+  'proxy.runtime_activation_allowed' \
   'internal_backend_reachable = OK' \
   'external_backend_exposed = NO' \
-  'mpf proxy doctor'; do
-  if ! grep -q "$needle" docs/AI_PHASE_4_TASK.md docs/PHASE_4_SERVER_RUNBOOK.md; then
-    echo "CRITICAL: missing Phase 4 safety phrase: $needle"
+  'stop / rollback commands'; do
+  if ! grep -q "$needle" docs/AI_PHASE_4_2_TASK.md docs/PHASE_4_2_RUNTIME_ACTIVATION_RUNBOOK.md; then
+    echo "CRITICAL: missing Phase 4.2 safety phrase: $needle"
     exit 1
   fi
 done
-echo 'OK: Phase 4 safety phrases are present'
+echo 'OK: Phase 4.2 safety phrases are present'
 
 section 'CLI PHASE STATUS'
 if command -v mpf >/dev/null 2>&1; then
   mpf phase-status
-  if ! mpf phase-status | grep -q 'current_accepted_phase: Phase 3.1'; then
-    echo 'CRITICAL: mpf phase-status is not aligned with Phase 3.1 accepted'
+  if ! mpf phase-status | grep -q 'current_accepted_phase: Phase 4.1'; then
+    echo 'CRITICAL: mpf phase-status is not aligned with Phase 4.1 accepted'
     exit 1
   fi
-  if ! mpf phase-status | grep -q 'current_working_phase: Phase 4'; then
-    echo 'CRITICAL: mpf phase-status is not aligned with Phase 4 planning'
+  if ! mpf phase-status | grep -q 'current_working_phase: Phase 4.2'; then
+    echo 'CRITICAL: mpf phase-status is not aligned with Phase 4.2 planning'
     exit 1
   fi
 else
@@ -98,12 +114,16 @@ fi
 
 section 'CONFIG SAFETY'
 if [ -f /etc/mpf/mpf.yaml ]; then
-  grep -n 'apply_mode' /etc/mpf/mpf.yaml || true
+  grep -n 'apply_mode\|runtime_activation_allowed' /etc/mpf/mpf.yaml || true
   if ! grep -q 'apply_mode: plan_only' /etc/mpf/mpf.yaml; then
     echo 'CRITICAL: /etc/mpf/mpf.yaml is not in plan_only mode'
     exit 1
   fi
-  echo 'OK: /etc/mpf/mpf.yaml remains plan_only'
+  if ! grep -q 'runtime_activation_allowed: false' /etc/mpf/mpf.yaml; then
+    echo 'CRITICAL: /etc/mpf/mpf.yaml does not keep proxy runtime activation disabled'
+    exit 1
+  fi
+  echo 'OK: /etc/mpf/mpf.yaml remains plan_only with runtime disabled'
 else
   echo 'WARN: /etc/mpf/mpf.yaml not found; skipping server config check'
 fi
@@ -160,5 +180,5 @@ else
   echo 'WARN: ss not found; skipping listening port inspection'
 fi
 
-section 'PHASE 4 PLANNING GATE VERDICT'
-echo 'OK: Phase 4 planning gate passed. Runtime activation is still not authorized.'
+section 'PHASE 4.2 PLANNING GATE VERDICT'
+echo 'OK: Phase 4.2 planning gate passed. Runtime activation is still not authorized.'
