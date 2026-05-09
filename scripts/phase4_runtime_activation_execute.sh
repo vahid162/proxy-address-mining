@@ -8,6 +8,7 @@ PROJECT_NAME="mpf-proxy"
 BACKUP_BASE="/var/backups/mpf"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 BACKUP_DIR="${BACKUP_BASE}/phase4-runtime-activation-${STAMP}"
+COMPOSE_CONFIG_OUT="/tmp/mpf-phase4-runtime-compose-config.out"
 COMPOSE=(docker compose -p "$PROJECT_NAME" -f "$COMPOSE_FILE" --profile phase4-runtime)
 
 section() {
@@ -77,14 +78,45 @@ assert_no_customers_or_jobs() {
   echo "OK: no customers/jobs/firewall applies/abuse states exist"
 }
 
+assert_compose_source_local_publish() {
+  local port="$1"
+  local label="$2"
+  if ! grep -Eq "['\"]127\.0\.0\.1:${port}:${port}['\"]" "$COMPOSE_FILE"; then
+    fail "$label is not local-only in compose source: expected 127.0.0.1:${port}:${port}"
+  fi
+}
+
+assert_compose_rendered_port() {
+  local port="$1"
+  local label="$2"
+  if grep -Eq "127\.0\.0\.1:${port}:${port}" "$COMPOSE_CONFIG_OUT"; then
+    return 0
+  fi
+  if grep -q 'host_ip: 127.0.0.1' "$COMPOSE_CONFIG_OUT" \
+    && grep -Eq "published: ['\"]?${port}['\"]?" "$COMPOSE_CONFIG_OUT" \
+    && grep -Eq "target: ${port}" "$COMPOSE_CONFIG_OUT"; then
+    return 0
+  fi
+  echo "----- docker compose config output -----"
+  cat "$COMPOSE_CONFIG_OUT"
+  echo "----- end docker compose config output -----"
+  fail "$label is not local-only in rendered compose config"
+}
+
 assert_compose_template_safety() {
   section "COMPOSE TEMPLATE SAFETY"
   [ -f "$COMPOSE_FILE" ] || fail "compose file missing: $COMPOSE_FILE"
-  "${COMPOSE[@]}" config >/tmp/mpf-phase4-runtime-compose-config.out
-  grep -q '127.0.0.1:2014:2014' /tmp/mpf-phase4-runtime-compose-config.out || fail "v2rayA UI is not local-only in compose config"
-  grep -q '127.0.0.1:60010:60010' /tmp/mpf-phase4-runtime-compose-config.out || fail "BTC backend is not local-only in compose config"
-  grep -q 'mpf-forwarder-btc' /tmp/mpf-phase4-runtime-compose-config.out || fail "BTC forwarder service missing in compose config"
-  grep -q 'mpf-v2raya' /tmp/mpf-phase4-runtime-compose-config.out || fail "v2rayA service missing in compose config"
+  "${COMPOSE[@]}" config >"$COMPOSE_CONFIG_OUT"
+  assert_compose_source_local_publish 2014 "v2rayA UI"
+  assert_compose_source_local_publish 60010 "BTC backend"
+  assert_compose_rendered_port 2014 "v2rayA UI"
+  assert_compose_rendered_port 60010 "BTC backend"
+  grep -q 'mpf-forwarder-btc' "$COMPOSE_CONFIG_OUT" || fail "BTC forwarder service missing in compose config"
+  grep -q 'mpf-v2raya' "$COMPOSE_CONFIG_OUT" || fail "v2rayA service missing in compose config"
+  if grep -Eq '0\.0\.0\.0:(2014|60010)|host_ip: 0\.0\.0\.0|\[::\]:(2014|60010)|host_ip: ::' "$COMPOSE_CONFIG_OUT"; then
+    cat "$COMPOSE_CONFIG_OUT"
+    fail "compose config contains public backend/UI binding"
+  fi
   echo "OK: compose template validates and publishes only local-only ports"
 }
 
