@@ -15,14 +15,14 @@ services:
       V2RAYA_LOG_FILE: /tmp/v2raya.log
     ports:
       # v2rayA UI must remain local-only.
-      # Host/operator port is 2015; container v2rayA UI remains 2014.
-      - "127.0.0.1:2015:2014"
+      # Host/operator port is 2015; container v2rayA UI is 2017 for this image.
+      - "127.0.0.1:2015:2017"
     expose:
       - "22070"
     volumes:
       - mpf-v2raya-data:/etc/v2raya
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:2014 >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:2017 >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5
