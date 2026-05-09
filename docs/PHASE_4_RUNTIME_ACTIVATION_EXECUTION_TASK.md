@@ -34,7 +34,8 @@ Allowed by this task:
 
 ```text
 start mpf-v2raya and mpf-forwarder-btc only through Docker Compose profile phase4-runtime
-validate v2rayA UI is bound to 127.0.0.1:2014 only
+validate v2rayA UI is bound on the host to 127.0.0.1:2015 only
+validate v2rayA UI maps to container port 2017 for the current image
 validate BTC backend is bound to 127.0.0.1:60010 only
 validate BTC backend is internally reachable from the server
 validate BTC backend is not exposed on 0.0.0.0 or ::
@@ -125,14 +126,13 @@ The expected successful state is:
 mpf config validate OK
 mpf doctor OK
 mpf proxy config-check final_verdict OK
-mpf proxy status/doctor no longer report backend_internal_reachability as WARN if backend is reachable
-mpf-v2raya container exists
-mpf-forwarder-btc container exists
-127.0.0.1:2014 listener exists
-127.0.0.1:60010 listener exists
-no 0.0.0.0:2014 listener
+mpf-v2raya container exists and is healthy
+mpf-forwarder-btc container exists and is healthy
+127.0.0.1:2015 listener exists for host/operator v2rayA UI access
+127.0.0.1:60010 listener exists for BTC backend
+no 0.0.0.0:2015 listener
 no 0.0.0.0:60010 listener
-no [::]:2014 listener
+no [::]:2015 listener
 no [::]:60010 listener
 no MPF customer NAT redirects
 no MPF customer firewall chains
