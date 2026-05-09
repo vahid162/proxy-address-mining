@@ -251,7 +251,7 @@ def phase_status() -> None:
     """Print the current repository phase guard."""
     typer.echo("current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning")
     typer.echo("current_working_phase: Phase 4.2 — Runtime Activation Runbook Planning")
-    typer.echo("server_state: farm5 Phase 4.1 config planning accepted in GitHub; server still requires ZIP sync confirmation")
+    typer.echo("server_state: farm5 Phase 4.2 planning synced and verified; runtime activation still not authorized")
     typer.echo("production_traffic: none")
     typer.echo("firewall_apply_allowed: no")
     typer.echo("abuse_automation_allowed: no")
