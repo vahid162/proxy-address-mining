@@ -7,13 +7,13 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 ## Current State
 
 ```text
-current_accepted_phase: Phase 4 Runtime Activation — Limited Proxy Runtime Startup accepted on farm5
-current_working_phase: Phase 5 — Customer CRUD in DB Only
+current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
+current_working_phase: Phase 6 — Firewall Planner
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
-customer_onboarding_allowed: db_only_after_phase5_gate
+customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
@@ -203,6 +203,31 @@ proxy.runtime_activation_allowed: false
 
 Docker-managed local publish rules for `127.0.0.1:2015` and `127.0.0.1:60010` are accepted only as local Docker publish rules. They are not MPF customer NAT redirects.
 
+### Phase 5 Final Acceptance Server Result
+
+See:
+
+```text
+docs/PHASE_5_FINAL_ACCEPTANCE.md
+```
+
+Accepted evidence summary:
+
+```text
+Phase 5 accepted as DB-only customer CRUD + future-readiness contracts
+version accepted on server: 0.1.21
+pytest passed: 174 passed in 3.69s
+alembic_version: 0002_phase5_customer_lifecycle
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+ui_allowed: no
+telegram_allowed: no
+no customer NAT redirects
+no MPF/customer firewall refs
+runtime remained limited local-only
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -216,17 +241,14 @@ This is not a Phase 4 acceptance blocker, but it must be fixed before production
 
 ## What Is Allowed Now
 
-Allowed work is limited to Phase 5 DB-only customer CRUD planning and implementation:
+Allowed work is limited to **Phase 6 — Firewall Planner** preparation and planning-only implementation:
 
 ```text
-- customer domain DTOs and service contracts
-- DB-only customer create/read/update/disable planning
-- DB-only validation for lane, port, expiry, and status
-- repository tests for customer CRUD state transitions
-- CLI/API contracts that do not touch firewall/NAT
-- audit/event planning for future mutation tracking
-- documentation updates that preserve phase gates
-- proxy doctor/status refinements for the accepted limited runtime state
+- firewall desired-model and planner/diff design and implementation
+- firewall planning tests and dry-run evidence generation
+- documentation updates that preserve phase gates and planner-first boundaries
+- proxy/backend safety checks that preserve internal reachability + external non-exposure contracts
+- no live firewall apply unless a dedicated Phase 6 apply gate is explicitly accepted
 ```
 
 ## What Is Forbidden Now
@@ -237,7 +259,7 @@ Do not implement, run, or activate:
 - production traffic
 - customer NAT redirects
 - customer firewall rules
-- live firewall apply
+- live firewall apply (still forbidden until explicit Phase 6 apply gate acceptance)
 - iptables-restore
 - usage timers
 - hash-rate/share collectors
