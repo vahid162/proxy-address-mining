@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.11 - 2026-05-10
+- Fixed Phase 5-E0.1 local-peer DB write guard for lane sync: clear root/operator instruction (`sudo -u mpf ...`) while keeping dry-run default and DB-only safety boundaries.
+
 ## 0.1.10 - 2026-05-10
 - Added Phase 5-E0 DB-only lane config sync (dry-run default + --yes write), lane sync service/repository path, event/audit writes, and tests.
 

@@ -123,7 +123,7 @@ def test_lanes_sync_config_uses_service_layer(monkeypatch) -> None:
         updated_lanes = []
         stale_lanes = []
 
-    monkeypatch.setattr(cli.lane_sync_service, "sync_lane_config_db_only", lambda config, dry_run=True, yes=False: FakeResult())
+    monkeypatch.setattr(cli.lane_sync_service, "sync_lane_config_db_only", lambda config, dry_run=True, yes=False, command_hint="": FakeResult())
     result = RUNNER.invoke(app, ["lanes", "sync-config", "--config", str(CONFIG_PATH)])
     assert result.exit_code == 0
     assert "would_create_lanes: 1" in result.output

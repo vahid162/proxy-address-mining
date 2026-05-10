@@ -228,7 +228,7 @@ def phase_status() -> None:
 @lanes_app.command("sync-config")
 def lanes_sync_config(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), yes: bool = typer.Option(False, "--yes", help="Apply DB writes (default is dry-run).")) -> None:
     """Sync config lanes into DB only. No firewall/NAT/runtime mutation."""
-    result = lane_sync_service.sync_lane_config_db_only(_load(config), dry_run=not yes, yes=yes)
+    result = lane_sync_service.sync_lane_config_db_only(_load(config), dry_run=not yes, yes=yes, command_hint="/usr/local/bin/mpf lanes sync-config --yes")
     if not result.ok:
         typer.echo(result.message)
         raise typer.Exit(1)

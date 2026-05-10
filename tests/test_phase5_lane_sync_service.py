@@ -114,3 +114,22 @@ def test_duplicate_enabled_backend_port_rejected():
 def test_build_plan_reports_stale_only():
     plan = lane_write_repo.build_lane_sync_plan(_cfg(), {"stale": lane_write_repo.LaneSyncItem("stale", True, 62000, "S", "stratum")})
     assert len(plan.stale_items) == 1
+
+
+def test_root_local_peer_write_returns_actionable_message(monkeypatch):
+    monkeypatch.setattr("os.geteuid", lambda: 0)
+    cfg = _Cfg(lanes={"btc": _Lane(True, 60010, "MPFBTC")})
+    cfg.database = type("DB", (), {"url": "postgresql:///mpf"})()
+    result = lane_sync_service.sync_lane_config_db_only(cfg, dry_run=False, yes=True)
+    assert result.ok is False
+    assert "sudo -u mpf" in result.message
+
+
+def test_dry_run_does_not_trigger_root_local_peer_guard(monkeypatch):
+    monkeypatch.setattr("os.geteuid", lambda: 0)
+    db = {"lanes": [], "events": 0, "audit": 0}
+    _patch_psycopg(monkeypatch, db)
+    cfg = _cfg()
+    cfg.database = type("DB", (), {"url": "postgresql:///mpf"})()
+    result = lane_sync_service.sync_lane_config_db_only(cfg, dry_run=True)
+    assert result.ok is True and result.would_create_lanes == 3
