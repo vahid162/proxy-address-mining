@@ -149,8 +149,8 @@ mpf proxy config-check
 mpf proxy status
 mpf proxy doctor
 
-section "RUN PHASE 5 SAFETY GATE"
-bash "$APP_DIR/scripts/verify_phase4_planning_gate.sh"
+section "RUN CURRENT PHASE SAFETY GATE"
+bash "$APP_DIR/scripts/verify_current_phase_gate.sh"
 
 section "FINAL VERDICT"
 echo "OK: GitHub main zip synced successfully."

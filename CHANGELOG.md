@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.25 - 2026-05-10
+
+- Replaced sync final gate invocation with `scripts/verify_current_phase_gate.sh` for Phase 5 accepted / Phase 6 working verification, kept `verify_phase4_planning_gate.sh` as historical-only, and updated sync/runbook tests/docs accordingly.
+
 ## 0.1.24 - 2026-05-10
 
 - Fixed `mpf phase-status` to read the authoritative `## Current State` text block from `docs/PHASE_STATUS.md` (with clear non-zero error behavior if missing), added alignment/safety regression tests, and introduced `scripts/mpf_sync_main_zip_bootstrap.sh` to always execute sync from extracted ZIP source.
