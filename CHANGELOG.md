@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.19 - 2026-05-10
+
+- Added Phase 5-F1 Operator Troubleshooting Evidence Contract documentation and test guards (docs-only; no runtime collection).
+
 ## 0.1.18 - 2026-05-10
 
 - Phase 5-E3: add DB-only read-only customer history visibility commands (`customer policies`, `customer events`, `customer audit`, `events latest`) backed by PostgreSQL SELECT/WITH queries only, with no DB mutation and no firewall/NAT/runtime side effects.
