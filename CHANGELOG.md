@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.16 - 2026-05-10
+
+- Clarified PR scope/metadata for Phase 5-E2a (show/list only), no additional runtime features.
+
 ## 0.1.15 - 2026-05-10
 
 - Phase 5-E2a: fix boolean parsing for read-only customer show mapping in local-peer/psql CSV fallback and add regression tests.
