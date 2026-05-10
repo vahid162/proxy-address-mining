@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.23 - 2026-05-10
+
+- Fixed `scripts/sync_main_zip_on_server.sh` phase gate expectations to require Phase 5 accepted / Phase 6 working status and updated related safety assertions/tests without changing runtime behavior.
+
 ## 0.1.22 - 2026-05-10
 
 - Closed Phase 5 with final acceptance evidence on farm5, advanced working phase to Phase 6 (Firewall Planner), and added documentation tests to enforce Phase 5 closure gates without introducing runtime behavior.
