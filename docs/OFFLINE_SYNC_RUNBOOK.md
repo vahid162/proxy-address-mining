@@ -79,7 +79,7 @@ replace source files while preserving .venv
 install/update /usr/local/bin/mpf wrapper
 run pytest through the preserved venv
 run safe MPF smoke commands
-run the current phase planning gate script
+run the current phase safety gate script (`scripts/verify_current_phase_gate.sh`)
 ```
 
 The script must not:
@@ -112,8 +112,11 @@ mpf db status
 mpf lanes list
 mpf customer list
 mpf jobs status
-bash scripts/verify_phase4_planning_gate.sh
+bash scripts/verify_current_phase_gate.sh
 ```
+
+
+`verify_phase4_planning_gate.sh` remains in-repo for historical Phase 4/5 verification only and is no longer the active sync gate.
 
 For Phase 4 planning hardening, also run:
 

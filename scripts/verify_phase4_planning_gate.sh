@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Historical Phase 4/5 gate only; current sync uses verify_current_phase_gate.sh.
 set -Eeuo pipefail
 
 PROJECT_NAME="mpf-proxy"
