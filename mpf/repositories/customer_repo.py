@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 from mpf.config import MPFConfig
 from mpf.db import query_database, query_database_params
 
 ALLOWED_STATUSES = {"active", "paused", "expired", "deleted"}
+RESERVED_CUSTOMER_PORTS = {2015, 60010, 60015, 60020}
 
 
 @dataclass(frozen=True)
@@ -52,6 +54,29 @@ class CustomerShowRecord:
     abuse_exempt_until: str | None
     abuse_exempt_by: str | None
     enabled_ip_pins: list[str]
+
+
+@dataclass(frozen=True)
+class NextPortSuggestion:
+    lane: str
+    lane_enabled: bool
+    suggested_port: int
+    checked_range: str
+    occupied_count: int
+    skipped_reserved_count: int
+
+
+@dataclass(frozen=True)
+class CustomerLifecycleReportRow:
+    customer_key: str | None
+    lane: str
+    name: str
+    port: int
+    status: str
+    expires_at: str | None
+    expired_at: str | None = None
+    delete_eligible_at: str | None = None
+    days_remaining: int | None = None
 
 
 def list_customers(
@@ -191,3 +216,102 @@ def get_customer_show(config: MPFConfig, *, customer_key: str | None = None, cus
     if pins.ok:
         rec = CustomerShowRecord(**{**rec.__dict__, "enabled_ip_pins": [str(r["ip_cidr"]) for r in pins.rows]})
     return True, rec, "OK"
+
+
+def suggest_next_port(config: MPFConfig, *, lane: str, start: int, end: int):
+    lane_res = query_database_params(config, "select name, enabled, backend_port from lanes where name=%s limit 1", (lane,))
+    if not lane_res.ok:
+        return False, None, lane_res.message
+    if not lane_res.rows:
+        return False, None, f"lane not found: {lane}"
+
+    lane_row = lane_res.rows[0]
+    lane_enabled = _to_bool(lane_row.get("enabled"))
+    backend_res = query_database_params(config, "select backend_port from lanes")
+    if not backend_res.ok:
+        return False, None, backend_res.message
+    occupied_res = query_database_params(config, "select port from customers")
+    if not occupied_res.ok:
+        return False, None, occupied_res.message
+
+    occupied_ports = {int(r["port"]) for r in occupied_res.rows if r.get("port") is not None}
+    backend_ports = {int(r["backend_port"]) for r in backend_res.rows if r.get("backend_port") is not None}
+    reserved = RESERVED_CUSTOMER_PORTS | backend_ports
+    skipped_reserved_count = sum(1 for p in range(start, end + 1) if p in reserved)
+
+    for port in range(start, end + 1):
+        if port in reserved:
+            continue
+        if port in occupied_ports:
+            continue
+        return True, NextPortSuggestion(lane=lane, lane_enabled=bool(lane_enabled), suggested_port=port, checked_range=f"{start}-{end}", occupied_count=len(occupied_ports), skipped_reserved_count=skipped_reserved_count), "OK"
+    return False, None, f"no available port found in range {start}-{end}"
+
+
+def list_expiring_customers(config: MPFConfig, *, within_days: int, include_paused: bool, limit: int):
+    paused_clause = "" if include_paused else " and c.status <> 'paused'"
+    sql = f"""
+    with now_ref as (select now() as ts)
+    select c.customer_key, coalesce(l.name, 'unknown') as lane, c.name, c.port, c.status,
+           c.expires_at::text as expires_at,
+           floor(extract(epoch from (c.expires_at - now_ref.ts))/86400)::int as days_remaining
+    from customers c
+    left join lanes l on l.id = c.lane_id
+    cross join now_ref
+    where c.expires_at is not null
+      and c.expires_at >= now_ref.ts
+      and c.expires_at <= now_ref.ts + make_interval(days => %s)
+      and c.status <> 'deleted'
+      {paused_clause}
+    order by c.expires_at asc, c.port asc
+    limit %s
+    """
+    res = query_database_params(config, sql, (within_days, limit))
+    if not res.ok:
+        return False, [], res.message
+    rows = [CustomerLifecycleReportRow(customer_key=r.get("customer_key"), lane=str(r["lane"]), name=str(r["name"]), port=int(r["port"]), status=str(r["status"]), expires_at=r.get("expires_at"), days_remaining=int(r["days_remaining"]) if r.get("days_remaining") is not None else None) for r in res.rows]
+    return True, rows, "OK"
+
+
+def list_expired_customers(config: MPFConfig, *, include_deleted: bool, limit: int):
+    deleted_clause = "" if include_deleted else "and c.status <> 'deleted'"
+    sql = f"""
+    with now_ref as (select now() as ts)
+    select c.customer_key, coalesce(l.name, 'unknown') as lane, c.name, c.port, c.status,
+           c.expires_at::text as expires_at,
+           c.expired_at::text as expired_at
+    from customers c
+    left join lanes l on l.id = c.lane_id
+    cross join now_ref
+    where ((c.expires_at is not null and c.expires_at < now_ref.ts) or c.status = 'expired')
+      {deleted_clause}
+    order by coalesce(c.expired_at, c.expires_at) desc nulls last, c.port asc
+    limit %s
+    """
+    res = query_database_params(config, sql, (limit,))
+    if not res.ok:
+        return False, [], res.message
+    rows = [CustomerLifecycleReportRow(customer_key=r.get("customer_key"), lane=str(r["lane"]), name=str(r["name"]), port=int(r["port"]), status=str(r["status"]), expires_at=r.get("expires_at"), expired_at=r.get("expired_at")) for r in res.rows]
+    return True, rows, "OK"
+
+
+def list_delete_eligible_customers(config: MPFConfig, *, limit: int):
+    sql = """
+    with now_ref as (select now() as ts)
+    select c.customer_key, coalesce(l.name, 'unknown') as lane, c.name, c.port, c.status,
+           c.expires_at::text as expires_at,
+           c.delete_eligible_at::text as delete_eligible_at
+    from customers c
+    left join lanes l on l.id = c.lane_id
+    cross join now_ref
+    where c.delete_eligible_at is not null
+      and c.delete_eligible_at <= now_ref.ts
+      and c.status <> 'deleted'
+    order by c.delete_eligible_at asc, c.port asc
+    limit %s
+    """
+    res = query_database_params(config, sql, (limit,))
+    if not res.ok:
+        return False, [], res.message
+    rows = [CustomerLifecycleReportRow(customer_key=r.get("customer_key"), lane=str(r["lane"]), name=str(r["name"]), port=int(r["port"]), status=str(r["status"]), expires_at=r.get("expires_at"), delete_eligible_at=r.get("delete_eligible_at")) for r in res.rows]
+    return True, rows, "OK"

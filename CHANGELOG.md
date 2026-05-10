@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.17 - 2026-05-10
+
+- Phase 5-E2b: add DB-only read-only customer lifecycle helper/report commands (`customer next-port`, `customer expiring`, `customer expired`, `customer delete-eligible`) with no DB mutation and no firewall/NAT/runtime side effects.
+
 ## 0.1.16 - 2026-05-10
 
 - Clarified PR scope/metadata for Phase 5-E2a (show/list only), no additional runtime features.

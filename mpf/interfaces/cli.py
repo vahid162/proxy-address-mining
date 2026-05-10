@@ -206,6 +206,69 @@ def customer_show(config: Path | None = typer.Option(None, "--config", "-c"), cu
     typer.echo("runtime_change: no")
 
 
+@customer_app.command("next-port")
+def customer_next_port(config: Path | None = typer.Option(None, "--config", "-c"), lane: str = typer.Option(..., "--lane"), start: int = typer.Option(20000, "--start"), end: int = typer.Option(59999, "--end")) -> None:
+    result = customer_read_service.suggest_next_customer_port(_load(config), lane=lane, start=start, end=end)
+    if not result.ok or not result.suggestion:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    s = result.suggestion
+    typer.echo(f"lane: {s.lane}")
+    typer.echo(f"lane_enabled: {s.lane_enabled}")
+    typer.echo(f"suggested_port: {s.suggested_port}")
+    typer.echo(f"checked_range: {s.checked_range}")
+    typer.echo(f"occupied_count: {s.occupied_count}")
+    typer.echo(f"skipped_reserved_count: {s.skipped_reserved_count}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
+@customer_app.command("expiring")
+def customer_expiring(config: Path | None = typer.Option(None, "--config", "-c"), within_days: int = typer.Option(7, "--within-days"), include_paused: bool = typer.Option(False, "--include-paused"), limit: int = typer.Option(100, "--limit")) -> None:
+    result = customer_read_service.report_expiring_customers(_load(config), within_days=within_days, include_paused=include_paused, limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.rows:
+        typer.echo("no expiring customers in window")
+    for r in result.rows:
+        typer.echo(f"{r.customer_key}\t{r.lane}\t{r.name}\tport={r.port}\tstatus={r.status}\texpires_at={r.expires_at}\tdays_remaining={r.days_remaining}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
+@customer_app.command("expired")
+def customer_expired(config: Path | None = typer.Option(None, "--config", "-c"), include_deleted: bool = typer.Option(False, "--include-deleted"), limit: int = typer.Option(100, "--limit")) -> None:
+    result = customer_read_service.report_expired_customers(_load(config), include_deleted=include_deleted, limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.rows:
+        typer.echo("no expired customers")
+    for r in result.rows:
+        typer.echo(f"{r.customer_key}\t{r.lane}\t{r.name}\tport={r.port}\tstatus={r.status}\texpires_at={r.expires_at}\texpired_at={r.expired_at}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
+@customer_app.command("delete-eligible")
+def customer_delete_eligible(config: Path | None = typer.Option(None, "--config", "-c"), limit: int = typer.Option(100, "--limit")) -> None:
+    result = customer_read_service.report_delete_eligible_customers(_load(config), limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.rows:
+        typer.echo("no delete-eligible customers")
+    for r in result.rows:
+        typer.echo(f"{r.customer_key}\t{r.lane}\t{r.name}\tport={r.port}\tstatus={r.status}\texpires_at={r.expires_at}\tdelete_eligible_at={r.delete_eligible_at}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
 def _guard_customer_write_local_peer(cfg, command_hint: str) -> None:
     message = write_local_peer_root_guard_message(cfg.database.url, command_hint=command_hint)
     if message:
