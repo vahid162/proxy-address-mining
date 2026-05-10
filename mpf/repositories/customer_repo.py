@@ -7,6 +7,7 @@ from mpf.config import MPFConfig
 from mpf.db import query_database, query_database_params
 
 ALLOWED_STATUSES = {"active", "paused", "expired", "deleted"}
+ALLOWED_EVENT_SEVERITIES = {"info", "warning", "error", "critical"}
 RESERVED_CUSTOMER_PORTS = {2015, 60010, 60015, 60020}
 
 
@@ -77,6 +78,18 @@ class CustomerLifecycleReportRow:
     expired_at: str | None = None
     delete_eligible_at: str | None = None
     days_remaining: int | None = None
+
+
+@dataclass(frozen=True)
+class CustomerHistoryTarget:
+    id: int
+    customer_key: str | None
+    lane: str
+    port: int
+
+
+def clamp_limit(limit: int) -> int:
+    return max(1, min(limit, 1000))
 
 
 def list_customers(
@@ -216,6 +229,94 @@ def get_customer_show(config: MPFConfig, *, customer_key: str | None = None, cus
     if pins.ok:
         rec = CustomerShowRecord(**{**rec.__dict__, "enabled_ip_pins": [str(r["ip_cidr"]) for r in pins.rows]})
     return True, rec, "OK"
+
+
+def resolve_customer_target(config: MPFConfig, *, customer_key: str | None = None, customer_id: int | None = None, port: int | None = None):
+    if sum(x is not None for x in (customer_key, customer_id, port)) != 1:
+        return False, None, "provide exactly one target: --customer-key or --id or --port"
+    where, value = ("c.customer_key = %s", customer_key) if customer_key is not None else (("c.id = %s", customer_id) if customer_id is not None else ("c.port = %s", port))
+    sql = f"""
+    select c.id, c.customer_key, coalesce(l.name, 'unknown') as lane, c.port
+    from customers c
+    left join lanes l on l.id = c.lane_id
+    where {where}
+    limit 1
+    """
+    res = query_database_params(config, sql, (value,))
+    if not res.ok:
+        return False, None, res.message
+    if not res.rows:
+        return False, None, "customer not found"
+    row = res.rows[0]
+    return True, CustomerHistoryTarget(id=int(row["id"]), customer_key=row.get("customer_key"), lane=str(row["lane"]), port=int(row["port"])), "OK"
+
+
+def list_customer_policy_history(config: MPFConfig, *, customer_id: int, limit: int):
+    sql = """
+    select
+      c.id as customer_id, c.customer_key, coalesce(l.name, 'unknown') as lane, c.port,
+      p.id as policy_id, p.version, p.is_current, p.miners, p.farms, p.maxconn, p.rate_per_min, p.burst,
+      p.ips_mode, p.abuse_exempt, p.abuse_exempt_reason, p.abuse_exempt_until::text as abuse_exempt_until,
+      p.abuse_exempt_by, p.created_at::text as created_at, p.created_by, p.reason
+    from customer_policies p
+    join customers c on c.id = p.customer_id
+    left join lanes l on l.id = c.lane_id
+    where p.customer_id = %s
+    order by p.version desc, p.id desc
+    limit %s
+    """
+    return query_database_params(config, sql, (customer_id, clamp_limit(limit)))
+
+
+def list_customer_events(config: MPFConfig, *, customer_id: int, limit: int):
+    sql = """
+    select id, event_type, severity, subject_type, subject_id, message, data_json::text as data_json,
+           created_at::text as created_at, created_by, correlation_id
+    from events
+    where subject_type = 'customer' and subject_id = %s
+    order by created_at desc, id desc
+    limit %s
+    """
+    return query_database_params(config, sql, (customer_id, clamp_limit(limit)))
+
+
+def list_customer_audit(config: MPFConfig, *, customer_id: int, limit: int):
+    sql = """
+    select id, actor_type, actor_id, action, resource_type, resource_id, before_json::text as before_json,
+           after_json::text as after_json, reason, created_at::text as created_at, correlation_id
+    from audit_log
+    where resource_type = 'customer' and resource_id = %s
+    order by created_at desc, id desc
+    limit %s
+    """
+    return query_database_params(config, sql, (customer_id, clamp_limit(limit)))
+
+
+def list_latest_events(config: MPFConfig, *, limit: int, subject_type: str | None = None, severity: str | None = None):
+    if severity is not None and severity not in ALLOWED_EVENT_SEVERITIES:
+        return False, [], "invalid severity; expected one of: info, warning, error, critical"
+    clauses: list[str] = []
+    params: list[object] = []
+    if subject_type:
+        clauses.append("subject_type = %s")
+        params.append(subject_type)
+    if severity:
+        clauses.append("severity = %s")
+        params.append(severity)
+    where_sql = f"where {' and '.join(clauses)}" if clauses else ""
+    sql = f"""
+    select id, event_type, severity, subject_type, subject_id, message,
+           created_at::text as created_at, created_by, correlation_id
+    from events
+    {where_sql}
+    order by created_at desc, id desc
+    limit %s
+    """
+    params.append(clamp_limit(limit))
+    res = query_database_params(config, sql, tuple(params))
+    if not res.ok:
+        return False, [], res.message
+    return True, res.rows, "OK"
 
 
 def suggest_next_port(config: MPFConfig, *, lane: str, start: int, end: int):

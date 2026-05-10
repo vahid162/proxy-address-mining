@@ -34,12 +34,14 @@ lanes_app = typer.Typer(help="Lane DB-only commands. No firewall/NAT/runtime mut
 customer_app = typer.Typer(help="Customer DB-only commands. No firewall/NAT/runtime mutation.")
 jobs_app = typer.Typer(help="Job read-only commands.")
 proxy_app = typer.Typer(help="Proxy read-only planning and doctor commands.")
+events_app = typer.Typer(help="Global event read-only commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
 app.add_typer(customer_app, name="customer")
 app.add_typer(jobs_app, name="jobs")
 app.add_typer(proxy_app, name="proxy")
+app.add_typer(events_app, name="events")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -269,6 +271,54 @@ def customer_delete_eligible(config: Path | None = typer.Option(None, "--config"
     typer.echo("runtime_change: no")
 
 
+@customer_app.command("policies")
+def customer_policies(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str | None = typer.Option(None, "--customer-key"), customer_id: int | None = typer.Option(None, "--id"), port: int | None = typer.Option(None, "--port"), limit: int = typer.Option(50, "--limit")) -> None:
+    result = customer_read_service.customer_policy_history(_load(config), customer_key=customer_key, customer_id=customer_id, port=port, limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.rows:
+        typer.echo("no customer policy history")
+    for r in result.rows:
+        for k in ("customer_id", "customer_key", "lane", "port", "policy_id", "version", "is_current", "miners", "farms", "maxconn", "rate_per_min", "burst", "ips_mode", "abuse_exempt", "abuse_exempt_reason", "abuse_exempt_until", "abuse_exempt_by", "created_at", "created_by", "reason"):
+            typer.echo(f"{k}: {r.get(k)}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
+@customer_app.command("events")
+def customer_events(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str | None = typer.Option(None, "--customer-key"), customer_id: int | None = typer.Option(None, "--id"), port: int | None = typer.Option(None, "--port"), limit: int = typer.Option(50, "--limit")) -> None:
+    result = customer_read_service.customer_events_history(_load(config), customer_key=customer_key, customer_id=customer_id, port=port, limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.rows:
+        typer.echo("no customer events")
+    for r in result.rows:
+        for k in ("id", "event_type", "severity", "subject_type", "subject_id", "message", "data_json", "created_at", "created_by", "correlation_id"):
+            typer.echo(f"{k}: {r.get(k)}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
+@customer_app.command("audit")
+def customer_audit(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str | None = typer.Option(None, "--customer-key"), customer_id: int | None = typer.Option(None, "--id"), port: int | None = typer.Option(None, "--port"), limit: int = typer.Option(50, "--limit")) -> None:
+    result = customer_read_service.customer_audit_history(_load(config), customer_key=customer_key, customer_id=customer_id, port=port, limit=limit)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.rows:
+        typer.echo("no customer audit history")
+    for r in result.rows:
+        for k in ("id", "actor_type", "actor_id", "action", "resource_type", "resource_id", "before_json", "after_json", "reason", "created_at", "correlation_id"):
+            typer.echo(f"{k}: {r.get(k)}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
 def _guard_customer_write_local_peer(cfg, command_hint: str) -> None:
     message = write_local_peer_root_guard_message(cfg.database.url, command_hint=command_hint)
     if message:
@@ -396,6 +446,22 @@ def proxy_status(config: Path | None = typer.Option(None, "--config", "-c", help
 def proxy_config_check(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Validate proxy planning config without runtime activation."""
     _emit_health_report(proxy_doctor_service.config_check(_config_path(config)))
+
+
+@events_app.command("latest")
+def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), limit: int = typer.Option(20, "--limit"), subject_type: str | None = typer.Option(None, "--subject-type"), severity: str | None = typer.Option(None, "--severity")) -> None:
+    result = customer_read_service.latest_events(_load(config), limit=limit, subject_type=subject_type, severity=severity)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    if not result.rows:
+        typer.echo("no events")
+    for r in result.rows:
+        for k in ("id", "event_type", "severity", "subject_type", "subject_id", "message", "created_at", "created_by", "correlation_id"):
+            typer.echo(f"{k}: {r.get(k)}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
 
 
 @app.command("phase-status")

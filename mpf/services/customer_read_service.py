@@ -35,6 +35,13 @@ class CustomerLifecycleReportResult:
     rows: list[object]
 
 
+@dataclass(frozen=True)
+class HistoryResult:
+    ok: bool
+    message: str
+    rows: list[object]
+
+
 def list_customer_status(
     config: MPFConfig,
     *,
@@ -83,3 +90,32 @@ def report_delete_eligible_customers(config: MPFConfig, *, limit: int = 100) -> 
     safe_limit = max(1, min(limit, 1000))
     ok, rows, message = customer_repo.list_delete_eligible_customers(config, limit=safe_limit)
     return CustomerLifecycleReportResult(ok=ok, message=message, rows=rows)
+
+
+def customer_policy_history(config: MPFConfig, *, customer_key: str | None = None, customer_id: int | None = None, port: int | None = None, limit: int = 50) -> HistoryResult:
+    ok, target, message = customer_repo.resolve_customer_target(config, customer_key=customer_key, customer_id=customer_id, port=port)
+    if not ok or target is None:
+        return HistoryResult(ok=False, message=message, rows=[])
+    res = customer_repo.list_customer_policy_history(config, customer_id=target.id, limit=limit)
+    return HistoryResult(ok=res.ok, message=res.message, rows=res.rows if res.ok else [])
+
+
+def customer_events_history(config: MPFConfig, *, customer_key: str | None = None, customer_id: int | None = None, port: int | None = None, limit: int = 50) -> HistoryResult:
+    ok, target, message = customer_repo.resolve_customer_target(config, customer_key=customer_key, customer_id=customer_id, port=port)
+    if not ok or target is None:
+        return HistoryResult(ok=False, message=message, rows=[])
+    res = customer_repo.list_customer_events(config, customer_id=target.id, limit=limit)
+    return HistoryResult(ok=res.ok, message=res.message, rows=res.rows if res.ok else [])
+
+
+def customer_audit_history(config: MPFConfig, *, customer_key: str | None = None, customer_id: int | None = None, port: int | None = None, limit: int = 50) -> HistoryResult:
+    ok, target, message = customer_repo.resolve_customer_target(config, customer_key=customer_key, customer_id=customer_id, port=port)
+    if not ok or target is None:
+        return HistoryResult(ok=False, message=message, rows=[])
+    res = customer_repo.list_customer_audit(config, customer_id=target.id, limit=limit)
+    return HistoryResult(ok=res.ok, message=res.message, rows=res.rows if res.ok else [])
+
+
+def latest_events(config: MPFConfig, *, limit: int = 20, subject_type: str | None = None, severity: str | None = None) -> HistoryResult:
+    ok, rows, message = customer_repo.list_latest_events(config, limit=limit, subject_type=subject_type, severity=severity)
+    return HistoryResult(ok=ok, message=message, rows=rows)
