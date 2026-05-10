@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.8 - 2026-05-10
+- Added Phase 5-C DB-only create-only customer mutation service path with write repository, dry-run contract, policy v1, IP pins, event/audit, and tests.
+
 ## 0.1.7 - 2026-05-10
 - Fixed Phase 5-B lifecycle field placement by keeping lifecycle columns only on `Customer`, added regression tests for unrelated models, and aligned `CustomerSetIpsRequest` validation for `ips_mode=any`.
 
