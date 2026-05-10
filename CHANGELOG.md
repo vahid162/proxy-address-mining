@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7 - 2026-05-10
+- Fixed Phase 5-B lifecycle field placement by keeping lifecycle columns only on `Customer`, added regression tests for unrelated models, and aligned `CustomerSetIpsRequest` validation for `ips_mode=any`.
+
+## 0.1.6 - 2026-05-10
+- Added Phase 5-B customer lifecycle schema migration, model fields, and DB-only domain validation DTO foundations.
+
 ## 0.1.5 - 2026-05-07
 - Accepted Phase 3 CLI + Internal API Foundation on `farm5`.
 - Added `docs/PHASE_3_SERVER_RESULT.md`.
