@@ -14,6 +14,7 @@ from mpf.services import (
     doctor_service,
     job_service,
     lane_service,
+    lane_sync_service,
     proxy_doctor_service,
 )
 
@@ -25,7 +26,7 @@ app = typer.Typer(
 )
 config_app = typer.Typer(help="Configuration read-only commands.")
 db_app = typer.Typer(help="Database read-only commands.")
-lanes_app = typer.Typer(help="Lane read-only commands.")
+lanes_app = typer.Typer(help="Lane DB-only commands. No firewall/NAT/runtime mutation.")
 customer_app = typer.Typer(help="Customer read-only commands.")
 jobs_app = typer.Typer(help="Job read-only commands.")
 proxy_app = typer.Typer(help="Proxy read-only planning and doctor commands.")
@@ -222,3 +223,21 @@ def phase_status() -> None:
     typer.echo("compatibility_previous_current_accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5")
     typer.echo("compatibility_previous_current_working_phase: Phase 4 Runtime Activation Execution Review")
     typer.echo("compatibility_previous_proxy_data_plane_allowed: planning_only")
+
+
+@lanes_app.command("sync-config")
+def lanes_sync_config(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), yes: bool = typer.Option(False, "--yes", help="Apply DB writes (default is dry-run).")) -> None:
+    """Sync config lanes into DB only. No firewall/NAT/runtime mutation."""
+    result = lane_sync_service.sync_lane_config_db_only(_load(config), dry_run=not yes, yes=yes)
+    if not result.ok:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    typer.echo(f"firewall_change: {result.firewall_change}")
+    typer.echo(f"nat_change: {result.nat_change}")
+    typer.echo(f"runtime_change: {result.runtime_change}")
+    typer.echo(f"would_create_lanes: {result.would_create_lanes}")
+    typer.echo(f"would_update_lanes: {result.would_update_lanes}")
+    typer.echo(f"stale_db_lanes: {result.stale_db_lanes}")
+    typer.echo(f"created_lanes: {result.created_lanes or []}")
+    typer.echo(f"updated_lanes: {result.updated_lanes or []}")
+    typer.echo(f"stale_lanes: {result.stale_lanes or []}")

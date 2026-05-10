@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.10 - 2026-05-10
+- Added Phase 5-E0 DB-only lane config sync (dry-run default + --yes write), lane sync service/repository path, event/audit writes, and tests.
+
 ## 0.1.9 - 2026-05-10
 - Implemented Phase 5-D DB-only customer update/renew/disable/soft-delete/set-ips service+repository path with policy versioning, dry-run, event/audit writes, and tests.
 
