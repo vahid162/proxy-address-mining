@@ -129,6 +129,19 @@ def _base_customer_select() -> str:
     """
 
 
+
+def _to_bool(value: object, *, nullable: bool = False) -> bool | None:
+    if value is None:
+        return None if nullable else False
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in {"t", "true", "1", "yes", "y", "on"}:
+        return True
+    if normalized in {"f", "false", "0", "no", "n", "off"}:
+        return False
+    return bool(value)
+
 def _map_show(row: dict[str, object]) -> CustomerShowRecord:
     service_days = row.get("service_days")
     return CustomerShowRecord(
@@ -147,8 +160,8 @@ def _map_show(row: dict[str, object]) -> CustomerShowRecord:
         expired_at=row.get("expired_at"),
         delete_eligible_at=row.get("delete_eligible_at"),
         deleted_at=row.get("deleted_at"),
-        auto_expire_enabled=bool(row.get("auto_expire_enabled")),
-        auto_delete_enabled=bool(row.get("auto_delete_enabled")),
+        auto_expire_enabled=bool(_to_bool(row.get("auto_expire_enabled"))),
+        auto_delete_enabled=bool(_to_bool(row.get("auto_delete_enabled"))),
         lifecycle_note=row.get("lifecycle_note"),
         miners=int(row["miners"]) if row.get("miners") is not None else None,
         farms=int(row["farms"]) if row.get("farms") is not None else None,
@@ -156,7 +169,7 @@ def _map_show(row: dict[str, object]) -> CustomerShowRecord:
         rate_per_min=int(row["rate_per_min"]) if row.get("rate_per_min") is not None else None,
         burst=int(row["burst"]) if row.get("burst") is not None else None,
         ips_mode=row.get("ips_mode"),
-        abuse_exempt=bool(row["abuse_exempt"]) if row.get("abuse_exempt") is not None else None,
+        abuse_exempt=_to_bool(row.get("abuse_exempt"), nullable=True),
         abuse_exempt_reason=row.get("abuse_exempt_reason"),
         abuse_exempt_until=row.get("abuse_exempt_until"),
         abuse_exempt_by=row.get("abuse_exempt_by"),

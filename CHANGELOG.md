@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.15 - 2026-05-10
+
+- Phase 5-E2a: fix boolean parsing for read-only customer show mapping in local-peer/psql CSV fallback and add regression tests.
+
 ## 0.1.14 - 2026-05-10
 
 - Phase 5-E2a: fix DB-only customer show/list visibility boundaries (service/repo filtering, local-peer read helper fallback, nullable lifecycle mapping, clearer list empty message).
