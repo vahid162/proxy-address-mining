@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
@@ -8,6 +9,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def read_doc(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
+
+
+def _scenario_blocks(text: str) -> list[str]:
+    blocks = re.findall(
+        r"\n(\d+\) .*?)(?=\n\d+\) |\n## Safety invariants)",
+        "\n" + text,
+        flags=re.S,
+    )
+    return [block.strip() for block in blocks]
 
 
 def test_troubleshooting_evidence_doc_exists() -> None:
@@ -32,6 +42,27 @@ def test_required_scenarios_and_phase_placement_are_documented() -> None:
     assert "Phase 8 owns abuse runtime" in text
     assert "Phase 9 owns check/report/diagnostic verdicts" in text
     assert "Phase 10 owns session/worker/policy timeline" in text
+
+
+def test_all_18_scenarios_follow_explicit_template() -> None:
+    text = read_doc("docs/TROUBLESHOOTING_EVIDENCE.md")
+    blocks = _scenario_blocks(text)
+
+    assert len(blocks) == 18
+
+    required_labels = (
+        "Required evidence:",
+        "Future table(s):",
+        "Future service owner:",
+        "Future command:",
+        "Phase placement:",
+        "Forbidden in Phase 5:",
+        "Expected verdict:",
+    )
+
+    for idx, block in enumerate(blocks, start=1):
+        for label in required_labels:
+            assert label in block, f"scenario {idx} missing {label}"
 
 
 def test_required_tables_and_future_only_notes_are_documented() -> None:

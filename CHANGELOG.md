@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.20 - 2026-05-10
+
+- Completed Phase 5-F1 troubleshooting contract template consistency across all 18 scenarios and strengthened template-enforcement tests.
+
 ## 0.1.19 - 2026-05-10
 
 - Added Phase 5-F1 Operator Troubleshooting Evidence Contract documentation and test guards (docs-only; no runtime collection).
