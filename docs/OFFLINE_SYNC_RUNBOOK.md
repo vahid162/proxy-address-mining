@@ -44,10 +44,18 @@ If the sync script itself changed, also upload the script or copy it from the sy
 
 ## Server Sync Step
 
-Run from the server as root:
+Do not run `/opt/mpf-py-src/scripts/sync_main_zip_on_server.sh` directly for future ZIP syncs.
+Use the bootstrap wrapper so the sync script is executed from inside the extracted ZIP source:
 
 ```bash
-sudo bash /opt/mpf-py-src/scripts/sync_main_zip_on_server.sh /tmp/proxy-address-mining-main.zip
+sudo bash /opt/mpf-py-src/scripts/mpf_sync_main_zip_bootstrap.sh /tmp/proxy-address-mining-main.zip
+```
+
+Optional one-time install:
+
+```bash
+sudo install -m 0755 /opt/mpf-py-src/scripts/mpf_sync_main_zip_bootstrap.sh /usr/local/sbin/mpf-sync-main-zip
+sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
 ```
 
 If `/opt/mpf-py-src` is not yet aligned enough to contain the script, paste the script from GitHub or upload it to `/tmp` and run:

@@ -52,6 +52,34 @@ def _load(config: Path | None):
     return load_config(_config_path(config))
 
 
+
+
+def _extract_current_state_block(phase_status_path: Path) -> str:
+    try:
+        content = phase_status_path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"phase status file not found: {phase_status_path}") from exc
+
+    marker = "## Current State"
+    marker_index = content.find(marker)
+    if marker_index == -1:
+        raise RuntimeError(f"missing section in phase status file: {marker}")
+
+    section = content[marker_index + len(marker):]
+    block_start = section.find("```text")
+    if block_start == -1:
+        raise RuntimeError("missing fenced text block under ## Current State")
+
+    block_body_start = block_start + len("```text")
+    block_end = section.find("```", block_body_start)
+    if block_end == -1:
+        raise RuntimeError("unterminated fenced text block under ## Current State")
+
+    block = section[block_body_start:block_end].strip()
+    if not block:
+        raise RuntimeError("empty fenced text block under ## Current State")
+    return block
+
 def _emit_health_report(report: HealthReport) -> None:
     typer.echo(f"component: {report.component}")
     typer.echo(f"final_verdict: {report.final_verdict.value}")
@@ -467,19 +495,13 @@ def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), li
 @app.command("phase-status")
 def phase_status() -> None:
     """Print the current repository phase guard."""
-    typer.echo("current_accepted_phase: Phase 4 Runtime Activation — Limited Proxy Runtime Startup accepted on farm5")
-    typer.echo("current_working_phase: Phase 5 — Customer CRUD in DB Only")
-    typer.echo("server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active")
-    typer.echo("production_traffic: none")
-    typer.echo("firewall_apply_allowed: no")
-    typer.echo("abuse_automation_allowed: no")
-    typer.echo("customer_onboarding_allowed: db_only_after_phase5_gate")
-    typer.echo("proxy_data_plane_allowed: limited_runtime_local_only")
-    typer.echo("ui_allowed: no")
-    typer.echo("telegram_allowed: no")
-    typer.echo("compatibility_previous_current_accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5")
-    typer.echo("compatibility_previous_current_working_phase: Phase 4 Runtime Activation Execution Review")
-    typer.echo("compatibility_previous_proxy_data_plane_allowed: planning_only")
+    phase_status_path = Path("docs/PHASE_STATUS.md")
+    try:
+        block = _extract_current_state_block(phase_status_path)
+    except RuntimeError as exc:
+        typer.echo(f"ERROR: {exc}")
+        raise typer.Exit(1)
+    typer.echo(block)
 
 
 @lanes_app.command("sync-config")

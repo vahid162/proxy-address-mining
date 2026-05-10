@@ -1,25 +1,48 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from typer.testing import CliRunner
 
 from mpf.interfaces.cli import app
 
 
-def test_phase_status_matches_current_phase_guard() -> None:
+def _current_state_block() -> str:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    marker = "## Current State"
+    idx = text.find(marker)
+    assert idx != -1
+    section = text[idx + len(marker):]
+    start = section.find("```text")
+    assert start != -1
+    start += len("```text")
+    end = section.find("```", start)
+    assert end != -1
+    return section[start:end].strip()
+
+
+def test_phase_status_matches_current_state_block_exactly() -> None:
     runner = CliRunner()
     result = runner.invoke(app, ["phase-status"])
 
     assert result.exit_code == 0
-    assert "current_accepted_phase: Phase 4 Runtime Activation" in result.stdout
-    assert "current_working_phase: Phase 5" in result.stdout
-    assert "server_state: farm5 limited Phase 4 proxy runtime is running and accepted" in result.stdout
+    assert result.stdout.strip() == _current_state_block()
+
+
+def test_phase_status_gate_alignment_and_safety_lines() -> None:
+    runner = CliRunner()
+    result = runner.invoke(app, ["phase-status"])
+
+    assert result.exit_code == 0
+    assert "current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5" in result.stdout
+    assert "current_working_phase: Phase 6 — Firewall Planner" in result.stdout
+
+    assert "current_accepted_phase: Phase 4 Runtime Activation" not in result.stdout
+    assert "current_working_phase: Phase 5 — Customer CRUD in DB Only" not in result.stdout
+
+    assert "production_traffic: none" in result.stdout
     assert "firewall_apply_allowed: no" in result.stdout
     assert "abuse_automation_allowed: no" in result.stdout
-    assert "customer_onboarding_allowed: db_only_after_phase5_gate" in result.stdout
     assert "proxy_data_plane_allowed: limited_runtime_local_only" in result.stdout
     assert "ui_allowed: no" in result.stdout
     assert "telegram_allowed: no" in result.stdout
-    assert "compatibility_previous_current_accepted_phase: Phase 4.2" in result.stdout
-    assert "compatibility_previous_current_working_phase: Phase 4 Runtime Activation Execution Review" in result.stdout
-    assert "Phase 0" not in result.stdout
-    assert "Repository Bootstrap Skeleton" not in result.stdout
