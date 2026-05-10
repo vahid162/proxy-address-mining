@@ -168,21 +168,20 @@ def lanes_list(config: Path | None = typer.Option(None, "--config", "-c", help="
 @customer_app.command("list")
 def customer_list(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), limit: int = typer.Option(100, "--limit", min=1, max=1000, help="Maximum rows to show."), lane: str | None = typer.Option(None, "--lane"), status: str | None = typer.Option(None, "--status"), include_deleted: bool = typer.Option(False, "--include-deleted")) -> None:
     """List customers read-only. Customer mutation belongs to Phase 5."""
-    result = customer_read_service.list_customer_status(_load(config), limit=limit)
+    result = customer_read_service.list_customer_status(_load(config), lane=lane, status=status, include_deleted=include_deleted, limit=limit)
     if not result.ok:
         typer.echo(result.message)
         raise typer.Exit(1)
-    rows = result.customers
-    if lane:
-        rows = [r for r in rows if r.lane == lane]
-    if status:
-        rows = [r for r in rows if r.status == status]
-    if not include_deleted:
-        rows = [r for r in rows if r.status != "deleted"]
-    if not rows:
-        typer.echo("no customers")
-    for customer in rows:
-        typer.echo(f"{customer.id}	{customer.lane}	{customer.name}	port={customer.port}	status={customer.status}	expires_at={customer.expires_at}")
+    if not result.customers:
+        if not include_deleted and status is None:
+            typer.echo("no non-deleted customers; use --include-deleted to show deleted rows")
+        else:
+            typer.echo("no customers")
+    for customer in result.customers:
+        line = f"{customer.id}	{customer.customer_key}	{customer.lane}	{customer.name}	port={customer.port}	status={customer.status}	activation_mode={customer.activation_mode}	expires_at={customer.expires_at}"
+        if customer.deleted_at:
+            line += f"	deleted_at={customer.deleted_at}"
+        typer.echo(line)
     typer.echo("firewall_change: no")
     typer.echo("nat_change: no")
     typer.echo("runtime_change: no")

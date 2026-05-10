@@ -58,7 +58,7 @@ def test_api_customers_uses_read_service(monkeypatch) -> None:
     class FakeCustomerList:
         ok = True
         message = "OK"
-        customers = [CustomerRecord(1, "btc", "alice", 23138, "active", None)]
+        customers = [CustomerRecord(1, None, "btc", "alice", 23138, "active", None, None, None)]
 
     monkeypatch.setattr(api.customer_read_service, "list_customer_status", lambda config, limit=100: FakeCustomerList())
     response = api.list_customers(CONFIG_PATH, limit=100, context=RequestContext(correlation_id="corr-customer"))

@@ -21,8 +21,21 @@ class CustomerShowResult:
     customer: CustomerShowRecord | None
 
 
-def list_customer_status(config: MPFConfig, limit: int = 100) -> CustomerList:
-    ok, records, message = customer_repo.list_customers(config, limit=limit)
+def list_customer_status(
+    config: MPFConfig,
+    *,
+    lane: str | None = None,
+    status: str | None = None,
+    include_deleted: bool = True,
+    limit: int = 100,
+) -> CustomerList:
+    ok, records, message = customer_repo.list_customers(
+        config,
+        lane=lane,
+        status=status,
+        include_deleted=include_deleted,
+        limit=limit,
+    )
     return CustomerList(ok=ok, message=message, customers=records)
 
 

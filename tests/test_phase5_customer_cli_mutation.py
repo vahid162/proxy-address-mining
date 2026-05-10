@@ -189,9 +189,9 @@ def test_customer_list_still_works(monkeypatch):
     class L:
         ok = True
         message = "OK"
-        customers = [CustomerRecord(1, "btc", "a", 23138, "active", None)]
+        customers = [CustomerRecord(1, None, "btc", "a", 23138, "active", None, None, None)]
 
-    monkeypatch.setattr(cli.customer_read_service, "list_customer_status", lambda config, limit=100: L())
+    monkeypatch.setattr(cli.customer_read_service, "list_customer_status", lambda config, **kwargs: L())
     res = RUNNER.invoke(app, ["customer", "list", "--config", str(CONFIG_PATH)])
     assert res.exit_code == 0
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.14 - 2026-05-10
+
+- Phase 5-E2a: fix DB-only customer show/list visibility boundaries (service/repo filtering, local-peer read helper fallback, nullable lifecycle mapping, clearer list empty message).
+
 ## 0.1.13 - 2026-05-10
 
 - Phase 5-E2: add DB-only read-only customer visibility/report commands (`customer show`, extended `customer list`) with no firewall/NAT/runtime mutation.

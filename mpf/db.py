@@ -151,7 +151,18 @@ def query_database_params(config: MPFConfig, sql: str, params: tuple[object, ...
 
     local_peer_dbname = _local_peer_dbname(config.database.url)
     if local_peer_dbname and os.geteuid() == 0:
-        return DBQueryResult(False, [], "parameterized local-peer read queries are not supported in root fallback mode")
+        expanded_sql = sql
+        for param in params:
+            if isinstance(param, bool):
+                value = "true" if param else "false"
+            elif isinstance(param, int):
+                value = str(param)
+            elif param is None:
+                value = "null"
+            else:
+                value = "'" + str(param).replace("'", "''") + "'"
+            expanded_sql = expanded_sql.replace("%s", value, 1)
+        return _query_local_peer_as_mpf(local_peer_dbname, expanded_sql)
 
     try:
         import psycopg
