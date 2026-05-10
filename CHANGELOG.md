@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.18 - 2026-05-10
+
+- Phase 5-E3: add DB-only read-only customer history visibility commands (`customer policies`, `customer events`, `customer audit`, `events latest`) backed by PostgreSQL SELECT/WITH queries only, with no DB mutation and no firewall/NAT/runtime side effects.
+
 ## 0.1.17 - 2026-05-10
 
 - Phase 5-E2b: add DB-only read-only customer lifecycle helper/report commands (`customer next-port`, `customer expiring`, `customer expired`, `customer delete-eligible`) with no DB mutation and no firewall/NAT/runtime side effects.
