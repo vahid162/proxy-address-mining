@@ -106,3 +106,24 @@ def test_query_database_rejects_mutating_sql() -> None:
     result = query_database(load_config(CONFIG_PATH), "delete from customers")
     assert result.ok is False
     assert "read-only" in result.message
+
+
+def test_lanes_sync_config_uses_service_layer(monkeypatch) -> None:
+    from mpf.interfaces import cli
+
+    class FakeResult:
+        ok = True
+        firewall_change = "no"
+        nat_change = "no"
+        runtime_change = "no"
+        would_create_lanes = 1
+        would_update_lanes = 0
+        stale_db_lanes = 0
+        created_lanes = ["btc"]
+        updated_lanes = []
+        stale_lanes = []
+
+    monkeypatch.setattr(cli.lane_sync_service, "sync_lane_config_db_only", lambda config, dry_run=True, yes=False, command_hint="": FakeResult())
+    result = RUNNER.invoke(app, ["lanes", "sync-config", "--config", str(CONFIG_PATH)])
+    assert result.exit_code == 0
+    assert "would_create_lanes: 1" in result.output

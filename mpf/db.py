@@ -77,6 +77,14 @@ def _query_local_peer_as_mpf(dbname: str, sql: str) -> DBQueryResult:
     return DBQueryResult(True, [dict(row) for row in rows], "OK")
 
 
+
+def write_local_peer_root_guard_message(url: str, *, command_hint: str) -> str | None:
+    """Return a safe operator instruction when root cannot write via local peer URL."""
+    dbname = _local_peer_dbname(url)
+    if dbname and os.geteuid() == 0:
+        return f"local peer PostgreSQL write requires mpf OS user; run: sudo -u mpf {command_hint}"
+    return None
+
 def ping_database(config: MPFConfig) -> DBPingResult:
     """Check PostgreSQL connectivity without creating schema or mutating state."""
     local_peer_dbname = _local_peer_dbname(config.database.url)
