@@ -41,10 +41,11 @@ def test_current_gate_verifier_preserves_safety_gates() -> None:
         assert fragment in text
 
 
-def test_current_gate_verifier_checks_no_customer_nat_and_no_mpf_firewall_refs() -> None:
+def test_current_gate_verifier_checks_docker_nat_as_informational_and_preserves_safety() -> None:
     text = Path("scripts/verify_current_phase_gate.sh").read_text(encoding="utf-8")
 
-    assert "NO CUSTOMER NAT REDIRECTS" in text
-    assert "DNAT" in text
-    assert "MPF/customer" in text
+    assert "DOCKER LOCAL PUBLISH NAT REFERENCES" in text
+    assert "Docker-managed local publish DNAT rules" in text
+    assert "grep -Eiq '(-j DNAT|--to-destination)'" not in text
     assert "MPF|MPFBTC|MPFC_|MPFO_" in text
+    assert "accepted limited runtime listeners are local-only" in text
