@@ -80,3 +80,10 @@ def test_cli_doctor_reports_no_traffic_changes(monkeypatch) -> None:
     assert "traffic_changes: none" in result.output
     assert "firewall_mutation: disabled" in result.output
     assert "abuse_automation: disabled" in result.output
+
+
+def test_version_consistency_with_pyproject() -> None:
+    import tomllib
+
+    project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    assert project["project"]["version"] == __version__
