@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.9 - 2026-05-10
+- Implemented Phase 5-D DB-only customer update/renew/disable/soft-delete/set-ips service+repository path with policy versioning, dry-run, event/audit writes, and tests.
+
 ## 0.1.8 - 2026-05-10
 - Added Phase 5-C DB-only create-only customer mutation service path with write repository, dry-run contract, policy v1, IP pins, event/audit, and tests.
 
