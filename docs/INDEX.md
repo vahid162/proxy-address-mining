@@ -2,8 +2,7 @@
 
 Status: active documentation map
 
-This index defines the required reading path for `proxy-address-mining`.
-It is intended for human contributors and AI coding agents.
+This index defines the required reading path for `proxy-address-mining` for human contributors and AI coding agents.
 
 ## Start Here
 
@@ -34,8 +33,9 @@ Read these before implementation work:
 7. `docs/ABUSE.md`
 8. `docs/BACKEND_PORT_POLICY.md`
 9. `docs/OBSERVABILITY_HASHRATE.md`
-10. `docs/CONTROL_RULES.md`
-11. `docs/WORKER_POLICY.md`
+10. `docs/CUSTOMER_LIFECYCLE.md`
+11. `docs/CONTROL_RULES.md`
+12. `docs/WORKER_POLICY.md`
 
 ## Current Phase Contracts
 
@@ -55,15 +55,16 @@ Read:
 
 1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_5_TASK.md`
-3. `docs/CONTROL_RULES.md`
-4. `docs/WORKER_POLICY.md`
-5. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-6. `docs/BACKEND_PORT_POLICY.md`
-7. `docs/OBSERVABILITY_HASHRATE.md`
-8. `docs/INTRANET_INSTALL.md`
+3. `docs/CUSTOMER_LIFECYCLE.md`
+4. `docs/CONTROL_RULES.md`
+5. `docs/WORKER_POLICY.md`
+6. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+7. `docs/BACKEND_PORT_POLICY.md`
+8. `docs/OBSERVABILITY_HASHRATE.md`
+9. `docs/INTRANET_INSTALL.md`
 
 The current step is DB-only Customer CRUD plus documentation-only contract clarification.
-It must not create NAT redirects, apply firewall rules, activate usage/abuse automation, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
+It must not create NAT redirects, apply firewall rules, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 ## Reading Order by Task
 
@@ -93,9 +94,10 @@ Read:
 8. `docs/TAXONOMY.md`
 9. `docs/FIREWALL.md`
 10. `docs/ABUSE.md`
-11. `docs/CONTROL_RULES.md`
-12. `docs/WORKER_POLICY.md`
-13. all phase/domain documents affected by the change
+11. `docs/CUSTOMER_LIFECYCLE.md`
+12. `docs/CONTROL_RULES.md`
+13. `docs/WORKER_POLICY.md`
+14. all phase/domain documents affected by the change
 
 ### Phase 5 Customer CRUD DB-only work
 
@@ -106,23 +108,54 @@ Read:
 3. `docs/PHASE_STATUS.md`
 4. `docs/AI_CODING_RULES.md`
 5. `docs/AI_PHASE_5_TASK.md`
-6. `docs/DATA_MODEL.md`
-7. `docs/TAXONOMY.md`
-8. `docs/CONTROL_RULES.md`
-9. `docs/WORKER_POLICY.md`
-10. `docs/SAFETY.md`
-11. `docs/ABUSE.md`
+6. `docs/CUSTOMER_LIFECYCLE.md`
+7. `docs/DATA_MODEL.md`
+8. `docs/TAXONOMY.md`
+9. `docs/CONTROL_RULES.md`
+10. `docs/WORKER_POLICY.md`
+11. `docs/SAFETY.md`
+12. `docs/ABUSE.md`
 
 Rules:
 
 - customer mutations are DB-only
+- customer lifecycle is DB-only in Phase 5
+- first-connect activation is contract-only in Phase 5
+- auto-expire and auto-delete are contract/report/preview only in Phase 5
+- soft-delete means `status=deleted` and `deleted_at=now()`
 - no customer NAT redirects
 - no customer firewall rules
 - no firewall apply
+- no lifecycle timer
 - no block/pause runtime
 - no worker runtime
 - no usage or abuse automation
-- customer validation must avoid future schema/service dead ends for controls and worker policy
+- customer validation must avoid future schema/service dead ends for lifecycle, controls, and worker policy
+
+### Customer lifecycle work
+
+Read:
+
+1. `../AGENTS.md`
+2. `docs/PHASE_STATUS.md`
+3. `docs/AI_CODING_RULES.md`
+4. `docs/AI_PHASE_5_TASK.md`
+5. `docs/CUSTOMER_LIFECYCLE.md`
+6. `docs/DATA_MODEL.md`
+7. `docs/TAXONOMY.md`
+8. `docs/ABUSE.md`
+9. relevant phase/domain document
+
+Rules:
+
+- `activation_mode` is explicit: `immediate` or `first_connect`
+- first-connect runtime detection is future-only
+- do not add `pending_activation` customer status
+- auto-expire runtime is forbidden in Phase 5
+- auto-delete runtime is forbidden in Phase 5
+- delete is soft-delete by default
+- active customers must remain abuse-evaluable
+- DB-only lifecycle reports and dry-run previews must not mutate firewall, NAT, timers, or runtime state
 
 ### Database or migration work
 
@@ -135,9 +168,10 @@ Read:
 5. `docs/SAFETY.md`
 6. `docs/DATA_MODEL.md`
 7. `docs/TAXONOMY.md`
-8. `docs/CONTROL_RULES.md`
-9. `docs/WORKER_POLICY.md`
-10. relevant phase/domain document
+8. `docs/CUSTOMER_LIFECYCLE.md`
+9. `docs/CONTROL_RULES.md`
+10. `docs/WORKER_POLICY.md`
+11. relevant phase/domain document
 
 Rules:
 
@@ -233,9 +267,10 @@ Read:
 6. `docs/DATA_MODEL.md`
 7. `docs/TAXONOMY.md`
 8. `docs/FIREWALL.md`
-9. `docs/CONTROL_RULES.md`
-10. `docs/WORKER_POLICY.md`
-11. relevant phase/domain document
+9. `docs/CUSTOMER_LIFECYCLE.md`
+10. `docs/CONTROL_RULES.md`
+11. `docs/WORKER_POLICY.md`
+12. relevant phase/domain document
 
 Rules:
 
@@ -288,7 +323,7 @@ Rules:
 - every job writes `job_runs`
 - overlapping jobs use `scheduler_locks`
 - jobs call services, not direct DB/firewall logic
-- Phase 5 must not introduce runtime jobs for controls, worker scanning, usage, or abuse
+- Phase 5 must not introduce runtime jobs for lifecycle, controls, worker scanning, usage, or abuse
 
 ## Documentation Summary
 
@@ -298,7 +333,11 @@ Defines the accepted phase, current working phase, allowed work, forbidden work,
 
 ### `docs/AI_PHASE_5_TASK.md`
 
-Defines Phase 5 Customer CRUD in DB Only, including the documentation-only control/worker contract clarification and stop conditions.
+Defines Phase 5 Customer CRUD in DB Only, including the documentation-only customer lifecycle, control, and worker contract clarifications and stop conditions.
+
+### `docs/CUSTOMER_LIFECYCLE.md`
+
+Defines Phase 5 customer lifecycle contracts for activation modes, first-connect deferral, auto-expire and auto-delete deferral, soft-delete, customer_key, DB-only reports, dry-run expectations, and abuse coverage preservation. It has no current runtime, timer, firewall, NAT, or migration effect by itself.
 
 ### `docs/CONTROL_RULES.md`
 
@@ -307,26 +346,6 @@ Defines future control-intent concepts for block, pause, whitelist, rate-limit, 
 ### `docs/WORKER_POLICY.md`
 
 Defines the future worker policy and worker routing boundary. It forbids firewall-only worker blocking and keeps worker enforcement future-only until evidence and adapter phases are accepted.
-
-### `docs/AI_PHASE_4_TASK.md`
-
-Defines the repository-side Phase 4 AI task, allowed planning work, forbidden runtime behavior, required proxy doctor checks, tests, and stop conditions.
-
-### `docs/AI_PHASE_4_2_TASK.md`
-
-Defines the repository-side Phase 4.2 runtime activation runbook planning task and forbidden runtime behavior.
-
-### `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-
-Records the accepted limited local-only Phase 4 runtime activation evidence on farm5.
-
-### `docs/AI_CODING_RULES.md`
-
-Defines current AI coding rules, phase limits, runtime alignment rules, backend port rules, hash-rate/share planning rules, and stop conditions.
-
-### `docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md`
-
-Defines the required server alignment gate that was completed before Phase 4 planning.
 
 ### `docs/BACKEND_PORT_POLICY.md`
 
@@ -412,7 +431,7 @@ Stop and revise if any change introduces:
 16. proxy data-plane activation before accepted Phase 4 runtime runbook
 17. high-volume share/hash-rate collection before retention and partitioning review
 18. UI charts reading raw high-volume share events directly
-19. Phase 5 code that starts block/pause/worker runtime
+19. Phase 5 code that starts lifecycle/block/pause/worker runtime
 20. public v2rayA UI exposure
 
 ## Final Rule
