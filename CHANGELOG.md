@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.22 - 2026-05-10
+
+- Closed Phase 5 with final acceptance evidence on farm5, advanced working phase to Phase 6 (Firewall Planner), and added documentation tests to enforce Phase 5 closure gates without introducing runtime behavior.
+
 ## 0.1.21 - 2026-05-10
 
 - Added Phase 5-F2 Product Roles and UX Journey Contract documentation and test guards (docs-only; no UI, Telegram, API, runtime, DB mutation, firewall, or NAT behavior).

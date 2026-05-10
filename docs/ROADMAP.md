@@ -284,6 +284,16 @@ no proxy data-plane is started
 
 Goal: expose safe read-only and DB-only operations through the service layer.
 
+Phase 6 start gate:
+
+```text
+planning/diff/modeling may be worked on
+live firewall apply remains forbidden until explicit Phase 6 apply gate acceptance
+no customer NAT redirects yet
+no production customer traffic yet
+no abuse automation yet
+```
+
 Required commands:
 
 ```bash
@@ -337,6 +347,8 @@ no customer NAT redirect exists yet
 
 ## Phase 5 — Customer CRUD in DB Only
 
+Status: accepted on farm5 (final acceptance recorded in `docs/PHASE_5_FINAL_ACCEPTANCE.md`).
+
 Goal: manage customer state without creating live firewall rules.
 
 Required work:
@@ -362,6 +374,8 @@ no iptables rule is created
 ```
 
 ## Phase 6 — Firewall Planner + Apply/Verify/Rollback
+
+Status: current working phase (planner-first only).
 
 Goal: implement safe firewall state management.
 
