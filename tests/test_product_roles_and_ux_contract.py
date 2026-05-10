@@ -135,7 +135,7 @@ def test_phase_placement_for_future_surfaces_is_documented() -> None:
 def test_no_forbidden_runtime_artifacts_added() -> None:
     forbidden_paths = {
         "mpf/interfaces/web.py",
-        "mpf/interfaces/api.py",
+        "mpf/interfaces/public_api.py",
         "mpf/interfaces/telegram.py",
         "mpf/services/telegram_service.py",
         "mpf/services/web_ui_service.py",
