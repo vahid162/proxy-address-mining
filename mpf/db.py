@@ -141,3 +141,33 @@ def query_database(config: MPFConfig, sql: str) -> DBQueryResult:
         return DBQueryResult(False, [], str(exc))
 
     return DBQueryResult(True, rows, "OK")
+
+
+def query_database_params(config: MPFConfig, sql: str, params: tuple[object, ...] = ()) -> DBQueryResult:
+    """Run a parameterized read-only query for inspection/report commands."""
+    error = _ensure_read_only_sql(sql)
+    if error:
+        return DBQueryResult(False, [], error)
+
+    local_peer_dbname = _local_peer_dbname(config.database.url)
+    if local_peer_dbname and os.geteuid() == 0:
+        return DBQueryResult(False, [], "parameterized local-peer read queries are not supported in root fallback mode")
+
+    try:
+        import psycopg
+    except ImportError as exc:
+        return DBQueryResult(False, [], f"psycopg is not installed: {exc}")
+
+    try:
+        with psycopg.connect(config.database.url, connect_timeout=5) as conn:
+            conn.execute("set transaction read only")
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                if cur.description is None:
+                    return DBQueryResult(True, [], "OK")
+                columns = [column.name for column in cur.description]
+                rows = [dict(zip(columns, row, strict=False)) for row in cur.fetchall()]
+    except Exception as exc:  # noqa: BLE001
+        return DBQueryResult(False, [], str(exc))
+
+    return DBQueryResult(True, rows, "OK")

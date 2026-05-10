@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.13 - 2026-05-10
+
+- Phase 5-E2: add DB-only read-only customer visibility/report commands (`customer show`, extended `customer list`) with no firewall/NAT/runtime mutation.
+
 ## 0.1.12 - 2026-05-10
 - Added Phase 5-E1 DB-only `mpf customer` mutation CLI commands (`add/update/renew/disable/delete/set-ips`) with dry-run default, `--yes` write gate, root local-peer safety guard, and no firewall/NAT/runtime mutations.
 
