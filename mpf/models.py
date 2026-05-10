@@ -57,6 +57,7 @@ class Customer(Base, TimestampMixin):
     __table_args__ = (
         UniqueConstraint("port", name="uq_customers_port"),
         Index("ix_customers_lane_status", "lane_id", "status"),
+        Index("uq_customers_customer_key_non_null", "customer_key", unique=True, postgresql_where=text("customer_key is not null")),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -68,6 +69,19 @@ class Customer(Base, TimestampMixin):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
     updated_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    customer_key: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    activation_mode: Mapped[str] = mapped_column(String(32), nullable=False, server_default=text("'immediate'"))
+    service_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    activated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    first_connected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    activation_event_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    expired_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    delete_after_expired_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    auto_expire_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    auto_delete_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    delete_eligible_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lifecycle_note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     lane: Mapped[Lane] = relationship(back_populates="customers")
     policies: Mapped[list[CustomerPolicy]] = relationship(back_populates="customer", cascade="all, delete-orphan")

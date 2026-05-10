@@ -4,6 +4,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
+from mpf import __version__
 from mpf.config import load_config, validate_config
 from mpf.interfaces.cli import app
 
@@ -35,7 +36,7 @@ def test_cli_help_works() -> None:
 def test_cli_version_works_without_command() -> None:
     result = RUNNER.invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert "0.1.0" in result.output
+    assert __version__ in result.output
     assert "Missing command" not in result.output
 
 
