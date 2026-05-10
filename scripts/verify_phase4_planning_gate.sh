@@ -103,11 +103,12 @@ echo 'OK: Phase 5 DB-only safety phrases are present'
 
 section 'CLI PHASE STATUS'
 if command -v mpf >/dev/null 2>&1; then
-  mpf phase-status
-  mpf phase-status | grep -q 'current_accepted_phase: Phase 4 Runtime Activation' || fail 'mpf phase-status is not aligned with accepted Phase 4 runtime'
-  mpf phase-status | grep -q 'current_working_phase: Phase 5' || fail 'mpf phase-status is not aligned with Phase 5'
-  mpf phase-status | grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' || fail 'mpf phase-status does not show limited_runtime_local_only'
-  mpf phase-status | grep -q 'customer_onboarding_allowed: db_only_after_phase5_gate' || fail 'mpf phase-status does not keep customer onboarding DB-only'
+  phase_status_output="$(mpf phase-status)"
+  printf '%s\n' "$phase_status_output"
+  [[ "$phase_status_output" == *'current_accepted_phase: Phase 4 Runtime Activation'* ]] || fail 'mpf phase-status is not aligned with accepted Phase 4 runtime'
+  [[ "$phase_status_output" == *'current_working_phase: Phase 5'* ]] || fail 'mpf phase-status is not aligned with Phase 5'
+  [[ "$phase_status_output" == *'proxy_data_plane_allowed: limited_runtime_local_only'* ]] || fail 'mpf phase-status does not show limited_runtime_local_only'
+  [[ "$phase_status_output" == *'customer_onboarding_allowed: db_only_after_phase5_gate'* ]] || fail 'mpf phase-status does not keep customer onboarding DB-only'
 else
   echo 'WARN: mpf command not found; skipping runtime CLI check'
 fi
