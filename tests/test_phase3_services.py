@@ -35,9 +35,9 @@ def test_customer_list_uses_read_service(monkeypatch) -> None:
     class FakeCustomerList:
         ok = True
         message = "OK"
-        customers = [CustomerRecord(1, "btc", "alice", 23138, "active", None)]
+        customers = [CustomerRecord(1, None, "btc", "alice", 23138, "active", None, None, None)]
 
-    monkeypatch.setattr(cli.customer_read_service, "list_customer_status", lambda config, limit=100: FakeCustomerList())
+    monkeypatch.setattr(cli.customer_read_service, "list_customer_status", lambda config, **kwargs: FakeCustomerList())
     result = RUNNER.invoke(app, ["customer", "list", "--config", str(CONFIG_PATH)])
     assert result.exit_code == 0
     assert "alice" in result.output

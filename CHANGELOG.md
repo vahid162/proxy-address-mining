@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.16 - 2026-05-10
+
+- Clarified PR scope/metadata for Phase 5-E2a (show/list only), no additional runtime features.
+
+## 0.1.15 - 2026-05-10
+
+- Phase 5-E2a: fix boolean parsing for read-only customer show mapping in local-peer/psql CSV fallback and add regression tests.
+
+## 0.1.14 - 2026-05-10
+
+- Phase 5-E2a: fix DB-only customer show/list visibility boundaries (service/repo filtering, local-peer read helper fallback, nullable lifecycle mapping, clearer list empty message).
+
+## 0.1.13 - 2026-05-10
+
+- Phase 5-E2: add DB-only read-only customer visibility/report commands (`customer show`, extended `customer list`) with no firewall/NAT/runtime mutation.
+
 ## 0.1.12 - 2026-05-10
 - Added Phase 5-E1 DB-only `mpf customer` mutation CLI commands (`add/update/renew/disable/delete/set-ips`) with dry-run default, `--yes` write gate, root local-peer safety guard, and no firewall/NAT/runtime mutations.
 

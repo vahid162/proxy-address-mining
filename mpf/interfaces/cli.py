@@ -166,17 +166,44 @@ def lanes_list(config: Path | None = typer.Option(None, "--config", "-c", help="
 
 
 @customer_app.command("list")
-def customer_list(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), limit: int = typer.Option(100, "--limit", min=1, max=1000, help="Maximum rows to show.")) -> None:
+def customer_list(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), limit: int = typer.Option(100, "--limit", min=1, max=1000, help="Maximum rows to show."), lane: str | None = typer.Option(None, "--lane"), status: str | None = typer.Option(None, "--status"), include_deleted: bool = typer.Option(False, "--include-deleted")) -> None:
     """List customers read-only. Customer mutation belongs to Phase 5."""
-    result = customer_read_service.list_customer_status(_load(config), limit=limit)
+    result = customer_read_service.list_customer_status(_load(config), lane=lane, status=status, include_deleted=include_deleted, limit=limit)
     if not result.ok:
         typer.echo(result.message)
         raise typer.Exit(1)
     if not result.customers:
-        typer.echo("no customers")
-        return
+        if not include_deleted and status is None:
+            typer.echo("no non-deleted customers; use --include-deleted to show deleted rows")
+        else:
+            typer.echo("no customers")
     for customer in result.customers:
-        typer.echo(f"{customer.id}\t{customer.lane}\t{customer.name}\tport={customer.port}\tstatus={customer.status}\texpires_at={customer.expires_at}")
+        line = f"{customer.id}	{customer.customer_key}	{customer.lane}	{customer.name}	port={customer.port}	status={customer.status}	activation_mode={customer.activation_mode}	expires_at={customer.expires_at}"
+        if customer.deleted_at:
+            line += f"	deleted_at={customer.deleted_at}"
+        typer.echo(line)
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
+
+
+@customer_app.command("show")
+def customer_show(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str | None = typer.Option(None, "--customer-key"), customer_id: int | None = typer.Option(None, "--id"), port: int | None = typer.Option(None, "--port")) -> None:
+    if sum(x is not None for x in (customer_key, customer_id, port)) != 1:
+        typer.echo("provide exactly one target: --customer-key or --id or --port")
+        raise typer.Exit(1)
+    result = customer_read_service.show_customer(_load(config), customer_key=customer_key, customer_id=customer_id, port=port)
+    if not result.ok or not result.customer:
+        typer.echo(result.message)
+        raise typer.Exit(1)
+    c = result.customer
+    for k in ("id","customer_key","lane","name","port","status","activation_mode","service_days","activated_at","starts_at","expires_at","first_connected_at","expired_at","delete_eligible_at","deleted_at","auto_expire_enabled","auto_delete_enabled","lifecycle_note","miners","farms","maxconn","rate_per_min","burst","ips_mode","abuse_exempt","abuse_exempt_reason","abuse_exempt_until","abuse_exempt_by"):
+        typer.echo(f"{k}: {getattr(c, k)}")
+    if c.ips_mode == "whitelist":
+        typer.echo(f"enabled_ip_pins: {','.join(c.enabled_ip_pins) if c.enabled_ip_pins else '-'}")
+    typer.echo("firewall_change: no")
+    typer.echo("nat_change: no")
+    typer.echo("runtime_change: no")
 
 
 def _guard_customer_write_local_peer(cfg, command_hint: str) -> None:
