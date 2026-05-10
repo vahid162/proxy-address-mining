@@ -6,9 +6,13 @@ import typer
 
 from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH, load_config
+from mpf.db import write_local_peer_root_guard_message
+from mpf.domain.customer_lifecycle import CustomerLifecycleInput
+from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, CustomerDisableRequest, CustomerPolicyInput, CustomerRenewRequest, CustomerSetIpsRequest, CustomerUpdateRequest
 from mpf.domain.health import HealthReport
 from mpf.services import (
     config_service,
+    customer_mutation_service,
     customer_read_service,
     db_service,
     doctor_service,
@@ -27,7 +31,7 @@ app = typer.Typer(
 config_app = typer.Typer(help="Configuration read-only commands.")
 db_app = typer.Typer(help="Database read-only commands.")
 lanes_app = typer.Typer(help="Lane DB-only commands. No firewall/NAT/runtime mutation.")
-customer_app = typer.Typer(help="Customer read-only commands.")
+customer_app = typer.Typer(help="Customer DB-only commands. No firewall/NAT/runtime mutation.")
 jobs_app = typer.Typer(help="Job read-only commands.")
 proxy_app = typer.Typer(help="Proxy read-only planning and doctor commands.")
 app.add_typer(config_app, name="config")
@@ -173,6 +177,100 @@ def customer_list(config: Path | None = typer.Option(None, "--config", "-c", hel
         return
     for customer in result.customers:
         typer.echo(f"{customer.id}\t{customer.lane}\t{customer.name}\tport={customer.port}\tstatus={customer.status}\texpires_at={customer.expires_at}")
+
+
+def _guard_customer_write_local_peer(cfg, command_hint: str) -> None:
+    message = write_local_peer_root_guard_message(cfg.database.url, command_hint=command_hint)
+    if message:
+        typer.echo(message)
+        raise typer.Exit(1)
+
+
+def _emit_customer_mutation_result(result) -> None:
+    typer.echo(f"ok: {result.ok}")
+    typer.echo(f"message: {result.message}")
+    typer.echo(f"firewall_change: {result.firewall_change}")
+    typer.echo(f"nat_change: {result.nat_change}")
+    typer.echo(f"runtime_change: {result.runtime_change}")
+    typer.echo(f"customer_key: {result.customer_key}")
+    typer.echo(f"customer_id: {result.customer_id}")
+    typer.echo(f"would_create_customer: {result.would_create_customer}")
+    typer.echo(f"would_mutate_customer: {result.would_mutate_customer}")
+    typer.echo(f"would_create_policy_version: {result.would_create_policy_version}")
+    typer.echo(f"would_mutate_ip_pins: {result.would_mutate_ip_pins}")
+    typer.echo(f"would_create_event: {result.would_create_event}")
+    typer.echo(f"would_create_audit: {result.would_create_audit}")
+
+
+@customer_app.command("add")
+def customer_add(config: Path | None = typer.Option(None, "--config", "-c"), lane: str = typer.Option(..., "--lane"), name: str = typer.Option(..., "--name"), customer_key: str = typer.Option(..., "--customer-key"), port: int = typer.Option(..., "--port"), miners: int = typer.Option(..., "--miners"), farms: int = typer.Option(..., "--farms"), maxconn: int = typer.Option(..., "--maxconn"), rate_per_min: int = typer.Option(..., "--rate-per-min"), burst: int = typer.Option(..., "--burst"), status: str = typer.Option("active", "--status"), activation_mode: str = typer.Option("immediate", "--activation-mode"), service_days: int = typer.Option(30, "--service-days"), ips_mode: str = typer.Option("any", "--ips-mode"), ip: list[str] = typer.Option(None, "--ip"), reason: str | None = typer.Option(None, "--reason"), lifecycle_note: str | None = typer.Option(None, "--lifecycle-note"), yes: bool = typer.Option(False, "--yes")) -> None:
+    cfg = _load(config)
+    if yes:
+        _guard_customer_write_local_peer(cfg, "/usr/local/bin/mpf customer add ... --yes")
+    req = CustomerCreateRequest(lane=lane, name=name, customer_key=customer_key, port=port, status=status, policy=CustomerPolicyInput(miners=miners, farms=farms, maxconn=maxconn, rate_per_min=rate_per_min, burst=burst, ips_mode=ips_mode, ip_whitelist=ip or [], reason=reason), lifecycle=CustomerLifecycleInput(activation_mode=activation_mode, service_days=service_days, lifecycle_note=lifecycle_note))
+    result = customer_mutation_service.create_db_only_customer(cfg, req, dry_run=not yes)
+    _emit_customer_mutation_result(result)
+    if not result.ok:
+        raise typer.Exit(1)
+
+
+@customer_app.command("update")
+def customer_update(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str = typer.Option(..., "--customer-key"), lane: str | None = typer.Option(None, "--lane"), name: str | None = typer.Option(None, "--name"), status: str | None = typer.Option(None, "--status"), miners: int | None = typer.Option(None, "--miners"), farms: int | None = typer.Option(None, "--farms"), maxconn: int | None = typer.Option(None, "--maxconn"), rate_per_min: int | None = typer.Option(None, "--rate-per-min"), burst: int | None = typer.Option(None, "--burst"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes")) -> None:
+    cfg = _load(config)
+    if yes:
+        _guard_customer_write_local_peer(cfg, "/usr/local/bin/mpf customer update ... --yes")
+    policy = None
+    if any(x is not None for x in (miners, farms, maxconn, rate_per_min, burst)):
+        policy = CustomerPolicyInput(miners=miners or 1, farms=farms or 1, maxconn=maxconn or 1, rate_per_min=rate_per_min or 1, burst=burst or 1, ips_mode="any", reason=reason)
+    result = customer_mutation_service.update_db_only_customer(cfg, CustomerUpdateRequest(customer_key=customer_key, lane=lane, name=name, status=status, policy=policy), dry_run=not yes)
+    _emit_customer_mutation_result(result)
+    if not result.ok:
+        raise typer.Exit(1)
+
+
+@customer_app.command("renew")
+def customer_renew(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str = typer.Option(..., "--customer-key"), service_days: int = typer.Option(..., "--service-days"), lifecycle_note: str | None = typer.Option(None, "--lifecycle-note"), yes: bool = typer.Option(False, "--yes")) -> None:
+    cfg = _load(config)
+    if yes:
+        _guard_customer_write_local_peer(cfg, "/usr/local/bin/mpf customer renew ... --yes")
+    result = customer_mutation_service.renew_db_only_customer(cfg, CustomerRenewRequest(customer_key=customer_key, service_days=service_days, lifecycle_note=lifecycle_note), dry_run=not yes)
+    _emit_customer_mutation_result(result)
+    if not result.ok:
+        raise typer.Exit(1)
+
+
+@customer_app.command("disable")
+def customer_disable(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str = typer.Option(..., "--customer-key"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes")) -> None:
+    cfg = _load(config)
+    if yes:
+        _guard_customer_write_local_peer(cfg, "/usr/local/bin/mpf customer disable ... --yes")
+    result = customer_mutation_service.disable_db_only_customer(cfg, CustomerDisableRequest(customer_key=customer_key, reason=reason), dry_run=not yes)
+    _emit_customer_mutation_result(result)
+    if not result.ok:
+        raise typer.Exit(1)
+
+
+@customer_app.command("delete")
+def customer_delete(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str = typer.Option(..., "--customer-key"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes")) -> None:
+    cfg = _load(config)
+    if yes:
+        _guard_customer_write_local_peer(cfg, "/usr/local/bin/mpf customer delete ... --yes")
+    result = customer_mutation_service.soft_delete_db_only_customer(cfg, CustomerDeleteRequest(customer_key=customer_key, reason=reason), dry_run=not yes)
+    _emit_customer_mutation_result(result)
+    if not result.ok:
+        raise typer.Exit(1)
+
+
+@customer_app.command("set-ips")
+def customer_set_ips(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str = typer.Option(..., "--customer-key"), ips_mode: str = typer.Option(..., "--ips-mode"), ip: list[str] = typer.Option(None, "--ip"), yes: bool = typer.Option(False, "--yes")) -> None:
+    cfg = _load(config)
+    if yes:
+        _guard_customer_write_local_peer(cfg, "/usr/local/bin/mpf customer set-ips ... --yes")
+    result = customer_mutation_service.set_ips_db_only_customer(cfg, CustomerSetIpsRequest(customer_key=customer_key, ips_mode=ips_mode, ip_whitelist=ip or []), dry_run=not yes)
+    _emit_customer_mutation_result(result)
+    if not result.ok:
+        raise typer.Exit(1)
+
 
 
 @jobs_app.command("status")
