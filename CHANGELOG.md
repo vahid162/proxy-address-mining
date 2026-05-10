@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.21 - 2026-05-10
+
+- Added Phase 5-F2 Product Roles and UX Journey Contract documentation and test guards (docs-only; no UI, Telegram, API, runtime, DB mutation, firewall, or NAT behavior).
+
 ## 0.1.20 - 2026-05-10
 
 - Completed Phase 5-F1 troubleshooting contract template consistency across all 18 scenarios and strengthened template-enforcement tests.
