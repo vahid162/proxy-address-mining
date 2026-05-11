@@ -49,6 +49,8 @@ class FirewallPlanResult:
     firewall_change: str = "planned_only"
     nat_change: str = "planned_only"
     runtime_change: str = "no"
+    planner_customer_source: str = "unknown"
+    db_customer_input_loaded: bool = False
 
     def finalize(self) -> None:
         self.applyable = len(self.errors) == 0
@@ -70,6 +72,8 @@ class FirewallPlanResult:
             f"firewall_change: {self.firewall_change}",
             f"nat_change: {self.nat_change}",
             f"runtime_change: {self.runtime_change}",
+            f"planner_customer_source: {self.planner_customer_source}",
+            f"db_customer_input_loaded: {str(self.db_customer_input_loaded).lower()}",
             f"changes: {len(self.changes)}",
             f"warnings: {len(self.warnings)}",
             f"errors: {len(self.errors)}",

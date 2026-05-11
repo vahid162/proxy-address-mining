@@ -5,8 +5,17 @@ from collections import Counter
 from mpf.domain.firewall import FirewallPlanChange, FirewallPlanMessage, FirewallPlanResult, FirewallRuleIntent
 
 
-def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: bool = False) -> FirewallPlanResult:
+def build_plan(
+    *,
+    lanes: list[dict],
+    customers: list[dict],
+    backend_exposed: bool = False,
+    planner_customer_source: str = "unknown",
+    db_customer_input_loaded: bool = False,
+) -> FirewallPlanResult:
     plan = FirewallPlanResult()
+    plan.planner_customer_source = planner_customer_source
+    plan.db_customer_input_loaded = db_customer_input_loaded
 
     enabled_lanes = [lane for lane in lanes if lane.get("enabled", False)]
     backend_ports = [int(lane["backend_port"]) for lane in enabled_lanes]
@@ -23,6 +32,11 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
     for port, count in port_counts.items():
         if count > 1:
             plan.errors.append(FirewallPlanMessage(code="customer_port_collision", message=f"customer port collision: {port}", severity="error"))
+        if port in backend_ports:
+            plan.errors.append(FirewallPlanMessage(code="customer_backend_port_collision", message=f"customer port collides with backend port: {port}", severity="error"))
+
+    if not db_customer_input_loaded:
+        plan.warnings.append(FirewallPlanMessage(code="planner_customer_source", message=f"planner_customer_source={planner_customer_source}; db_customer_input_loaded=false", severity="warning"))
 
     for customer in customers:
         status = customer.get("status")

@@ -25,3 +25,13 @@ def test_human_output_includes_warning_and_error() -> None:
     text = plan.to_human()
     assert "WARNING [w] warn" in text
     assert "ERROR [e] err" in text
+
+
+def test_human_and_json_include_planner_customer_source_fields() -> None:
+    plan = FirewallPlanResult(planner_customer_source="config_only", db_customer_input_loaded=False)
+    payload = plan.to_dict()
+    assert payload["planner_customer_source"] == "config_only"
+    assert payload["db_customer_input_loaded"] is False
+    text = plan.to_human()
+    assert "planner_customer_source: config_only" in text
+    assert "db_customer_input_loaded: false" in text

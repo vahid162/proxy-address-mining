@@ -493,7 +493,12 @@ def _planner_input_from_config(cfg) -> tuple[list[dict], list[dict]]:
 def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
     """Render a dry-run firewall plan only."""
     lanes, customers = _planner_input_from_config(_load(config))
-    result = firewall_planner_service.build_plan(lanes=lanes, customers=customers)
+    result = firewall_planner_service.build_plan(
+        lanes=lanes,
+        customers=customers,
+        planner_customer_source="config_only",
+        db_customer_input_loaded=False,
+    )
     if output == "json":
         typer.echo(json.dumps(result.to_dict(), indent=2, sort_keys=True))
         return

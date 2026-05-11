@@ -38,3 +38,12 @@ def test_collisions_and_exposure_make_plan_not_applyable() -> None:
     assert result.applyable is False
     codes = {e.code for e in result.errors}
     assert {"lane_backend_collision", "customer_port_collision", "backend_exposure"} <= codes
+
+
+def test_customer_port_collision_with_backend_port_is_error() -> None:
+    result = build_plan(
+        lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}],
+        customers=[{"customer_key": "x", "lane": "BTC", "port": 60010, "status": "active"}],
+    )
+    assert result.applyable is False
+    assert any(e.code == "customer_backend_port_collision" for e in result.errors)
