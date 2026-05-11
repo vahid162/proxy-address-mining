@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.55 - 2026-05-11
+
+- added Phase 6-C1 apply gate risk matrix and operator approval checklist.
+- aligned PHASE_STATUS next planned step with completed Phase 6-B/6-C0 state.
+- updated documentation index/firewall docs for Phase 6-C1.
+- added docs tests to prevent stale Phase 6-B next-step wording and accidental live-apply authorization.
+- kept Phase 5 accepted / Phase 6 working gate unchanged.
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.54 - 2026-05-11
 
 - added Phase 6-C0 live apply gate readiness contract and manual canary runbook.

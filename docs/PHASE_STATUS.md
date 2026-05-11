@@ -253,10 +253,9 @@ Future customer records remain DB-only until Phase 6 apply and customer NAT/cust
 
 ## Next Planned Step
 
-Proceed to:
-
-```text
-Phase 6-B — Offline Apply Contracts (artifact-only)
-```
-
-Phase 6-B must remain contract/artifact/planning/test only. Do not move to live firewall apply, iptables-save execution, iptables-restore execution, customer NAT redirects, customer firewall rules, usage timers, hash-rate collectors, or abuse automation until the relevant later phase gates pass.
+- current accepted phase remains Phase 5 — Customer CRUD in DB Only accepted on farm5
+- current working phase remains Phase 6 — Firewall Planner
+- Phase 6-B evidence and Phase 6-C0 readiness contracts are complete
+- next safe step is Phase 6-C1 risk matrix and operator approval checklist
+- this remains documentation/contract/test-only
+- live apply remains forbidden until a dedicated apply gate is explicitly accepted
