@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.38 - 2026-05-11
+
+- Hardened offline `iptables-save` parser with shell-like tokenization.
+- Added support for quoted comments, protocol extraction, source CIDR extraction, destination-port variants, `REDIRECT --to-ports`, and `DNAT --to-destination`.
+- Strengthened file-backed offline diff fixtures/tests for NAT target match/mismatch and MPF chain/rule drift detection.
+- Confirmed no live firewall reads, live firewall writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.37 - 2026-05-11
 
 - Added explicit CLI error handling for invalid `--live-snapshot-file` in `mpf firewall diff` (missing path, non-file path, unreadable path) with clear `ERROR:` output and non-zero exit, without fallback behavior.

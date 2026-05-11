@@ -1,5 +1,6 @@
 from mpf.domain.firewall import FirewallLiveRuleSnapshot, FirewallLiveSnapshot
 from mpf.services.firewall_planner_service import build_plan
+from mpf.services.firewall_snapshot_parser import parse_iptables_save_text
 
 
 def _policy() -> dict:
@@ -22,6 +23,44 @@ def test_every_rule_references_existing_chain_and_nat_uses_nat_chain() -> None:
     nat = [r for r in p.rules if r.rule_kind == "customer_nat_redirect"][0]
     assert (nat.table, nat.chain) == ("nat", "MPF_NAT_PRE")
     assert nat.action_json["target_backend"] == 60010
+
+
+def test_file_backed_snapshot_matching_nat_target_has_no_nat_target_mismatch() -> None:
+    snapshot = parse_iptables_save_text(
+        """
+*filter
+:MPF_INPUT - [0:0]
+:MPF_CUSTOMERS - [0:0]
+:MPF_GUARD - [0:0]
+:MPF_ACCT_IN - [0:0]
+:MPF_ACCT_OUT - [0:0]
+:MPFL_BTC - [0:0]
+:MPFC_20001 - [0:0]
+:MPFO_20001 - [0:0]
+COMMIT
+*nat
+:MPF_NAT_PRE - [0:0]
+:MPF_NAT_POST - [0:0]
+-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:c1:customer_nat_redirect" -j DNAT --to-destination 127.0.0.1:60010
+COMMIT
+"""
+    )
+    p = _plan(snapshot)
+    assert not any(e.code == "nat_target_mismatch" for e in p.errors)
+
+
+def test_file_backed_snapshot_wrong_nat_target_sets_error_and_not_applyable() -> None:
+    snapshot = parse_iptables_save_text(
+        """
+*nat
+:MPF_NAT_PRE - [0:0]
+-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:c1:customer_nat_redirect" -j DNAT --to-destination 127.0.0.1:60011
+COMMIT
+"""
+    )
+    p = _plan(snapshot)
+    assert p.applyable is False
+    assert any(e.code == "nat_target_mismatch" for e in p.errors)
 
 
 def test_missing_and_unexpected_chain_detected() -> None:
