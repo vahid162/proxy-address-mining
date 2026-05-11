@@ -1,3 +1,4 @@
+from mpf.domain.firewall import FirewallPlanMessage
 from mpf.services.firewall_apply_package_service import build_apply_package_report
 from mpf.services.firewall_planner_service import build_plan
 
@@ -51,3 +52,20 @@ def test_plan_error_visible_in_package_errors() -> None:
     report = build_apply_package_report(plan)
     assert report.applyable is False
     assert report.error_count > 0
+
+
+def test_package_dedupes_config_only_warning() -> None:
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[])
+    plan.planner_customer_source = "config_only"
+    plan.warnings.append(FirewallPlanMessage(code="planner_customer_source", message="explicit config-only source requested", severity="warning"))
+    plan.finalize()
+    report = build_apply_package_report(plan)
+    matched = [w for w in report.warnings if w.code == "config_only_source"]
+    assert len(matched) == 1
+
+
+def test_package_dedupes_plan_errors() -> None:
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy()}])
+    report = build_apply_package_report(plan)
+    signatures = {(e.severity, e.code, e.message) for e in report.errors}
+    assert len(signatures) == len(report.errors)

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.46 - 2026-05-11
+
+- fixed Phase 6-B3 package warning/error aggregation to de-duplicate repeated messages by `(severity, code, message)` while preserving deterministic first-seen ordering.
+- added CLI safety regressions for `mpf firewall package` (`--yes` rejected, no subprocess/iptables execution path introduced).
+
 ## 0.1.45 - 2026-05-11
 
 - added Phase 6-B3 offline apply package/readiness report.

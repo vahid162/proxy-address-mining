@@ -312,3 +312,19 @@ def test_firewall_package_db_failure_exits_nonzero(monkeypatch) -> None:
     res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path())])
     assert res.exit_code == 1
     assert "ERROR: failed to load lanes: db down" in res.output
+
+
+def test_firewall_package_no_yes_option() -> None:
+    res = RUNNER.invoke(app, ["firewall", "package", "--yes"])
+    assert res.exit_code != 0
+
+
+def test_firewall_package_does_not_call_subprocess(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("subprocess call is forbidden in firewall package")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path())])
+    assert res.exit_code == 0

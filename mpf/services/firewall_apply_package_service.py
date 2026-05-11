@@ -11,6 +11,18 @@ from mpf.services.firewall_apply_contract_service import build_apply_readiness_c
 from mpf.services.firewall_restore_payload_renderer import render_restore_contract
 
 
+def _dedupe_messages(messages: list[FirewallPlanMessage]) -> list[FirewallPlanMessage]:
+    seen: set[tuple[str, str, str]] = set()
+    result: list[FirewallPlanMessage] = []
+    for msg in messages:
+        key = (msg.severity, msg.code, msg.message)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(msg)
+    return result
+
+
 def build_apply_package_report(
     plan: FirewallPlanResult,
     restore_contract: FirewallApplyContract | None = None,
@@ -27,6 +39,8 @@ def build_apply_package_report(
     errors.extend(restore.errors)
     warnings.extend(readiness.warnings)
     errors.extend(readiness.errors)
+    warnings = _dedupe_messages(warnings)
+    errors = _dedupe_messages(errors)
 
     payload_sha256 = None
     payload_line_count = 0
