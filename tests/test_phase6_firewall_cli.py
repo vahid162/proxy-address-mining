@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+
 from typer.testing import CliRunner
 
 from mpf.domain.firewall import FirewallPlanMessage, FirewallPlanResult
@@ -82,3 +84,23 @@ def test_firewall_diff_live_snapshot_not_a_file_exits_nonzero(tmp_path) -> None:
     res = RUNNER.invoke(app, ["firewall", "diff", "--config", str(example_config_path()), "--live-snapshot-file", str(not_file)])
     assert res.exit_code == 1
     assert f"ERROR: unable to read live snapshot file: {not_file}: not a file" in res.output
+
+
+def test_firewall_diff_live_snapshot_file_does_not_call_subprocess(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db_with_live_snapshot", lambda cfg, snapshot: _db_plan())
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("subprocess call is forbidden in offline snapshot diff")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "diff", "--config", str(example_config_path()), "--live-snapshot-file", str(snapshot)])
+    assert res.exit_code == 0
+
+
+def test_no_firewall_apply_or_rollback_commands() -> None:
+    apply_res = RUNNER.invoke(app, ["firewall", "apply"])
+    rollback_res = RUNNER.invoke(app, ["firewall", "rollback"])
+    assert apply_res.exit_code != 0
+    assert rollback_res.exit_code != 0
