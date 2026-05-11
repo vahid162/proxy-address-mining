@@ -84,8 +84,8 @@ def test_phase6_c0_commands_use_output_json_form() -> None:
     assert "mpf firewall evidence --json" not in text
 
 
-def test_phase_status_next_step_mentions_phase6_c1_not_6b() -> None:
+def test_phase_status_next_step_mentions_phase6_c2_not_6b() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     assert "## Next Planned Step" in text
-    assert "Phase 6-C1" in text
+    assert "Phase 6-C2" in text
     assert "Phase 6-B is the next step" not in text

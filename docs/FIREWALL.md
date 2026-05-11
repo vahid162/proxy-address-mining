@@ -680,3 +680,14 @@ Phase 6-C1 adds risk matrix and operator approval checklist only.
 - It does not write restore points.
 - It does not change firewall/NAT/runtime state.
 - Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
+
+
+## Phase 6-C2 — Offline Apply Gate Review Report
+
+Phase 6-C2 adds `mpf firewall gate-review` as an offline, inspection-only report.
+
+It summarizes evidence bundle, risk matrix, checklist, rollback readiness, canary readiness, and abuse requirement preservation.
+
+It does **not** authorize live apply, rollback, or verify. It does **not** execute `iptables-save` or `iptables-restore`, does not acquire locks, does not write restore points/rollback files/database rows, and does not guess live state.
+
+Final decision remains `BLOCKED` while `firewall_apply_allowed: no` in the current phase gate.
