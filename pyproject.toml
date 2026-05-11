@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "proxy-address-mining"
-version = "0.1.27"
+version = "0.1.28"
 description = "Python-first control plane for a mining customer gateway"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "LicenseRef-Proprietary" }
 authors = [
   { name = "MPF Project" }
