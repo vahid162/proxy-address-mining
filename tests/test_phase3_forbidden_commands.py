@@ -27,8 +27,6 @@ def test_customer_mutation_commands_are_not_available_in_phase3() -> None:
 def test_firewall_commands_are_not_available_in_phase3() -> None:
     forbidden = [
         ["firewall", "apply", "--yes"],
-        ["firewall", "plan"],
-        ["firewall", "diff"],
         ["firewall", "rollback", "1", "--yes"],
     ]
     for args in forbidden:

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.31 - 2026-05-11
+
+- Aligned Phase 6-A1 PR metadata and verification notes with the finalized branch state (title/body consistency with `fix(firewall): enforce backend collision check and explicit planner source`, test evidence `python -m pytest -q` = 191 passed). This is metadata-only and introduces no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.
+
+## 0.1.30 - 2026-05-11
+
+- Added Phase 6-A1 follow-up safety: detect `customer_backend_port_collision` (active customer port equals enabled lane backend port) and mark plans non-applyable; also made CLI planner output explicit as `planner_customer_source=config_only` and `db_customer_input_loaded=false` to avoid silent DB-customer ambiguity. Planner-only change with no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.
+
+## 0.1.29 - 2026-05-11
+
+- Implemented Phase 6-A1 planner-only firewall foundation: desired/plan domain objects, dry-run planner service, and read-only `mpf firewall plan|diff` rendering (human/JSON) with safety checks for collisions/exposure and no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.
+
 ## 0.1.28 - 2026-05-11
 
 - Required Python 3.12 in package metadata to align the project with the accepted Ubuntu 24.04 server baseline and existing GitHub Actions CI runtime. This is metadata-only and introduces no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.

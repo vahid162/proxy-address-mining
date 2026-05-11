@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import typer
@@ -19,6 +20,7 @@ from mpf.services import (
     job_service,
     lane_service,
     lane_sync_service,
+    firewall_planner_service,
     proxy_doctor_service,
 )
 
@@ -34,6 +36,7 @@ lanes_app = typer.Typer(help="Lane DB-only commands. No firewall/NAT/runtime mut
 customer_app = typer.Typer(help="Customer DB-only commands. No firewall/NAT/runtime mutation.")
 jobs_app = typer.Typer(help="Job read-only commands.")
 proxy_app = typer.Typer(help="Proxy read-only planning and doctor commands.")
+firewall_app = typer.Typer(help="Firewall dry-run planner commands only.")
 events_app = typer.Typer(help="Global event read-only commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
@@ -41,6 +44,7 @@ app.add_typer(lanes_app, name="lanes")
 app.add_typer(customer_app, name="customer")
 app.add_typer(jobs_app, name="jobs")
 app.add_typer(proxy_app, name="proxy")
+app.add_typer(firewall_app, name="firewall")
 app.add_typer(events_app, name="events")
 
 
@@ -474,6 +478,37 @@ def proxy_status(config: Path | None = typer.Option(None, "--config", "-c", help
 def proxy_config_check(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml.")) -> None:
     """Validate proxy planning config without runtime activation."""
     _emit_health_report(proxy_doctor_service.config_check(_config_path(config)))
+
+
+def _planner_input_from_config(cfg) -> tuple[list[dict], list[dict]]:
+    lanes: list[dict] = [
+        {"name": lane_name, "enabled": lane.enabled, "backend_port": lane.backend_port}
+        for lane_name, lane in sorted(cfg.lanes.items())
+    ]
+    customers: list[dict] = []
+    return lanes, customers
+
+
+@firewall_app.command("plan")
+def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
+    """Render a dry-run firewall plan only."""
+    lanes, customers = _planner_input_from_config(_load(config))
+    result = firewall_planner_service.build_plan(
+        lanes=lanes,
+        customers=customers,
+        planner_customer_source="config_only",
+        db_customer_input_loaded=False,
+    )
+    if output == "json":
+        typer.echo(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        return
+    typer.echo(result.to_human())
+
+
+@firewall_app.command("diff")
+def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
+    """Render a dry-run firewall diff only."""
+    firewall_plan(config=config, output=output)
 
 
 @events_app.command("latest")
