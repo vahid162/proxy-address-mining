@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.41 - 2026-05-11
+
+- started Phase 6-B offline apply contract design only; no live apply was introduced.
+- added deterministic iptables-restore payload artifact renderer and `mpf firewall render-restore` command for offline output only.
+- added validation and tests proving no live firewall reads/writes, iptables-save, iptables-restore execution, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.40 - 2026-05-11
 
 - added planner-only firewall doctor/report command (`mpf firewall doctor`) with thin CLI flow and service-layer reporting.

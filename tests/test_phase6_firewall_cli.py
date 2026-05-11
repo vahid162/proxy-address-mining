@@ -163,3 +163,32 @@ def test_no_firewall_apply_or_rollback_commands() -> None:
     rollback_res = RUNNER.invoke(app, ["firewall", "rollback"])
     assert apply_res.exit_code != 0
     assert rollback_res.exit_code != 0
+
+def test_firewall_render_restore_human(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "MPF firewall restore artifact (offline)" in res.output
+
+
+def test_firewall_render_restore_json_flags(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"artifact_only": true' in res.output
+    assert '"live_apply_allowed": false' in res.output
+
+
+def test_firewall_render_restore_payload_only(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--output", "payload"])
+    assert res.exit_code == 0
+    assert res.output.startswith("*filter\n")
+    assert "MPF firewall restore artifact" not in res.output
+
+
+def test_firewall_render_restore_config_only_warn(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", lambda cfg: _config_plan())
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--source", "config-only"])
+    assert res.exit_code == 0
+    assert "WARNING [planner_customer_source]" in res.output
