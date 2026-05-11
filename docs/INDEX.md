@@ -66,8 +66,9 @@ Read:
 3. `docs/FIREWALL.md`
 4. `docs/BACKEND_PORT_POLICY.md`
 5. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-6. `docs/SAFETY.md`
-6. `docs/DATA_MODEL.md`
+6. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+7. `docs/SAFETY.md`
+8. `docs/DATA_MODEL.md`
 7. `docs/TAXONOMY.md`
 8. `docs/ABUSE.md`
 9. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
@@ -78,6 +79,8 @@ Read:
 The current step is Phase 6-B offline apply-contract/preflight work. It may render and inspect offline artifacts only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 `docs/PHASE_6_C0_APPLY_GATE_READINESS.md` is a future live apply gate readiness contract and manual canary runbook only; it does not authorize live apply in the current phase.
+
+`docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md` is a future apply gate risk matrix and operator approval checklist only; it does not authorize live apply.
 
 Historical note: Phase 6-A established planner/model/diff foundations. Phase 5 — Customer CRUD in DB Only included documentation-only contract clarification for customer lifecycle, control rules, worker policy, and future abuse coverage. These historical notes do not authorize runtime behavior now.
 
