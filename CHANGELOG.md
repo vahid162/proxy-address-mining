@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.28 - 2026-05-11
+
+- Required Python 3.12 in package metadata to align the project with the accepted Ubuntu 24.04 server baseline and existing GitHub Actions CI runtime. This is metadata-only and introduces no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.
+
 ## 0.1.27 - 2026-05-11
 
 - Cleaned current phase documentation before Phase 6 implementation by aligning `README.md` and `docs/PHASE_STATUS.md` to Phase 5 accepted / Phase 6 working state, added `docs/AI_PHASE_6_TASK.md` for planner-first boundaries, and kept all runtime, firewall apply, NAT, usage, abuse, UI, and Telegram behavior disabled.
@@ -54,7 +58,7 @@
 
 ## 0.1.14 - 2026-05-10
 
-- Phase 5-E2a: fix DB-only customer show/list visibility boundaries (service/repo filtering, local-peer read helper fallback, nullable lifecycle mapping, clearer list empty message).
+- Fix DB-only customer show/list visibility boundaries (service/repo filtering, local-peer read helper fallback, nullable lifecycle mapping, clearer list empty message).
 
 ## 0.1.13 - 2026-05-10
 
