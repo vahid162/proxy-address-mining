@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.37 - 2026-05-11
+
+- Added explicit CLI error handling for invalid `--live-snapshot-file` in `mpf firewall diff` (missing path, non-file path, unreadable path) with clear `ERROR:` output and non-zero exit, without fallback behavior.
+
 ## 0.1.36 - 2026-05-11
 
 - Added an offline `iptables-save` parser for Phase 6-A diff flow and wired `mpf firewall diff --live-snapshot-file` to compare desired state against operator-provided snapshot files only (no live reads/writes).

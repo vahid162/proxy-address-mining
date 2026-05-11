@@ -504,7 +504,19 @@ def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), ou
 def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file", help="Offline iptables-save snapshot file (no live reads).")) -> None:
     """Render a dry-run firewall diff only."""
     cfg = _load(config)
-    snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(live_snapshot_file)) if live_snapshot_file is not None else None
+    snapshot = None
+    if live_snapshot_file is not None:
+        if not live_snapshot_file.exists():
+            typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: file does not exist")
+            raise typer.Exit(1)
+        if not live_snapshot_file.is_file():
+            typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: not a file")
+            raise typer.Exit(1)
+        try:
+            snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(live_snapshot_file))
+        except OSError as exc:
+            typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: {exc}")
+            raise typer.Exit(1)
     if source == "config-only":
         result = firewall_planner_service.build_plan_from_config_with_live_snapshot(cfg, snapshot) if snapshot is not None else firewall_planner_service.build_plan_from_config(cfg)
     else:
