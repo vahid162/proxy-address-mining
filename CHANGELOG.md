@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.34 - 2026-05-11
+
+- Added richer desired firewall model with explicit chain intents, structured rule intent schema, accounting coverage intent, and backend guard intent for planner-only output.
+- Added offline/in-memory diff foundation for missing/unexpected MPF chains and rules, duplicate rule-key detection, and stale deleted-customer intent visibility without live firewall reads or writes.
+- Confirmed no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.33 - 2026-05-11
 
 - Hardened planner safety validation: active customers on unknown/disabled lanes or with missing/incomplete current policy now produce planner errors and no forwarding intent.

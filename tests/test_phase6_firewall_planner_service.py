@@ -99,4 +99,4 @@ def test_active_customer_with_enabled_lane_and_complete_policy_gets_intent() -> 
         customers=[{"customer_key": "x", "lane": "BTC", "port": 20001, "status": "active", "policy": _valid_policy()}],
     )
     assert result.applyable is True
-    assert any(r.customer_key == "x" for r in result.rules)
+    assert any(r.customer_key == "x" and r.rule_kind == "customer_nat_redirect" for r in result.rules)
