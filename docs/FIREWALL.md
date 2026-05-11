@@ -633,3 +633,8 @@ A patch that adds ad-hoc production firewall mutation must be rejected.
 - Does not acquire locks, write restore points, write rollback files, write DB rows, or write filesystem artifacts.
 - Does not guess rollback from DB desired plan; artifact is derived only from supplied offline snapshot content.
 - Live apply/rollback remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
+
+
+## Phase 6-B5 Offline Preflight
+
+`mpf firewall preflight` is inspection-only and artifact-only. It combines planner output with restore/apply/package contracts and optional rollback artifact status from an explicit offline snapshot file only. It does not permit live apply/rollback, does not run iptables-save/iptables-restore, does not acquire locks, and does not write restore points, rollback files, DB rows, or filesystem artifacts. Final verdict remains `BLOCKED` while live apply is forbidden by phase gate.
