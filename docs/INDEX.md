@@ -71,6 +71,8 @@ Read:
 The current step is Phase 6-A repository cleanup plus firewall planner contract and desired-state model work.
 It must not create NAT redirects, apply firewall rules, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
+Historical note: Phase 5 — Customer CRUD in DB Only included documentation-only contract clarification for customer lifecycle, control rules, worker policy, and future abuse coverage. This does not authorize any runtime behavior now.
+
 ## Reading Order by Task
 
 ### Documentation-only change
@@ -132,8 +134,8 @@ Rules:
 - no customer firewall rules
 - no firewall apply
 - no lifecycle timer
-- no block/pause runtime
-- no worker runtime
+- no runtime block/pause command in Phase 5
+- no worker scanner or worker enforcement in Phase 5
 - no usage or abuse automation
 - customer validation must avoid future schema/service dead ends for lifecycle, controls, and worker policy
 
