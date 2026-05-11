@@ -480,3 +480,29 @@ def test_firewall_preflight_no_yes_and_no_subprocess(monkeypatch) -> None:
     assert bad.exit_code != 0
     res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path())])
     assert res.exit_code == 0
+
+
+def test_firewall_preflight_defaults_to_db_no_config_fallback(monkeypatch) -> None:
+    calls = {"db": 0, "config": 0}
+
+    def _db(cfg):
+        calls["db"] += 1
+        return _db_plan()
+
+    def _config(cfg):
+        calls["config"] += 1
+        return _config_plan()
+
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", _db)
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", _config)
+    res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert calls["db"] == 1
+    assert calls["config"] == 0
+
+
+def test_firewall_preflight_db_failure_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: (_ for _ in ()).throw(RuntimeError("failed to load lanes: db down")))
+    res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path())])
+    assert res.exit_code == 1
+    assert "ERROR: failed to load lanes: db down" in res.output

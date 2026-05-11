@@ -46,3 +46,21 @@ def test_preflight_safety_flags_and_deterministic_order() -> None:
     assert r1.safety_flags["lock_acquired"] is False
     assert r1.safety_flags["database_write"] is False
     assert r1.safety_flags["filesystem_write"] is False
+
+
+def test_preflight_dedupes_config_only_warning_and_plan_errors() -> None:
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy()}], planner_customer_source="config_only", db_customer_input_loaded=False)
+    report = build_preflight_report(plan)
+    warning_matches = [w for w in report.warnings if w.code in {"planner_customer_source", "config_only_source"}]
+    assert len(warning_matches) == len({(w.severity, w.code, w.message) for w in warning_matches})
+    err_matches = [e for e in report.errors if e.code == "customer_unknown_lane"]
+    assert len(err_matches) == 1
+
+
+def test_preflight_backend_and_apply_mode_reflect_plan() -> None:
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[])
+    plan.backend = "nftables"
+    plan.apply_mode = "custom_plan_mode"
+    report = build_preflight_report(plan)
+    assert report.backend == "nftables"
+    assert report.apply_mode == "custom_plan_mode"

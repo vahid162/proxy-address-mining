@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.51 - 2026-05-11
+
+- fixed Phase 6-B5 preflight warning/error aggregation to deduplicate repeated messages.
+- added preflight DB failure/default db-readonly regression tests.
+- aligned preflight backend/apply_mode with the source plan.
+- confirmed no live firewall, iptables-save, iptables-restore, lock, DB/filesystem write, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.50 - 2026-05-11
 
 - added Phase 6-B5 offline apply gate preflight / failure matrix.

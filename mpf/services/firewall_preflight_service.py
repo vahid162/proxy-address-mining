@@ -19,6 +19,18 @@ def _add(checks: list[FirewallPreflightCheck], key: str, status: str, message: s
     checks.append(FirewallPreflightCheck(key=key, status=status, message=message, blocking=blocking, evidence=evidence, remediation=remediation))
 
 
+def _dedupe_messages(messages: list[FirewallPlanMessage]) -> list[FirewallPlanMessage]:
+    seen: set[tuple[str, str, str]] = set()
+    deduped: list[FirewallPlanMessage] = []
+    for msg in messages:
+        key = (msg.severity, msg.code, msg.message)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(msg)
+    return deduped
+
+
 def build_preflight_report(
     plan: FirewallPlanResult,
     restore_contract: FirewallApplyContract | None = None,
@@ -40,6 +52,9 @@ def build_preflight_report(
     errors.extend(restore.errors)
     errors.extend(readiness.errors)
     errors.extend(package.errors)
+
+    warnings = _dedupe_messages(warnings)
+    errors = _dedupe_messages(errors)
 
     checks: list[FirewallPreflightCheck] = []
     _add(checks, "phase_gate_plan_only", "OK" if plan.apply_mode == "plan_only" else "BLOCKED", f"apply_mode={plan.apply_mode}", blocking=plan.apply_mode != "plan_only")
@@ -64,6 +79,8 @@ def build_preflight_report(
     warn_count = len([c for c in checks if c.status == "WARN"])
     blocked_count = len([c for c in checks if c.status == "BLOCKED"])
     return FirewallPreflightReport(
+        backend=plan.backend,
+        apply_mode=plan.apply_mode,
         planner_customer_source=plan.planner_customer_source,
         db_customer_input_loaded=plan.db_customer_input_loaded,
         restore_payload_present=restore.restore_payload is not None,
