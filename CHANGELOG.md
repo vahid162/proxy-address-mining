@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.53 - 2026-05-11
+
+- added Phase 6-B6 offline Phase 6-B acceptance evidence bundle.
+- added `mpf firewall evidence` command for inspection only.
+- evidence summarizes planner, restore payload, apply-readiness, package, optional rollback artifact, and preflight.
+- final verdict remains BLOCKED because live apply is still forbidden.
+- added tests proving no live firewall reads/writes, iptables-save, iptables-restore execution, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.52 - 2026-05-11
 
 - aligned active Phase 6 documentation from stale Phase 6-A-only wording to current Phase 6-B offline apply-contract / preflight scope.

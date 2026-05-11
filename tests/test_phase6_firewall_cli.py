@@ -506,3 +506,77 @@ def test_firewall_preflight_db_failure_exits_nonzero(monkeypatch) -> None:
     res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path())])
     assert res.exit_code == 1
     assert "ERROR: failed to load lanes: db down" in res.output
+
+def test_firewall_evidence_human_default_db(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "MPF firewall evidence bundle (offline)" in res.output
+    assert "planner_customer_source: db_readonly" in res.output
+
+
+def test_firewall_evidence_json_flags(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"artifact_only": true' in res.output
+    assert '"inspection_only": true' in res.output
+    assert '"live_apply_allowed": false' in res.output
+    assert '"applyable": false' in res.output
+    assert '"final_verdict": "BLOCKED"' in res.output
+
+
+def test_firewall_evidence_config_only_warn(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", lambda cfg: _config_plan())
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--source", "config-only"])
+    assert res.exit_code == 0
+    assert "WARNING" in res.output
+
+
+def test_firewall_evidence_db_failure_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: (_ for _ in ()).throw(RuntimeError("failed to load lanes: db down")))
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path())])
+    assert res.exit_code == 1
+    assert "ERROR: failed to load lanes: db down" in res.output
+
+
+def test_firewall_evidence_rollback_snapshot_path_checks(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    missing = tmp_path / "missing.save"
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--rollback-snapshot-file", str(missing)])
+    assert res.exit_code == 1
+    assert "ERROR: unable to read rollback snapshot file" in res.output
+
+
+def test_firewall_evidence_snapshot_does_not_call_subprocess(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("subprocess call is forbidden in offline snapshot evidence")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--rollback-snapshot-file", str(snapshot)])
+    assert res.exit_code == 0
+
+
+def test_firewall_evidence_has_no_yes_option() -> None:
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--yes"])
+    assert res.exit_code != 0
+
+
+def test_firewall_evidence_invalid_output_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--output", "payload"])
+    assert res.exit_code != 0
+
+
+def test_firewall_evidence_rollback_snapshot_not_a_file(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    not_file = tmp_path / "snapshots"
+    not_file.mkdir()
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--rollback-snapshot-file", str(not_file)])
+    assert res.exit_code == 1
+    assert "ERROR: unable to read rollback snapshot file" in res.output
+    assert "not a file" in res.output

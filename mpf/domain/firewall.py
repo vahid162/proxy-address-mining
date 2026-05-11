@@ -450,3 +450,61 @@ class FirewallPreflightReport:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class FirewallEvidenceSection:
+    key: str
+    status: str
+    summary: str
+    evidence: dict[str, Any] = field(default_factory=dict)
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+
+@dataclass
+class FirewallEvidenceBundleReport:
+    backend: str = "iptables"
+    apply_mode: str = "plan_only"
+    evidence_version: str = "phase6-b6"
+    artifact_only: bool = True
+    inspection_only: bool = True
+    live_apply_allowed: bool = False
+    applyable: bool = False
+    final_verdict: str = "BLOCKED"
+    readiness: str = "blocked_for_live_apply"
+    planner_customer_source: str = "unknown"
+    db_customer_input_loaded: bool = False
+    plan_summary: dict[str, Any] = field(default_factory=dict)
+    diff_summary: dict[str, Any] = field(default_factory=dict)
+    doctor_summary: dict[str, Any] = field(default_factory=dict)
+    restore_summary: dict[str, Any] = field(default_factory=dict)
+    apply_contract_summary: dict[str, Any] = field(default_factory=dict)
+    package_summary: dict[str, Any] = field(default_factory=dict)
+    rollback_summary: dict[str, Any] = field(default_factory=dict)
+    preflight_summary: dict[str, Any] = field(default_factory=dict)
+    phase_gate_summary: dict[str, Any] = field(default_factory=dict)
+    section_count: int = 0
+    ok_count: int = 0
+    warn_count: int = 0
+    blocked_count: int = 0
+    sections: list[FirewallEvidenceSection] = field(default_factory=list)
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+    safety_flags: dict[str, Any] = field(default_factory=lambda: {
+        "live_firewall_read": False,
+        "live_firewall_write": False,
+        "iptables_save_executed": False,
+        "iptables_restore_executed": False,
+        "lock_acquired": False,
+        "restore_point_written": False,
+        "rollback_written": False,
+        "database_write": False,
+        "filesystem_write": False,
+        "runtime_change": "no",
+        "nat_change": "planned_only",
+        "firewall_change": "planned_only",
+    })
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
