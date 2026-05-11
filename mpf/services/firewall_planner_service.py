@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from collections import Counter
 
+from mpf.config import MPFConfig
 from mpf.domain.firewall import FirewallPlanChange, FirewallPlanMessage, FirewallPlanResult, FirewallRuleIntent
+from mpf.repositories import firewall_planner_read_repo
 
 
 def build_plan(
@@ -46,6 +48,7 @@ def build_plan(
             plan.warnings.append(FirewallPlanMessage(code="inactive_placeholder", message=f"customer {customer.get('customer_key')} status={status} is represented as non-active intent", severity="warning"))
             continue
         if status != "active":
+            plan.warnings.append(FirewallPlanMessage(code="unsupported_status", message=f"customer {customer.get('customer_key')} has unsupported status={status}", severity="warning"))
             continue
         lane_name = str(customer["lane"])
         customer_key = str(customer["customer_key"])
@@ -62,4 +65,18 @@ def build_plan(
         plan.changes.append(FirewallPlanChange(kind="keep", object_type="planner", object_id="no_active_customers", detail="no active customer forwarding intents"))
 
     plan.finalize()
+    return plan
+
+
+def build_plan_from_db(config: MPFConfig) -> FirewallPlanResult:
+    load = firewall_planner_read_repo.load_firewall_planner_input(config)
+    if not load.ok:
+        raise RuntimeError(load.message)
+    return build_plan(lanes=load.lanes, customers=load.customers, planner_customer_source="db_readonly", db_customer_input_loaded=True)
+
+
+def build_plan_from_config(config: MPFConfig) -> FirewallPlanResult:
+    lanes = [{"name": lane_name, "enabled": lane.enabled, "backend_port": lane.backend_port} for lane_name, lane in sorted(config.lanes.items())]
+    plan = build_plan(lanes=lanes, customers=[], planner_customer_source="config_only", db_customer_input_loaded=False)
+    plan.warnings.append(FirewallPlanMessage(code="config_only_source", message="explicit config-only source requested; PostgreSQL planner input disabled", severity="warning"))
     return plan

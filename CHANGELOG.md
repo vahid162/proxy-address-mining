@@ -1,3 +1,10 @@
+## 0.1.32 - 2026-05-11
+
+- Added DB-backed read-only firewall planner input repository and service path.
+- `mpf firewall plan|diff` now load planner input from PostgreSQL by default.
+- Config-only planner input remains explicit via `--source config-only` and warning-labeled.
+- No live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 # Changelog
 
 ## 0.1.31 - 2026-05-11
