@@ -62,11 +62,31 @@ def test_phase6_c1_doc_exists_and_has_required_markers() -> None:
     for marker in required:
         assert marker.lower() in text_lower
 
-    if "mpf firewall" in text_lower and "json" in text_lower:
-        assert "--output json" in text
 
-    assert "mpf firewall evidence --json" not in text_lower
-    assert "mpf firewall plan --json" not in text_lower
+def test_phase6_c_acceptance_doc_exists_and_has_required_markers() -> None:
+    path = Path("docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md")
+    assert path.exists()
+    text = path.read_text(encoding="utf-8")
+    text_lower = text.lower()
+
+    required = [
+        "Phase 6-C",
+        "offline apply-gate readiness/review only",
+        "does not authorize live apply",
+        "firewall_apply_allowed: no",
+        "production_traffic: none",
+        "abuse_automation_allowed: no",
+        "final_decision remains BLOCKED",
+        "mpf firewall apply remains forbidden",
+        "mpf firewall rollback remains forbidden",
+        "mpf firewall verify remains forbidden",
+        "iptables-save execution remains forbidden",
+        "iptables-restore execution remains forbidden",
+        "normal -> over_tracking -> over_grace -> hard",
+        "sustained miner-abuse hardens after about 3600 seconds",
+    ]
+    for marker in required:
+        assert marker.lower() in text_lower
 
 
 def test_phase_status_does_not_enable_live_apply() -> None:
@@ -76,16 +96,21 @@ def test_phase_status_does_not_enable_live_apply() -> None:
     assert "abuse_automation_allowed: no" in text
 
 
-def test_phase6_c0_commands_use_output_json_form() -> None:
-    text = Path("docs/PHASE_6_C0_APPLY_GATE_READINESS.md").read_text(encoding="utf-8")
-    assert "mpf firewall plan --output json" in text
-    assert "mpf firewall evidence --output json" in text
-    assert "mpf firewall plan --json" not in text
-    assert "mpf firewall evidence --json" not in text
-
-
-def test_phase_status_next_step_mentions_phase6_c2_not_6b() -> None:
+def test_phase_status_next_step_mentions_phase6_d0_and_not_authorize_live_apply() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    tl = text.lower()
     assert "## Next Planned Step" in text
-    assert "Phase 6-C2" in text
-    assert "Phase 6-B is the next step" not in text
+    assert "Phase 6-D0" in text
+    assert "does not authorize live apply" in tl or "live apply remains forbidden" in tl
+
+
+def test_no_stale_json_short_flag_examples_introduced() -> None:
+    docs = [
+        "docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md",
+        "docs/PHASE_STATUS.md",
+        "docs/FIREWALL.md",
+    ]
+    for path in docs:
+        text = Path(path).read_text(encoding="utf-8").lower()
+        assert "mpf firewall evidence --json" not in text
+        assert "mpf firewall gate-review --json" not in text

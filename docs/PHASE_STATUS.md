@@ -155,6 +155,26 @@ no live firewall apply
 runtime remained limited local-only
 ```
 
+### Phase 6-C — Offline Apply Gate Readiness/Review
+
+```text
+version accepted on farm5: 0.1.56
+pytest passed: 337 passed
+mpf firewall gate-review final_decision: BLOCKED
+risk_summary.total: 18
+checklist_summary.total: 4
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall apply
+no iptables-save execution
+no iptables-restore execution
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -253,9 +273,8 @@ Future customer records remain DB-only until Phase 6 apply and customer NAT/cust
 
 ## Next Planned Step
 
-- current accepted phase remains Phase 5 — Customer CRUD in DB Only accepted on farm5
-- current working phase remains Phase 6 — Firewall Planner
-- Phase 6-B evidence and Phase 6-C0 readiness contracts are complete
-- next safe step is Phase 6-C2 offline apply gate review report
-- this remains documentation/contract/test-only
-- live apply remains forbidden until a dedicated apply gate is explicitly accepted
+Phase 6-C is accepted as offline apply-gate readiness/review only.
+
+The next safe step is **Phase 6-D0 live-apply design boundary review**, documentation/test-only.
+
+Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
