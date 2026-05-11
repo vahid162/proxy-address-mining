@@ -622,3 +622,14 @@ A patch that adds ad-hoc production firewall mutation must be rejected.
 - It does not execute `iptables-save` or `iptables-restore`.
 - It does not acquire locks, write restore points, write files, or write database rows.
 - Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
+
+
+## Phase 6-B4 Offline Rollback Artifact Renderer
+
+- Added offline rollback artifact contract/renderer only (`mpf firewall render-rollback`).
+- Input must be explicit operator-provided offline snapshot file (`--snapshot-file`).
+- Inspection-only artifact: no live rollback/apply execution is allowed.
+- Does not execute `iptables-save` or `iptables-restore`.
+- Does not acquire locks, write restore points, write rollback files, write DB rows, or write filesystem artifacts.
+- Does not guess rollback from DB desired plan; artifact is derived only from supplied offline snapshot content.
+- Live apply/rollback remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
