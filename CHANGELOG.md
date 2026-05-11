@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.35 - 2026-05-11
+
+- Fixed Phase 6-A3 planner model consistency by moving `customer_nat_redirect` intent to `nat:MPF_NAT_PRE` and adding rule-to-chain consistency validation.
+- Expanded offline in-memory diff foundation with structured live rule snapshots and detection for missing/unexpected chains/rules, stale deleted-customer rules, drift update markers, duplicate desired rule keys, and NAT target mismatches as blocking errors.
+
 ## 0.1.34 - 2026-05-11
 
 - Added richer desired firewall model with explicit chain intents, structured rule intent schema, accounting coverage intent, and backend guard intent for planner-only output.

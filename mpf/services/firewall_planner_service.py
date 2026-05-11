@@ -41,15 +41,28 @@ def _offline_diff(plan: FirewallPlanResult, snapshot: FirewallLiveSnapshot | Non
         if count > 1:
             plan.errors.append(FirewallPlanMessage(code="duplicate_rule_key", message=f"duplicate desired rule key: {key}", severity="error"))
 
-    live_rule_keys = set(snapshot.rule_keys)
-    for key in desired_rule_keys:
-        if key not in live_rule_keys:
+    desired_rules = {r.rule_key: r for r in plan.rules}
+    live_by_key = {r.rule_key: r for r in snapshot.rules}
+    for key, desired in desired_rules.items():
+        live = live_by_key.get(key)
+        if live is None:
             plan.changes.append(FirewallPlanChange(kind="create", object_type="rule", object_id=key, detail="missing desired rule"))
-    for extra_key in sorted([x for x in live_rule_keys if x.startswith("mpf:") and x not in desired_rule_keys]):
+            continue
+        if desired.rule_kind == "customer_nat_redirect":
+            desired_target = desired.action_json.get("target_backend")
+            live_target = live.action_json.get("target_backend")
+            if desired_target != live_target:
+                plan.errors.append(FirewallPlanMessage(code="nat_target_mismatch", message=f"rule {key} NAT target mismatch desired={desired_target} live={live_target}", severity="error"))
+        if desired.match_json != live.match_json or desired.action_json != live.action_json:
+            plan.changes.append(FirewallPlanChange(kind="update", object_type="rule", object_id=key, detail="rule match/action drift"))
+        else:
+            plan.changes.append(FirewallPlanChange(kind="keep", object_type="rule", object_id=key, detail="rule already matches desired intent"))
+
+    for extra in sorted([r for r in snapshot.rules if r.rule_key.startswith("mpf:") and r.rule_key not in desired_rules], key=lambda x: x.rule_key):
         code = "unexpected_mpf_rule"
-        if ":deleted:" in extra_key:
+        if ":deleted:" in extra.rule_key:
             code = "stale_deleted_customer_rule"
-        plan.warnings.append(FirewallPlanMessage(code=code, message=f"unexpected MPF-owned rule in snapshot: {extra_key}", severity="warning"))
+        plan.warnings.append(FirewallPlanMessage(code=code, message=f"unexpected MPF-owned rule in snapshot: {extra.rule_key}", severity="warning"))
 
 
 def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: bool = False, planner_customer_source: str = "unknown", db_customer_input_loaded: bool = False, live_snapshot: FirewallLiveSnapshot | None = None) -> FirewallPlanResult:
@@ -90,11 +103,9 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
         if status == "deleted":
             continue
         if status in {"paused", "expired"}:
-            plan.warnings.append(FirewallPlanMessage(code="inactive_placeholder", message=f"customer {customer_key} status={status} is represented as non-active intent", severity="warning"))
-            continue
+            plan.warnings.append(FirewallPlanMessage(code="inactive_placeholder", message=f"customer {customer_key} status={status} is represented as non-active intent", severity="warning")); continue
         if status != "active":
-            plan.warnings.append(FirewallPlanMessage(code="unsupported_status", message=f"customer {customer_key} has unsupported status={status}", severity="warning"))
-            continue
+            plan.warnings.append(FirewallPlanMessage(code="unsupported_status", message=f"customer {customer_key} has unsupported status={status}", severity="warning")); continue
 
         lane_name = str(customer["lane"])
         if lane_name not in known_lanes:
@@ -115,7 +126,6 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
         plan.affected_customers.append(customer_key)
         plan.customer_policy_references.append(f"{customer_key}:policy")
         plan.accounting_coverage[customer_key] = True
-
         plan.chains.extend([
             FirewallChainIntent(id=f"filter:MPFC_{cport}", table="filter", chain=f"MPFC_{cport}", owner="mpf", purpose="customer_filter", lane=lane_name, customer_key=customer_key, customer_port=cport, group="customer"),
             FirewallChainIntent(id=f"filter:MPFO_{cport}", table="filter", chain=f"MPFO_{cport}", owner="mpf", purpose="customer_policy", lane=lane_name, customer_key=customer_key, customer_port=cport, group="customer"),
@@ -124,12 +134,14 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
         if policy.get("ips_mode") == "whitelist":
             kinds.append("customer_whitelist_allow")
         for i, kind in enumerate(kinds):
-            plan.rules.append(FirewallRuleIntent(id=f"{customer_key}:{kind}", table="nat" if kind == "customer_nat_redirect" else "filter", chain=f"MPFC_{cport}", rule_key=f"mpf:{customer_key}:{kind}", rule_kind=kind, priority=100 + i, lane=lane_name, customer_key=customer_key, customer_id=customer.get("id"), customer_port=cport, backend_port=backend_port, accounting_role="customer_usage" if "accounting" in kind else None, match_json={"port": cport}, action_json={"target_backend": backend_port} if kind == "customer_nat_redirect" else {"intent": kind}, detail=f"planned intent {kind}"))
+            is_nat = kind == "customer_nat_redirect"
+            plan.rules.append(FirewallRuleIntent(id=f"{customer_key}:{kind}", table="nat" if is_nat else "filter", chain="MPF_NAT_PRE" if is_nat else f"MPFC_{cport}", rule_key=f"mpf:{customer_key}:{kind}", rule_kind=kind, priority=100 + i, lane=lane_name, customer_key=customer_key, customer_id=customer.get("id"), customer_port=cport, backend_port=backend_port, accounting_role="customer_usage" if "accounting" in kind else None, match_json={"port": cport}, action_json={"target_backend": backend_port} if is_nat else {"intent": kind}, detail=f"planned intent {kind}"))
         plan.changes.append(FirewallPlanChange(kind="create", object_type="rule_intent", object_id=f"customer:{customer_key}", detail="planned structured customer intents"))
 
-    for customer_key, ok in plan.accounting_coverage.items():
-        if not ok:
-            plan.warnings.append(FirewallPlanMessage(code="missing_accounting_coverage", message=f"customer {customer_key} missing accounting coverage intent", severity="warning"))
+    desired_chain_keys = {(c.table, c.chain) for c in plan.chains}
+    for r in plan.rules:
+        if (r.table, r.chain) not in desired_chain_keys:
+            plan.errors.append(FirewallPlanMessage(code="rule_chain_missing", message=f"rule {r.rule_key} references missing chain {r.table}:{r.chain}", severity="error"))
 
     if not active_customers:
         plan.changes.append(FirewallPlanChange(kind="keep", object_type="planner", object_id="no_active_customers", detail="no active customer forwarding intents"))

@@ -40,9 +40,19 @@ class FirewallRuleIntent:
 
 
 @dataclass(frozen=True)
+class FirewallLiveRuleSnapshot:
+    rule_key: str
+    table: str
+    chain: str
+    rule_kind: str | None = None
+    match_json: dict[str, Any] = field(default_factory=dict)
+    action_json: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class FirewallLiveSnapshot:
     chains: list[tuple[str, str]] = field(default_factory=list)
-    rule_keys: list[str] = field(default_factory=list)
+    rules: list[FirewallLiveRuleSnapshot] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
