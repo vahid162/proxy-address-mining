@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.27 - 2026-05-11
+
+- Cleaned current phase documentation before Phase 6 implementation by aligning `README.md` and `docs/PHASE_STATUS.md` to Phase 5 accepted / Phase 6 working state, added `docs/AI_PHASE_6_TASK.md` for planner-first boundaries, and kept all runtime, firewall apply, NAT, usage, abuse, UI, and Telegram behavior disabled.
+
 ## 0.1.26 - 2026-05-10
 
 - Fixed current sync gate NAT verification to avoid false failures on Docker-managed local-only DNAT publish rules (127.0.0.1:2015 and 127.0.0.1:60010) while preserving MPF/customer firewall reference blocking and local-only listener safety checks.
