@@ -67,8 +67,9 @@ Read:
 4. `docs/BACKEND_PORT_POLICY.md`
 5. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
 6. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-7. `docs/SAFETY.md`
-8. `docs/DATA_MODEL.md`
+7. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+8. `docs/SAFETY.md`
+9. `docs/DATA_MODEL.md`
 9. `docs/TAXONOMY.md`
 10. `docs/ABUSE.md`
 11. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
@@ -350,3 +351,6 @@ Stop and revise if any change introduces:
 ## Final Rule
 
 When in doubt, read the stricter document and choose the safer implementation.
+
+
+Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.

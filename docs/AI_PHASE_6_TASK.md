@@ -280,3 +280,6 @@ server time synchronization fixed before production-dependent jobs
 ```
 
 Do not combine planner/offline contract work with live apply behavior.
+
+
+Phase 6-C closure is documentation/test-only and live apply remains forbidden.

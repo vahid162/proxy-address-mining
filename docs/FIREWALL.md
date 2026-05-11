@@ -691,3 +691,19 @@ It summarizes evidence bundle, risk matrix, checklist, rollback readiness, canar
 It does **not** authorize live apply, rollback, or verify. It does **not** execute `iptables-save` or `iptables-restore`, does not acquire locks, does not write restore points/rollback files/database rows, and does not guess live state.
 
 Final decision remains `BLOCKED` while `firewall_apply_allowed: no` in the current phase gate.
+
+## Phase 6-C3 Closure Note
+
+Phase 6-C3 adds acceptance evidence and closure docs only.
+
+- Phase 6-C is accepted as offline/contract/review-only.
+- It does not implement apply.
+- It does not implement rollback.
+- It does not implement verify.
+- It does not execute iptables-save.
+- It does not execute iptables-restore.
+- It does not acquire locks.
+- It does not write restore points.
+- It does not change firewall/NAT/runtime state.
+
+Live apply remains forbidden until a dedicated apply gate is explicitly accepted.

@@ -4,4 +4,4 @@ Current repository state: Phase 5 accepted (DB-only customer CRUD), Phase 6 Fire
 No production traffic mutation is implemented here.
 """
 
-__version__ = "0.1.56"
+__version__ = "0.1.57"
