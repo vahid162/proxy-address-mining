@@ -19,26 +19,11 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 4 is accepted as a limited local-only proxy runtime activation. The accepted runtime state is intentionally narrow: Docker proxy containers may run through the guarded `phase4-runtime` profile, v2rayA UI is local-only on `127.0.0.1:2015`, and the BTC backend is local-only on `127.0.0.1:60010`.
-
-This does **not** authorize customer NAT redirects, customer firewall rules, firewall apply, production customer onboarding, usage timers, hash-rate/share collectors, abuse automation, UI, Telegram, or public API binding.
-
-Compatibility notes for server sync from older gate scripts:
-
-```text
-compatibility_previous_current_accepted_phase: Phase 4.2 — Runtime Activation Runbook Planning, synced and verified on farm5
-compatibility_previous_current_working_phase: Phase 4 Runtime Activation Execution Review
-compatibility_previous_server_state: farm5 Phase 4.2 planning synced and verified; runtime activation still not authorized
-compatibility_previous_proxy_data_plane_allowed: planning_only
-compatibility_previous_runtime_activation: runtime activation still not authorized
-compatibility_previous_current_accepted_phase: Phase 4.1 — Compose Template + Server Config Planning
-```
-
-The compatibility notes are not the current gate. The current gate is the `Current State` block above.
+The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
 ## Accepted Server Results
 
-### Phase 1 Server Result
+### Phase 1 — Bootstrap Without Traffic Changes
 
 ```text
 PostgreSQL active
@@ -48,27 +33,27 @@ mpf config validate OK
 mpf doctor OK
 mpf db ping OK
 pytest passed
-Docker has no containers
-No MPF firewall rules exist
-firewall.apply_mode remains plan_only
+Docker had no containers
+No MPF firewall rules existed
+firewall.apply_mode remained plan_only
 ```
 
-### Phase 2 Server Result
+### Phase 2 — PostgreSQL + Config + Domain Model
 
 ```text
 backup/snapshot created before migration
 pytest passed from /opt/mpf-py-src/.venv
 alembic current/head = 0001_phase2_initial_schema
 public schema table count = 64
-runtime tables remain empty
-Docker has no containers
-No MPF firewall rules exist
-firewall.apply_mode remains plan_only
+runtime tables remained empty
+Docker had no containers
+No MPF firewall rules existed
+firewall.apply_mode remained plan_only
 no proxy data-plane was started
 no production traffic was changed
 ```
 
-### Phase 3 Server Result
+### Phase 3 — CLI + Internal API Foundation
 
 ```text
 Phase 3 read-only CLI/API foundation accepted on farm5
@@ -87,19 +72,12 @@ firewall.apply_mode remained plan_only
 no production traffic was changed
 ```
 
-### Phase 3.1 Server Result
+### Phase 3.1 — Official Runtime Alignment
 
 ```text
-official /usr/local/bin/mpf runtime exposed Phase 3 read-only commands
-mpf --version reported 0.1.0
-mpf phase-status was aligned for Phase 3.1 during verification
-mpf config validate OK
-mpf doctor OK
-mpf db ping OK
-mpf db status OK
-mpf lanes list OK and read-only
-mpf customer list OK and read-only
-mpf jobs status OK and read-only
+official /usr/local/bin/mpf runtime exposed accepted read-only commands
+mpf --version reported 0.1.0 during acceptance
+mpf phase-status was aligned during verification
 pytest passed: 48 passed
 runtime-facing tables remained empty
 Docker had no containers
@@ -110,62 +88,7 @@ firewall.apply_mode remained plan_only
 no production traffic was changed
 ```
 
-### Phase 4.1 Server Result
-
-See:
-
-```text
-docs/PHASE_4_1_SERVER_RESULT.md
-```
-
-Accepted evidence:
-
-```text
-pytest passed: 60 passed
-mpf config validate OK
-mpf proxy config-check final_verdict: OK
-Phase 4 planning gate passed
-Runtime activation was still not authorized at that stage
-firewall.apply_mode remained plan_only
-proxy.runtime_activation_allowed remained false
-Docker had no proxy runtime containers
-no customer NAT redirects
-no customer firewall rules
-no usage timers
-no abuse automation
-no UI or Telegram runtime
-```
-
-### Phase 4.2 Server Sync Result
-
-See:
-
-```text
-docs/PHASE_4_2_SERVER_SYNC_RESULT.md
-```
-
-Accepted evidence:
-
-```text
-pytest passed: 60 passed
-mpf config validate OK
-mpf doctor OK
-mpf db ping OK
-mpf db status OK
-mpf proxy config-check final_verdict: OK
-Phase 4.2 planning gate passed
-Runtime activation was still not authorized at that stage
-Docker had no proxy runtime containers
-no MPF/backend firewall references detected
-no risky backend/UI ports listening
-no customer NAT redirects
-no customer firewall rules
-no usage timers
-no abuse automation
-no UI or Telegram runtime
-```
-
-### Phase 4 Runtime Activation Server Result
+### Phase 4 Runtime — Limited Proxy Runtime Startup
 
 See:
 
@@ -173,7 +96,7 @@ See:
 docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
 ```
 
-Accepted evidence:
+Accepted evidence summary:
 
 ```text
 server source aligned with GitHub ZIP
@@ -203,7 +126,7 @@ proxy.runtime_activation_allowed: false
 
 Docker-managed local publish rules for `127.0.0.1:2015` and `127.0.0.1:60010` are accepted only as local Docker publish rules. They are not MPF customer NAT redirects.
 
-### Phase 5 Final Acceptance Server Result
+### Phase 5 — Customer CRUD in DB Only
 
 See:
 
@@ -216,7 +139,8 @@ Accepted evidence summary:
 ```text
 Phase 5 accepted as DB-only customer CRUD + future-readiness contracts
 version accepted on server: 0.1.21
-pytest passed: 174 passed in 3.69s
+final synced repository/server gate: 0.1.26
+pytest passed: 182 passed during final clean sync evidence
 alembic_version: 0002_phase5_customer_lifecycle
 production_traffic: none
 firewall_apply_allowed: no
@@ -237,18 +161,20 @@ System clock synchronized: no
 NTP service: active
 ```
 
-This is not a Phase 4 acceptance blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This is not a Phase 6 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## What Is Allowed Now
 
 Allowed work is limited to **Phase 6 — Firewall Planner** preparation and planning-only implementation:
 
 ```text
-- firewall desired-model and planner/diff design and implementation
-- firewall planning tests and dry-run evidence generation
-- documentation updates that preserve phase gates and planner-first boundaries
+- repository/documentation cleanup that preserves the current gate
+- firewall desired-model design and implementation
+- firewall planner/diff design and implementation
+- human-readable and JSON plan output
+- dry-run evidence generation
+- planner tests and safety regression tests
 - proxy/backend safety checks that preserve internal reachability + external non-exposure contracts
-- no live firewall apply unless a dedicated Phase 6 apply gate is explicitly accepted
 ```
 
 ## What Is Forbidden Now
@@ -259,7 +185,7 @@ Do not implement, run, or activate:
 - production traffic
 - customer NAT redirects
 - customer firewall rules
-- live firewall apply (still forbidden until explicit Phase 6 apply gate acceptance)
+- live firewall apply
 - iptables-restore
 - usage timers
 - hash-rate/share collectors
@@ -275,6 +201,8 @@ Do not implement, run, or activate:
 - public backend exposure
 ```
 
+Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
+
 ## Current Safety Invariants
 
 ```text
@@ -284,7 +212,7 @@ production_traffic = none
 firewall_apply_allowed = no
 abuse_automation_allowed = no
 proxy_data_plane_allowed = limited_runtime_local_only
-customer_onboarding_allowed = db_only_after_phase5_gate
+customer_onboarding_allowed = db_only
 ```
 
 Any patch that bypasses these invariants or introduces traffic-changing behavior before the correct accepted phase must be rejected.
@@ -302,31 +230,30 @@ external_backend_exposed = NO
 
 Do not hide backend ports by blocking loopback, local server paths, required Docker/internal paths, or the future MPF-owned NAT redirect path.
 
-## Phase 5 Gate
+## Phase 5 Gate Status
 
-Phase 5 is **Customer CRUD in DB Only**.
+Phase 5 is accepted and closed.
 
-Before any Phase 5 implementation is accepted:
+Current Phase 5 state is:
 
 ```text
-docs/AI_PHASE_5_TASK.md exists
-customer CRUD remains DB-only
-no firewall apply is introduced
-no NAT redirect is introduced
-no production customer traffic is enabled
-all customer mutations go through service/repository boundaries
-ports are validated against lane and collision rules
-customer state changes are auditable or prepared for audit/event recording
-pytest passes
-server sync evidence is reviewed
+customer CRUD works in DB only
+policy history is preserved
+events/audit are recorded for DB-only customer mutations
+port/lane collisions are validated
+no iptables rule is created
+no NAT redirect is created
+no runtime customer traffic is enabled
 ```
+
+Future customer records remain DB-only until Phase 6 apply and customer NAT/customer firewall gates are accepted.
 
 ## Next Planned Step
 
 Proceed to:
 
 ```text
-Phase 5 — Customer CRUD in DB Only
+Phase 6-A — Repository Cleanup + Firewall Planner Contract and Desired-State Model
 ```
 
-Do not move to firewall apply, customer NAT redirects, usage timers, hash-rate collectors, or abuse automation until the relevant later phase gates pass.
+Phase 6-A must remain planning/model/diff/test only. Do not move to live firewall apply, customer NAT redirects, usage timers, hash-rate collectors, or abuse automation until the relevant later phase gates pass.
