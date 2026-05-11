@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.29 - 2026-05-11
+
+- Implemented Phase 6-A1 planner-only firewall foundation: desired/plan domain objects, dry-run planner service, and read-only `mpf firewall plan|diff` rendering (human/JSON) with safety checks for collisions/exposure and no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.
+
 ## 0.1.28 - 2026-05-11
 
 - Required Python 3.12 in package metadata to align the project with the accepted Ubuntu 24.04 server baseline and existing GitHub Actions CI runtime. This is metadata-only and introduces no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.
