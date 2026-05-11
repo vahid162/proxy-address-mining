@@ -28,6 +28,7 @@ from mpf.services import (
     firewall_apply_contract_service,
     firewall_apply_package_service,
     firewall_rollback_artifact_renderer,
+    firewall_preflight_service,
     proxy_doctor_service,
 )
 
@@ -708,6 +709,61 @@ def firewall_render_rollback(config: Path | None = typer.Option(None, "--config"
         typer.echo(f"ERROR [{e.code}] {e.message}")
     if not contract.renderable:
         raise typer.Exit(code=1)
+
+
+@firewall_app.command("preflight")
+def firewall_preflight(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
+    """Render offline apply gate preflight/failure matrix (inspection-only)."""
+    cfg = _load(config)
+    if source == "config-only":
+        result = firewall_planner_service.build_plan_from_config(cfg)
+    else:
+        try:
+            result = firewall_planner_service.build_plan_from_db(cfg)
+        except RuntimeError as exc:
+            typer.echo(f"ERROR: {exc}")
+            raise typer.Exit(1)
+
+    rollback_artifact = None
+    if rollback_snapshot_file is not None:
+        if not rollback_snapshot_file.exists() or not rollback_snapshot_file.is_file():
+            typer.echo(f"ERROR: unable to read rollback snapshot file: {rollback_snapshot_file}: file does not exist")
+            raise typer.Exit(1)
+        try:
+            snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(rollback_snapshot_file))
+        except Exception as exc:
+            typer.echo(f"ERROR: unable to parse rollback snapshot file: {rollback_snapshot_file}: {exc}")
+            raise typer.Exit(1)
+        rollback_artifact = firewall_rollback_artifact_renderer.render_rollback_artifact_from_snapshot(snapshot, source="offline_snapshot_file")
+
+    report = firewall_preflight_service.build_preflight_report(result, rollback_artifact=rollback_artifact)
+    if output == "json":
+        typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+        return
+
+    typer.echo("MPF firewall preflight (offline)")
+    for k in ("backend","apply_mode","preflight_version","artifact_only","inspection_only","live_apply_allowed","applyable","readiness","final_verdict"):
+        v = getattr(report, k)
+        typer.echo(f"{k}: {str(v).lower() if isinstance(v, bool) else v}")
+    typer.echo(f"planner_customer_source: {report.planner_customer_source}")
+    typer.echo(f"db_customer_input_loaded: {str(report.db_customer_input_loaded).lower()}")
+    typer.echo(f"restore_payload_renderable: {str(report.restore_payload_renderable).lower()}")
+    typer.echo(f"apply_contract_readiness: {report.apply_contract_readiness}")
+    typer.echo(f"package_present: {str(report.package_present).lower()}")
+    typer.echo(f"rollback_artifact_present: {str(report.rollback_artifact_present).lower()}")
+    typer.echo(f"rollback_artifact_renderable: {str(report.rollback_artifact_renderable).lower()}")
+    typer.echo(f"restore_point_required: {str(report.restore_point_required).lower()}")
+    typer.echo(f"lock_required_for_apply: {str(report.lock_required_for_apply).lower()}")
+    typer.echo(f"verify_required_after_apply: {str(report.verify_required_after_apply).lower()}")
+    typer.echo(f"rollback_artifact_required: {str(report.rollback_artifact_required).lower()}")
+    typer.echo(f"checks: total={report.check_count} ok={report.ok_count} warn={report.warn_count} blocked={report.blocked_count}")
+    typer.echo(f"firewall_change: {report.safety_flags['firewall_change']}")
+    typer.echo(f"nat_change: {report.safety_flags['nat_change']}")
+    typer.echo(f"runtime_change: {report.safety_flags['runtime_change']}")
+    for w in report.warnings:
+        typer.echo(f"WARNING [{w.code}] {w.message}")
+    for e in report.errors:
+        typer.echo(f"ERROR [{e.code}] {e.message}")
 
 @firewall_app.command("package")
 def firewall_package(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:

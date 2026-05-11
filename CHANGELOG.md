@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.50 - 2026-05-11
+
+- added Phase 6-B5 offline apply gate preflight / failure matrix.
+- added `mpf firewall preflight` command for inspection only.
+- preflight combines planner, restore payload contract, apply-readiness contract, package report, and optional rollback artifact status.
+- final verdict remains BLOCKED because live apply is still forbidden.
+- added tests proving no live firewall reads/writes, iptables-save, iptables-restore execution, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.49 - 2026-05-11
 
 - fixed Phase 6-B4 render-rollback default config handling so the command works without `--config` and uses the standard default config path.

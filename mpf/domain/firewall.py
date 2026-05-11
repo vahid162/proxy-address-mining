@@ -389,3 +389,64 @@ class FirewallApplyPackageReport:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass(frozen=True)
+class FirewallPreflightCheck:
+    key: str
+    status: str
+    message: str
+    blocking: bool = False
+    evidence: str = ""
+    remediation: str = ""
+
+
+@dataclass
+class FirewallPreflightReport:
+    backend: str = "iptables"
+    apply_mode: str = "plan_only"
+    preflight_version: str = "phase6-b5"
+    artifact_only: bool = True
+    inspection_only: bool = True
+    live_apply_allowed: bool = False
+    applyable: bool = False
+    readiness: str = "blocked_for_live_apply"
+    final_verdict: str = "BLOCKED"
+    planner_customer_source: str = "unknown"
+    db_customer_input_loaded: bool = False
+    restore_payload_present: bool = False
+    restore_payload_renderable: bool = False
+    apply_contract_present: bool = False
+    apply_contract_readiness: str = "blocked_for_live_apply"
+    package_present: bool = False
+    rollback_artifact_present: bool = False
+    rollback_artifact_renderable: bool = False
+    rollback_snapshot_required_later: bool = True
+    restore_point_required: bool = True
+    lock_required_for_apply: bool = True
+    verify_required_after_apply: bool = True
+    rollback_artifact_required: bool = True
+    check_count: int = 0
+    ok_count: int = 0
+    warn_count: int = 0
+    blocked_count: int = 0
+    checks: list[FirewallPreflightCheck] = field(default_factory=list)
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+    safety_flags: dict[str, Any] = field(default_factory=lambda: {
+        "live_firewall_read": False,
+        "live_firewall_write": False,
+        "iptables_save_executed": False,
+        "iptables_restore_executed": False,
+        "lock_acquired": False,
+        "restore_point_written": False,
+        "rollback_written": False,
+        "database_write": False,
+        "filesystem_write": False,
+        "runtime_change": "no",
+        "nat_change": "planned_only",
+        "firewall_change": "planned_only",
+    })
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

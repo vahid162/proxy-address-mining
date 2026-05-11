@@ -434,3 +434,49 @@ def test_firewall_render_rollback_no_save_restore_subprocess(monkeypatch, tmp_pa
     monkeypatch.setattr(subprocess, "run", _fail)
     res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(snapshot)])
     assert res.exit_code == 0
+
+def test_firewall_preflight_human_defaults_db(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "MPF firewall preflight (offline)" in res.output
+    assert "final_verdict: BLOCKED" in res.output
+    assert "planner_customer_source: db_readonly" in res.output
+
+
+def test_firewall_preflight_json_flags(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"artifact_only": true' in res.output
+    assert '"inspection_only": true' in res.output
+    assert '"live_apply_allowed": false' in res.output
+    assert '"applyable": false' in res.output
+    assert '"final_verdict": "BLOCKED"' in res.output
+
+
+def test_firewall_preflight_config_only_warning(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", lambda cfg: _config_plan())
+    res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path()), "--source", "config-only"])
+    assert res.exit_code == 0
+    assert "WARNING" in res.output
+
+
+def test_firewall_preflight_rollback_snapshot_file_and_invalid_path(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    snapshot = tmp_path / "rollback.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    ok = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path()), "--rollback-snapshot-file", str(snapshot)])
+    assert ok.exit_code == 0
+    bad = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path()), "--rollback-snapshot-file", str(tmp_path / 'missing.save')])
+    assert bad.exit_code == 1
+    assert "ERROR: unable to read rollback snapshot file" in bad.output
+
+
+def test_firewall_preflight_no_yes_and_no_subprocess(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("subprocess forbidden")))
+    bad = RUNNER.invoke(app, ["firewall", "preflight", "--yes"])
+    assert bad.exit_code != 0
+    res = RUNNER.invoke(app, ["firewall", "preflight", "--config", str(example_config_path())])
+    assert res.exit_code == 0
