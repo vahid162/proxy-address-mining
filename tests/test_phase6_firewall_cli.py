@@ -635,3 +635,21 @@ def test_firewall_gate_review_does_not_call_subprocess(monkeypatch) -> None:
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("subprocess forbidden")))
     res = RUNNER.invoke(app, ["firewall", "gate-review", "--config", str(example_config_path())])
     assert res.exit_code == 0
+
+
+def test_firewall_gate_review_invalid_output_exits_nonzero() -> None:
+    res = RUNNER.invoke(app, ["firewall", "gate-review", "--output", "payload"])
+    assert res.exit_code != 0
+
+
+def test_firewall_gate_review_no_yes_option() -> None:
+    res = RUNNER.invoke(app, ["firewall", "gate-review", "--yes"])
+    assert res.exit_code != 0
+
+
+def test_firewall_gate_review_snapshot_directory_exits_nonzero(tmp_path) -> None:
+    snapdir = tmp_path / "snaps"
+    snapdir.mkdir()
+    res = RUNNER.invoke(app, ["firewall", "gate-review", "--config", str(example_config_path()), "--rollback-snapshot-file", str(snapdir)])
+    assert res.exit_code == 1
+    assert "not a file" in res.output

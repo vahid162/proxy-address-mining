@@ -1,3 +1,5 @@
+# Changelog
+
 ## 0.1.56 - 2026-05-11
 
 - added Phase 6-C2 offline apply gate review report
@@ -7,8 +9,6 @@
 - updated docs/tests for Phase 6-C2
 - kept Phase 5 accepted / Phase 6 working gate unchanged
 - confirmed no live firewall reads/writes, iptables-save, iptables-restore, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced
-
-# Changelog
 
 ## 0.1.55 - 2026-05-11
 
