@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.44 - 2026-05-11
+
+- fixed stale Phase 6-A wording under PHASE_STATUS Next Planned Step to explicitly keep Phase 6-B contract/artifact/planning/test-only scope.
+- strengthened docs regression test to fail if stale "Phase 6-A must remain" wording returns.
+
 ## 0.1.43 - 2026-05-11
 
 - added Phase 6-B2 offline restore point, lock, verify, and rollback contracts.

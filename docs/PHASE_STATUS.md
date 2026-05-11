@@ -259,4 +259,4 @@ Proceed to:
 Phase 6-B — Offline Apply Contracts (artifact-only)
 ```
 
-Phase 6-A must remain planning/model/diff/test only. Do not move to live firewall apply, customer NAT redirects, usage timers, hash-rate collectors, or abuse automation until the relevant later phase gates pass.
+Phase 6-B must remain contract/artifact/planning/test only. Do not move to live firewall apply, iptables-save execution, iptables-restore execution, customer NAT redirects, customer firewall rules, usage timers, hash-rate collectors, or abuse automation until the relevant later phase gates pass.
