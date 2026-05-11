@@ -24,7 +24,7 @@ Before changing documentation, code, tests, scripts, config, deployment artifact
 12. the relevant phase document for the task
 13. the relevant domain document for the task
 
-For the current Phase 6-A work, also read:
+For the current Phase 6 work, also read:
 
 ```text
 docs/AI_PHASE_6_TASK.md
@@ -84,7 +84,7 @@ Current repository gate:
 ```text
 current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 current_working_phase: Phase 6 — Firewall Planner
-sub_step: Phase 6-A — Repository Cleanup + Firewall Planner Contract and Desired-State Model
+current_phase6_step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -94,28 +94,37 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 6-A allowed work:
+Current Phase 6-B allowed work:
 
 ```text
 repository/documentation cleanup that preserves gates
-firewall desired-state model
+firewall desired-state model refinement
 firewall planner/diff contracts
-human-readable plan rendering
-JSON plan rendering
+human-readable and JSON plan/report rendering
 dry-run evidence generation
-planner safety tests
+offline snapshot parser and file-backed diff fixtures
+offline restore payload artifacts
+offline apply-readiness contracts
+offline apply package reports
+offline rollback artifacts from explicit snapshot files
+offline preflight reports
+planner/contract/preflight safety tests
 backend exposure classification
 internal backend reachability classification
 ```
 
-Phase 6-A forbidden work:
+Current Phase 6-B forbidden work:
 
 ```text
 production traffic
 customer NAT redirects
 customer firewall rules
 live firewall apply
-iptables-restore
+live firewall rollback
+live firewall verify
+iptables-save execution
+iptables-restore execution
+conntrack flush
 usage timers
 hash-rate/share collectors
 abuse runner automation
@@ -148,9 +157,9 @@ CLI name: mpf
 first lane: BTC
 BTC backend port: 60010
 firewall backend: iptables first
-firewall apply mechanism: iptables-save / iptables-restore
+future firewall apply mechanism: iptables-save / iptables-restore after explicit apply gate
 scheduler: systemd timers
-initial firewall mode: plan_only
+initial/current firewall mode: plan_only
 local API/UI binding: 127.0.0.1 or Unix socket only
 ```
 
@@ -241,7 +250,7 @@ marking internal reachability failure as healthy
 
 All production firewall changes must go through the firewall service and firewall adapter.
 
-Required lifecycle:
+Required future lifecycle:
 
 ```text
 read DB/config
@@ -268,7 +277,7 @@ iptables-restore
 
 Direct firewall commands may appear only in diagnostics, isolated tests, or generated emergency restore artifacts, not as normal production state mutation.
 
-During Phase 6-A, no live apply or `iptables-restore` is allowed.
+During current Phase 6-B, no live firewall read/write, `iptables-save`, `iptables-restore`, apply, rollback, or verify execution is allowed.
 
 ## 10. Abuse Requirement
 
@@ -290,8 +299,8 @@ farms-over alone must not harden
 sustained miner-abuse hardens after about 3600 seconds
 hard creates restore point
 hard creates policy backup
-hard uses firewall plan/apply/verify path
-hard flushes affected conntrack scope
+hard uses firewall plan/apply/verify path after the relevant apply gate
+hard flushes affected conntrack scope after the relevant runtime gate
 manual unhard is audited
 ```
 
@@ -417,7 +426,7 @@ lane collision
 port collision
 backend external exposure detection
 backend internal reachability detection
-firewall planner/diff/rollback
+firewall planner/diff/rollback/preflight
 abuse state machine
 all-active-customer abuse coverage
 usage counter delta
@@ -433,7 +442,9 @@ Stop and revise before continuing if a change introduces any of these:
 
 ```text
 live firewall apply before explicit Phase 6 apply gate acceptance
-iptables-restore during Phase 6-A
+live firewall read/write dependency in current Phase 6-B inspection commands
+iptables-save execution in current Phase 6-B inspection commands
+iptables-restore execution in current Phase 6-B inspection commands
 abuse automation before Phase 8
 customer firewall rules before accepted gate
 NAT redirects before accepted gate
