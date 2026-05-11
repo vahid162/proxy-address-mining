@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.40 - 2026-05-11
+
+- added planner-only firewall doctor/report command (`mpf firewall doctor`) with thin CLI flow and service-layer reporting.
+- added coverage and drift summary for desired firewall model and optional offline snapshot file input (`--live-snapshot-file`) with no live firewall reads.
+- added human/json doctor output with stable fields and OK/WARN/CRITICAL verdict classification.
+- added safety tests proving no live firewall reads/writes, iptables-save, iptables-restore, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.39 - 2026-05-11
 
 - completed planner-only desired model behavior for active/paused/expired/deleted customers.

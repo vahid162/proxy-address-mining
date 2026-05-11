@@ -23,6 +23,7 @@ from mpf.services import (
     lane_service,
     lane_sync_service,
     firewall_planner_service,
+    firewall_doctor_service,
     proxy_doctor_service,
 )
 
@@ -85,6 +86,23 @@ def _extract_current_state_block(phase_status_path: Path) -> str:
     if not block:
         raise RuntimeError("empty fenced text block under ## Current State")
     return block
+
+
+
+def _load_optional_snapshot_file(live_snapshot_file: Path | None):
+    if live_snapshot_file is None:
+        return None
+    if not live_snapshot_file.exists():
+        typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: file does not exist")
+        raise typer.Exit(1)
+    if not live_snapshot_file.is_file():
+        typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: not a file")
+        raise typer.Exit(1)
+    try:
+        return firewall_snapshot_parser.parse_iptables_save_file(str(live_snapshot_file))
+    except OSError as exc:
+        typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: {exc}")
+        raise typer.Exit(1)
 
 def _emit_health_report(report: HealthReport) -> None:
     typer.echo(f"component: {report.component}")
@@ -504,19 +522,7 @@ def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), ou
 def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file", help="Offline iptables-save snapshot file (no live reads).")) -> None:
     """Render a dry-run firewall diff only."""
     cfg = _load(config)
-    snapshot = None
-    if live_snapshot_file is not None:
-        if not live_snapshot_file.exists():
-            typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: file does not exist")
-            raise typer.Exit(1)
-        if not live_snapshot_file.is_file():
-            typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: not a file")
-            raise typer.Exit(1)
-        try:
-            snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(live_snapshot_file))
-        except OSError as exc:
-            typer.echo(f"ERROR: unable to read live snapshot file: {live_snapshot_file}: {exc}")
-            raise typer.Exit(1)
+    snapshot = _load_optional_snapshot_file(live_snapshot_file)
     if source == "config-only":
         result = firewall_planner_service.build_plan_from_config_with_live_snapshot(cfg, snapshot) if snapshot is not None else firewall_planner_service.build_plan_from_config(cfg)
     else:
@@ -531,6 +537,26 @@ def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), ou
     typer.echo(result.to_human())
 
 
+
+
+@firewall_app.command("doctor")
+def firewall_doctor(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file", help="Offline iptables-save snapshot file (no live reads).")) -> None:
+    """Render planner-only firewall doctor/coverage report."""
+    cfg = _load(config)
+    snapshot = _load_optional_snapshot_file(live_snapshot_file)
+    if source == "config-only":
+        result = firewall_planner_service.build_plan_from_config_with_live_snapshot(cfg, snapshot) if snapshot is not None else firewall_planner_service.build_plan_from_config(cfg)
+    else:
+        try:
+            result = firewall_planner_service.build_plan_from_db_with_live_snapshot(cfg, snapshot) if snapshot is not None else firewall_planner_service.build_plan_from_db(cfg)
+        except RuntimeError as exc:
+            typer.echo(f"ERROR: {exc}")
+            raise typer.Exit(1)
+    report = firewall_doctor_service.build_doctor_report(result, snapshot_input="file" if snapshot is not None else "none")
+    if output == "json":
+        typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+        return
+    typer.echo(report.to_human())
 @events_app.command("latest")
 def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), limit: int = typer.Option(20, "--limit"), subject_type: str | None = typer.Option(None, "--subject-type"), severity: str | None = typer.Option(None, "--severity")) -> None:
     result = customer_read_service.latest_events(_load(config), limit=limit, subject_type=subject_type, severity=severity)

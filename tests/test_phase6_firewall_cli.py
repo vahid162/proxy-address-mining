@@ -99,6 +99,65 @@ def test_firewall_diff_live_snapshot_file_does_not_call_subprocess(monkeypatch, 
     assert res.exit_code == 0
 
 
+
+
+def test_firewall_doctor_defaults_to_db_readonly(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "doctor", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "planner_customer_source: db_readonly" in res.output
+
+
+def test_firewall_doctor_json_reports_db_source(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "doctor", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"planner_customer_source": "db_readonly"' in res.output
+    assert '"db_customer_input_loaded": true' in res.output
+
+
+def test_firewall_doctor_config_only_is_warn(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", lambda cfg: _config_plan())
+    res = RUNNER.invoke(app, ["firewall", "doctor", "--config", str(example_config_path()), "--source", "config-only"])
+    assert res.exit_code == 0
+    assert "final_verdict: WARN" in res.output
+
+
+def test_firewall_doctor_db_failure_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: (_ for _ in ()).throw(RuntimeError("failed to load lanes: db down")))
+    res = RUNNER.invoke(app, ["firewall", "doctor", "--config", str(example_config_path())])
+    assert res.exit_code == 1
+    assert "ERROR: failed to load lanes: db down" in res.output
+
+
+def test_firewall_doctor_live_snapshot_file(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db_with_live_snapshot", lambda cfg, snapshot: _db_plan())
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "doctor", "--config", str(example_config_path()), "--live-snapshot-file", str(snapshot)])
+    assert res.exit_code == 0
+    assert "snapshot_input: file" in res.output
+
+
+def test_firewall_doctor_invalid_snapshot_file_exits_nonzero(tmp_path) -> None:
+    missing = tmp_path / "missing.save"
+    res = RUNNER.invoke(app, ["firewall", "doctor", "--config", str(example_config_path()), "--live-snapshot-file", str(missing)])
+    assert res.exit_code == 1
+    assert f"ERROR: unable to read live snapshot file: {missing}: file does not exist" in res.output
+
+
+def test_firewall_doctor_snapshot_file_does_not_call_subprocess(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db_with_live_snapshot", lambda cfg, snapshot: _db_plan())
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("subprocess call is forbidden in offline snapshot doctor")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "doctor", "--config", str(example_config_path()), "--live-snapshot-file", str(snapshot)])
+    assert res.exit_code == 0
+
 def test_no_firewall_apply_or_rollback_commands() -> None:
     apply_res = RUNNER.invoke(app, ["firewall", "apply"])
     rollback_res = RUNNER.invoke(app, ["firewall", "rollback"])
