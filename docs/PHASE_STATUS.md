@@ -148,7 +148,10 @@ abuse_automation_allowed: no
 ui_allowed: no
 telegram_allowed: no
 no customer NAT redirects
+no customer firewall rules
 no MPF/customer firewall refs
+no production customer traffic
+no live firewall apply
 runtime remained limited local-only
 ```
 
