@@ -5,6 +5,7 @@ import subprocess
 from typer.testing import CliRunner
 
 from mpf.domain.firewall import FirewallPlanMessage, FirewallPlanResult
+from mpf.interfaces import cli
 from mpf.interfaces.cli import app
 from mpf.services import firewall_planner_service
 from tests.test_smoke import example_config_path
@@ -351,6 +352,33 @@ def test_firewall_render_rollback_payload_only(tmp_path) -> None:
     snapshot = tmp_path / "iptables.save"
     snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
     res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(snapshot), "--output", "payload"])
+    assert res.exit_code == 0
+    assert res.output.startswith("# MPF rollback artifact only")
+
+
+def test_firewall_render_rollback_without_config_human(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(cli, "_load", lambda config: cli.load_config(example_config_path()))
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--snapshot-file", str(snapshot)])
+    assert res.exit_code == 0
+    assert "MPF firewall rollback artifact (offline)" in res.output
+
+
+def test_firewall_render_rollback_without_config_json(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(cli, "_load", lambda config: cli.load_config(example_config_path()))
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--snapshot-file", str(snapshot), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"artifact_only": true' in res.output
+
+
+def test_firewall_render_rollback_without_config_payload(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(cli, "_load", lambda config: cli.load_config(example_config_path()))
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--snapshot-file", str(snapshot), "--output", "payload"])
     assert res.exit_code == 0
     assert res.output.startswith("# MPF rollback artifact only")
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.49 - 2026-05-11
+
+- fixed Phase 6-B4 render-rollback default config handling so the command works without `--config` and uses the standard default config path.
+- added regression tests for render-rollback without `--config` in human/json/payload modes.
+- confirmed no live firewall, iptables-save, iptables-restore, rollback execution, lock, DB/filesystem write, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.48 - 2026-05-11
 
 - fixed Phase 6-B4 rollback artifact to preserve MPF raw rule lines from explicit offline snapshots.

@@ -658,7 +658,7 @@ def firewall_apply_contract(config: Path | None = typer.Option(None, "--config",
 @firewall_app.command("render-rollback")
 def firewall_render_rollback(config: Path | None = typer.Option(None, "--config", "-c"), snapshot_file: Path = typer.Option(..., "--snapshot-file", help="Offline iptables-save snapshot file (required)."), output: str = typer.Option("human", "--output")) -> None:
     """Render offline rollback artifact only (inspection-only, no execution)."""
-    _ = load_config(config)
+    _ = _load(config)
     if output not in {"human", "json", "payload"}:
         raise typer.BadParameter("--output must be one of: human, json, payload")
     if not snapshot_file.exists() or not snapshot_file.is_file():
