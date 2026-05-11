@@ -132,3 +132,69 @@ class FirewallPlanResult:
         for error in self.errors:
             lines.append(f"ERROR [{error.code}] {error.message}")
         return "\n".join(lines)
+
+
+@dataclass(frozen=True)
+class FirewallRestoreRule:
+    table: str
+    chain: str
+    rule_key: str
+    line: str
+    planned_only: bool = False
+
+
+@dataclass(frozen=True)
+class FirewallRestoreChain:
+    table: str
+    chain: str
+    policy: str = "-"
+
+
+@dataclass
+class FirewallRestoreTable:
+    name: str
+    chains: list[FirewallRestoreChain] = field(default_factory=list)
+    rules: list[FirewallRestoreRule] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class FirewallRestoreValidationResult:
+    renderable: bool
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+
+@dataclass
+class FirewallRestorePayload:
+    payload: str
+    payload_sha256: str
+    payload_line_count: int
+    tables: list[FirewallRestoreTable] = field(default_factory=list)
+
+
+@dataclass
+class FirewallApplyContract:
+    backend: str = "iptables"
+    apply_mode: str = "plan_only"
+    artifact_only: bool = True
+    live_apply_allowed: bool = False
+    iptables_restore_allowed: bool = False
+    source_plan_version: str = "phase6-b1"
+    renderable: bool = False
+    applyable: bool = False
+    required_tables: list[str] = field(default_factory=lambda: ["filter", "nat"])
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+    safety_flags: dict[str, Any] = field(default_factory=lambda: {
+        "live_firewall_read": False,
+        "live_firewall_write": False,
+        "iptables_save_executed": False,
+        "iptables_restore_executed": False,
+        "runtime_change": "no",
+        "nat_change": "planned_only",
+        "firewall_change": "planned_only",
+    })
+    restore_payload: FirewallRestorePayload | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

@@ -55,6 +55,15 @@ read DB/config
   -> rollback or rollback-plan on failure
 ```
 
+## Phase 6-B1 Note (Offline Artifact Only)
+
+Phase 6-B starts apply-contract design only.
+
+- renderer output is offline artifact-only (`mpf firewall render-restore`)
+- live firewall apply remains forbidden
+- `iptables-restore` execution remains forbidden
+- this step does not change firewall/NAT/runtime live state
+
 ## Supported Backend
 
 Initial backend:
