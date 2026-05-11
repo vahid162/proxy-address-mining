@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.52 - 2026-05-11
+
+- aligned active Phase 6 documentation from stale Phase 6-A-only wording to current Phase 6-B offline apply-contract / preflight scope.
+- updated `README.md`, `AGENTS.md`, `docs/INDEX.md`, `docs/AI_CODING_RULES.md`, and `docs/AI_PHASE_6_TASK.md` to describe Phase 6-B as offline, artifact-only, inspection-only, and non-mutating.
+- kept Phase 5 accepted / Phase 6 working gate unchanged.
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.51 - 2026-05-11
 
 - fixed Phase 6-B5 preflight warning/error aggregation to deduplicate repeated messages.
