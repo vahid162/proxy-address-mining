@@ -22,17 +22,18 @@ docs/ABUSE.md
 docs/AI_CODING_RULES.md
 ```
 
+For the current Phase 6-A work, also read:
+
+```text
+docs/AI_PHASE_6_TASK.md
+docs/BACKEND_PORT_POLICY.md
+```
+
 For hash-rate, share, worker, or observability work, also read:
 
 ```text
 docs/OBSERVABILITY_HASHRATE.md
-```
-
-For proxy, Docker, backend ports, firewall guard, or Phase 4 work, also read:
-
-```text
-docs/BACKEND_PORT_POLICY.md
-docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
+docs/WORKER_POLICY.md
 ```
 
 ## Phase Gate Rule
@@ -41,41 +42,55 @@ The current phase in `docs/PHASE_STATUS.md` is authoritative.
 
 If a requested change belongs to a later phase, do not implement runtime behavior. Instead, refine the contract, add safe tests, and keep production behavior disabled.
 
-Phase 4 must not begin until Phase 3.1 passes.
-
-## Phase 3.1 Rule
-
-Phase 3.1 exists because the server check showed that `/opt/mpf-py-src` contains Phase 3 code, while the official `mpf` runtime still executes the older Phase 1 smoke CLI.
-
-Allowed in Phase 3.1:
+Current gate:
 
 ```text
-runtime alignment wrapper for the official mpf command
-read-only verification scripts
-documentation and contract improvements
-hash-rate/share data-model planning
-backend internal/external reachability rules
-no traffic-changing behavior
+accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
+working: Phase 6 — Firewall Planner
+sub-step: Phase 6-A — Repository Cleanup + Firewall Planner Contract and Desired-State Model
 ```
 
-Forbidden in Phase 3.1:
+## Phase 6-A Rule
+
+Phase 6-A exists to clean stale phase documentation and start the firewall planner safely.
+
+Allowed in Phase 6-A:
 
 ```text
-Docker proxy container startup
-v2rayA startup
-forwarder/gost startup
-customer CRUD mutation
+repository/documentation cleanup that preserves gates
+firewall desired-state model
+firewall planner/diff contracts
+human-readable plan rendering
+JSON plan rendering
+dry-run evidence generation
+planner tests
+backend exposure classification tests
+internal backend reachability classification tests
+```
+
+Forbidden in Phase 6-A:
+
+```text
+production traffic
+customer NAT redirects
 customer firewall rules
-NAT redirects
-firewall apply
+live firewall apply
+iptables-restore
 usage timers
-abuse automation
-block/pause automation
+hash-rate/share collectors
+abuse runner automation
+block or pause automation
 UI service
+buyer UI service
 Telegram bot
 production import
 worker enforcement
+public API binding
+public v2rayA UI exposure
+public backend exposure
 ```
+
+Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
 
 ## Service Boundary Rule
 
@@ -112,17 +127,19 @@ Future production migrations should use explicit Alembic operations instead of r
 
 The official server command must match the accepted repository phase.
 
-For farm5, these commands must run through the accepted Phase 3 CLI before Phase 4 planning can be considered server-aligned:
+For farm5, the following commands must report the current accepted/working gate before Phase 6 work can be trusted:
 
 ```bash
+mpf --version
 mpf phase-status
+mpf config validate
+mpf doctor
 mpf db status
-mpf lanes list
-mpf customer list
-mpf jobs status
+mpf proxy doctor
+bash scripts/verify_current_phase_gate.sh
 ```
 
-If `/usr/local/bin/mpf` reports Phase 1 while `/opt/mpf-py-src` has Phase 3 tests passing, the server is not runtime-aligned.
+If `/usr/local/bin/mpf` reports an older phase or the current gate script fails, the server is not runtime-aligned.
 
 ## Backend Port Rule
 
@@ -136,6 +153,8 @@ external_backend_exposed = NO
 ```
 
 Do not make internal health checks fail in order to hide backend ports from the outside.
+
+Docker-managed local-only DNAT for the accepted limited runtime is informational; it is not MPF customer NAT.
 
 ## Hash-rate and Share Observability Rule
 
@@ -169,12 +188,12 @@ Stop and revise if a change introduces:
 
 ```text
 traffic-changing behavior before the matching phase
-firewall apply before Phase 6
+live firewall apply before explicit Phase 6 apply gate acceptance
+iptables-restore during Phase 6-A
 abuse automation before Phase 8
 backend public exposure
 backend internal reachability failure
 NAT redirect before its phase
-customer mutation before Phase 5
 runtime CLI older than accepted phase
 high-volume share collection without retention policy
 UI charts reading raw high-volume events directly
