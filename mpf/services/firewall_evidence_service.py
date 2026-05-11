@@ -46,8 +46,10 @@ def build_evidence_bundle_report(
     package = package_report or build_apply_package_report(plan, restore, readiness)
     preflight = preflight_report or build_preflight_report(plan, restore, readiness, package, rollback_artifact)
 
-    warnings = _dedupe_messages(plan.warnings + restore.warnings + readiness.warnings + package.warnings + preflight.warnings)
-    errors = _dedupe_messages(plan.errors + restore.errors + readiness.errors + package.errors + preflight.errors)
+    rollback_warnings = rollback_artifact.warnings if rollback_artifact is not None else []
+    rollback_errors = rollback_artifact.errors if rollback_artifact is not None else []
+    warnings = _dedupe_messages(plan.warnings + restore.warnings + readiness.warnings + package.warnings + rollback_warnings + preflight.warnings)
+    errors = _dedupe_messages(plan.errors + restore.errors + readiness.errors + package.errors + rollback_errors + preflight.errors)
 
     sections = [
         _section("phase_gate", "BLOCKED", "Current phase blocks live apply/rollback.", {"final_verdict": "BLOCKED", "readiness": "blocked_for_live_apply"}),

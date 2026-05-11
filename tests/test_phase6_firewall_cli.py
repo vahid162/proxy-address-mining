@@ -564,3 +564,19 @@ def test_firewall_evidence_snapshot_does_not_call_subprocess(monkeypatch, tmp_pa
 def test_firewall_evidence_has_no_yes_option() -> None:
     res = RUNNER.invoke(app, ["firewall", "evidence", "--yes"])
     assert res.exit_code != 0
+
+
+def test_firewall_evidence_invalid_output_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--output", "payload"])
+    assert res.exit_code != 0
+
+
+def test_firewall_evidence_rollback_snapshot_not_a_file(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    not_file = tmp_path / "snapshots"
+    not_file.mkdir()
+    res = RUNNER.invoke(app, ["firewall", "evidence", "--config", str(example_config_path()), "--rollback-snapshot-file", str(not_file)])
+    assert res.exit_code == 1
+    assert "ERROR: unable to read rollback snapshot file" in res.output
+    assert "not a file" in res.output

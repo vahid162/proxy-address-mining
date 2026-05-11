@@ -55,3 +55,15 @@ def test_evidence_dedupes_messages_and_safety_flags() -> None:
     assert report.safety_flags["lock_acquired"] is False
     assert report.safety_flags["database_write"] is False
     assert report.safety_flags["filesystem_write"] is False
+
+
+def test_evidence_includes_and_dedupes_rollback_messages() -> None:
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[])
+    rollback = render_rollback_artifact_from_snapshot(parse_iptables_save_text(""), source="offline_snapshot_file")
+    rollback.warnings.append(FirewallPlanMessage(code="rw", message="rollback warn", severity="warning"))
+    rollback.warnings.append(FirewallPlanMessage(code="rw", message="rollback warn", severity="warning"))
+    rollback.errors.append(FirewallPlanMessage(code="re", message="rollback err", severity="error"))
+    rollback.errors.append(FirewallPlanMessage(code="re", message="rollback err", severity="error"))
+    report = build_evidence_bundle_report(plan, rollback_artifact=rollback)
+    assert len([w for w in report.warnings if w.code == "rw"]) == 1
+    assert len([e for e in report.errors if e.code == "re"]) == 1

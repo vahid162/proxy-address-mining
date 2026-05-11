@@ -817,7 +817,7 @@ def firewall_package(config: Path | None = typer.Option(None, "--config", "-c"),
 
 
 @firewall_app.command("evidence")
-def firewall_evidence(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
+def firewall_evidence(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
     """Render offline Phase 6-B acceptance evidence bundle (inspection-only)."""
     cfg = _load(config)
     if source == "config-only":
@@ -831,8 +831,11 @@ def firewall_evidence(config: Path | None = typer.Option(None, "--config", "-c")
 
     rollback_artifact = None
     if rollback_snapshot_file is not None:
-        if not rollback_snapshot_file.exists() or not rollback_snapshot_file.is_file():
+        if not rollback_snapshot_file.exists():
             typer.echo(f"ERROR: unable to read rollback snapshot file: {rollback_snapshot_file}: file does not exist")
+            raise typer.Exit(1)
+        if not rollback_snapshot_file.is_file():
+            typer.echo(f"ERROR: unable to read rollback snapshot file: {rollback_snapshot_file}: not a file")
             raise typer.Exit(1)
         try:
             snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(rollback_snapshot_file))
