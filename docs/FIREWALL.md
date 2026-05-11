@@ -56,6 +56,20 @@ read DB/config
 ```
 
 
+## Phase 6-C0 Note (Readiness Contract + Manual Canary Runbook Only)
+
+Phase 6-C0 adds a live apply gate readiness contract and manual canary runbook only.
+
+- it does not implement apply
+- it does not implement rollback
+- it does not implement verify
+- it does not execute `iptables-save`
+- it does not execute `iptables-restore`
+- it does not acquire locks
+- it does not write restore points
+- it does not change firewall/NAT/runtime state
+- live apply remains forbidden until a dedicated apply gate is explicitly accepted
+
 ## Phase 6-B6 Note (Offline Acceptance Evidence Bundle Only)
 
 Phase 6-B6 adds a single inspection-only acceptance evidence bundle via `mpf firewall evidence`.

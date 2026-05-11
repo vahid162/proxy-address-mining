@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.54 - 2026-05-11
+
+- added Phase 6-C0 live apply gate readiness contract and manual canary runbook.
+- added docs/tests to prove this does not authorize live apply.
+- updated documentation index/firewall docs for apply gate readiness.
+- kept Phase 5 accepted / Phase 6 working gate unchanged.
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.53 - 2026-05-11
 
 - added Phase 6-B6 offline Phase 6-B acceptance evidence bundle.
