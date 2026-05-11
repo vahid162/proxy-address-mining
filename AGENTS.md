@@ -2,8 +2,7 @@
 
 This repository is a Python-first, API-first greenfield rewrite of a mining proxy customer gateway control plane.
 
-The project replaces an older shell-script-based operational setup, but it must not copy, patch, or extend the old scripts directly.
-The goal is to preserve operational capabilities while implementing a clean, testable, PostgreSQL-backed Python architecture.
+The project replaces an older shell-script-based operational setup, but it must not copy, patch, or extend the old scripts directly. The goal is to preserve operational capabilities while implementing a clean, testable, PostgreSQL-backed Python architecture.
 
 This file is mandatory reading for every human contributor and AI coding agent before making changes.
 
@@ -25,10 +24,11 @@ Before changing documentation, code, tests, scripts, config, deployment artifact
 12. the relevant phase document for the task
 13. the relevant domain document for the task
 
-For Phase 3.1 or Phase 4-adjacent work, also read:
+For the current Phase 6-A work, also read:
 
 ```text
-docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
+docs/AI_PHASE_6_TASK.md
+docs/FIREWALL.md
 docs/BACKEND_PORT_POLICY.md
 ```
 
@@ -36,9 +36,10 @@ For hash-rate, share, worker, reporting, or charting work, also read:
 
 ```text
 docs/OBSERVABILITY_HASHRATE.md
+docs/WORKER_POLICY.md
 ```
 
-If documents conflict, follow the stricter safety rule and update the documentation before implementing code.
+If documents conflict, follow the stricter safety rule and update stale documentation before implementing code.
 
 ## 2. Project Identity
 
@@ -78,44 +79,58 @@ The current phase is defined only in:
 docs/PHASE_STATUS.md
 ```
 
-At the time this rule was added, the active gate is:
+Current repository gate:
 
 ```text
-Phase 3.1 — Pre-Phase4 Runtime Alignment + Future Observability Contracts
+current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
+current_working_phase: Phase 6 — Firewall Planner
+sub_step: Phase 6-A — Repository Cleanup + Firewall Planner Contract and Desired-State Model
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
 ```
 
-Phase 4 must not continue until Phase 3.1 is accepted on the server and recorded.
-
-Phase 3.1 allowed work:
+Phase 6-A allowed work:
 
 ```text
-runtime alignment wrapper for the official mpf command
-read-only verification scripts
-documentation and contract improvements
-hash-rate/share data-model planning
-backend internal/external reachability rules
-no traffic-changing behavior
+repository/documentation cleanup that preserves gates
+firewall desired-state model
+firewall planner/diff contracts
+human-readable plan rendering
+JSON plan rendering
+dry-run evidence generation
+planner safety tests
+backend exposure classification
+internal backend reachability classification
 ```
 
-Phase 3.1 forbidden work:
+Phase 6-A forbidden work:
 
 ```text
-Docker proxy container startup
-v2rayA startup
-forwarder/gost startup
-customer CRUD mutation
+production traffic
+customer NAT redirects
 customer firewall rules
-NAT redirects
-firewall apply
+live firewall apply
+iptables-restore
 usage timers
 hash-rate/share collectors
-abuse automation
-block/pause automation
-UI service
+abuse runner automation
+block or pause automation
+local UI service
+buyer UI service
 Telegram bot
-production import
+production customer import
 worker enforcement
+public API binding
+public v2rayA UI exposure
+public backend exposure
 ```
+
+Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
 
 ## 4. Fixed Architecture Decisions
 
@@ -165,10 +180,7 @@ job writes state without service validation
 adapter owns business decisions
 ```
 
-Interfaces must be thin.
-Services own validation, business transitions, audit, and side-effect ordering.
-Repositories own persistence.
-Adapters own external-system interaction.
+Interfaces must be thin. Services own validation, business transitions, audit, and side-effect ordering. Repositories own persistence. Adapters own external-system interaction.
 
 ## 6. Source of Truth Rule
 
@@ -200,16 +212,13 @@ TSV as the main customer source of truth
 
 Multi-lane support is required from day one.
 
-BTC is the first lane and uses backend port `60010`.
-Future coins such as ZEC/LTC must be implemented through lanes.
-
-Do not copy scripts or command trees per coin.
+BTC is the first lane and uses backend port `60010`. Future coins such as ZEC/LTC must be implemented through lanes. Do not copy scripts or command trees per coin.
 
 ## 8. Backend Port Rule
 
 Backend ports are internal service ports. They must be blocked from direct external/public access while remaining reachable from valid internal server and Docker paths.
 
-Required future doctor split:
+Required doctor split:
 
 ```text
 internal_backend_reachable = OK
@@ -250,14 +259,16 @@ read DB/config
   -> rollback or rollback-plan on failure
 ```
 
-Allowed apply mechanism:
+Allowed apply mechanism after a future apply gate:
 
 ```text
 iptables-save
 iptables-restore
 ```
 
-Direct firewall commands may appear only in diagnostics, tests, or generated emergency restore artifacts, not as normal production state mutation.
+Direct firewall commands may appear only in diagnostics, isolated tests, or generated emergency restore artifacts, not as normal production state mutation.
+
+During Phase 6-A, no live apply or `iptables-restore` is allowed.
 
 ## 10. Abuse Requirement
 
@@ -304,9 +315,7 @@ UI charts from aggregated samples
 retention policy before high-volume collection
 ```
 
-Worker name alone must not be treated as a guaranteed physical device identity.
-
-No high-volume share/hash-rate collector may be activated before retention and partitioning are reviewed.
+Worker name alone must not be treated as a guaranteed physical device identity. No high-volume share/hash-rate collector may be activated before retention and partitioning are reviewed.
 
 ## 12. Events, Audit, and Restore Points
 
@@ -314,7 +323,7 @@ Every meaningful mutation must record an event.
 
 Every dangerous or destructive action must create a restore point.
 
-Required before these actions:
+Required before these future actions:
 
 ```text
 firewall apply
@@ -333,9 +342,7 @@ Audit is required for customer changes, policy changes, firewall apply/rollback,
 
 Use systemd timers, not mixed cron and systemd.
 
-Every recurring job must write `job_runs`.
-Every job that can overlap must use `scheduler_locks`.
-Jobs must call services and must not bypass service validation.
+Every recurring job must write `job_runs`. Every job that can overlap must use `scheduler_locks`. Jobs must call services and must not bypass service validation.
 
 ## 14. Secrets
 
@@ -368,9 +375,7 @@ Early API/UI must bind only locally:
 Unix socket
 ```
 
-Buyer-facing UI is future work and must be read-only first.
-Buyer accounts must be modeled separately from customer service/port records.
-Future buyer actions should create reviewed `action_requests` rather than directly mutating customers, firewall state, abuse state, blocks, pauses, or policy.
+Buyer-facing UI is future work and must be read-only first. Buyer accounts must be modeled separately from customer service/port records. Future buyer actions should create reviewed `action_requests` rather than directly mutating customers, firewall state, abuse state, blocks, pauses, or policy.
 
 Telegram starts as notification-only and must not run shell commands.
 
@@ -427,11 +432,11 @@ interface boundary tests
 Stop and revise before continuing if a change introduces any of these:
 
 ```text
-firewall apply before Phase 6
+live firewall apply before explicit Phase 6 apply gate acceptance
+iptables-restore during Phase 6-A
 abuse automation before Phase 8
-customer mutation before Phase 5
-customer firewall rules before Phase 6
-NAT redirects before their accepted phase
+customer firewall rules before accepted gate
+NAT redirects before accepted gate
 backend public exposure
 backend internal reachability failure
 UI direct DB write
