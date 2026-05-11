@@ -29,6 +29,7 @@ from mpf.services import (
     firewall_apply_package_service,
     firewall_rollback_artifact_renderer,
     firewall_preflight_service,
+    firewall_evidence_service,
     proxy_doctor_service,
 )
 
@@ -812,6 +813,57 @@ def firewall_package(config: Path | None = typer.Option(None, "--config", "-c"),
     for w in package.warnings:
         typer.echo(f"WARNING [{w.code}] {w.message}")
     for e in package.errors:
+        typer.echo(f"ERROR [{e.code}] {e.message}")
+
+
+@firewall_app.command("evidence")
+def firewall_evidence(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
+    """Render offline Phase 6-B acceptance evidence bundle (inspection-only)."""
+    cfg = _load(config)
+    if source == "config-only":
+        result = firewall_planner_service.build_plan_from_config(cfg)
+    else:
+        try:
+            result = firewall_planner_service.build_plan_from_db(cfg)
+        except RuntimeError as exc:
+            typer.echo(f"ERROR: {exc}")
+            raise typer.Exit(1)
+
+    rollback_artifact = None
+    if rollback_snapshot_file is not None:
+        if not rollback_snapshot_file.exists() or not rollback_snapshot_file.is_file():
+            typer.echo(f"ERROR: unable to read rollback snapshot file: {rollback_snapshot_file}: file does not exist")
+            raise typer.Exit(1)
+        try:
+            snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(rollback_snapshot_file))
+        except Exception as exc:
+            typer.echo(f"ERROR: unable to parse rollback snapshot file: {rollback_snapshot_file}: {exc}")
+            raise typer.Exit(1)
+        rollback_artifact = firewall_rollback_artifact_renderer.render_rollback_artifact_from_snapshot(snapshot, source="offline_snapshot_file")
+
+    report = firewall_evidence_service.build_evidence_bundle_report(result, rollback_artifact=rollback_artifact)
+    if output == "json":
+        typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+        return
+    typer.echo("MPF firewall evidence bundle (offline)")
+    for k in ("backend", "apply_mode", "evidence_version", "artifact_only", "inspection_only", "live_apply_allowed", "applyable", "readiness", "final_verdict"):
+        v = getattr(report, k)
+        typer.echo(f"{k}: {str(v).lower() if isinstance(v, bool) else v}")
+    typer.echo(f"planner_customer_source: {report.planner_customer_source}")
+    typer.echo(f"db_customer_input_loaded: {str(report.db_customer_input_loaded).lower()}")
+    typer.echo(f"restore_payload_renderable: {str(report.restore_summary.get('renderable', False)).lower()}")
+    typer.echo(f"apply_contract_readiness: {report.apply_contract_summary.get('readiness', 'blocked_for_live_apply')}")
+    typer.echo(f"package_present: {str(report.package_summary.get('present', True)).lower()}")
+    typer.echo(f"rollback_artifact_present: {str(report.rollback_summary.get('present', False)).lower()}")
+    typer.echo(f"rollback_artifact_renderable: {str(report.rollback_summary.get('renderable', False)).lower()}")
+    typer.echo(f"preflight_final_verdict: {report.preflight_summary.get('final_verdict', 'BLOCKED')}")
+    typer.echo(f"sections: total={report.section_count} ok={report.ok_count} warn={report.warn_count} blocked={report.blocked_count}")
+    typer.echo(f"firewall_change: {report.safety_flags['firewall_change']}")
+    typer.echo(f"nat_change: {report.safety_flags['nat_change']}")
+    typer.echo(f"runtime_change: {report.safety_flags['runtime_change']}")
+    for w in report.warnings:
+        typer.echo(f"WARNING [{w.code}] {w.message}")
+    for e in report.errors:
         typer.echo(f"ERROR [{e.code}] {e.message}")
 
 @events_app.command("latest")

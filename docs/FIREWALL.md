@@ -55,6 +55,19 @@ read DB/config
   -> rollback or rollback-plan on failure
 ```
 
+
+## Phase 6-B6 Note (Offline Acceptance Evidence Bundle Only)
+
+Phase 6-B6 adds a single inspection-only acceptance evidence bundle via `mpf firewall evidence`.
+
+- summarizes planner, diff/doctor contract status, restore artifact, apply contract, package, optional rollback artifact, and preflight
+- remains artifact-only and inspection-only
+- does not permit live apply or live rollback
+- does not execute `iptables-save` or `iptables-restore`
+- does not acquire locks
+- does not write restore points, rollback files, or database rows
+- final verdict remains `BLOCKED` while current phase forbids live apply
+
 ## Phase 6-B1/B2 Note (Offline Artifact/Contract Only)
 
 Phase 6-B2 adds offline contracts for restore point, lock, verify, rollback, and apply-readiness inspection only.
