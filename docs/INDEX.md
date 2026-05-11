@@ -17,9 +17,9 @@ Read these first:
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
-`docs/PHASE_STATUS.md` is the current phase guard.
-`docs/AI_CODING_RULES.md` defines the current AI coding rules and stop conditions.
-`docs/AI_PHASE_6_TASK.md` defines the current Phase 6-A planner-first task boundary.
+`docs/PHASE_STATUS.md` is the authoritative current phase guard.
+`docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
+`docs/AI_PHASE_6_TASK.md` defines the current Phase 6 firewall-planner/offline-apply-contract boundary.
 This file is the documentation map.
 
 ## Core Contracts
@@ -53,6 +53,12 @@ Current working phase:
 Phase 6 — Firewall Planner
 ```
 
+Current Phase 6 step:
+
+```text
+Phase 6-B — Offline Apply Contracts / Preflight Inspection
+```
+
 Read:
 
 1. `docs/PHASE_STATUS.md`
@@ -68,10 +74,9 @@ Read:
 11. `docs/OBSERVABILITY_HASHRATE.md`
 12. `docs/INTRANET_INSTALL.md`
 
-The current step is Phase 6-A repository cleanup plus firewall planner contract and desired-state model work.
-It must not create NAT redirects, apply firewall rules, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
+The current step is Phase 6-B offline apply-contract/preflight work. It may render and inspect offline artifacts only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
-Historical note: Phase 5 — Customer CRUD in DB Only included documentation-only contract clarification for customer lifecycle, control rules, worker policy, and future abuse coverage. This does not authorize any runtime behavior now.
+Historical note: Phase 6-A established planner/model/diff foundations. Phase 5 — Customer CRUD in DB Only included documentation-only contract clarification for customer lifecycle, control rules, worker policy, and future abuse coverage. These historical notes do not authorize runtime behavior now.
 
 ## Reading Order by Task
 
@@ -139,57 +144,7 @@ Rules:
 - no usage or abuse automation
 - customer validation must avoid future schema/service dead ends for lifecycle, controls, and worker policy
 
-### Customer lifecycle work
-
-Read:
-
-1. `../AGENTS.md`
-2. `docs/PHASE_STATUS.md`
-3. `docs/AI_CODING_RULES.md`
-4. `docs/AI_PHASE_5_TASK.md`
-5. `docs/CUSTOMER_LIFECYCLE.md`
-6. `docs/DATA_MODEL.md`
-7. `docs/TAXONOMY.md`
-8. `docs/ABUSE.md`
-9. relevant phase/domain document
-
-Rules:
-
-- `activation_mode` is explicit: `immediate` or `first_connect`
-- first-connect runtime detection is future-only
-- do not add `pending_activation` customer status
-- auto-expire runtime is forbidden in Phase 5
-- auto-delete runtime is forbidden in Phase 5
-- delete is soft-delete by default
-- active customers must remain abuse-evaluable
-- DB-only lifecycle reports and dry-run previews must not mutate firewall, NAT, timers, or runtime state
-
-### Database or migration work
-
-Read:
-
-1. `../AGENTS.md`
-2. `docs/PHASE_STATUS.md`
-3. `docs/AI_CODING_RULES.md`
-4. `docs/ARCHITECTURE.md`
-5. `docs/SAFETY.md`
-6. `docs/DATA_MODEL.md`
-7. `docs/TAXONOMY.md`
-8. `docs/CUSTOMER_LIFECYCLE.md`
-9. `docs/CONTROL_RULES.md`
-10. `docs/WORKER_POLICY.md`
-11. relevant phase/domain document
-
-Rules:
-
-- PostgreSQL is source of truth.
-- Migrations are required for schema changes.
-- Future production migrations should use explicit Alembic operations.
-- Do not run production migrations until reviewed and explicitly approved.
-- Control-rule and worker-routing migrations are not authorized by documentation-only contracts.
-- On farm5, run Alembic from `/opt/mpf-py-src`, not from `/root`.
-
-### Firewall, proxy, or backend port work
+### Firewall, proxy, backend port, or current Phase 6 work
 
 Read:
 
@@ -209,12 +164,13 @@ Rules:
 - no ad-hoc production firewall mutation
 - desired model first
 - plan/diff before apply
-- restore point before apply
-- atomic apply through `iptables-restore`
+- restore point before any future apply
+- atomic apply through `iptables-restore` only after a future explicit apply gate
 - backend direct external exposure is critical
 - backend internal reachability failure is also critical
 - never hide backend ports by breaking valid internal paths
-- Phase 6-A must remain planner/model/diff/test only until a dedicated apply gate is accepted
+- current Phase 6-B must remain offline/artifact-only/inspection-only until a dedicated apply gate is accepted
+- current Phase 6-B must not execute `iptables-save`, `iptables-restore`, live apply, live rollback, live verify, or conntrack flush
 
 ### Hash-rate, share, worker, or observability work
 
@@ -237,30 +193,6 @@ Rules:
 - UI charts must read aggregate samples, not raw high-volume events
 - worker name alone is not a guaranteed physical device identity
 - worker enforcement is future-only until evidence and adapter phases are accepted
-
-### Control rules, block, pause, or worker policy work
-
-Read:
-
-1. `../AGENTS.md`
-2. `docs/PHASE_STATUS.md`
-3. `docs/AI_CODING_RULES.md`
-4. `docs/SAFETY.md`
-5. `docs/DATA_MODEL.md`
-6. `docs/TAXONOMY.md`
-7. `docs/CONTROL_RULES.md`
-8. `docs/WORKER_POLICY.md`
-9. `docs/FIREWALL.md`
-10. `docs/ABUSE.md`
-11. relevant phase/domain document
-
-Rules:
-
-- runtime block/pause commands are future work
-- worker scanner or worker enforcement are future work
-- control rules are future intent, not firewall rules by themselves
-- worker blocking must not be modeled as firewall-only
-- abuse coverage for all active customers must remain intact
 
 ### Abuse work
 
@@ -340,51 +272,11 @@ Defines the accepted phase, current working phase, allowed work, forbidden work,
 
 ### `docs/AI_PHASE_6_TASK.md`
 
-Defines Phase 6-A cleanup and firewall planner-first boundaries.
+Defines the active Phase 6 firewall-planner/offline-apply-contract boundary.
 
 ### `docs/AI_PHASE_5_TASK.md`
 
 Historical active task for accepted Phase 5 Customer CRUD in DB Only.
-
-### `docs/CUSTOMER_LIFECYCLE.md`
-
-Defines accepted Phase 5 customer lifecycle contracts for activation modes, first-connect deferral, auto-expire and auto-delete deferral, soft-delete, customer_key, DB-only reports, dry-run expectations, and abuse coverage preservation.
-
-### `docs/CONTROL_RULES.md`
-
-Defines future control-intent concepts for block, pause, whitelist, rate-limit, worker block, worker route, and notify-only behavior. It has no current runtime effect.
-
-### `docs/WORKER_POLICY.md`
-
-Defines the future worker policy and worker routing boundary. It forbids firewall-only worker blocking and keeps worker enforcement future-only until evidence and adapter phases are accepted.
-
-### `docs/BACKEND_PORT_POLICY.md`
-
-Defines the backend-port invariant: internal reachability must remain OK while external direct exposure must be blocked.
-
-### `docs/OBSERVABILITY_HASHRATE.md`
-
-Defines future accepted/rejected hash-rate and share observability contracts.
-
-### `docs/ARCHITECTURE.md`
-
-Defines target architecture, API-first boundary, module layout, lane model, source of truth, firewall lifecycle, jobs, events, and future UI/Telegram boundaries.
-
-### `docs/SAFETY.md`
-
-Defines safety guardrails, phase gates, firewall safety, locking, restore points, abuse safety, secrets, UI/API exposure, job safety, canary policy, and AI safety checklist.
-
-### `docs/ROADMAP.md`
-
-Defines numbered phases, acceptance gates, MVP scope, stop conditions, and required tests by risk area.
-
-### `docs/DATA_MODEL.md`
-
-Defines PostgreSQL schema contract, table groups, relationships, ownership by services, indexes, retention, imports, and acceptance checklist.
-
-### `docs/TAXONOMY.md`
-
-Defines event/action/status taxonomy, actor/request context, phase gates, retention/partitioning timing, aggregate reporting timing, and evidence artifact reference rules.
 
 ### `docs/FIREWALL.md`
 
@@ -425,25 +317,29 @@ Phase 15  — Worker Policy Enforcement
 Stop and revise if any change introduces:
 
 1. firewall apply before explicit Phase 6 apply gate acceptance
-2. abuse automation before Phase 8
-3. customer rules before their phase
-4. NAT redirects before their phase
-5. backend public exposure
-6. backend internal reachability failure
-7. UI direct DB write
-8. Telegram shell command execution
-9. bypassing `firewall.apply_mode=plan_only`
-10. production TSV/SQLite source of truth
-11. silent abuse scan exclusion
-12. ad-hoc production firewall mutation
-13. missing event/audit for mutation
-14. missing restore point for dangerous action
-15. proxy data-plane activation outside accepted runtime gates
-16. high-volume share/hash-rate collection before retention and partitioning review
-17. UI charts reading raw high-volume share events directly
-18. worker/block/pause/usage/abuse runtime before accepted phase
-19. public v2rayA UI exposure
-20. public backend exposure
+2. live firewall read/write dependency in current Phase 6-B inspection commands
+3. `iptables-save` execution in current Phase 6-B inspection commands
+4. `iptables-restore` execution in current Phase 6-B inspection commands
+5. conntrack flush before the relevant runtime gate
+6. abuse automation before Phase 8
+7. customer rules before their phase
+8. NAT redirects before their phase
+9. backend public exposure
+10. backend internal reachability failure
+11. UI direct DB write
+12. Telegram shell command execution
+13. bypassing `firewall.apply_mode=plan_only`
+14. production TSV/SQLite source of truth
+15. silent abuse scan exclusion
+16. ad-hoc production firewall mutation
+17. missing event/audit for mutation
+18. missing restore point for dangerous action
+19. proxy data-plane activation outside accepted runtime gates
+20. high-volume share/hash-rate collection before retention and partitioning review
+21. UI charts reading raw high-volume share events directly
+22. worker/block/pause/usage/abuse runtime before accepted phase
+23. public v2rayA UI exposure
+24. public backend exposure
 
 ## Final Rule
 
