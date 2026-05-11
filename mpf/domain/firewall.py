@@ -5,14 +5,54 @@ from typing import Any
 
 
 @dataclass(frozen=True)
+class FirewallChainIntent:
+    id: str
+    table: str
+    chain: str
+    owner: str
+    purpose: str
+    lane: str | None = None
+    customer_key: str | None = None
+    customer_port: int | None = None
+    required: bool = True
+    group: str = "default"
+    order: int = 0
+
+
+@dataclass(frozen=True)
 class FirewallRuleIntent:
     id: str
     table: str
     chain: str
-    action: str
+    rule_key: str
+    rule_kind: str
+    priority: int
+    match_json: dict[str, Any] = field(default_factory=dict)
+    action_json: dict[str, Any] = field(default_factory=dict)
     lane: str | None = None
     customer_key: str | None = None
+    customer_id: int | None = None
+    customer_port: int | None = None
+    backend_port: int | None = None
+    accounting_role: str | None = None
+    safety_role: str | None = None
     detail: str = ""
+
+
+@dataclass(frozen=True)
+class FirewallLiveRuleSnapshot:
+    rule_key: str
+    table: str
+    chain: str
+    rule_kind: str | None = None
+    match_json: dict[str, Any] = field(default_factory=dict)
+    action_json: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class FirewallLiveSnapshot:
+    chains: list[tuple[str, str]] = field(default_factory=list)
+    rules: list[FirewallLiveRuleSnapshot] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -35,12 +75,18 @@ class FirewallPlanResult:
     backend: str = "iptables"
     apply_mode: str = "plan_only"
     tables: list[str] = field(default_factory=lambda: ["filter", "nat"])
-    chains: list[str] = field(default_factory=list)
+    chains: list[FirewallChainIntent] = field(default_factory=list)
     rules: list[FirewallRuleIntent] = field(default_factory=list)
     lane_backend_coverage: list[str] = field(default_factory=list)
     customer_coverage: list[str] = field(default_factory=list)
     customer_policy_references: list[str] = field(default_factory=list)
-    backend_guard_intent: str = "internal_backend_reachable=OK,external_backend_exposed=NO"
+    accounting_coverage: dict[str, bool] = field(default_factory=dict)
+    backend_guard_intent: dict[str, Any] = field(default_factory=lambda: {
+        "internal_backend_reachable": "OK",
+        "external_backend_exposed": "NO",
+        "preserve_loopback": True,
+        "preserve_docker_internal_paths": True,
+    })
     changes: list[FirewallPlanChange] = field(default_factory=list)
     warnings: list[FirewallPlanMessage] = field(default_factory=list)
     errors: list[FirewallPlanMessage] = field(default_factory=list)
@@ -57,6 +103,7 @@ class FirewallPlanResult:
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
+        data["chains"] = [asdict(x) for x in self.chains]
         data["rules"] = [asdict(x) for x in self.rules]
         data["changes"] = [asdict(x) for x in self.changes]
         data["warnings"] = [asdict(x) for x in self.warnings]
@@ -74,6 +121,8 @@ class FirewallPlanResult:
             f"runtime_change: {self.runtime_change}",
             f"planner_customer_source: {self.planner_customer_source}",
             f"db_customer_input_loaded: {str(self.db_customer_input_loaded).lower()}",
+            f"chains: {len(self.chains)}",
+            f"rules: {len(self.rules)}",
             f"changes: {len(self.changes)}",
             f"warnings: {len(self.warnings)}",
             f"errors: {len(self.errors)}",
