@@ -6,6 +6,15 @@ from mpf.config import MPFConfig
 from mpf.domain.firewall import FirewallPlanChange, FirewallPlanMessage, FirewallPlanResult, FirewallRuleIntent
 from mpf.repositories import firewall_planner_read_repo
 
+_REQUIRED_POLICY_FIELDS = ("miners", "farms", "maxconn", "rate_per_min", "burst", "ips_mode")
+
+
+def _policy_missing_or_incomplete(policy: dict | None) -> tuple[bool, list[str]]:
+    if not policy:
+        return True, list(_REQUIRED_POLICY_FIELDS)
+    missing = [field for field in _REQUIRED_POLICY_FIELDS if policy.get(field) is None]
+    return len(missing) > 0, missing
+
 
 def build_plan(
     *,
@@ -19,7 +28,9 @@ def build_plan(
     plan.planner_customer_source = planner_customer_source
     plan.db_customer_input_loaded = db_customer_input_loaded
 
+    known_lanes = {str(lane["name"]): lane for lane in lanes}
     enabled_lanes = [lane for lane in lanes if lane.get("enabled", False)]
+    enabled_lane_names = {str(lane["name"]) for lane in enabled_lanes}
     backend_ports = [int(lane["backend_port"]) for lane in enabled_lanes]
     backend_counts = Counter(backend_ports)
     for port, count in backend_counts.items():
@@ -42,16 +53,33 @@ def build_plan(
 
     for customer in customers:
         status = customer.get("status")
+        customer_key = str(customer.get("customer_key"))
         if status == "deleted":
             continue
         if status in {"paused", "expired"}:
-            plan.warnings.append(FirewallPlanMessage(code="inactive_placeholder", message=f"customer {customer.get('customer_key')} status={status} is represented as non-active intent", severity="warning"))
+            plan.warnings.append(FirewallPlanMessage(code="inactive_placeholder", message=f"customer {customer_key} status={status} is represented as non-active intent", severity="warning"))
             continue
         if status != "active":
-            plan.warnings.append(FirewallPlanMessage(code="unsupported_status", message=f"customer {customer.get('customer_key')} has unsupported status={status}", severity="warning"))
+            plan.warnings.append(FirewallPlanMessage(code="unsupported_status", message=f"customer {customer_key} has unsupported status={status}", severity="warning"))
             continue
+
         lane_name = str(customer["lane"])
-        customer_key = str(customer["customer_key"])
+        if lane_name not in known_lanes:
+            plan.errors.append(FirewallPlanMessage(code="customer_unknown_lane", message=f"customer {customer_key} references unknown lane={lane_name}", severity="error"))
+            continue
+        if lane_name not in enabled_lane_names:
+            plan.errors.append(FirewallPlanMessage(code="customer_disabled_lane", message=f"customer {customer_key} references disabled lane={lane_name}", severity="error"))
+            continue
+
+        policy = customer.get("policy")
+        incomplete, missing = _policy_missing_or_incomplete(policy if isinstance(policy, dict) else None)
+        if policy is None:
+            plan.errors.append(FirewallPlanMessage(code="missing_current_policy", message=f"customer {customer_key} has no current policy", severity="error"))
+            continue
+        if incomplete:
+            plan.errors.append(FirewallPlanMessage(code="incomplete_current_policy", message=f"customer {customer_key} current policy incomplete: missing={','.join(missing)}", severity="error"))
+            continue
+
         plan.customer_coverage.append(customer_key)
         plan.affected_customers.append(customer_key)
         plan.customer_policy_references.append(f"{customer_key}:policy")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Literal
 from pathlib import Path
 
 import typer
@@ -481,7 +482,7 @@ def proxy_config_check(config: Path | None = typer.Option(None, "--config", "-c"
 
 
 @firewall_app.command("plan")
-def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: str = typer.Option("db-readonly", "--source")) -> None:
+def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
     """Render a dry-run firewall plan only."""
     cfg = _load(config)
     if source == "config-only":
@@ -499,7 +500,7 @@ def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), ou
 
 
 @firewall_app.command("diff")
-def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: str = typer.Option("db-readonly", "--source")) -> None:
+def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
     """Render a dry-run firewall diff only."""
     firewall_plan(config=config, output=output, source=source)
 
