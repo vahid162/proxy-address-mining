@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.37 - 2026-05-11
+
+- Added explicit CLI error handling for invalid `--live-snapshot-file` in `mpf firewall diff` (missing path, non-file path, unreadable path) with clear `ERROR:` output and non-zero exit, without fallback behavior.
+
+## 0.1.36 - 2026-05-11
+
+- Added an offline `iptables-save` parser for Phase 6-A diff flow and wired `mpf firewall diff --live-snapshot-file` to compare desired state against operator-provided snapshot files only (no live reads/writes).
+- Added tests for parser extraction and JSON diff behavior with file-backed snapshots.
+
 ## 0.1.35 - 2026-05-11
 
 - Fixed Phase 6-A3 planner model consistency by moving `customer_nat_redirect` intent to `nat:MPF_NAT_PRE` and adding rule-to-chain consistency validation.

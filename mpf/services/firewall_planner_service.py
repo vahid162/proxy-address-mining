@@ -158,8 +158,29 @@ def build_plan_from_db(config: MPFConfig) -> FirewallPlanResult:
     return build_plan(lanes=load.lanes, customers=load.customers, planner_customer_source="db_readonly", db_customer_input_loaded=True)
 
 
+def build_plan_from_db_with_live_snapshot(config: MPFConfig, snapshot: FirewallLiveSnapshot) -> FirewallPlanResult:
+    load = firewall_planner_read_repo.load_firewall_planner_input(config)
+    if not load.ok:
+        raise RuntimeError(load.message)
+    return build_plan(
+        lanes=load.lanes,
+        customers=load.customers,
+        planner_customer_source="db_readonly",
+        db_customer_input_loaded=True,
+        live_snapshot=snapshot,
+    )
+
+
 def build_plan_from_config(config: MPFConfig) -> FirewallPlanResult:
     lanes = [{"name": lane_name, "enabled": lane.enabled, "backend_port": lane.backend_port} for lane_name, lane in sorted(config.lanes.items())]
     plan = build_plan(lanes=lanes, customers=[], planner_customer_source="config_only", db_customer_input_loaded=False)
     plan.warnings.append(FirewallPlanMessage(code="config_only_source", message="explicit config-only source requested; PostgreSQL planner input disabled", severity="warning"))
+    return plan
+
+
+def build_plan_from_config_with_live_snapshot(config: MPFConfig, snapshot: FirewallLiveSnapshot) -> FirewallPlanResult:
+    lanes = [{"name": lane_name, "enabled": lane.enabled, "backend_port": lane.backend_port} for lane_name, lane in sorted(config.lanes.items())]
+    plan = build_plan(lanes=lanes, customers=[], planner_customer_source="config_only", db_customer_input_loaded=False, live_snapshot=snapshot)
+    plan.warnings.append(FirewallPlanMessage(code="config_only_source", message="explicit config-only source requested; PostgreSQL planner input disabled", severity="warning"))
+    plan.finalize()
     return plan

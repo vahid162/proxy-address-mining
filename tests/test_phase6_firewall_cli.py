@@ -58,3 +58,27 @@ def test_firewall_plan_db_failure_exits_nonzero(monkeypatch) -> None:
     res = RUNNER.invoke(app, ["firewall", "plan", "--config", str(example_config_path())])
     assert res.exit_code == 1
     assert "ERROR: failed to load lanes: db down" in res.output
+
+
+def test_firewall_diff_json_with_offline_live_snapshot_file(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db_with_live_snapshot", lambda cfg, snapshot: _db_plan())
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "diff", "--config", str(example_config_path()), "--output", "json", "--live-snapshot-file", str(snapshot)])
+    assert res.exit_code == 0
+    assert '"planner_customer_source": "db_readonly"' in res.output
+
+
+def test_firewall_diff_live_snapshot_missing_file_exits_nonzero(tmp_path) -> None:
+    missing = tmp_path / "missing.save"
+    res = RUNNER.invoke(app, ["firewall", "diff", "--config", str(example_config_path()), "--live-snapshot-file", str(missing)])
+    assert res.exit_code == 1
+    assert f"ERROR: unable to read live snapshot file: {missing}: file does not exist" in res.output
+
+
+def test_firewall_diff_live_snapshot_not_a_file_exits_nonzero(tmp_path) -> None:
+    not_file = tmp_path / "snapshots"
+    not_file.mkdir()
+    res = RUNNER.invoke(app, ["firewall", "diff", "--config", str(example_config_path()), "--live-snapshot-file", str(not_file)])
+    assert res.exit_code == 1
+    assert f"ERROR: unable to read live snapshot file: {not_file}: not a file" in res.output
