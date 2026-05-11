@@ -51,9 +51,9 @@ def parse_iptables_save_text(text: str) -> FirewallLiveSnapshot:
             _extract_source(parts, match_json)
             _extract_destination_port(parts, match_json)
             _extract_target_backend(parts, action_json)
-            rules.append(FirewallLiveRuleSnapshot(rule_key=rule_key, table=table, chain=chain, match_json=match_json, action_json=action_json))
-
-    return FirewallLiveSnapshot(chains=chains, rules=rules)
+            rules.append(FirewallLiveRuleSnapshot(rule_key=rule_key, table=table, chain=chain, match_json=match_json, action_json=action_json, raw_line=line))
+    source_snapshot_sha256 = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return FirewallLiveSnapshot(chains=chains, rules=rules, source_snapshot_sha256=source_snapshot_sha256)
 
 
 def parse_iptables_save_file(path: str) -> FirewallLiveSnapshot:

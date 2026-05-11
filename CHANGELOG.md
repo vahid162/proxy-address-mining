@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.1.49 - 2026-05-11
+
+- fixed Phase 6-B4 render-rollback default config handling so the command works without `--config` and uses the standard default config path.
+- added regression tests for render-rollback without `--config` in human/json/payload modes.
+- confirmed no live firewall, iptables-save, iptables-restore, rollback execution, lock, DB/filesystem write, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
+## 0.1.48 - 2026-05-11
+
+- fixed Phase 6-B4 rollback artifact to preserve MPF raw rule lines from explicit offline snapshots.
+- fixed source snapshot hashing to reflect actual snapshot content (`source_snapshot_sha256`).
+- added `render-rollback` CLI safety regression tests for `--yes` rejection and no subprocess/iptables execution.
+
+## 0.1.47 - 2026-05-11
+
+- added Phase 6-B4 offline rollback artifact contract/renderer.
+- added `mpf firewall render-rollback` command for offline artifact inspection only.
+- rollback artifact is based only on explicit operator-provided offline snapshot input.
+- added tests proving no live firewall reads/writes, iptables-save, iptables-restore execution, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.46 - 2026-05-11
 
 - fixed Phase 6-B3 package warning/error aggregation to de-duplicate repeated messages by `(severity, code, message)` while preserving deterministic first-seen ordering.
