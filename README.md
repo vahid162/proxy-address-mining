@@ -12,22 +12,22 @@ Source of truth for the current phase:
 docs/PHASE_STATUS.md
 ```
 
-Current repository/server state:
+Current repository/server gate:
 
 ```text
-accepted_phase: Phase 4 Runtime Activation — Limited Proxy Runtime Startup accepted on farm5
-working_phase: Phase 5 — Customer CRUD in DB Only
+accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
+working_phase: Phase 6 — Firewall Planner
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
-customer_onboarding_allowed: db_only_after_phase5_gate
+customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
 ```
 
-The accepted Phase 4 runtime is intentionally limited and local-only:
+The accepted Phase 4 runtime remains intentionally limited and local-only:
 
 ```text
 v2rayA UI: 127.0.0.1:2015 -> container 2017
@@ -36,50 +36,21 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 
 Do not use this repository for production customer traffic yet.
 
-## Implemented So Far
+## Current Phase 6-A Scope
 
-```text
-Phase 0 architecture and safety contracts
-Phase 1 preflight/bootstrap runbook and Ubuntu 24.04 bootstrap script
-safe CLI smoke skeleton
-config validator
-PostgreSQL DB ping helper
-SQLAlchemy model skeletons
-Alembic bootstrap
-Phase 2 schema representation
-Phase 2 migration accepted on farm5
-Phase 3 read-only CLI/API foundation accepted in source artifact
-Phase 3.1 official runtime alignment accepted on farm5
-read-only DB status, lane list, customer list, and job status commands
-service/repository boundaries for Phase 3 commands
-internal API foundation with stable read-only response DTOs
-foundation taxonomy and request context/correlation_id contracts
-future-ready buyer/account and worker-policy boundaries
-extension-ready control-plane schema contracts
-pytest CI on GitHub Actions
-backend internal/external reachability policy contract
-accepted/rejected hash-rate and share observability contract
-AI coding rules for phase-gated development
-Phase 4 planning task and server runbook foundations
-Phase 4.1 Compose template and server config planning result recorded
-Phase 4.2 runtime activation runbook planning synced and verified on farm5
-Phase 4 runtime activation execution review completed
-Phase 4 limited runtime activation accepted on farm5
-```
-
-## Current Phase 5 Scope
+Phase 6 starts as planner/model/diff work only.
 
 Allowed now:
 
 ```text
-customer domain DTOs and service contracts
-DB-only customer create/read/update/disable planning
-DB-only validation for lane, port, expiry, and status
-repository tests for customer CRUD state transitions
-CLI/API contracts that do not touch firewall/NAT
-audit/event planning for future mutation tracking
-documentation updates that preserve phase gates
-proxy doctor/status refinements for the accepted limited runtime state
+repository/documentation cleanup that preserves phase gates
+firewall desired-state model design and implementation
+firewall planner/diff contracts
+human-readable firewall plan output
+machine-readable JSON firewall plan output
+dry-run evidence generation
+planner safety tests
+proxy/backend safety checks that preserve internal reachability and external non-exposure
 ```
 
 Forbidden now:
@@ -110,31 +81,46 @@ Required invariants remain:
 firewall.apply_mode = plan_only
 proxy.runtime_activation_allowed = false
 proxy_data_plane_allowed = limited_runtime_local_only
+production_traffic = none
+firewall_apply_allowed = no
+abuse_automation_allowed = no
+customer_onboarding_allowed = db_only
 ```
 
-## Required Before Phase 5 Acceptance
-
-Phase 5 must remain DB-only:
+## Implemented So Far
 
 ```text
-docs/AI_PHASE_5_TASK.md exists
-customer CRUD remains DB-only
-no firewall apply is introduced
-no NAT redirect is introduced
-no production customer traffic is enabled
-all customer mutations go through service/repository boundaries
-ports are validated against lane and collision rules
-customer state changes are auditable or prepared for audit/event recording
-pytest passes
-server sync evidence is reviewed
+Phase 0 architecture and safety contracts
+Phase 1 preflight/bootstrap runbook and Ubuntu 24.04 bootstrap script
+safe CLI smoke skeleton
+config validator
+PostgreSQL DB ping helper
+SQLAlchemy model skeletons
+Alembic bootstrap
+Phase 2 schema representation and migration accepted on farm5
+Phase 3 read-only CLI/API foundation accepted on farm5
+Phase 3.1 official runtime alignment accepted on farm5
+read-only DB status, lane list, customer list, and job status commands
+service/repository boundaries for CLI/API commands
+internal API foundation with stable read-only response DTOs
+foundation taxonomy and request context/correlation_id contracts
+future-ready buyer/account and worker-policy boundaries
+extension-ready control-plane schema contracts
+pytest CI on GitHub Actions
+backend internal/external reachability policy contract
+accepted/rejected hash-rate and share observability contract
+Phase 4 limited local-only proxy runtime accepted on farm5
+Phase 5 DB-only customer CRUD accepted on farm5
+current clean sync gate installed and verified for Phase 5 accepted / Phase 6 working
 ```
 
 ## Not Implemented Yet
 
 ```text
 production customer traffic
-live firewall planner/apply
-NAT redirects
+live firewall apply
+customer NAT redirects
+customer firewall rules
 usage timers
 hash-rate/share collectors
 abuse runner automation
@@ -350,6 +336,8 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
+During Phase 6-A, implement only the planner/model/diff/test side. Live apply remains disabled.
+
 ## Documentation Map
 
 Start here:
@@ -360,6 +348,7 @@ README.md
 docs/INDEX.md
 docs/PHASE_STATUS.md
 docs/AI_CODING_RULES.md
+docs/AI_PHASE_6_TASK.md
 ```
 
 Core contracts:
@@ -377,16 +366,13 @@ docs/BACKEND_PORT_POLICY.md
 docs/OBSERVABILITY_HASHRATE.md
 ```
 
-Current phase contracts/results:
+Current phase and accepted result contracts:
 
 ```text
-docs/PHASE_3_SERVER_RESULT.md
-docs/PHASE_3_1_PRE_PHASE4_ALIGNMENT.md
-docs/PHASE_3_1_SERVER_RESULT.md
-docs/PHASE_4_1_SERVER_RESULT.md
-docs/PHASE_4_2_SERVER_SYNC_RESULT.md
+docs/PHASE_STATUS.md
+docs/AI_PHASE_6_TASK.md
+docs/PHASE_5_FINAL_ACCEPTANCE.md
 docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
-docs/AI_PHASE_5_TASK.md
 docs/INTRANET_INSTALL.md
 ```
 
@@ -427,7 +413,7 @@ System clock synchronized: no
 NTP service: active
 ```
 
-This warning is not a Phase 5 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This warning is not a Phase 6 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## Testing Strategy
 
