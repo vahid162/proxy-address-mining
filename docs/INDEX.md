@@ -13,11 +13,13 @@ Read these first:
 3. `docs/INDEX.md`
 4. `docs/PHASE_STATUS.md`
 5. `docs/AI_CODING_RULES.md`
+6. `docs/AI_PHASE_6_TASK.md`
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the current phase guard.
 `docs/AI_CODING_RULES.md` defines the current AI coding rules and stop conditions.
+`docs/AI_PHASE_6_TASK.md` defines the current Phase 6-A planner-first task boundary.
 This file is the documentation map.
 
 ## Core Contracts
@@ -42,28 +44,31 @@ Read these before implementation work:
 Current accepted phase:
 
 ```text
-Phase 4 Runtime Activation — Limited Proxy Runtime Startup accepted on farm5
+Phase 5 — Customer CRUD in DB Only accepted on farm5
 ```
 
 Current working phase:
 
 ```text
-Phase 5 — Customer CRUD in DB Only
+Phase 6 — Firewall Planner
 ```
 
 Read:
 
 1. `docs/PHASE_STATUS.md`
-2. `docs/AI_PHASE_5_TASK.md`
-3. `docs/CUSTOMER_LIFECYCLE.md`
-4. `docs/CONTROL_RULES.md`
-5. `docs/WORKER_POLICY.md`
-6. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-7. `docs/BACKEND_PORT_POLICY.md`
-8. `docs/OBSERVABILITY_HASHRATE.md`
-9. `docs/INTRANET_INSTALL.md`
+2. `docs/AI_PHASE_6_TASK.md`
+3. `docs/FIREWALL.md`
+4. `docs/BACKEND_PORT_POLICY.md`
+5. `docs/SAFETY.md`
+6. `docs/DATA_MODEL.md`
+7. `docs/TAXONOMY.md`
+8. `docs/ABUSE.md`
+9. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+10. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+11. `docs/OBSERVABILITY_HASHRATE.md`
+12. `docs/INTRANET_INSTALL.md`
 
-The current step is DB-only Customer CRUD plus documentation-only contract clarification.
+The current step is Phase 6-A repository cleanup plus firewall planner contract and desired-state model work.
 It must not create NAT redirects, apply firewall rules, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 ## Reading Order by Task
@@ -189,12 +194,13 @@ Read:
 1. `../AGENTS.md`
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
-4. `docs/SAFETY.md`
-5. `docs/FIREWALL.md`
-6. `docs/BACKEND_PORT_POLICY.md`
-7. `docs/DATA_MODEL.md`
-8. `docs/CONTROL_RULES.md`
-9. relevant phase/domain document
+4. `docs/AI_PHASE_6_TASK.md`
+5. `docs/SAFETY.md`
+6. `docs/FIREWALL.md`
+7. `docs/BACKEND_PORT_POLICY.md`
+8. `docs/DATA_MODEL.md`
+9. `docs/CONTROL_RULES.md`
+10. relevant phase/domain document
 
 Rules:
 
@@ -206,7 +212,7 @@ Rules:
 - backend direct external exposure is critical
 - backend internal reachability failure is also critical
 - never hide backend ports by breaking valid internal paths
-- Phase 5 must not introduce firewall planner runtime
+- Phase 6-A must remain planner/model/diff/test only until a dedicated apply gate is accepted
 
 ### Hash-rate, share, worker, or observability work
 
@@ -248,9 +254,8 @@ Read:
 
 Rules:
 
-- Phase 5 allows documentation-only contract work
-- no runtime block/pause command in Phase 5
-- no worker scanner or worker enforcement in Phase 5
+- runtime block/pause commands are future work
+- worker scanner or worker enforcement are future work
 - control rules are future intent, not firewall rules by themselves
 - worker blocking must not be modeled as firewall-only
 - abuse coverage for all active customers must remain intact
@@ -323,7 +328,7 @@ Rules:
 - every job writes `job_runs`
 - overlapping jobs use `scheduler_locks`
 - jobs call services, not direct DB/firewall logic
-- Phase 5 must not introduce runtime jobs for lifecycle, controls, worker scanning, usage, or abuse
+- runtime jobs for lifecycle, controls, worker scanning, usage, or abuse remain forbidden until accepted phases
 
 ## Documentation Summary
 
@@ -331,17 +336,21 @@ Rules:
 
 Defines the accepted phase, current working phase, allowed work, forbidden work, and next safe step.
 
+### `docs/AI_PHASE_6_TASK.md`
+
+Defines Phase 6-A cleanup and firewall planner-first boundaries.
+
 ### `docs/AI_PHASE_5_TASK.md`
 
-Defines Phase 5 Customer CRUD in DB Only, including the documentation-only customer lifecycle, control, and worker contract clarifications and stop conditions.
+Historical active task for accepted Phase 5 Customer CRUD in DB Only.
 
 ### `docs/CUSTOMER_LIFECYCLE.md`
 
-Defines Phase 5 customer lifecycle contracts for activation modes, first-connect deferral, auto-expire and auto-delete deferral, soft-delete, customer_key, DB-only reports, dry-run expectations, and abuse coverage preservation. It has no current runtime, timer, firewall, NAT, or migration effect by itself.
+Defines accepted Phase 5 customer lifecycle contracts for activation modes, first-connect deferral, auto-expire and auto-delete deferral, soft-delete, customer_key, DB-only reports, dry-run expectations, and abuse coverage preservation.
 
 ### `docs/CONTROL_RULES.md`
 
-Defines future control-intent concepts for block, pause, whitelist, rate-limit, worker block, worker route, and notify-only behavior. It has no current runtime or migration effect.
+Defines future control-intent concepts for block, pause, whitelist, rate-limit, worker block, worker route, and notify-only behavior. It has no current runtime effect.
 
 ### `docs/WORKER_POLICY.md`
 
@@ -413,7 +422,7 @@ Phase 15  — Worker Policy Enforcement
 
 Stop and revise if any change introduces:
 
-1. firewall apply before Phase 6
+1. firewall apply before explicit Phase 6 apply gate acceptance
 2. abuse automation before Phase 8
 3. customer rules before their phase
 4. NAT redirects before their phase
@@ -427,12 +436,12 @@ Stop and revise if any change introduces:
 12. ad-hoc production firewall mutation
 13. missing event/audit for mutation
 14. missing restore point for dangerous action
-15. production customer mutation before Phase 5
-16. proxy data-plane activation before accepted Phase 4 runtime runbook
-17. high-volume share/hash-rate collection before retention and partitioning review
-18. UI charts reading raw high-volume share events directly
-19. Phase 5 code that starts lifecycle/block/pause/worker runtime
-20. public v2rayA UI exposure
+15. proxy data-plane activation outside accepted runtime gates
+16. high-volume share/hash-rate collection before retention and partitioning review
+17. UI charts reading raw high-volume share events directly
+18. worker/block/pause/usage/abuse runtime before accepted phase
+19. public v2rayA UI exposure
+20. public backend exposure
 
 ## Final Rule
 
