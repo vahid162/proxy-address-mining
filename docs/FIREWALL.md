@@ -55,6 +55,15 @@ read DB/config
   -> rollback or rollback-plan on failure
 ```
 
+## Phase 6-B1/B2 Note (Offline Artifact/Contract Only)
+
+Phase 6-B2 adds offline contracts for restore point, lock, verify, rollback, and apply-readiness inspection only.
+
+- live firewall apply remains forbidden
+- `iptables-save` execution remains forbidden
+- `iptables-restore` execution remains forbidden
+- apply/rollback/verify execution commands are not exposed in this phase
+
 ## Phase 6-B1 Note (Offline Artifact Only)
 
 Phase 6-B starts apply-contract design only.
