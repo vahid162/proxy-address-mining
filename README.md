@@ -1,8 +1,8 @@
 # Proxy Address Mining
 
-`proxy-address-mining` is a Python-first, API-first, PostgreSQL-backed rewrite of a mining customer gateway control plane.
+`proxy-address-mining` is a Python-first, API-first, PostgreSQL-backed greenfield rewrite of a mining customer gateway control plane.
 
-This is a **greenfield implementation**, not a direct migration or patching of old shell scripts.
+It preserves the required operational capabilities of the old shell-script setup, but it must not become a direct migration, patch series, or extension of those old scripts.
 
 ## Current Status
 
@@ -17,6 +17,7 @@ Current repository/server gate:
 ```text
 accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working_phase: Phase 6 — Firewall Planner
+current_phase6_step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -36,20 +37,25 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 
 Do not use this repository for production customer traffic yet.
 
-## Current Phase 6-A Scope
+## Current Phase 6-B Scope
 
-Phase 6 starts as planner/model/diff work only.
+Phase 6-A established the planner/model/diff foundation. Current Phase 6-B work is still offline and inspection-only.
 
 Allowed now:
 
 ```text
 repository/documentation cleanup that preserves phase gates
-firewall desired-state model design and implementation
+firewall desired-state model refinement
 firewall planner/diff contracts
-human-readable firewall plan output
-machine-readable JSON firewall plan output
-dry-run evidence generation
-planner safety tests
+human-readable firewall plan/report output
+machine-readable JSON firewall plan/report output
+offline snapshot parser and file-backed diff fixtures
+offline restore payload artifacts
+offline apply-readiness contracts
+offline apply package reports
+offline rollback artifacts from explicit snapshot files
+offline preflight inspection/failure matrix
+planner/contract/preflight safety tests
 proxy/backend safety checks that preserve internal reachability and external non-exposure
 ```
 
@@ -60,7 +66,11 @@ production traffic
 customer NAT redirects
 customer firewall rules
 live firewall apply
-iptables-restore
+live firewall rollback
+live firewall verify
+iptables-save execution
+iptables-restore execution
+conntrack flush
 usage timers
 hash-rate/share collectors
 abuse runner automation
@@ -85,6 +95,8 @@ production_traffic = none
 firewall_apply_allowed = no
 abuse_automation_allowed = no
 customer_onboarding_allowed = db_only
+ui_allowed = no
+telegram_allowed = no
 ```
 
 ## Implemented So Far
@@ -111,6 +123,8 @@ backend internal/external reachability policy contract
 accepted/rejected hash-rate and share observability contract
 Phase 4 limited local-only proxy runtime accepted on farm5
 Phase 5 DB-only customer CRUD accepted on farm5
+Phase 6-A planner/model/diff foundation
+Phase 6-B offline restore/apply/rollback/preflight contracts through current main
 current clean sync gate installed and verified for Phase 5 accepted / Phase 6 working
 ```
 
@@ -119,6 +133,7 @@ current clean sync gate installed and verified for Phase 5 accepted / Phase 6 wo
 ```text
 production customer traffic
 live firewall apply
+live firewall rollback
 customer NAT redirects
 customer firewall rules
 usage timers
@@ -152,7 +167,7 @@ future-ready for local UI, buyer UI, Telegram, worker intelligence, and hash-rat
 
 ## Target Data Plane
 
-The server is a **forward-only customer gateway**:
+The server is a forward-only customer gateway:
 
 ```text
 customer_port
@@ -170,8 +185,7 @@ The first stable lane is BTC:
 BTC customer ports -> backend 60010 -> forwarder -> v2rayA -> pool
 ```
 
-Future coins such as ZEC and LTC must be implemented through the lane model.
-Do not clone scripts per coin.
+Future coins such as ZEC and LTC must be implemented through the lane model. Do not clone scripts per coin.
 
 ## Fixed Architecture Decisions
 
@@ -187,9 +201,9 @@ CLI name: mpf
 first lane: BTC
 BTC backend port: 60010
 firewall backend: iptables first
-firewall apply mechanism: iptables-save / iptables-restore
+future firewall apply mechanism: iptables-save / iptables-restore after explicit apply gate
 scheduler: systemd timers
-initial firewall mode: plan_only
+initial/current firewall mode: plan_only
 local API/UI binding: 127.0.0.1 or Unix socket only
 ```
 
@@ -254,63 +268,18 @@ exemption requires reason and expiry
 farms-over alone must not harden
 sustained miner-abuse hardens after about 3600 seconds
 hard creates restore point and policy backup
-hard uses firewall plan/apply/verify path
-hard flushes affected conntrack scope
+hard uses firewall plan/apply/verify path after the relevant apply gate
+hard flushes affected conntrack scope after the relevant runtime gate
 manual unhard is audited
 ```
 
 A patch that weakens this requirement must be rejected.
 
-## Backend Port Policy
-
-Backend ports are internal service ports.
-
-They must be blocked from direct external/public access only, while remaining reachable from valid internal server and Docker paths.
-
-Required future doctor split:
-
-```text
-internal_backend_reachable = OK
-external_backend_exposed = NO
-```
-
-Do not block loopback, required Docker/internal paths, or the future MPF-owned NAT redirect path just to hide backend ports externally.
-
-See:
-
-```text
-docs/BACKEND_PORT_POLICY.md
-```
-
-## Hash-rate and Share Observability
-
-Accepted/rejected hash-rate per device is a future first-class capability.
-
-It must be planned through structured data and services:
-
-```text
-share evidence
-share_events
-device_hashrate_samples
-customer_hashrate_samples
-report services
-UI charts from aggregate samples
-retention before high-volume collection
-```
-
-Do not add this later as UI-only calculations, unstructured logs, or raw chart queries over high-volume events.
-
-See:
-
-```text
-docs/OBSERVABILITY_HASHRATE.md
-```
-
 ## Firewall Safety Model
 
 Firewall changes must be model-driven.
 
-Required lifecycle:
+Required future lifecycle:
 
 ```text
 read DB/config
@@ -336,7 +305,38 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-During Phase 6-A, implement only the planner/model/diff/test side. Live apply remains disabled.
+During current Phase 6-B, implement only planner/offline artifact/offline contract/preflight/test behavior. Live apply remains disabled.
+
+## Backend Port Policy
+
+Backend ports are internal service ports. They must be blocked from direct external/public access only while remaining reachable from valid internal server and Docker paths.
+
+Required future doctor split:
+
+```text
+internal_backend_reachable = OK
+external_backend_exposed = NO
+```
+
+Do not block loopback, required Docker/internal paths, or the future MPF-owned NAT redirect path just to hide backend ports externally.
+
+## Hash-rate and Share Observability
+
+Accepted/rejected hash-rate per device is a future first-class capability.
+
+It must be planned through structured data and services:
+
+```text
+share evidence
+share_events
+device_hashrate_samples
+customer_hashrate_samples
+report services
+UI charts from aggregate samples
+retention before high-volume collection
+```
+
+Do not add this later as UI-only calculations, unstructured logs, or raw chart queries over high-volume events.
 
 ## Documentation Map
 
@@ -414,34 +414,6 @@ NTP service: active
 ```
 
 This warning is not a Phase 6 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
-
-## Testing Strategy
-
-Minimum risk areas:
-
-```text
-config validation
-database migrations
-schema constraints
-policy versioning
-buyer/customer separation
-worker block boundary
-lane collision
-port collision
-firewall planner
-firewall drift detection
-backend exposure detection
-backend internal reachability detection
-firewall rollback
-abuse state machine
-all-active-customer abuse coverage
-usage counter delta
-hash-rate/share aggregation contracts
-job locking
-backup/restore
-interface boundary tests
-proxy doctor classification
-```
 
 ## Security Guardrails
 
