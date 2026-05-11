@@ -7,6 +7,7 @@
 - updated documentation index/firewall docs for apply gate readiness.
 - kept Phase 5 accepted / Phase 6 working gate unchanged.
 - confirmed no live firewall reads/writes, iptables-save, iptables-restore, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+- corrected Phase 6-C0 operator review command examples to use `--output json`.
 
 ## 0.1.53 - 2026-05-11
 

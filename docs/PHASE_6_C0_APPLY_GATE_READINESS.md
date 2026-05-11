@@ -146,13 +146,13 @@ mpf config validate
 mpf doctor
 mpf db status
 mpf proxy doctor
-mpf firewall plan --json
-mpf firewall diff --json
-mpf firewall doctor --json
-mpf firewall apply-contract --json
-mpf firewall package --json
-mpf firewall preflight --json
-mpf firewall evidence --json
+mpf firewall plan --output json
+mpf firewall diff --output json
+mpf firewall doctor --output json
+mpf firewall apply-contract --output json
+mpf firewall package --output json
+mpf firewall preflight --output json
+mpf firewall evidence --output json
 python -m pytest -q
 ```
 

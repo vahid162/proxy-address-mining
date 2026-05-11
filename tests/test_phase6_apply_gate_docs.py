@@ -34,3 +34,11 @@ def test_phase_status_does_not_enable_live_apply() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     assert "firewall_apply_allowed: no" in text
     assert "production_traffic: none" in text
+
+
+def test_phase6_c0_commands_use_output_json_form() -> None:
+    text = Path("docs/PHASE_6_C0_APPLY_GATE_READINESS.md").read_text(encoding="utf-8")
+    assert "mpf firewall plan --output json" in text
+    assert "mpf firewall evidence --output json" in text
+    assert "mpf firewall plan --json" not in text
+    assert "mpf firewall evidence --json" not in text
