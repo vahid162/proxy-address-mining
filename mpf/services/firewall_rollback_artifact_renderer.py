@@ -48,16 +48,16 @@ def render_rollback_artifact_from_snapshot(snapshot: FirewallLiveSnapshot, sourc
             key=lambda r: (r.chain, r.rule_key),
         )
         for rule in table_rules:
-            lines.append(f"# rollback-preserved mpf-rule {rule.rule_key} chain={rule.chain}")
+            if rule.raw_line:
+                lines.append(rule.raw_line)
+            else:
+                lines.append(f"# rollback-preserved mpf-rule {rule.rule_key} chain={rule.chain} raw_line_missing")
             rule_count += 1
         lines.append("COMMIT")
 
     payload = "\n".join(lines) + "\n"
     payload_sha = hashlib.sha256(payload.encode("utf-8")).hexdigest()
-    source_hash_seed = "\n".join([f"{t}:{c}" for t, c in sorted(snapshot.chains)]) + "\n" + "\n".join(
-        [f"{r.table}:{r.chain}:{r.rule_key}" for r in sorted(snapshot.rules, key=lambda x: (x.table, x.chain, x.rule_key))]
-    )
-    source_hash = hashlib.sha256(source_hash_seed.encode("utf-8")).hexdigest()
+    source_hash = snapshot.source_snapshot_sha256 or hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
     contract.source_snapshot_hash = source_hash
     contract.rollback_payload_sha256 = payload_sha

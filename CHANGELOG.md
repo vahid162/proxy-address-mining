@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.48 - 2026-05-11
+
+- fixed Phase 6-B4 rollback artifact to preserve MPF raw rule lines from explicit offline snapshots.
+- fixed source snapshot hashing to reflect actual snapshot content (`source_snapshot_sha256`).
+- added `render-rollback` CLI safety regression tests for `--yes` rejection and no subprocess/iptables execution.
+
 ## 0.1.47 - 2026-05-11
 
 - added Phase 6-B4 offline rollback artifact contract/renderer.

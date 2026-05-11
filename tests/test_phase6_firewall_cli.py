@@ -373,3 +373,36 @@ def test_firewall_render_rollback_invalid_content_payload_mode_nonzero(tmp_path)
     res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(bad), "--output", "payload"])
     assert res.exit_code == 1
     assert "*filter" not in res.output
+
+
+def test_firewall_render_rollback_no_yes_option() -> None:
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--yes"])
+    assert res.exit_code != 0
+
+
+def test_firewall_render_rollback_does_not_call_subprocess(monkeypatch, tmp_path) -> None:
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("subprocess call is forbidden in render-rollback")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(snapshot), "--output", "json"])
+    assert res.exit_code == 0
+
+
+def test_firewall_render_rollback_no_save_restore_subprocess(monkeypatch, tmp_path) -> None:
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+
+    def _fail(*args, **kwargs):
+        cmd = args[0] if args else kwargs.get("args", "")
+        text = " ".join(cmd) if isinstance(cmd, (list, tuple)) else str(cmd)
+        if "iptables-save" in text or "iptables-restore" in text:
+            raise AssertionError("iptables-save/iptables-restore subprocess is forbidden in render-rollback")
+        raise AssertionError("subprocess call is forbidden in render-rollback")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(snapshot)])
+    assert res.exit_code == 0

@@ -24,6 +24,7 @@ def test_rollback_deterministic_payload_hash() -> None:
     assert c1.source_snapshot_hash == c2.source_snapshot_hash
     assert "*filter" in c1.rollback_payload.payload
     assert "COMMIT" in c1.rollback_payload.payload
+    assert '-A MPF_INPUT -m comment --comment "mpf:a" -j RETURN' in c1.rollback_payload.payload
 
 
 def test_rollback_invalid_empty_snapshot() -> None:
@@ -31,3 +32,11 @@ def test_rollback_invalid_empty_snapshot() -> None:
     contract = render_rollback_artifact_from_snapshot(snap)
     assert contract.renderable is False
     assert contract.errors
+
+
+def test_rollback_source_hash_changes_when_snapshot_body_changes() -> None:
+    t1 = "*filter\n:MPF_GUARD - [0:0]\n-A MPF_GUARD -m comment --comment \"mpf:backend_guard:btc:60010\" -j RETURN\nCOMMIT\n"
+    t2 = "*filter\n:MPF_GUARD - [0:0]\n-A MPF_GUARD -m comment --comment \"mpf:backend_guard:btc:60010\" -j DROP\nCOMMIT\n"
+    c1 = render_rollback_artifact_from_snapshot(firewall_snapshot_parser.parse_iptables_save_text(t1))
+    c2 = render_rollback_artifact_from_snapshot(firewall_snapshot_parser.parse_iptables_save_text(t2))
+    assert c1.source_snapshot_hash != c2.source_snapshot_hash

@@ -45,6 +45,7 @@ class FirewallLiveRuleSnapshot:
     table: str
     chain: str
     rule_kind: str | None = None
+    raw_line: str | None = None
     match_json: dict[str, Any] = field(default_factory=dict)
     action_json: dict[str, Any] = field(default_factory=dict)
 
@@ -53,6 +54,7 @@ class FirewallLiveRuleSnapshot:
 class FirewallLiveSnapshot:
     chains: list[tuple[str, str]] = field(default_factory=list)
     rules: list[FirewallLiveRuleSnapshot] = field(default_factory=list)
+    source_snapshot_sha256: str | None = None
 
 
 @dataclass(frozen=True)
