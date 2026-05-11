@@ -10,6 +10,9 @@ def test_render_empty_deterministic_sections() -> None:
     p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[])
     c = render_restore_contract(p)
     assert c.renderable is True
+    assert c.applyable is False
+    assert c.live_apply_allowed is False
+    assert c.iptables_restore_allowed is False
     assert "*filter" in c.restore_payload.payload and "*nat" in c.restore_payload.payload
     assert c.restore_payload.payload.count("COMMIT") == 2
 

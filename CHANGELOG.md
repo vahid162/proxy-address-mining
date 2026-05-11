@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.42 - 2026-05-11
+
+- fixed Phase 6-B1 restore contract semantics: renderable artifacts no longer imply applyable=true; apply remains forbidden.
+- added CLI safety regression tests for render-restore DB failure, no subprocess usage, no iptables-save/iptables-restore calls, and payload-mode validation failure behavior.
+
 ## 0.1.41 - 2026-05-11
 
 - started Phase 6-B offline apply contract design only; no live apply was introduced.

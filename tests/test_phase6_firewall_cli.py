@@ -192,3 +192,47 @@ def test_firewall_render_restore_config_only_warn(monkeypatch) -> None:
     res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--source", "config-only"])
     assert res.exit_code == 0
     assert "WARNING [planner_customer_source]" in res.output
+
+
+def test_firewall_render_restore_db_failure_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: (_ for _ in ()).throw(RuntimeError("failed to load lanes: db down")))
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path())])
+    assert res.exit_code == 1
+    assert "ERROR: failed to load lanes: db down" in res.output
+
+
+def test_firewall_render_restore_does_not_call_subprocess(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("subprocess call is forbidden in render-restore")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+
+
+def test_firewall_render_restore_payload_validation_error_no_payload(monkeypatch) -> None:
+    bad = _db_plan()
+    bad.errors.append(FirewallPlanMessage(code="forced", message="forced", severity="error"))
+    bad.finalize()
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: bad)
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--output", "payload"])
+    assert res.exit_code == 1
+    assert "*filter" not in res.output
+    assert "*nat" not in res.output
+
+
+def test_firewall_render_restore_no_save_restore_subprocess(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+
+    def _fail(*args, **kwargs):
+        cmd = args[0] if args else kwargs.get("args", "")
+        text = " ".join(cmd) if isinstance(cmd, (list, tuple)) else str(cmd)
+        if "iptables-save" in text or "iptables-restore" in text:
+            raise AssertionError("iptables-save/iptables-restore subprocess is forbidden in render-restore")
+        raise AssertionError("subprocess call is forbidden in render-restore")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0

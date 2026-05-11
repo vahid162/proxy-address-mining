@@ -87,7 +87,7 @@ def render_restore_contract(plan: FirewallPlanResult) -> FirewallApplyContract:
     contract.errors.extend(plan.errors)
     contract.errors.extend(validation.errors)
     contract.renderable = validation.renderable
-    contract.applyable = validation.renderable
+    contract.applyable = False
     if not validation.renderable:
         return contract
 
