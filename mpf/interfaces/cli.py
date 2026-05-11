@@ -30,6 +30,7 @@ from mpf.services import (
     firewall_rollback_artifact_renderer,
     firewall_preflight_service,
     firewall_evidence_service,
+    firewall_gate_review_service,
     proxy_doctor_service,
 )
 
@@ -813,6 +814,56 @@ def firewall_package(config: Path | None = typer.Option(None, "--config", "-c"),
     for w in package.warnings:
         typer.echo(f"WARNING [{w.code}] {w.message}")
     for e in package.errors:
+        typer.echo(f"ERROR [{e.code}] {e.message}")
+
+
+@firewall_app.command("gate-review")
+def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
+    """Render offline Phase 6-C2 apply gate review report (inspection-only)."""
+    cfg = _load(config)
+    rollback_artifact = None
+    if rollback_snapshot_file is not None:
+        if not rollback_snapshot_file.exists():
+            typer.echo(f"ERROR: unable to read rollback snapshot file: {rollback_snapshot_file}: file does not exist")
+            raise typer.Exit(1)
+        if not rollback_snapshot_file.is_file():
+            typer.echo(f"ERROR: unable to read rollback snapshot file: {rollback_snapshot_file}: not a file")
+            raise typer.Exit(1)
+        try:
+            snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(rollback_snapshot_file))
+        except Exception as exc:
+            typer.echo(f"ERROR: unable to parse rollback snapshot file: {rollback_snapshot_file}: {exc}")
+            raise typer.Exit(1)
+        rollback_artifact = firewall_rollback_artifact_renderer.render_rollback_artifact_from_snapshot(snapshot, source="offline_snapshot_file")
+    try:
+        result = firewall_planner_service.build_plan_from_db(cfg) if source == "db-readonly" else firewall_planner_service.build_plan_from_config(cfg)
+    except RuntimeError as exc:
+        typer.echo(f"ERROR: {exc}")
+        raise typer.Exit(code=1)
+    evidence = firewall_evidence_service.build_evidence_bundle_report(result, rollback_artifact=rollback_artifact)
+    report = firewall_gate_review_service.build_gate_review_report(evidence=evidence)
+    if output == "json":
+        typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
+        return
+    typer.echo("MPF firewall gate review (offline)")
+    for k in ("review_version", "backend", "apply_mode", "inspection_only", "artifact_only", "live_apply_allowed", "applyable", "final_decision"):
+        typer.echo(f"{k}: {str(getattr(report, k)).lower() if isinstance(getattr(report, k), bool) else getattr(report, k)}")
+    pg = report.phase_gate_summary
+    typer.echo(f"phase_gate: firewall_apply_allowed={pg['firewall_apply_allowed']} production_traffic={pg['production_traffic']} abuse_automation_allowed={pg['abuse_automation_allowed']}")
+    typer.echo("evidence: present")
+    rs = report.risk_summary
+    typer.echo(f"risk_summary: total={rs['total']} critical={rs['critical']} high={rs['high']} medium={rs['medium']} low={rs['low']} blockers={rs['blockers']} warnings={rs['warnings']}")
+    cs = report.checklist_summary
+    typer.echo(f"checklist_summary: total={cs['total']} pass={cs['pass']} warn={cs['warn']} blocked={cs['blocked']}")
+    typer.echo(f"rollback_readiness: {report.rollback_readiness_summary['status']}")
+    typer.echo(f"canary_readiness: {report.canary_readiness_summary['status']}")
+    typer.echo("abuse_requirement: preserved")
+    typer.echo(f"firewall_change: {report.safety_flags['firewall_change']}")
+    typer.echo(f"nat_change: {report.safety_flags['nat_change']}")
+    typer.echo(f"runtime_change: {report.safety_flags['runtime_change']}")
+    for w in report.warnings:
+        typer.echo(f"WARNING [{w.code}] {w.message}")
+    for e in report.errors:
         typer.echo(f"ERROR [{e.code}] {e.message}")
 
 

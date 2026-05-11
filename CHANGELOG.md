@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.56 - 2026-05-11
+
+- added Phase 6-C2 offline apply gate review report
+- added `mpf firewall gate-review` command for inspection only
+- gate-review summarizes evidence bundle, risk matrix, checklist, rollback readiness, canary readiness, and abuse requirement preservation
+- final decision remains BLOCKED because live apply is still forbidden
+- updated docs/tests for Phase 6-C2
+- kept Phase 5 accepted / Phase 6 working gate unchanged
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced
+
 ## 0.1.55 - 2026-05-11
 
 - added Phase 6-C1 apply gate risk matrix and operator approval checklist.

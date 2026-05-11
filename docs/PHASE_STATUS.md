@@ -256,6 +256,6 @@ Future customer records remain DB-only until Phase 6 apply and customer NAT/cust
 - current accepted phase remains Phase 5 — Customer CRUD in DB Only accepted on farm5
 - current working phase remains Phase 6 — Firewall Planner
 - Phase 6-B evidence and Phase 6-C0 readiness contracts are complete
-- next safe step is Phase 6-C1 risk matrix and operator approval checklist
+- next safe step is Phase 6-C2 offline apply gate review report
 - this remains documentation/contract/test-only
 - live apply remains forbidden until a dedicated apply gate is explicitly accepted

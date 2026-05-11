@@ -508,3 +508,63 @@ class FirewallEvidenceBundleReport:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class FirewallGateReviewRiskItem:
+    risk_id: str
+    title: str
+    severity: Literal["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    status: Literal["BLOCKER", "WARNING", "OK"]
+    detection_evidence: str
+    required_mitigation: str
+    acceptance_owner: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class FirewallGateReviewChecklistItem:
+    key: str
+    label: str
+    status: Literal["PASS", "WARN", "BLOCKED"]
+    evidence: str
+    required: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class FirewallGateReviewReport:
+    review_version: str = "phase6-c2"
+    backend: str = "iptables"
+    apply_mode: str = "plan_only"
+    inspection_only: bool = True
+    artifact_only: bool = True
+    live_apply_allowed: bool = False
+    applyable: bool = False
+    final_decision: Literal["BLOCKED", "READY_FOR_FUTURE_GATE_REVIEW", "REJECTED_NEEDS_REWORK"] = "BLOCKED"
+    allowed_decision_states: list[str] = field(default_factory=lambda: ["BLOCKED", "READY_FOR_FUTURE_GATE_REVIEW", "REJECTED_NEEDS_REWORK"])
+    phase_gate_summary: dict[str, Any] = field(default_factory=dict)
+    evidence_summary: dict[str, Any] = field(default_factory=dict)
+    risk_summary: dict[str, Any] = field(default_factory=dict)
+    checklist_summary: dict[str, Any] = field(default_factory=dict)
+    rollback_readiness_summary: dict[str, Any] = field(default_factory=dict)
+    canary_readiness_summary: dict[str, Any] = field(default_factory=dict)
+    abuse_requirement_summary: dict[str, Any] = field(default_factory=dict)
+    safety_flags: dict[str, Any] = field(default_factory=dict)
+    risks: list[FirewallGateReviewRiskItem] = field(default_factory=list)
+    checklist: list[FirewallGateReviewChecklistItem] = field(default_factory=list)
+    blockers: list[str] = field(default_factory=list)
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["risks"] = [r.to_dict() for r in self.risks]
+        data["checklist"] = [c.to_dict() for c in self.checklist]
+        data["warnings"] = [w.to_dict() for w in self.warnings]
+        data["errors"] = [e.to_dict() for e in self.errors]
+        return data
