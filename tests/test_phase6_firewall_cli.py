@@ -279,3 +279,52 @@ def test_firewall_apply_contract_no_yes_and_no_subprocess(monkeypatch) -> None:
     assert bad.exit_code != 0
     res = RUNNER.invoke(app, ["firewall", "apply-contract", "--config", str(example_config_path())])
     assert res.exit_code == 0
+
+
+def test_firewall_package_human(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "MPF firewall apply package (offline)" in res.output
+    assert "artifact_only: true" in res.output
+
+
+def test_firewall_package_json_flags(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"artifact_only": true' in res.output
+    assert '"inspection_only": true' in res.output
+    assert '"live_apply_allowed": false' in res.output
+    assert '"applyable": false' in res.output
+
+
+def test_firewall_package_config_only_warn(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", lambda cfg: _config_plan())
+    res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path()), "--source", "config-only"])
+    assert res.exit_code == 0
+    assert "planner_customer_source: config_only" in res.output
+    assert "WARNING" in res.output
+
+
+def test_firewall_package_db_failure_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: (_ for _ in ()).throw(RuntimeError("failed to load lanes: db down")))
+    res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path())])
+    assert res.exit_code == 1
+    assert "ERROR: failed to load lanes: db down" in res.output
+
+
+def test_firewall_package_no_yes_option() -> None:
+    res = RUNNER.invoke(app, ["firewall", "package", "--yes"])
+    assert res.exit_code != 0
+
+
+def test_firewall_package_does_not_call_subprocess(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("subprocess call is forbidden in firewall package")
+
+    monkeypatch.setattr(subprocess, "run", _fail)
+    res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path())])
+    assert res.exit_code == 0

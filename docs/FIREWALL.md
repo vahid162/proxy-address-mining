@@ -612,3 +612,13 @@ Firewall implementation is accepted only when:
 - tests cover planner, apply, verify, rollback, and failure cases
 
 A patch that adds ad-hoc production firewall mutation must be rejected.
+
+
+## Phase 6-B3 Offline Apply Package (Inspection Only)
+
+- Added `mpf firewall package` as an offline inspection-only report.
+- The package combines planner output, restore payload contract, and apply-readiness contract.
+- It remains artifact-only and inspection-only (`applyable=false`, `live_apply_allowed=false`, `readiness=blocked_for_live_apply`).
+- It does not execute `iptables-save` or `iptables-restore`.
+- It does not acquire locks, write restore points, write files, or write database rows.
+- Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
