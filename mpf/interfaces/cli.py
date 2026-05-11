@@ -18,6 +18,7 @@ from mpf.services import (
     customer_read_service,
     db_service,
     doctor_service,
+    firewall_snapshot_parser,
     job_service,
     lane_service,
     lane_sync_service,
@@ -500,9 +501,22 @@ def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), ou
 
 
 @firewall_app.command("diff")
-def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
+def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file", help="Offline iptables-save snapshot file (no live reads).")) -> None:
     """Render a dry-run firewall diff only."""
-    firewall_plan(config=config, output=output, source=source)
+    cfg = _load(config)
+    snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(live_snapshot_file)) if live_snapshot_file is not None else None
+    if source == "config-only":
+        result = firewall_planner_service.build_plan_from_config_with_live_snapshot(cfg, snapshot) if snapshot is not None else firewall_planner_service.build_plan_from_config(cfg)
+    else:
+        try:
+            result = firewall_planner_service.build_plan_from_db_with_live_snapshot(cfg, snapshot) if snapshot is not None else firewall_planner_service.build_plan_from_db(cfg)
+        except RuntimeError as exc:
+            typer.echo(f"ERROR: {exc}")
+            raise typer.Exit(1)
+    if output == "json":
+        typer.echo(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        return
+    typer.echo(result.to_human())
 
 
 @events_app.command("latest")
