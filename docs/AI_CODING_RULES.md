@@ -22,7 +22,7 @@ docs/ABUSE.md
 docs/AI_CODING_RULES.md
 ```
 
-For the current Phase 6-A work, also read:
+For the current Phase 6 work, also read:
 
 ```text
 docs/AI_PHASE_6_TASK.md
@@ -47,35 +47,51 @@ Current gate:
 ```text
 accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working: Phase 6 — Firewall Planner
-sub-step: Phase 6-A — Repository Cleanup + Firewall Planner Contract and Desired-State Model
+current_phase6_step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
 ```
 
-## Phase 6-A Rule
+## Current Phase 6-B Rule
 
-Phase 6-A exists to clean stale phase documentation and start the firewall planner safely.
+Phase 6-B exists to model the apply/rollback/preflight safety boundary while keeping all behavior offline, artifact-only, inspection-only, and non-mutating.
 
-Allowed in Phase 6-A:
+Allowed in current Phase 6-B:
 
 ```text
 repository/documentation cleanup that preserves gates
-firewall desired-state model
+firewall desired-state model refinement
 firewall planner/diff contracts
-human-readable plan rendering
-JSON plan rendering
+human-readable and JSON plan/report rendering
 dry-run evidence generation
-planner tests
+offline snapshot parser and file-backed diff fixtures
+offline restore payload artifacts
+offline apply-readiness contracts
+offline apply package reports
+offline rollback artifacts from explicit snapshot files
+offline preflight inspection/failure matrix
+planner/contract/preflight tests
 backend exposure classification tests
 internal backend reachability classification tests
 ```
 
-Forbidden in Phase 6-A:
+Forbidden in current Phase 6-B:
 
 ```text
 production traffic
 customer NAT redirects
 customer firewall rules
 live firewall apply
-iptables-restore
+live firewall rollback
+live firewall verify
+iptables-save execution
+iptables-restore execution
+conntrack flush
 usage timers
 hash-rate/share collectors
 abuse runner automation
@@ -189,7 +205,10 @@ Stop and revise if a change introduces:
 ```text
 traffic-changing behavior before the matching phase
 live firewall apply before explicit Phase 6 apply gate acceptance
-iptables-restore during Phase 6-A
+live firewall read/write dependency in current Phase 6-B inspection commands
+iptables-save execution in current Phase 6-B inspection commands
+iptables-restore execution in current Phase 6-B inspection commands
+conntrack flush before the relevant runtime gate
 abuse automation before Phase 8
 backend public exposure
 backend internal reachability failure
