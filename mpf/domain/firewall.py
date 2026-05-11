@@ -255,6 +255,61 @@ class FirewallRollbackContract:
 
 
 @dataclass
+class FirewallRollbackPayload:
+    payload: str
+    payload_sha256: str
+    payload_line_count: int
+    source_snapshot_sha256: str
+    table_count: int
+    chain_count: int
+    rule_count: int
+
+
+@dataclass(frozen=True)
+class FirewallRollbackValidationResult:
+    renderable: bool
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+
+@dataclass
+class FirewallRollbackArtifactContract:
+    backend: str = "iptables"
+    artifact_only: bool = True
+    inspection_only: bool = True
+    rollback_execution_allowed_now: bool = False
+    live_apply_allowed: bool = False
+    iptables_save_allowed_now: bool = False
+    iptables_restore_allowed_now: bool = False
+    source: str = "none"
+    source_snapshot_hash: str | None = None
+    rollback_payload_sha256: str | None = None
+    rollback_payload_line_count: int = 0
+    renderable: bool = False
+    applyable: bool = False
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+    safety_flags: dict[str, Any] = field(default_factory=lambda: {
+        "live_firewall_read": False,
+        "live_firewall_write": False,
+        "iptables_save_executed": False,
+        "iptables_restore_executed": False,
+        "lock_acquired": False,
+        "restore_point_written": False,
+        "rollback_written": False,
+        "database_write": False,
+        "filesystem_write": False,
+        "runtime_change": "no",
+        "nat_change": "planned_only",
+        "firewall_change": "planned_only",
+    })
+    rollback_payload: FirewallRollbackPayload | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class FirewallApplyReadinessContract:
     backend: str = "iptables"
     apply_mode: str = "plan_only"

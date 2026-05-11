@@ -328,3 +328,48 @@ def test_firewall_package_does_not_call_subprocess(monkeypatch) -> None:
     monkeypatch.setattr(subprocess, "run", _fail)
     res = RUNNER.invoke(app, ["firewall", "package", "--config", str(example_config_path())])
     assert res.exit_code == 0
+
+def test_firewall_render_rollback_human(tmp_path) -> None:
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(snapshot)])
+    assert res.exit_code == 0
+    assert "MPF firewall rollback artifact (offline)" in res.output
+
+
+def test_firewall_render_rollback_json_flags(tmp_path) -> None:
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(snapshot), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"artifact_only": true' in res.output
+    assert '"inspection_only": true' in res.output
+    assert '"applyable": false' in res.output
+
+
+def test_firewall_render_rollback_payload_only(tmp_path) -> None:
+    snapshot = tmp_path / "iptables.save"
+    snapshot.write_text("*filter\n:MPF_INPUT - [0:0]\nCOMMIT\n", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(snapshot), "--output", "payload"])
+    assert res.exit_code == 0
+    assert res.output.startswith("# MPF rollback artifact only")
+
+
+def test_firewall_render_rollback_missing_snapshot_nonzero() -> None:
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path())])
+    assert res.exit_code != 0
+
+
+def test_firewall_render_rollback_invalid_snapshot_path_nonzero(tmp_path) -> None:
+    missing = tmp_path / "missing.save"
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(missing)])
+    assert res.exit_code == 1
+    assert "ERROR: unable to read rollback snapshot file" in res.output
+
+
+def test_firewall_render_rollback_invalid_content_payload_mode_nonzero(tmp_path) -> None:
+    bad = tmp_path / "bad.save"
+    bad.write_text("", encoding="utf-8")
+    res = RUNNER.invoke(app, ["firewall", "render-rollback", "--config", str(example_config_path()), "--snapshot-file", str(bad), "--output", "payload"])
+    assert res.exit_code == 1
+    assert "*filter" not in res.output

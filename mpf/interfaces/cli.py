@@ -27,6 +27,7 @@ from mpf.services import (
     firewall_restore_payload_renderer,
     firewall_apply_contract_service,
     firewall_apply_package_service,
+    firewall_rollback_artifact_renderer,
     proxy_doctor_service,
 )
 
@@ -651,6 +652,62 @@ def firewall_apply_contract(config: Path | None = typer.Option(None, "--config",
     typer.echo(f"warnings: {len(contract.warnings)}")
     typer.echo(f"errors: {len(contract.errors)}")
 
+
+
+
+@firewall_app.command("render-rollback")
+def firewall_render_rollback(config: Path | None = typer.Option(None, "--config", "-c"), snapshot_file: Path = typer.Option(..., "--snapshot-file", help="Offline iptables-save snapshot file (required)."), output: str = typer.Option("human", "--output")) -> None:
+    """Render offline rollback artifact only (inspection-only, no execution)."""
+    _ = load_config(config)
+    if output not in {"human", "json", "payload"}:
+        raise typer.BadParameter("--output must be one of: human, json, payload")
+    if not snapshot_file.exists() or not snapshot_file.is_file():
+        typer.echo(f"ERROR: unable to read rollback snapshot file: {snapshot_file}: file does not exist")
+        raise typer.Exit(code=1)
+    try:
+        snapshot = firewall_snapshot_parser.parse_iptables_save_file(str(snapshot_file))
+    except Exception as exc:
+        typer.echo(f"ERROR: unable to parse rollback snapshot file: {snapshot_file}: {exc}")
+        raise typer.Exit(code=1)
+
+    contract = firewall_rollback_artifact_renderer.render_rollback_artifact_from_snapshot(snapshot, source="offline_snapshot_file")
+    if output == "payload":
+        if not contract.renderable or contract.rollback_payload is None:
+            raise typer.Exit(code=1)
+        typer.echo(contract.rollback_payload.payload, nl=False)
+        return
+    if output == "json":
+        typer.echo(json.dumps(contract.to_dict(), indent=2, sort_keys=True))
+        if not contract.renderable:
+            raise typer.Exit(code=1)
+        return
+
+    typer.echo("MPF firewall rollback artifact (offline)")
+    typer.echo(f"backend: {contract.backend}")
+    typer.echo(f"artifact_only: {str(contract.artifact_only).lower()}")
+    typer.echo(f"inspection_only: {str(contract.inspection_only).lower()}")
+    typer.echo(f"rollback_execution_allowed_now: {str(contract.rollback_execution_allowed_now).lower()}")
+    typer.echo(f"live_apply_allowed: {str(contract.live_apply_allowed).lower()}")
+    typer.echo(f"applyable: {str(contract.applyable).lower()}")
+    typer.echo(f"source: {contract.source}")
+    typer.echo(f"source_snapshot_sha256: {contract.source_snapshot_hash}")
+    typer.echo(f"rollback_payload_sha256: {contract.rollback_payload_sha256}")
+    typer.echo(f"rollback_payload_line_count: {contract.rollback_payload_line_count}")
+    if contract.rollback_payload is not None:
+        typer.echo(f"tables: {contract.rollback_payload.table_count}")
+        typer.echo(f"chains: {contract.rollback_payload.chain_count}")
+        typer.echo(f"rules: {contract.rollback_payload.rule_count}")
+    typer.echo(f"firewall_change: {contract.safety_flags['firewall_change']}")
+    typer.echo(f"nat_change: {contract.safety_flags['nat_change']}")
+    typer.echo(f"runtime_change: {contract.safety_flags['runtime_change']}")
+    typer.echo(f"warnings: {len(contract.warnings)}")
+    typer.echo(f"errors: {len(contract.errors)}")
+    for w in contract.warnings:
+        typer.echo(f"WARNING [{w.code}] {w.message}")
+    for e in contract.errors:
+        typer.echo(f"ERROR [{e.code}] {e.message}")
+    if not contract.renderable:
+        raise typer.Exit(code=1)
 
 @firewall_app.command("package")
 def firewall_package(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
