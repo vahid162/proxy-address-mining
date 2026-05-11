@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.33 - 2026-05-11
+
+- Hardened planner safety validation: active customers on unknown/disabled lanes or with missing/incomplete current policy now produce planner errors and no forwarding intent.
+- Validated firewall CLI `--source` to only accept `db-readonly|config-only` and kept planner dry-run only behavior unchanged.
+
 ## 0.1.31 - 2026-05-11
 
 - Aligned Phase 6-A1 PR metadata and verification notes with the finalized branch state (title/body consistency with `fix(firewall): enforce backend collision check and explicit planner source`, test evidence `python -m pytest -q` = 191 passed). This is metadata-only and introduces no live firewall, NAT, runtime, usage, abuse, UI, or Telegram behavior.

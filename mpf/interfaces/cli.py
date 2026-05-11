@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import Literal
 from pathlib import Path
 
 import typer
@@ -480,25 +481,18 @@ def proxy_config_check(config: Path | None = typer.Option(None, "--config", "-c"
     _emit_health_report(proxy_doctor_service.config_check(_config_path(config)))
 
 
-def _planner_input_from_config(cfg) -> tuple[list[dict], list[dict]]:
-    lanes: list[dict] = [
-        {"name": lane_name, "enabled": lane.enabled, "backend_port": lane.backend_port}
-        for lane_name, lane in sorted(cfg.lanes.items())
-    ]
-    customers: list[dict] = []
-    return lanes, customers
-
-
 @firewall_app.command("plan")
-def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
+def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
     """Render a dry-run firewall plan only."""
-    lanes, customers = _planner_input_from_config(_load(config))
-    result = firewall_planner_service.build_plan(
-        lanes=lanes,
-        customers=customers,
-        planner_customer_source="config_only",
-        db_customer_input_loaded=False,
-    )
+    cfg = _load(config)
+    if source == "config-only":
+        result = firewall_planner_service.build_plan_from_config(cfg)
+    else:
+        try:
+            result = firewall_planner_service.build_plan_from_db(cfg)
+        except RuntimeError as exc:
+            typer.echo(f"ERROR: {exc}")
+            raise typer.Exit(1)
     if output == "json":
         typer.echo(json.dumps(result.to_dict(), indent=2, sort_keys=True))
         return
@@ -506,9 +500,9 @@ def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), ou
 
 
 @firewall_app.command("diff")
-def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
+def firewall_diff(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
     """Render a dry-run firewall diff only."""
-    firewall_plan(config=config, output=output)
+    firewall_plan(config=config, output=output, source=source)
 
 
 @events_app.command("latest")
