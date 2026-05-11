@@ -1,8 +1,8 @@
-# AI Phase 6 Task — Firewall Planner First
+# AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6-A cleanup and planner implementation
+Status: active task for Phase 6-B firewall planning/offline apply contract work
 
-This document defines the safe Phase 6-A boundary for AI coding agents.
+This document defines the safe Phase 6 boundary for AI coding agents.
 
 ## Current Gate
 
@@ -17,46 +17,76 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-sub-step: Phase 6-A — Repository Cleanup + Firewall Planner Contract and Desired-State Model
+current sub-step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
+customer onboarding: db_only
+proxy data plane: limited_runtime_local_only
+UI: not allowed
+Telegram: not allowed
 ```
 
-## Goal
+## Purpose
 
-Start Phase 6 safely by cleaning stale repository documentation and implementing planner-first firewall foundations.
+Phase 6 builds the firewall planner and the apply/rollback safety contract without enabling production traffic or live firewall mutation.
 
-Phase 6-A is not a production traffic phase. It is a modeling, planning, diff, and test phase.
-
-## Allowed Work
+Completed Phase 6-A work established:
 
 ```text
-repository documentation cleanup
-phase-gate alignment tests
-firewall desired-state domain objects
-firewall plan DTOs
-firewall diff DTOs
-planner service contracts
-read-only live-state parser contracts
-human-readable plan rendering
-JSON plan rendering
-dry-run evidence artifacts
-planner unit tests
-backend exposure classification tests
-internal backend reachability classification tests
-collision detection tests
-orphan/stale MPF object detection tests
+firewall desired-state model
+planner/diff DTOs
+human and JSON dry-run output
+offline snapshot parser
+offline file-backed diff
+planner-only firewall doctor
 ```
 
-## Forbidden Work
+Current Phase 6-B work is limited to:
+
+```text
+offline restore payload artifacts
+offline apply-readiness contracts
+offline apply package reports
+offline rollback artifacts from explicit snapshot files
+offline preflight inspection/failure matrix
+safety regression tests
+```
+
+Phase 6-B is still not a production traffic phase.
+
+## Allowed Work Now
+
+```text
+repository/documentation cleanup that preserves the current gate
+firewall desired-model refinement
+firewall planner/diff refinement
+human-readable and JSON plan/report output
+offline parser and file-backed snapshot fixtures
+offline restore payload rendering as artifact only
+offline apply-readiness contract modeling
+offline apply package reporting
+offline rollback artifact rendering from explicit operator-provided snapshot files
+offline preflight reporting
+planner, contract, package, rollback, and preflight tests
+safety regression tests proving no live firewall side effects
+proxy/backend safety checks that preserve internal reachability + external non-exposure contracts
+```
+
+## Forbidden Work Now
+
+Do not implement, run, or activate:
 
 ```text
 production customer traffic
 customer NAT redirects
 customer firewall rules
 live firewall apply
-live restore execution
+live firewall rollback
+live firewall verify
+iptables-save execution
+iptables-restore execution
+conntrack flush
 usage timers
 hash-rate/share collectors
 abuse runner automation
@@ -71,6 +101,8 @@ public v2rayA UI exposure
 public backend exposure
 ```
 
+Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
+
 ## Required Invariants
 
 ```text
@@ -81,34 +113,73 @@ firewall_apply_allowed = no
 abuse_automation_allowed = no
 proxy_data_plane_allowed = limited_runtime_local_only
 customer_onboarding_allowed = db_only
+ui_allowed = no
+telegram_allowed = no
 ```
+
+Any patch that bypasses these invariants or introduces traffic-changing behavior before the correct accepted phase must be rejected.
 
 ## Planner Boundary
 
-The planner may read config and database state, then produce a desired model and a plan.
-
-It must not mutate live system state in Phase 6-A.
-
-Required planner flow:
+Allowed planner flow:
 
 ```text
 load config
-load DB state
+load DB state through read-only repository paths
 validate lanes and customers
 build desired firewall model
-load or accept live snapshot input
-compare desired state with live state
+accept explicit offline snapshot input when requested
+compare desired state with offline snapshot state
 produce warnings and errors
 render human-readable summary
-render stable JSON plan
+render stable JSON plan/report
 return non-applyable result when errors exist
+```
+
+Forbidden planner flow:
+
+```text
+execute iptables-save automatically
+execute iptables-restore
+read live firewall state implicitly
+mutate firewall/NAT/runtime state
+write DB rows from planner/report commands
+write filesystem artifacts from inspection commands
+silently fall back from DB-backed input to config-only input
+produce misleading empty plans when DB read failed
+```
+
+## Offline Apply Contract Boundary
+
+Phase 6-B artifacts may describe future apply behavior, but they must not perform it.
+
+Allowed contract outputs:
+
+```text
+restore payload text/artifact displayed to operator
+apply-readiness contract
+apply package report
+rollback artifact rendered from explicit offline snapshot file
+preflight report combining planner, restore, readiness, package, and optional rollback status
+```
+
+Required safety flags must remain false for current Phase 6-B commands:
+
+```text
+live_firewall_read = false
+live_firewall_write = false
+iptables_save_executed = false
+iptables_restore_executed = false
+lock_acquired = false
+restore_point_written = false
+rollback_written = false
+database_write = false
+filesystem_write = false
 ```
 
 ## Desired Model Scope
 
-The desired model should represent intent, not execute it.
-
-It should include:
+The desired model represents intent only. It may include:
 
 ```text
 backend type
@@ -125,24 +196,28 @@ errors
 affected customers
 ```
 
+It must not create live chains, live rules, or live NAT redirects.
+
 ## Safety Requirements
 
-Planner errors must block future applyability.
+Planner and contract errors must block future applyability.
 
-At minimum, Phase 6-A must detect or prepare contracts for:
+At minimum, Phase 6 must detect or represent:
 
 ```text
 customer port collision
 lane backend port collision
+customer/backend port collision
 backend public exposure risk
 backend internal reachability failure
 missing customer coverage
 missing accounting coverage
-unexpected MPF-owned live object
-orphan MPF-owned chain or rule
-stale deleted-customer rule
-NAT target mismatch
+unexpected MPF-owned live object in offline snapshot
+orphan MPF-owned chain or rule in offline snapshot
+stale deleted-customer rule in offline snapshot
+NAT target mismatch in offline snapshot
 plan with errors is not applyable
+live apply remains blocked by current phase gate
 ```
 
 ## Interface Boundary
@@ -164,40 +239,44 @@ customer service mutates firewall state directly
 job bypasses firewall service
 ```
 
-## Tests Required Before Phase 6-A Acceptance
+## Tests Required Before Advancing Beyond Phase 6-B
 
 ```text
 phase status remains Phase 5 accepted / Phase 6 working
-README and INDEX do not point to Phase 5 as current work
+current docs identify Phase 6-B as contract/artifact/preflight work, not stale Phase 6-A-only work
 planner output has human-readable summary
 planner output has JSON representation
 plan errors make result not applyable
 customer port collision is detected
 lane backend collision is detected
+customer/backend port collision is detected
 backend exposure risk is detected or explicitly represented
 internal backend reachability failure is detected or explicitly represented
+offline snapshot parser remains file-backed and explicit
+restore payload renderer is artifact-only
+apply-readiness contract is non-applyable while current gate forbids live apply
+rollback artifact renderer uses explicit snapshot input only
+preflight final verdict remains BLOCKED while live apply is forbidden
 no runtime apply path is introduced
+no iptables-save execution is introduced
+no iptables-restore execution is introduced
 no customer NAT or firewall rule is created
 no usage or abuse automation is introduced
 ```
 
-## Acceptance Gate
+## Acceptance Gate For Any Future Live Apply Slice
 
-Phase 6-A is accepted only when:
+A later live apply slice may be considered only after an explicit gate update and separate review. Before that, the project must have:
 
 ```text
-repository cleanup is complete
-current phase docs are aligned
-planner contracts exist
-planner tests pass
-dry-run evidence can be generated
-no live firewall mutation exists
-no production traffic is enabled
-limited Phase 4 runtime remains local-only
+planner accepted
+restore point contract accepted
+lock contract accepted
+verify contract accepted
+rollback contract accepted
+preflight accepted
+canary/manual/isolated validation plan accepted
+server time synchronization fixed before production-dependent jobs
 ```
 
-## Next Step After Phase 6-A
-
-Only after Phase 6-A is accepted, continue to deeper planner implementation and then a separate reviewed apply gate.
-
-Do not combine planner cleanup with live apply behavior.
+Do not combine planner/offline contract work with live apply behavior.
