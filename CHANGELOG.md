@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.39 - 2026-05-11
+
+- completed planner-only desired model behavior for active/paused/expired/deleted customers.
+- added or clarified whitelist, pause/expired reject placeholders, and accounting coverage intents.
+- added safety tests for customer status behavior and desired-model consistency.
+- no live firewall reads, live firewall writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.38 - 2026-05-11
 
 - Hardened offline `iptables-save` parser with shell-like tokenization.

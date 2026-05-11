@@ -100,14 +100,44 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
     for customer in customers:
         status = customer.get("status")
         customer_key = str(customer.get("customer_key"))
+        lane_name = str(customer.get("lane"))
+        cport = int(customer["port"])
+
         if status == "deleted":
             continue
-        if status in {"paused", "expired"}:
-            plan.warnings.append(FirewallPlanMessage(code="inactive_placeholder", message=f"customer {customer_key} status={status} is represented as non-active intent", severity="warning")); continue
-        if status != "active":
-            plan.warnings.append(FirewallPlanMessage(code="unsupported_status", message=f"customer {customer_key} has unsupported status={status}", severity="warning")); continue
 
-        lane_name = str(customer["lane"])
+        if status in {"paused", "expired"}:
+            placeholder_kind = "customer_pause_reject" if status == "paused" else "customer_expired_reject"
+            plan.warnings.append(
+                FirewallPlanMessage(
+                    code="inactive_placeholder",
+                    message=f"customer {customer_key} status={status} is represented as non-active intent",
+                    severity="warning",
+                )
+            )
+            plan.rules.append(
+                FirewallRuleIntent(
+                    id=f"{customer_key}:{placeholder_kind}",
+                    table="filter",
+                    chain="MPF_CUSTOMERS",
+                    rule_key=f"mpf:{customer_key}:{placeholder_kind}",
+                    rule_kind=placeholder_kind,
+                    priority=90,
+                    lane=lane_name,
+                    customer_key=customer_key,
+                    customer_id=customer.get("id"),
+                    customer_port=cport,
+                    match_json={"port": cport, "status": status},
+                    action_json={"intent": placeholder_kind, "planned_only": True},
+                    detail=f"planned placeholder intent for status={status}",
+                )
+            )
+            continue
+
+        if status != "active":
+            plan.warnings.append(FirewallPlanMessage(code="unsupported_status", message=f"customer {customer_key} has unsupported status={status}", severity="warning"))
+            continue
+
         if lane_name not in known_lanes:
             plan.errors.append(FirewallPlanMessage(code="customer_unknown_lane", message=f"customer {customer_key} references unknown lane={lane_name}", severity="error")); continue
         if lane_name not in enabled_lane_names:
@@ -120,7 +150,6 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
         if incomplete:
             plan.errors.append(FirewallPlanMessage(code="incomplete_current_policy", message=f"customer {customer_key} current policy incomplete: missing={','.join(missing)}", severity="error")); continue
 
-        cport = int(customer["port"])
         backend_port = int(known_lanes[lane_name]["backend_port"])
         plan.customer_coverage.append(customer_key)
         plan.affected_customers.append(customer_key)
@@ -133,11 +162,19 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
         kinds = ["customer_dispatch", "customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_accounting_out", "customer_nat_redirect"]
         if policy.get("ips_mode") == "whitelist":
             kinds.append("customer_whitelist_allow")
+            whitelist = policy.get("ip_whitelist") or customer.get("ip_whitelist") or []
+            if not whitelist:
+                plan.warnings.append(FirewallPlanMessage(code="whitelist_missing_sources", message=f"customer {customer_key} ips_mode=whitelist but no whitelist sources provided in planner input", severity="warning"))
         for i, kind in enumerate(kinds):
             is_nat = kind == "customer_nat_redirect"
-            plan.rules.append(FirewallRuleIntent(id=f"{customer_key}:{kind}", table="nat" if is_nat else "filter", chain="MPF_NAT_PRE" if is_nat else f"MPFC_{cport}", rule_key=f"mpf:{customer_key}:{kind}", rule_kind=kind, priority=100 + i, lane=lane_name, customer_key=customer_key, customer_id=customer.get("id"), customer_port=cport, backend_port=backend_port, accounting_role="customer_usage" if "accounting" in kind else None, match_json={"port": cport}, action_json={"target_backend": backend_port} if is_nat else {"intent": kind}, detail=f"planned intent {kind}"))
+            action_json = {"target_backend": backend_port} if is_nat else {"intent": kind}
+            match_json = {"port": cport}
+            if kind == "customer_whitelist_allow":
+                whitelist = policy.get("ip_whitelist") or customer.get("ip_whitelist") or []
+                match_json["sources"] = whitelist
+                action_json["whitelist_required"] = True
+            plan.rules.append(FirewallRuleIntent(id=f"{customer_key}:{kind}", table="nat" if is_nat else "filter", chain="MPF_NAT_PRE" if is_nat else f"MPFC_{cport}", rule_key=f"mpf:{customer_key}:{kind}", rule_kind=kind, priority=100 + i, lane=lane_name, customer_key=customer_key, customer_id=customer.get("id"), customer_port=cport, backend_port=backend_port, accounting_role="customer_usage" if "accounting" in kind else None, match_json=match_json, action_json=action_json, detail=f"planned intent {kind}"))
         plan.changes.append(FirewallPlanChange(kind="create", object_type="rule_intent", object_id=f"customer:{customer_key}", detail="planned structured customer intents"))
-
     desired_chain_keys = {(c.table, c.chain) for c in plan.chains}
     for r in plan.rules:
         if (r.table, r.chain) not in desired_chain_keys:

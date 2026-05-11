@@ -100,3 +100,18 @@ def test_active_customer_with_enabled_lane_and_complete_policy_gets_intent() -> 
     )
     assert result.applyable is True
     assert any(r.customer_key == "x" and r.rule_kind == "customer_nat_redirect" for r in result.rules)
+
+
+def test_active_customer_coverage_and_accounting_intents() -> None:
+    result = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "x", "lane": "BTC", "port": 20001, "status": "active", "policy": _valid_policy()}])
+    kinds = {r.rule_kind for r in result.rules if r.customer_key == "x"}
+    assert {"customer_dispatch", "customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_accounting_out", "customer_nat_redirect"} <= kinds
+    assert "x" in result.customer_coverage
+    assert "x" in result.affected_customers
+    assert result.accounting_coverage.get("x") is True
+
+
+def test_unsupported_status_warns_and_has_no_forwarding() -> None:
+    result = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "u", "lane": "BTC", "port": 29999, "status": "mystery"}])
+    assert any(w.code == "unsupported_status" for w in result.warnings)
+    assert all(r.customer_key != "u" for r in result.rules)
