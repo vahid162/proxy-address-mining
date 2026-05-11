@@ -114,3 +114,56 @@ def test_no_stale_json_short_flag_examples_introduced() -> None:
         text = Path(path).read_text(encoding="utf-8").lower()
         assert "mpf firewall evidence --json" not in text
         assert "mpf firewall gate-review --json" not in text
+
+
+def test_phase6_c0_commands_use_output_json_form() -> None:
+    text = Path("docs/PHASE_6_C0_APPLY_GATE_READINESS.md").read_text(encoding="utf-8")
+    assert "mpf firewall plan --output json" in text
+    assert "mpf firewall evidence --output json" in text
+    assert "mpf firewall plan --json" not in text.lower()
+    assert "mpf firewall evidence --json" not in text.lower()
+
+
+def test_phase6_docs_no_stale_short_json_flags() -> None:
+    docs = [
+        "docs/PHASE_6_C0_APPLY_GATE_READINESS.md",
+        "docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md",
+        "docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md",
+        "docs/PHASE_STATUS.md",
+        "docs/FIREWALL.md",
+        "docs/INDEX.md",
+        "docs/AI_PHASE_6_TASK.md",
+        "README.md",
+        "AGENTS.md",
+        "docs/AI_CODING_RULES.md",
+    ]
+    stale = [
+        "mpf firewall plan --json",
+        "mpf firewall diff --json",
+        "mpf firewall doctor --json",
+        "mpf firewall apply-contract --json",
+        "mpf firewall package --json",
+        "mpf firewall preflight --json",
+        "mpf firewall evidence --json",
+        "mpf firewall gate-review --json",
+    ]
+    for path in docs:
+        data = Path(path).read_text(encoding="utf-8").lower()
+        for marker in stale:
+            assert marker not in data
+
+
+def test_gate_review_json_examples_use_output_json_if_present() -> None:
+    docs = [
+        "docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md",
+        "docs/AI_PHASE_6_TASK.md",
+        "docs/FIREWALL.md",
+        "docs/PHASE_STATUS.md",
+    ]
+    for path in docs:
+        data = Path(path).read_text(encoding="utf-8")
+        dl = data.lower()
+        if "mpf firewall gate-review" in dl:
+            assert "mpf firewall gate-review --json" not in dl
+            if "--output json" in dl:
+                assert "mpf firewall gate-review --output json" in data

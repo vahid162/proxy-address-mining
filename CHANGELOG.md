@@ -8,6 +8,7 @@
 - updated documentation index/firewall docs for Phase 6-C closure
 - kept Phase 5 accepted / Phase 6 working gate unchanged
 - confirmed no live firewall reads/writes, iptables-save, iptables-restore, lock acquisition, restore point write, rollback file write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced
+- strengthened docs regression tests against stale `--json` firewall command examples
 
 ## 0.1.56 - 2026-05-11
 
