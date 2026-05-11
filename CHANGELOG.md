@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.43 - 2026-05-11
+
+- added Phase 6-B2 offline restore point, lock, verify, and rollback contracts.
+- added `mpf firewall apply-contract` command for inspection only.
+- aligned stale Phase 6 next-step documentation without weakening current safety gates.
+- added tests proving no live firewall reads/writes, iptables-save, iptables-restore execution, lock acquisition, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.42 - 2026-05-11
 
 - fixed Phase 6-B1 restore contract semantics: renderable artifacts no longer imply applyable=true; apply remains forbidden.

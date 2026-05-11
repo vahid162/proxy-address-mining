@@ -25,6 +25,7 @@ from mpf.services import (
     firewall_planner_service,
     firewall_doctor_service,
     firewall_restore_payload_renderer,
+    firewall_apply_contract_service,
     proxy_doctor_service,
 )
 
@@ -612,6 +613,42 @@ def firewall_render_restore(config: Path | None = typer.Option(None, "--config",
         typer.echo(f"ERROR [{e.code}] {e.message}")
     if not contract.renderable:
         raise typer.Exit(1)
+
+
+@firewall_app.command("apply-contract")
+def firewall_apply_contract(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
+    """Render offline apply-readiness contract only (no apply, no rollback, no verify execution)."""
+    cfg = _load(config)
+    if source == "config-only":
+        result = firewall_planner_service.build_plan_from_config(cfg)
+    else:
+        try:
+            result = firewall_planner_service.build_plan_from_db(cfg)
+        except RuntimeError as exc:
+            typer.echo(f"ERROR: {exc}")
+            raise typer.Exit(1)
+    restore_contract = firewall_restore_payload_renderer.render_restore_contract(result)
+    contract = firewall_apply_contract_service.build_apply_readiness_contract(result, restore_contract)
+    if output == "json":
+        typer.echo(json.dumps(contract.to_dict(), indent=2, sort_keys=True))
+        return
+
+    typer.echo("MPF firewall apply contract (offline)")
+    typer.echo(f"backend: {contract.backend}")
+    typer.echo(f"apply_mode: {contract.apply_mode}")
+    typer.echo(f"artifact_only: {str(contract.artifact_only).lower()}")
+    typer.echo(f"live_apply_allowed: {str(contract.live_apply_allowed).lower()}")
+    typer.echo(f"applyable: {str(contract.applyable).lower()}")
+    typer.echo(f"readiness: {contract.readiness}")
+    typer.echo(f"restore_point_required: {str(contract.restore_point_contract.restore_point_required).lower()}")
+    typer.echo(f"lock_required_for_apply: {str(contract.lock_contract.lock_required_for_apply).lower()}")
+    typer.echo(f"verify_required_after_apply: {str(contract.verify_contract.verify_required_after_apply).lower()}")
+    typer.echo(f"rollback_artifact_required: {str(contract.rollback_contract.rollback_artifact_required).lower()}")
+    typer.echo(f"firewall_change: {contract.safety_flags['firewall_change']}")
+    typer.echo(f"nat_change: {contract.safety_flags['nat_change']}")
+    typer.echo(f"runtime_change: {contract.safety_flags['runtime_change']}")
+    typer.echo(f"warnings: {len(contract.warnings)}")
+    typer.echo(f"errors: {len(contract.errors)}")
 @events_app.command("latest")
 def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), limit: int = typer.Option(20, "--limit"), subject_type: str | None = typer.Option(None, "--subject-type"), severity: str | None = typer.Option(None, "--severity")) -> None:
     result = customer_read_service.latest_events(_load(config), limit=limit, subject_type=subject_type, severity=severity)

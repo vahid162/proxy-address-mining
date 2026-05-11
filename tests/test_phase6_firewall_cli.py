@@ -163,6 +163,8 @@ def test_no_firewall_apply_or_rollback_commands() -> None:
     rollback_res = RUNNER.invoke(app, ["firewall", "rollback"])
     assert apply_res.exit_code != 0
     assert rollback_res.exit_code != 0
+    verify_res = RUNNER.invoke(app, ["firewall", "verify"])
+    assert verify_res.exit_code != 0
 
 def test_firewall_render_restore_human(monkeypatch) -> None:
     monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
@@ -235,4 +237,45 @@ def test_firewall_render_restore_no_save_restore_subprocess(monkeypatch) -> None
 
     monkeypatch.setattr(subprocess, "run", _fail)
     res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+
+
+def test_firewall_apply_contract_human(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "apply-contract", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "MPF firewall apply contract (offline)" in res.output
+    assert "artifact_only: true" in res.output
+    assert "live_apply_allowed: false" in res.output
+    assert "applyable: false" in res.output
+
+
+def test_firewall_apply_contract_json(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    res = RUNNER.invoke(app, ["firewall", "apply-contract", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"artifact_only": true' in res.output
+    assert '"live_apply_allowed": false' in res.output
+
+
+def test_firewall_apply_contract_config_only_warning(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", lambda cfg: _config_plan())
+    res = RUNNER.invoke(app, ["firewall", "apply-contract", "--config", str(example_config_path()), "--source", "config-only"])
+    assert res.exit_code == 0
+    assert "warnings:" in res.output
+
+
+def test_firewall_apply_contract_db_failure_exits_nonzero(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: (_ for _ in ()).throw(RuntimeError("failed to load lanes: db down")))
+    res = RUNNER.invoke(app, ["firewall", "apply-contract", "--config", str(example_config_path())])
+    assert res.exit_code == 1
+    assert "ERROR: failed to load lanes: db down" in res.output
+
+
+def test_firewall_apply_contract_no_yes_and_no_subprocess(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("subprocess forbidden")))
+    bad = RUNNER.invoke(app, ["firewall", "apply-contract", "--yes"])
+    assert bad.exit_code != 0
+    res = RUNNER.invoke(app, ["firewall", "apply-contract", "--config", str(example_config_path())])
     assert res.exit_code == 0

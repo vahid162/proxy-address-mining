@@ -198,3 +198,93 @@ class FirewallApplyContract:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class FirewallRestorePointContract:
+    artifact_only: bool = True
+    required_before_apply: bool = True
+    restore_point_required: bool = True
+    live_snapshot_required_before_apply: bool = True
+    desired_payload_hash: str | None = None
+    source_plan_version: str = "phase6-b2"
+    created_by_phase: str = "phase6-b2"
+    storage_policy: str = "planned_only"
+    filesystem_write_allowed: bool = False
+    database_write_allowed: bool = False
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+
+@dataclass
+class FirewallLockContract:
+    firewall_lock_path: str = "/run/mpf-firewall.lock"
+    database_scheduler_lock_required: bool = True
+    lock_required_for_apply: bool = True
+    lock_required_for_rollback: bool = True
+    lock_acquire_allowed_now: bool = False
+    lock_release_allowed_now: bool = False
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+
+@dataclass
+class FirewallVerifyContract:
+    verify_required_after_apply: bool = True
+    verify_mode: str = "offline_contract_only"
+    live_verify_allowed_now: bool = False
+    compare_desired_to_live_required_later: bool = True
+    backend_exposure_check_required: bool = True
+    nat_target_check_required: bool = True
+    accounting_coverage_check_required: bool = True
+    rule_chain_consistency_check_required: bool = True
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+
+@dataclass
+class FirewallRollbackContract:
+    rollback_required_for_apply: bool = True
+    rollback_artifact_required: bool = True
+    rollback_execution_allowed_now: bool = False
+    rollback_must_use_stored_restore_artifact: bool = True
+    rollback_must_not_guess_from_current_db: bool = True
+    rollback_verify_required_later: bool = True
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+
+
+@dataclass
+class FirewallApplyReadinessContract:
+    backend: str = "iptables"
+    apply_mode: str = "plan_only"
+    artifact_only: bool = True
+    live_apply_allowed: bool = False
+    iptables_save_allowed_now: bool = False
+    iptables_restore_allowed_now: bool = False
+    restore_point_contract: FirewallRestorePointContract = field(default_factory=FirewallRestorePointContract)
+    lock_contract: FirewallLockContract = field(default_factory=FirewallLockContract)
+    verify_contract: FirewallVerifyContract = field(default_factory=FirewallVerifyContract)
+    rollback_contract: FirewallRollbackContract = field(default_factory=FirewallRollbackContract)
+    source_restore_payload_contract: FirewallApplyContract | None = None
+    readiness: str = "blocked_for_live_apply"
+    renderable: bool = False
+    applyable: bool = False
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+    safety_flags: dict[str, Any] = field(default_factory=lambda: {
+        "live_firewall_read": False,
+        "live_firewall_write": False,
+        "iptables_save_executed": False,
+        "iptables_restore_executed": False,
+        "lock_acquired": False,
+        "restore_point_written": False,
+        "database_write": False,
+        "filesystem_write": False,
+        "runtime_change": "no",
+        "nat_change": "planned_only",
+        "firewall_change": "planned_only",
+    })
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

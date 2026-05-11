@@ -256,7 +256,7 @@ Future customer records remain DB-only until Phase 6 apply and customer NAT/cust
 Proceed to:
 
 ```text
-Phase 6-A — Repository Cleanup + Firewall Planner Contract and Desired-State Model
+Phase 6-B — Offline Apply Contracts (artifact-only)
 ```
 
 Phase 6-A must remain planning/model/diff/test only. Do not move to live firewall apply, customer NAT redirects, usage timers, hash-rate collectors, or abuse automation until the relevant later phase gates pass.
