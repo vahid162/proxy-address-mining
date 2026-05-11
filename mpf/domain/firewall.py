@@ -288,3 +288,47 @@ class FirewallApplyReadinessContract:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class FirewallApplyPackageReport:
+    backend: str = "iptables"
+    apply_mode: str = "plan_only"
+    package_version: str = "phase6-b3"
+    artifact_only: bool = True
+    inspection_only: bool = True
+    live_apply_allowed: bool = False
+    applyable: bool = False
+    readiness: str = "blocked_for_live_apply"
+    planner_customer_source: str = "unknown"
+    db_customer_input_loaded: bool = False
+    plan_summary: dict[str, Any] = field(default_factory=dict)
+    restore_payload_summary: dict[str, Any] = field(default_factory=dict)
+    apply_contract_summary: dict[str, Any] = field(default_factory=dict)
+    payload_sha256: str | None = None
+    payload_line_count: int = 0
+    chain_count: int = 0
+    rule_count: int = 0
+    warning_count: int = 0
+    error_count: int = 0
+    warnings: list[FirewallPlanMessage] = field(default_factory=list)
+    errors: list[FirewallPlanMessage] = field(default_factory=list)
+    safety_flags: dict[str, Any] = field(default_factory=lambda: {
+        "live_firewall_read": False,
+        "live_firewall_write": False,
+        "iptables_save_executed": False,
+        "iptables_restore_executed": False,
+        "lock_acquired": False,
+        "restore_point_written": False,
+        "database_write": False,
+        "filesystem_write": False,
+        "runtime_change": "no",
+        "nat_change": "planned_only",
+        "firewall_change": "planned_only",
+    })
+    source_plan: FirewallPlanResult | None = None
+    restore_contract: FirewallApplyContract | None = None
+    apply_readiness_contract: FirewallApplyReadinessContract | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)

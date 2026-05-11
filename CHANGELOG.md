@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.45 - 2026-05-11
+
+- added Phase 6-B3 offline apply package/readiness report.
+- added `mpf firewall package` command for inspection only.
+- package combines planner output, restore payload contract, and apply-readiness contract.
+- added tests proving no live firewall reads/writes, iptables-save, iptables-restore execution, lock acquisition, restore point write, DB/filesystem writes, NAT, runtime, usage, abuse, UI, or Telegram behavior was introduced.
+
 ## 0.1.44 - 2026-05-11
 
 - fixed stale Phase 6-A wording under PHASE_STATUS Next Planned Step to explicitly keep Phase 6-B contract/artifact/planning/test-only scope.

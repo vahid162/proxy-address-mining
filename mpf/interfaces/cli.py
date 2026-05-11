@@ -26,6 +26,7 @@ from mpf.services import (
     firewall_doctor_service,
     firewall_restore_payload_renderer,
     firewall_apply_contract_service,
+    firewall_apply_package_service,
     proxy_doctor_service,
 )
 
@@ -649,6 +650,57 @@ def firewall_apply_contract(config: Path | None = typer.Option(None, "--config",
     typer.echo(f"runtime_change: {contract.safety_flags['runtime_change']}")
     typer.echo(f"warnings: {len(contract.warnings)}")
     typer.echo(f"errors: {len(contract.errors)}")
+
+
+@firewall_app.command("package")
+def firewall_package(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
+    """Render offline apply package/readiness report only (inspection-only, no apply)."""
+    cfg = _load(config)
+    if source == "config-only":
+        result = firewall_planner_service.build_plan_from_config(cfg)
+    else:
+        try:
+            result = firewall_planner_service.build_plan_from_db(cfg)
+        except RuntimeError as exc:
+            typer.echo(f"ERROR: {exc}")
+            raise typer.Exit(1)
+    package = firewall_apply_package_service.build_apply_package_report(result)
+    if output == "json":
+        typer.echo(json.dumps(package.to_dict(), indent=2, sort_keys=True))
+        return
+
+    typer.echo("MPF firewall apply package (offline)")
+    typer.echo(f"backend: {package.backend}")
+    typer.echo(f"apply_mode: {package.apply_mode}")
+    typer.echo(f"package_version: {package.package_version}")
+    typer.echo(f"artifact_only: {str(package.artifact_only).lower()}")
+    typer.echo(f"inspection_only: {str(package.inspection_only).lower()}")
+    typer.echo(f"live_apply_allowed: {str(package.live_apply_allowed).lower()}")
+    typer.echo(f"applyable: {str(package.applyable).lower()}")
+    typer.echo(f"readiness: {package.readiness}")
+    typer.echo(f"planner_customer_source: {package.planner_customer_source}")
+    typer.echo(f"db_customer_input_loaded: {str(package.db_customer_input_loaded).lower()}")
+    typer.echo(f"chains: {package.chain_count}")
+    typer.echo(f"rules: {package.rule_count}")
+    typer.echo(f"warnings: {package.warning_count}")
+    typer.echo(f"errors: {package.error_count}")
+    if package.payload_sha256 is not None:
+        typer.echo(f"payload_sha256: {package.payload_sha256}")
+    typer.echo(f"payload_line_count: {package.payload_line_count}")
+    readiness = package.apply_readiness_contract
+    if readiness is not None:
+        typer.echo(f"restore_point_required: {str(readiness.restore_point_contract.restore_point_required).lower()}")
+        typer.echo(f"lock_required_for_apply: {str(readiness.lock_contract.lock_required_for_apply).lower()}")
+        typer.echo(f"verify_required_after_apply: {str(readiness.verify_contract.verify_required_after_apply).lower()}")
+        typer.echo(f"rollback_artifact_required: {str(readiness.rollback_contract.rollback_artifact_required).lower()}")
+    typer.echo(f"firewall_change: {package.safety_flags['firewall_change']}")
+    typer.echo(f"nat_change: {package.safety_flags['nat_change']}")
+    typer.echo(f"runtime_change: {package.safety_flags['runtime_change']}")
+    for w in package.warnings:
+        typer.echo(f"WARNING [{w.code}] {w.message}")
+    for e in package.errors:
+        typer.echo(f"ERROR [{e.code}] {e.message}")
+
 @events_app.command("latest")
 def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), limit: int = typer.Option(20, "--limit"), subject_type: str | None = typer.Option(None, "--subject-type"), severity: str | None = typer.Option(None, "--severity")) -> None:
     result = customer_read_service.latest_events(_load(config), limit=limit, subject_type=subject_type, severity=severity)
