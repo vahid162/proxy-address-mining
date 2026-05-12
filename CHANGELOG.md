@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.63 - 2026-05-12
+
+- added Phase 6-E1 isolated harness hardening documentation
+- hardened fake/no-op harness contracts/tests
+- added regression guards proving no host firewall mutation, no iptables-save, no iptables-restore, no real iptables adapter, no DB apply writes, no locks, and no restore point writes
+- indexed docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, NAT, runtime customer traffic, usage, abuse automation, UI, or Telegram behavior was introduced
+
 ## 0.1.62 - 2026-05-12
 
 - recorded Phase 6-E0 acceptance evidence from farm5
