@@ -745,6 +745,6 @@ Host production firewall mutation remains forbidden.
 Real live apply remains forbidden.
 
 
-Phase 6-E3 is accepted. Phase 6-F is the current next planned work.
-Phase 6-F remains documentation/test-only and non-authorizing.
-Phase 6-F is manual canary gate definition only and does not authorize live apply/read/write, iptables-save, iptables-restore, real adapters, DB apply writes, lock acquisition, restore point writes, customer NAT redirects, or customer firewall rules.
+Phase 6-F is accepted. Phase 6-G is the current next planned work.
+Phase 6-G remains documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Phase 6-G is controlled live apply gate planning / pre-apply review only and does not authorize live apply/read/write, iptables-save, iptables-restore, real adapters, DB apply writes, lock acquisition, restore point writes, customer NAT redirects, or customer firewall rules.

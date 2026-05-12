@@ -15,7 +15,7 @@ def test_phase6_f_doc_exists() -> None:
     assert Path("docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md").exists()
 
 
-def test_phase_status_current_state_unchanged_and_phase6f_planned() -> None:
+def test_phase_status_current_state_unchanged_and_phase6f_accepted() -> None:
     text = _read("docs/PHASE_STATUS.md")
     expected = """## Current State
 
@@ -32,9 +32,9 @@ ui_allowed: no
 telegram_allowed: no
 ```"""
     assert expected in text
-    assert "Phase 6-E3 is accepted" in text
-    assert "next planned implementation step is Phase 6-F" in text
-    assert "Phase 6-F — Manual Canary Gate Definition" in text
+    assert "Phase 6-F is accepted as manual canary gate definition only" in text
+    assert "next planned implementation step is Phase 6-G" in text
+    assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review" in text
     assert "docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md" in text
     assert "Phase 6-F accepted" not in text
 
@@ -43,7 +43,7 @@ def _current_phase_read_list(text: str) -> str:
     anchor = "Read:\n\n"
     section = _between(text, "## Current Phase Contracts", "## Reading Order by Task")
     i = section.index(anchor) + len(anchor)
-    j = section.index("\n\nPhase 6-E3 is accepted", i)
+    j = section.index("\n\nPhase 6-F is accepted as manual canary gate definition only", i)
     return section[i:j]
 
 
@@ -74,8 +74,7 @@ def test_no_doc_authorizes_live_apply_or_related_mutations_now() -> None:
     ]
     all_text = "\n".join(_read(p).lower() for p in docs)
     forbidden = [
-        "phase 6-f is accepted",
-        "phase 6-f authorizes live apply",
+                "phase 6-f authorizes live apply",
         "phase 6-f authorizes iptables-save",
         "phase 6-f authorizes iptables-restore",
         "phase 6-f authorizes real iptables adapter",

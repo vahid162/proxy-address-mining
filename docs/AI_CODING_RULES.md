@@ -47,7 +47,7 @@ Current gate:
 ```text
 accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-E3 accepted (isolated/non-production evidence review / non-authorizing gate checklist); next planned step: Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing
+current_phase6_step: Phase 6-F accepted (manual canary gate definition only, documentation/test-only, non-authorizing); next planned step: Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no

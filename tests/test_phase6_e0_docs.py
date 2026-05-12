@@ -46,7 +46,7 @@ def _extract_current_phase_read_block(text: str) -> str:
     start = text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = text.index(read_anchor, start) + len(read_anchor)
-    end = text.index("\n\nPhase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only.", read_start)
+    end = text.index("\n\nPhase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.", read_start)
     return text[read_start:end].strip()
 
 
@@ -66,20 +66,21 @@ def test_index_current_phase_read_block_includes_e0_exact_and_sequential() -> No
 11. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`
 12. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
 13. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`
-14. `docs/FIREWALL.md`
-15. `docs/BACKEND_PORT_POLICY.md`
-16. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-17. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-18. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-19. `docs/REMAINING_PHASE_PLAN.md`
-20. `docs/SAFETY.md`
-21. `docs/DATA_MODEL.md`
-22. `docs/TAXONOMY.md`
-23. `docs/ABUSE.md`
-24. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-25. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-26. `docs/OBSERVABILITY_HASHRATE.md`
-27. `docs/INTRANET_INSTALL.md`"""
+14. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
+15. `docs/FIREWALL.md`
+16. `docs/BACKEND_PORT_POLICY.md`
+17. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+18. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+19. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+20. `docs/REMAINING_PHASE_PLAN.md`
+21. `docs/SAFETY.md`
+22. `docs/DATA_MODEL.md`
+23. `docs/TAXONOMY.md`
+24. `docs/ABUSE.md`
+25. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+26. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+27. `docs/OBSERVABILITY_HASHRATE.md`
+28. `docs/INTRANET_INSTALL.md`"""
     assert block == expected
 
 
@@ -97,7 +98,7 @@ def test_index_documentation_summary_places_e0_before_roadmap_and_not_after_fina
 def test_index_current_phase_text_mentions_e0_isolated_only() -> None:
     text = Path("docs/INDEX.md").read_text(encoding="utf-8")
     assert "Phase 6-E3 accepted" in text
-    assert "Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing" in text
+    assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted" in text
 
 
 def test_remaining_phase_plan_phase6e_formatting_clean() -> None:
@@ -113,7 +114,7 @@ def test_ai_phase6_task_e0_status_and_no_stale_d0_wording() -> None:
     text = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     required = [
         "Phase 6-E1 isolated harness contract hardening is accepted on farm5",
-        "current sub-step: Phase 6-E3 accepted",
+        "current sub-step: Phase 6-F accepted",
         "Phase 6-E2 isolated harness evidence package / boundary planning",
         "non-authorizing",
     ]
@@ -134,5 +135,5 @@ def test_index_no_stale_d0_next_step_wording_and_has_e0_guidance() -> None:
     text = Path("docs/INDEX.md").read_text(encoding="utf-8")
     assert "The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review" not in text
     assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract" not in text
-    assert "Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only." in text
-    assert "The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing" in text
+    assert "Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing." in text
+    assert "The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted" in text
