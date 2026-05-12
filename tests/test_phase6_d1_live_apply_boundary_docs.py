@@ -69,20 +69,21 @@ def test_index_current_phase_contracts_read_list_exact_and_sequential() -> None:
     expected = """1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_6_TASK.md`
 3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
-4. `docs/FIREWALL.md`
-5. `docs/BACKEND_PORT_POLICY.md`
-6. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-7. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-8. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-9. `docs/REMAINING_PHASE_PLAN.md`
-10. `docs/SAFETY.md`
-11. `docs/DATA_MODEL.md`
-12. `docs/TAXONOMY.md`
-13. `docs/ABUSE.md`
-14. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-15. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-16. `docs/OBSERVABILITY_HASHRATE.md`
-17. `docs/INTRANET_INSTALL.md`"""
+4. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`
+5. `docs/FIREWALL.md`
+6. `docs/BACKEND_PORT_POLICY.md`
+7. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+8. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+9. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+10. `docs/REMAINING_PHASE_PLAN.md`
+11. `docs/SAFETY.md`
+12. `docs/DATA_MODEL.md`
+13. `docs/TAXONOMY.md`
+14. `docs/ABUSE.md`
+15. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+16. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+17. `docs/OBSERVABILITY_HASHRATE.md`
+18. `docs/INTRANET_INSTALL.md`"""
     assert block == expected
 
 
