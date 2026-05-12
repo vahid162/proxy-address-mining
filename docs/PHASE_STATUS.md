@@ -21,6 +21,8 @@ telegram_allowed: no
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
+Next planned Phase 6 implementation sub-step is Apply Slice 1 — Live Snapshot Readiness Boundary. It is documentation/test-only and non-authorizing.
+
 ## Accepted Server Results
 
 ### Phase 1 — Bootstrap Without Traffic Changes
@@ -447,16 +449,21 @@ Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is ex
 ## Next Planned Step
 
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
-
 Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
 
-Future dedicated Phase 6 apply gate remains not accepted and not authorized.
+- Next planned Phase 6 implementation sub-step is Apply Slice 1 — Live Snapshot Readiness Boundary.
+- It is planned, documentation/test-only, and non-authorizing.
+- It does not authorize live firewall read or iptables-save.
+- It does not authorize live firewall write/apply/rollback/verify.
+- It does not authorize iptables-restore, real adapters, subprocess firewall calls, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+- Phase 6-G and Phase 6-H are accepted historical safety sub-steps only.
+- Future dedicated Phase 6 apply gate remains not accepted and not authorized.
+
+Phase 6-G does not authorize host production firewall mutation, live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 Next work must align remaining Phase 6 implementation slices with docs/ROADMAP.md.
 No new top-level phase is created by Phase 6-G/6-H safety sub-step work.
-Future dedicated Phase 6 apply gate remains not accepted and not authorized.
-
-Live apply remains forbidden until a dedicated apply gate is explicitly accepted with separate evidence.
+Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
 
 Do not mark firewall_apply_allowed yes.
 Do not mark production_traffic enabled.
@@ -468,12 +475,6 @@ Reference:
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
 docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
-
-Phase 6-G may define future controlled live apply prerequisites, final operator approval requirements, evidence templates, rollback readiness requirements, verify readiness requirements, and pre-apply review criteria only.
-
-Phase 6-G does not authorize host production firewall mutation, live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
 
 ## Current Safety Invariants
 
@@ -527,4 +528,5 @@ Phase 6-H reference:
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
 docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
+
 

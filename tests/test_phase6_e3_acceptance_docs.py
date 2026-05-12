@@ -81,7 +81,8 @@ def test_no_stale_e3_next_step_wording_in_readme_and_ai_phase6_task():
 
     assert "with Phase 6-E3 isolated/non-production next step" not in readme
     assert "After Phase 6-E1 acceptance, the next planned work is Phase 6-E2" not in readme
-    assert "with Phase 6-G documentation/test-only non-authorizing next step" in readme
+    assert "Apply Slice 1 as the planned documentation/test-only non-authorizing next sub-step" in readme
+    assert "with Phase 6-G documentation/test-only non-authorizing next step" not in readme
 
     assert "Next safe work now is Phase 6-E3" not in ai_task
     assert "Next safe work is Phase 6-E3" not in ai_task

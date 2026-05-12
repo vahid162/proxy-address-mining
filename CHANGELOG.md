@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.82 - 2026-05-12
+
+- added Apply Slice 1 live snapshot readiness boundary documentation
+- indexed Apply Slice 1 document
+- aligned Phase 6 next planned sub-step wording
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall read or iptables-save behavior introduced
+- confirmed no live firewall write/apply/rollback/verify, iptables-restore, real adapters, subprocess firewall calls, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior introduced
+- preserved abuse 1h invariant
+
 ## 0.1.81 - 2026-05-12
 
 - aligned root VERSION with package version (0.1.81) and added version consistency test
