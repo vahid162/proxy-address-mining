@@ -62,8 +62,8 @@ Phase 6-D remains documentation/test-only and does not open the apply gate.
 - Phase 6-E1 accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`.
 - Phase 6-E2 contract reference: `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`.
 - Phase 6-E2 is accepted.
-- Phase 6-E3 is the current next planned step.
-- Phase 6-E3 is Isolated Harness Evidence Review / Non-Authorizing Gate Checklist and remains isolated/non-production only.
+- Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only.
+- The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
 - No live apply/read/write, `iptables-save`, `iptables-restore`, real adapters, DB writes, locks, restore points, NAT, or customer firewall rules are allowed.
 - Host production firewall mutation remains forbidden.
 
@@ -216,5 +216,7 @@ Phase 6-E1 must remain fake/no-op, isolated/non-production, and must not mutate 
 Phase 6-E1 allows no live read/write, no iptables-save, no iptables-restore, no real iptables adapter, no DB apply writes, no locks, and no restore points.
 
 
-Phase 6-E2 is accepted. Phase 6-E3 is the current next planned work and remains isolated/non-production only.
-Phase 6-E3 is non-authorizing gate checklist / evidence review only and does not authorize live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT, or customer firewall rules.
+Phase 6-E2 is accepted. Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only.
+The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
+Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, rollback-readiness checks, backend exposure preconditions, local-only runtime preconditions, and safety assertions only.
+Phase 6-F does not authorize host production firewall mutation, live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.73 - 2026-05-12
+
+- added Phase 6-F manual canary gate definition documentation
+- indexed docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md
+- aligned Phase 6 docs to Phase 6-E3 accepted / Phase 6-F planned
+- kept Phase 6-F documentation/test-only and non-authorizing
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+- kept farm5 time synchronization warning as a blocker before production/usage/abuse automation
+
 ## 0.1.72 - 2026-05-12
 
 - fixed stale README wording to set Phase 6-F as the documentation/test-only non-authorizing next step
