@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.69 - 2026-05-12
+
+- added Phase 6-E3 non-authorizing gate checklist documentation
+- indexed docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- kept Phase 6-E3 non-authorizing and not accepted yet
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+- carried forward farm5 time synchronization warning as a blocker before production/usage/abuse automation
+
 ## 0.1.68 - 2026-05-12
 
 - moved Phase 6-E2 accepted evidence block under Accepted Server Results in PHASE_STATUS

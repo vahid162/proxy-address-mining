@@ -22,6 +22,7 @@ Read these first:
 12. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 13. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md` (accepted step contract; isolated/non-production only, non-authorizing)
 14. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
+15. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md` (planned, isolated/non-production only, non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -329,6 +330,7 @@ Records farm5 acceptance evidence for Phase 6-E1 and confirms that the next safe
 Defines the accepted Phase 6-E2 isolated/non-production evidence package and boundary planning contract. It remains non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 ### `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md`
+- `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`
 
 Records farm5 acceptance evidence for Phase 6-E2 and confirms that the next safe step is Phase 6-E3 isolated/non-production evidence review/checklist only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
@@ -406,3 +408,4 @@ When in doubt, read the stricter document and choose the safer implementation.
 
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
+
