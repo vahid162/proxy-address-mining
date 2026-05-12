@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.79 - 2026-05-12
+
+- added Phase 6-H dedicated apply gate entry criteria / authorization boundary documentation
+- indexed Phase 6-H document
+- aligned Phase 6 task/status docs to show Phase 6-H as planned documentation/test-only step
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed future dedicated Phase 6 apply gate remains not accepted and not authorized
+- confirmed no live firewall reads/writes, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+- kept time synchronization as blocker before any future live apply gate or production-dependent automation
+
 ## 0.1.78 - 2026-05-12
 
 - aligned AI Phase 6 task wording after Phase 6-G acceptance

@@ -28,6 +28,7 @@ Read these first:
 18. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 19. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (planned scope, documentation/test-only, non-authorizing)
 20. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
+21. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (planned, documentation/test-only, non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -111,7 +112,7 @@ Phase 6-G is accepted as controlled live apply gate planning / pre-apply review 
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`.
 
-Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md` (documentation/test-only, non-authorizing).
+Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`, `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`, and `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (documentation/test-only, non-authorizing).
 
 Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, and rollback-readiness checks only. It does not authorize live firewall read/write, live apply/rollback/verify, `iptables-save`, `iptables-restore`, real adapters, DB apply writes, lock acquisition, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
@@ -448,3 +449,8 @@ When in doubt, read the stricter document and choose the safer implementation.
 
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
+
+
+### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
+
+Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
