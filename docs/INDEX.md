@@ -73,6 +73,7 @@ Current Phase 6 step:
 
 ```text
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
+Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 ```
 
@@ -378,6 +379,14 @@ Defines planned Phase 6-G controlled live apply gate planning / pre-apply review
 
 Records farm5 acceptance evidence for Phase 6-G and confirms Phase 6-G is accepted as documentation/test-only and non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
+### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
+
+Defines accepted Phase 6-H dedicated apply gate entry criteria / authorization boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+### `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`
+
+Records farm5 acceptance evidence for Phase 6-H. Confirms Phase 6-H is accepted as documentation/test-only and non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
 
 ### `docs/AI_PHASE_5_TASK.md`
 
@@ -445,16 +454,6 @@ Stop and revise if any change introduces:
 22. worker/block/pause/usage/abuse runtime before accepted phase
 23. public v2rayA UI exposure
 24. public backend exposure
-
-### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
-
-Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`
-
-- Records farm5 acceptance evidence for Phase 6-H.
-- Confirms Phase 6-H is accepted as documentation/test-only and non-authorizing.
-- Does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 ## Final Rule
 

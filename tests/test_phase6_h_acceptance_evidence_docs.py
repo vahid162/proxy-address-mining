@@ -78,3 +78,35 @@ def test_abuse_invariant_preserved() -> None:
     assert 'worker-over alone must not harden' in text
     assert 'all active customers in enabled lanes must be covered' in text
     assert 'no silent skip is allowed' in text
+
+
+def test_phase_status_phase6h_placement_and_no_bottom_duplicate() -> None:
+    text = _read('docs/PHASE_STATUS.md')
+    g = text.index('### Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review')
+    h = text.index('### Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary')
+    warning = text.index('## Current Server Warning')
+    assert g < h < warning
+    tail = text[text.index('Phase 6-H reference:'):]
+    assert '### Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary' not in tail
+
+
+def test_phase_status_next_step_not_planned_only() -> None:
+    text = _read('docs/PHASE_STATUS.md')
+    assert 'Next planned documentation/test-only step is Phase 6-H' not in text
+    assert 'Phase 6-H is planned only' not in text
+    assert 'Future dedicated Phase 6 apply gate remains not accepted and not authorized.' in text
+
+
+def test_index_phase6h_summaries_inside_documentation_summary_not_stop_conditions() -> None:
+    text = _read('docs/INDEX.md')
+    doc_summary = text.split('## Documentation Summary', 1)[1].split('## Current Roadmap Snapshot', 1)[0]
+    stop_block = text.split('## Stop Conditions', 1)[1]
+    assert '### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`' in doc_summary
+    assert '### `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`' in doc_summary
+    assert '### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`' not in stop_block
+    assert '### `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`' not in stop_block
+
+
+def test_index_current_phase_step_says_phase6h_accepted() -> None:
+    text = _read('docs/INDEX.md')
+    assert 'Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.' in text

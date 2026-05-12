@@ -40,7 +40,7 @@ ui_allowed: no
 telegram_allowed: no
 ```"""
     assert expected in text
-    assert "Next planned documentation/test-only step is Phase 6-H" in text
+    assert "Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing." in text
     accepted_section = text.split("## Accepted Server Results", 1)[1]
     assert "### Phase 6-H" in accepted_section
 
@@ -48,7 +48,7 @@ telegram_allowed: no
 def test_index_and_ai_phase6_task_reference_phase6h() -> None:
     index_text = _read("docs/INDEX.md")
     assert "docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md" in index_text
-    assert "Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only." in index_text
+    assert "Defines accepted Phase 6-H dedicated apply gate entry criteria / authorization boundary only." in index_text
     task_text = _read("docs/AI_PHASE_6_TASK.md")
     assert "current sub-step: Phase 6-H accepted" in task_text
 
@@ -88,7 +88,7 @@ def test_no_doc_authorizes_live_behaviors_now() -> None:
 
 def test_index_phase6h_summary_in_documentation_summary_only() -> None:
     text = _read("docs/INDEX.md")
-    summary_phrase = "Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only."
+    summary_phrase = "Defines accepted Phase 6-H dedicated apply gate entry criteria / authorization boundary only."
     assert "## Documentation Summary" in text
     doc_summary_block = text.split("## Documentation Summary", 1)[1].split("## Final Rule", 1)[0]
     assert summary_phrase in doc_summary_block
