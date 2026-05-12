@@ -720,3 +720,11 @@ Live apply remains forbidden until a dedicated apply gate is explicitly accepted
 ## Phase 6-E0 Isolated Harness Boundary
 
 Phase 6-E0 is fake/no-op isolated harness planning/contracts only. It does not authorize host production firewall mutation. Real live apply, live rollback, live verify, live firewall read/write, iptables-save, and iptables-restore remain forbidden until a dedicated apply gate is accepted.
+
+
+## Phase 6-E0 Acceptance Note
+
+Phase 6-E0 is accepted as fake/no-op isolated harness contracts only (`docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`).
+Phase 6-E1 may only harden isolated harness contracts/tests.
+Host production firewall mutation remains forbidden.
+Real live apply remains forbidden.
