@@ -175,6 +175,30 @@ no iptables-save execution
 no iptables-restore execution
 ```
 
+### Phase 6-D1 — Live-Apply Boundary Contract
+
+```text
+version accepted on farm5: 0.1.59
+pytest passed: 357 passed
+docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md accepted
+docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall read
+no live firewall write
+no live firewall apply
+no iptables-save execution
+no iptables-restore execution
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -275,6 +299,8 @@ Future customer records remain DB-only until Phase 6 apply and customer NAT/cust
 
 Phase 6-C is accepted as offline apply-gate readiness/review only.
 
-The next safe step is **Phase 6-D0 live-apply design boundary review**, documentation/test-only.
+The post-Phase-6-C boundary remains **Phase 6-D0 / Phase 6-D** documentation/test-only.
+
+After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0 — Isolated Apply Harness Planning/Contracts**, isolated/non-production only.
 
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted.

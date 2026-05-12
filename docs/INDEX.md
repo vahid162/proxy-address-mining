@@ -15,12 +15,13 @@ Read these first:
 5. `docs/AI_CODING_RULES.md`
 6. `docs/AI_PHASE_6_TASK.md`
 7. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only Phase 6-D1 boundary contract)
+8. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_6_TASK.md` and `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` define the current Phase 6 firewall-planner/offline-apply-contract boundary.
+`docs/AI_PHASE_6_TASK.md`, `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`, and `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md` define the current Phase 6 boundary and accepted evidence.
 This file is the documentation map.
 
 ## Core Contracts
@@ -363,3 +364,4 @@ When in doubt, read the stricter document and choose the safer implementation.
 
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
+

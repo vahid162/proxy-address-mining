@@ -58,6 +58,8 @@ Phase 6-B and Phase 6-C are historical accepted references and are not the curre
 
 ## Phase 6-D1 — Live-Apply Boundary Contract
 
+Phase 6-D1 boundary contract is accepted on farm5. Next safe work is Phase 6-E0 isolated apply harness planning/contracts (isolated/non-production only).
+
 Reference document:
 
 ```text
@@ -309,3 +311,6 @@ Phase 6-C closure is documentation/test-only and live apply remains forbidden.
 Next safe work now is Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review.
 No `mpf firewall apply`, `mpf firewall rollback`, or live `verify` may be enabled in this step.
 No `iptables-save` or `iptables-restore` execution is authorized in this step.
+
+
+Phase 6-E0 does not authorize apply/rollback/verify, iptables-save/iptables-restore, or live firewall read/write.
