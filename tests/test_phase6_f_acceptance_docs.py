@@ -90,3 +90,28 @@ def test_abuse_invariant_preserved_in_f_acceptance_doc():
     assert "worker-over alone must not harden" in text
     assert "all active customers in enabled lanes must be covered" in text
     assert "no silent skip is allowed" in text
+
+
+def test_index_phase6_f_acceptance_location_and_wording():
+    idx = Path("docs/INDEX.md").read_text()
+
+    start_here = idx[idx.index("## Start Here"):idx.index("## Core Contracts")]
+    assert "docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md" in start_here
+
+    current = idx[idx.index("## Current Phase Contracts"):idx.index("## Reading Order by Task")]
+    assert "Phase 6-F accepted (manual canary gate definition only, documentation/test-only, non-authorizing)" in current
+    assert "Phase 6-E3 accepted (isolated/non-production evidence review / non-authorizing gate checklist)" not in current
+
+    read_block = current[current.index("Read:"): ]
+    f_doc = "docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md"
+    f_acc = "docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md"
+    assert f_doc in read_block and f_acc in read_block
+    assert read_block.index(f_acc) > read_block.index(f_doc)
+
+    assert "### `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`" in idx
+
+
+def test_remaining_phase_plan_no_longer_points_to_phase6f_as_next_step():
+    text = Path("docs/REMAINING_PHASE_PLAN.md").read_text()
+    assert "The next planned implementation step is Phase 6-F" not in text
+    assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review" in text
