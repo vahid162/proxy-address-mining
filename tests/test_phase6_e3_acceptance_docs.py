@@ -32,7 +32,7 @@ def test_phase6_e3_accepted_block_location_and_next_step():
     warning_start = text.index("## Current Server Warning", accepted_start)
     accepted_block = text[accepted_start:warning_start]
     assert "### Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist" in accepted_block
-    assert "The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted." in text
+    assert "Future dedicated Phase 6 apply gate remains not accepted and not authorized." in text
 
 
 def test_index_contains_e3_acceptance_doc_in_required_sections():

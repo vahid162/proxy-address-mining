@@ -337,6 +337,34 @@ no restore point write
 no DB apply write
 ```
 
+### Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review
+
+```text
+version accepted on farm5: 0.1.76
+pytest with venv: 442 passed
+docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md accepted
+docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall read
+no live firewall write
+no live firewall apply
+no live rollback
+no live verify
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -390,11 +418,22 @@ Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is ex
 
 ## Next Planned Step
 
-Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.
+Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 
-The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
-Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`.
+Live apply remains forbidden until a dedicated apply gate is explicitly accepted with separate evidence.
+
+Do not mark firewall_apply_allowed yes.
+Do not mark production_traffic enabled.
+Do not mark abuse_automation_allowed yes.
+
+Reference:
+
+```text
+docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md
+docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md
+```
 
 Phase 6-G may define future controlled live apply prerequisites, final operator approval requirements, evidence templates, rollback readiness requirements, verify readiness requirements, and pre-apply review criteria only.
 

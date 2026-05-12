@@ -34,7 +34,7 @@ def test_phase_status_has_e1_accepted_evidence_and_e2_next_step() -> None:
     assert "version accepted on farm5: 0.1.63" in t
     assert "pytest with venv: 392 passed" in t
     assert "docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md added" in t
-    assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted" in t
+    assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing" in t
 
 
 def test_docs_do_not_authorize_live_apply_boundary_breaks() -> None:

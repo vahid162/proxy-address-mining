@@ -49,7 +49,7 @@ def test_phase_status_current_state_unchanged_and_phase6_d1_doce0_present() -> N
     for item in [
         "Phase 6-D1 — Live-Apply Boundary Contract",
         "Phase 6-E0",
-        "manual canary gate definition",
+        "controlled live apply gate planning / pre-apply review",
         "Live apply remains forbidden",
     ]:
         assert item in text
@@ -87,7 +87,7 @@ def _extract_current_phase_read_block(index_text: str) -> str:
     start = index_text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = index_text.index(read_anchor, start) + len(read_anchor)
-    read_end = index_text.index("\n\nPhase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.", read_start)
+    read_end = index_text.index("\n\nPhase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.", read_start)
     return index_text[read_start:read_end].strip()
 
 
@@ -108,20 +108,22 @@ def test_index_current_phase_contracts_read_block_exact_1_to_18_with_d1_acceptan
 12. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
 13. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`
 14. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
-15. `docs/FIREWALL.md`
-16. `docs/BACKEND_PORT_POLICY.md`
-17. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-18. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-19. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-20. `docs/REMAINING_PHASE_PLAN.md`
-21. `docs/SAFETY.md`
-22. `docs/DATA_MODEL.md`
-23. `docs/TAXONOMY.md`
-24. `docs/ABUSE.md`
-25. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-26. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-27. `docs/OBSERVABILITY_HASHRATE.md`
-28. `docs/INTRANET_INSTALL.md`"""
+15. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`
+16. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
+17. `docs/FIREWALL.md`
+18. `docs/BACKEND_PORT_POLICY.md`
+19. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+20. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+21. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+22. `docs/REMAINING_PHASE_PLAN.md`
+23. `docs/SAFETY.md`
+24. `docs/DATA_MODEL.md`
+25. `docs/TAXONOMY.md`
+26. `docs/ABUSE.md`
+27. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+28. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+29. `docs/OBSERVABILITY_HASHRATE.md`
+30. `docs/INTRANET_INSTALL.md`"""
     assert block == expected
 
 

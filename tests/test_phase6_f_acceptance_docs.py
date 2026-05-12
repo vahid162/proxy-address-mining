@@ -36,7 +36,7 @@ def test_phase6_f_block_in_accepted_results_before_warning():
 def test_phase_status_next_step_and_no_authorization_tokens():
     text = Path("docs/PHASE_STATUS.md").read_text().lower()
     assert "phase 6-g — controlled live apply gate planning / pre-apply review" in text
-    assert "documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted" in text
+    assert "documentation/test-only and non-authorizing" in text
     forbidden = [
         "live apply is authorized",
         "iptables-save is allowed now",
@@ -99,7 +99,7 @@ def test_index_phase6_f_acceptance_location_and_wording():
     assert "docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md" in start_here
 
     current = idx[idx.index("## Current Phase Contracts"):idx.index("## Reading Order by Task")]
-    assert "Phase 6-F accepted (manual canary gate definition only, documentation/test-only, non-authorizing)" in current
+    assert "Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing." in current
     assert "Phase 6-E3 accepted (isolated/non-production evidence review / non-authorizing gate checklist)" not in current
 
     read_block = current[current.index("Read:"): ]

@@ -64,7 +64,7 @@ Phase 6-D remains documentation/test-only and does not open the apply gate.
 - Phase 6-E2 is accepted.
 - Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only.
 - Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.
-- The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+- Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review is accepted as documentation/test-only and non-authorizing. Future dedicated apply gate remains not accepted and not authorized.
 - No live apply/read/write, `iptables-save`, `iptables-restore`, real adapters, DB writes, locks, restore points, NAT, or customer firewall rules are allowed.
 - Host production firewall mutation remains forbidden.
 
@@ -218,6 +218,6 @@ Phase 6-E1 allows no live read/write, no iptables-save, no iptables-restore, no 
 
 
 Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.
-The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review is accepted as documentation/test-only and non-authorizing. Future dedicated apply gate remains not accepted and not authorized.
 Phase 6-G is controlled live apply gate planning / pre-apply review only.
 Phase 6-G does not authorize live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
