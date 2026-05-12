@@ -113,8 +113,8 @@ def test_index_single_documentation_summary_and_no_duplicate_after_final_rule() 
     final_rule = t.index("## Final Rule")
     assert "## Documentation Summary" not in t[final_rule:]
     assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract. The next planned implementation step is Phase 6-E0" not in t
-    assert "Phase 6-E0 is accepted as isolated/non-production apply harness contracts only" in t
-    assert "Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only" in t
+    assert "Phase 6-E1 is accepted as isolated/non-production harness contract hardening only" in t
+    assert "Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only" in t
 
 
 def test_ai_phase6_task_e1_current_next_safe_work_and_no_stale_e0_next_wording() -> None:
@@ -123,7 +123,7 @@ def test_ai_phase6_task_e1_current_next_safe_work_and_no_stale_e0_next_wording()
         "current sub-step: Phase 6-E1 accepted",
         "next planned step: Phase 6-E2 isolated harness evidence package / boundary planning, isolated/non-production only",
         "Next safe work now is Phase 6-E2 isolated harness evidence package / boundary planning, isolated/non-production only",
-        "Tests Required for the Phase 6-E1 Isolated Harness Contract Hardening Boundary",
+        "Tests Required for the Phase 6-E2 Isolated Evidence/Boundary Planning",
     ]
     for needle in required:
         assert needle in t

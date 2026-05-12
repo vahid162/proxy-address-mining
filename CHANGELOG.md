@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.65 - 2026-05-12
+
+- cleaned stale Phase 6-E0/E1 wording in docs and aligned current wording to Phase 6-E1 accepted with Phase 6-E2 as isolated/non-production next step
+- updated INDEX current-phase paragraph and added Documentation Summary entry for docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md
+- updated AI Phase 6 task labels/acceptance note to reflect E1 acceptance and E2 next safe work
+
 ## 0.1.64 - 2026-05-12
 
 - recorded Phase 6-E1 acceptance evidence from farm5

@@ -263,7 +263,7 @@ customer service mutates firewall state directly
 job bypasses firewall service
 ```
 
-## Tests Required for the Phase 6-E1 Isolated Harness Contract Hardening Boundary
+## Tests Required for the Phase 6-E2 Isolated Evidence/Boundary Planning
 
 ```text
 phase status remains Phase 5 accepted / Phase 6 working
@@ -324,9 +324,9 @@ Reference: `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
 Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does not authorize live firewall read/write, iptables-save execution, iptables-restore execution, or live apply/rollback/verify. No `mpf firewall apply`, `mpf firewall rollback`, or live verify command may be enabled.
 
 
-## Phase 6-E0 Acceptance Note
+## Phase 6-E1 Acceptance Note
 
-Phase 6-E0 is accepted on farm5 via `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`.
+Phase 6-E1 is accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`.
 Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`.
-Next safe work is Phase 6-E2 isolated harness evidence package / boundary planning.
+Next safe work is Phase 6-E2 isolated harness evidence package / boundary planning, isolated/non-production only.
 Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.

@@ -6,7 +6,7 @@ def _extract_current_phase_read_block(index_text: str) -> str:
     start = index_text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = index_text.index(read_anchor, start) + len(read_anchor)
-    read_end = index_text.index("\n\nPhase 6-E0 is accepted as isolated/non-production apply harness contracts only.", read_start)
+    read_end = index_text.index("\n\nPhase 6-E1 is accepted as isolated/non-production harness contract hardening only.", read_start)
     return index_text[read_start:read_end].strip()
 
 

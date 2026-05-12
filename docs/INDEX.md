@@ -91,7 +91,7 @@ Read:
 21. `docs/OBSERVABILITY_HASHRATE.md`
 22. `docs/INTRANET_INSTALL.md`
 
-Phase 6-E0 is accepted as isolated/non-production apply harness contracts only. The next planned implementation step is Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only. It may harden fake/no-op harness contracts and tests only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
+Phase 6-E1 is accepted as isolated/non-production harness contract hardening only. The next planned implementation step is Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only. Phase 6-E2 may only refine isolated evidence packaging and boundary planning. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 `docs/PHASE_6_C0_APPLY_GATE_READINESS.md` is a future live apply gate readiness contract and manual canary runbook only; it does not authorize live apply in the current phase.
 
@@ -315,6 +315,10 @@ Records farm5 acceptance evidence for Phase 6-E0 and confirms that the next safe
 ### `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`
 
 Defines Phase 6-E1 isolated/non-production-only harness hardening scope for fake/no-op contracts and tests. It does not authorize host firewall mutation, live apply/rollback/verify, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, or restore points.
+
+### `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`
+
+Records farm5 acceptance evidence for Phase 6-E1 and confirms that the next safe step is Phase 6-E2 isolated/non-production boundary planning only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 ### `docs/AI_PHASE_5_TASK.md`
 

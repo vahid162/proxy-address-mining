@@ -37,11 +37,11 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 
 Do not use this repository for production customer traffic yet.
 
-## Current Phase 6-E0 Accepted State and Next Planned Step
+## Current Phase 6-E1 Accepted State and Next Planned Step
 
 Phase 6-E1 is accepted as isolated/non-production harness contract hardening only. The next planned step is Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only.
 
-Allowed under the current Phase 6 gate (with Phase 6-E1 isolated/non-production next step):
+Allowed under the current Phase 6 gate (with Phase 6-E2 isolated/non-production next step):
 
 ```text
 repository/documentation cleanup that preserves phase gates

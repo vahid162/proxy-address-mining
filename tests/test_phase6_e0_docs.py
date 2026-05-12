@@ -46,7 +46,7 @@ def _extract_current_phase_read_block(text: str) -> str:
     start = text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = text.index(read_anchor, start) + len(read_anchor)
-    end = text.index("\n\nPhase 6-E0 is accepted as isolated/non-production apply harness contracts only.", read_start)
+    end = text.index("\n\nPhase 6-E1 is accepted as isolated/non-production harness contract hardening only.", read_start)
     return text[read_start:end].strip()
 
 
@@ -129,5 +129,5 @@ def test_index_no_stale_d0_next_step_wording_and_has_e0_guidance() -> None:
     text = Path("docs/INDEX.md").read_text(encoding="utf-8")
     assert "The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review" not in text
     assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract" not in text
-    assert "Phase 6-E0 is accepted as isolated/non-production apply harness contracts only" in text
-    assert "The next planned implementation step is Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only" in text
+    assert "Phase 6-E1 is accepted as isolated/non-production harness contract hardening only" in text
+    assert "The next planned implementation step is Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only" in text

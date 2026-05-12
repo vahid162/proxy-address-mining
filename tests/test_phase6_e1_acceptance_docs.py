@@ -75,3 +75,10 @@ def test_abuse_invariant_preserved() -> None:
     ]
     for c in checks:
         assert c in combined
+
+
+def test_stale_phrase_guards_removed() -> None:
+    combined = "\n".join([_read("README.md"), _read("docs/INDEX.md"), _read("docs/AI_PHASE_6_TASK.md")])
+    assert "Current Phase 6-E0 Accepted State and Next Planned Step" not in combined
+    assert "with Phase 6-E1 isolated/non-production next step" not in combined
+    assert "Phase 6-E0 is accepted as isolated/non-production apply harness contracts only. The next planned implementation step is Phase 6-E1" not in combined
