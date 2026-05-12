@@ -87,7 +87,7 @@ def _extract_current_phase_read_block(index_text: str) -> str:
     start = index_text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = index_text.index(read_anchor, start) + len(read_anchor)
-    read_end = index_text.index("\n\nPhase 6-C is accepted", read_start)
+    read_end = index_text.index("\n\nPhase 6-D1 is accepted", read_start)
     return index_text[read_start:read_end].strip()
 
 

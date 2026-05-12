@@ -46,7 +46,7 @@ def _extract_current_phase_read_block(text: str) -> str:
     start = text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = text.index(read_anchor, start) + len(read_anchor)
-    end = text.index("\n\nPhase 6-C is accepted", read_start)
+    end = text.index("\n\nPhase 6-D1 is accepted", read_start)
     return text[read_start:end].strip()
 
 
@@ -98,3 +98,33 @@ def test_remaining_phase_plan_phase6e_formatting_clean() -> None:
     assert "Phase 6-E0 is isolated/non-production only" in text
     assert "Host production firewall mutation remains forbidden" in text
     assert "forbidden. — Isolated Apply Harness" not in text
+
+
+
+def test_ai_phase6_task_e0_status_and_no_stale_d0_wording() -> None:
+    text = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
+    required = [
+        "Status: active task for Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only",
+        "current sub-step: Phase 6-D1 accepted",
+        "next planned step: Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only",
+        "Next safe work now is Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only",
+        "Tests Required for the Phase 6-E0 Isolated Apply Harness Boundary",
+    ]
+    for item in required:
+        assert item in text
+
+    stale = [
+        "Status: active task for Phase 6-D0 / Phase 6-D",
+        "next safe step: Phase 6-D0 / Phase 6-D",
+        "Next safe work now is Phase 6-D0 / Phase 6-D",
+        "Tests Required for the Post-Phase-6-C / Phase 6-D1 Documentation-Test-Only Boundary",
+    ]
+    for item in stale:
+        assert item not in text
+
+
+def test_index_no_stale_d0_next_step_wording_and_has_e0_guidance() -> None:
+    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    assert "The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review" not in text
+    assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract" in text
+    assert "The next planned implementation step is Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only" in text

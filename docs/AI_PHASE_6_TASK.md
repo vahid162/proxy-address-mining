@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
+Status: active task for Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
@@ -17,7 +17,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-C accepted (offline apply-gate readiness/review only); next safe step: Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
+current sub-step: Phase 6-D1 accepted (documentation/test-only live-apply boundary contract); next planned step: Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -263,7 +263,7 @@ customer service mutates firewall state directly
 job bypasses firewall service
 ```
 
-## Tests Required for the Post-Phase-6-C / Phase 6-D1 Documentation-Test-Only Boundary
+## Tests Required for the Phase 6-E0 Isolated Apply Harness Boundary
 
 ```text
 phase status remains Phase 5 accepted / Phase 6 working
@@ -309,7 +309,7 @@ Do not combine planner/offline contract work with live apply behavior.
 Phase 6-C closure is documentation/test-only and live apply remains forbidden.
 
 
-Next safe work now is Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review.
+Next safe work now is Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only.
 No `mpf firewall apply`, `mpf firewall rollback`, or live `verify` may be enabled in this step.
 No `iptables-save` or `iptables-restore` execution is authorized in this step.
 
