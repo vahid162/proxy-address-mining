@@ -20,7 +20,8 @@ Read these first:
 10. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 11. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (isolated/non-production hardening contract; non-authorizing)
 12. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-13. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md` (next planned step contract; isolated/non-production only, non-authorizing)
+13. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md` (accepted step contract; isolated/non-production only, non-authorizing)
+14. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -63,8 +64,8 @@ Phase 6 — Firewall Planner
 Current Phase 6 step:
 
 ```text
-Phase 6-E1 accepted (isolated/non-production harness contract hardening)
-next planned step: Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only
+Phase 6-E2 accepted (isolated/non-production evidence package / boundary planning)
+next planned step: Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only
 ```
 
 Read:
@@ -78,22 +79,23 @@ Read:
 7. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`
 8. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`
 9. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`
-10. `docs/FIREWALL.md`
-11. `docs/BACKEND_PORT_POLICY.md`
-12. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-13. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-14. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-15. `docs/REMAINING_PHASE_PLAN.md`
-16. `docs/SAFETY.md`
-17. `docs/DATA_MODEL.md`
-18. `docs/TAXONOMY.md`
-19. `docs/ABUSE.md`
-20. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-21. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-22. `docs/OBSERVABILITY_HASHRATE.md`
-23. `docs/INTRANET_INSTALL.md`
+10. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md`
+11. `docs/FIREWALL.md`
+12. `docs/BACKEND_PORT_POLICY.md`
+13. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+14. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+15. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+16. `docs/REMAINING_PHASE_PLAN.md`
+17. `docs/SAFETY.md`
+18. `docs/DATA_MODEL.md`
+19. `docs/TAXONOMY.md`
+20. `docs/ABUSE.md`
+21. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+22. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+23. `docs/OBSERVABILITY_HASHRATE.md`
+24. `docs/INTRANET_INSTALL.md`
 
-Phase 6-E1 is accepted as isolated/non-production harness contract hardening only. The next planned implementation step is Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only. Phase 6-E2 may only refine isolated evidence packaging and boundary planning. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
+Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only. The next planned implementation step is Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only. Phase 6-E3 may only refine isolated evidence review and non-authorizing gate checklist planning. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 `docs/PHASE_6_C0_APPLY_GATE_READINESS.md` is a future live apply gate readiness contract and manual canary runbook only; it does not authorize live apply in the current phase.
 
@@ -324,7 +326,11 @@ Records farm5 acceptance evidence for Phase 6-E1 and confirms that the next safe
 
 ### `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`
 
-Defines the planned Phase 6-E2 isolated/non-production evidence package and boundary planning contract. It is non-authorizing and does not mark Phase 6-E2 accepted. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+Defines the accepted Phase 6-E2 isolated/non-production evidence package and boundary planning contract. It remains non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+### `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md`
+
+Records farm5 acceptance evidence for Phase 6-E2 and confirms that the next safe step is Phase 6-E3 isolated/non-production evidence review/checklist only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 
 ### `docs/AI_PHASE_5_TASK.md`
