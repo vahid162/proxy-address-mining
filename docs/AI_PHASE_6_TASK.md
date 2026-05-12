@@ -67,6 +67,7 @@ docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md
 ```
 
 Phase 6-D1 is documentation/test-only.
+Phase 6-E0 is current isolated/non-production harness planning/contracts work only.
 Phase 6-D1 does not authorize live apply.
 
 Required boundary statements:
@@ -314,3 +315,10 @@ No `iptables-save` or `iptables-restore` execution is authorized in this step.
 
 
 Phase 6-E0 does not authorize apply/rollback/verify, iptables-save/iptables-restore, or live firewall read/write.
+
+
+## Phase 6-E0 — Isolated Apply Harness Planning/Contracts
+
+Reference: `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
+
+Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does not authorize live firewall read/write, iptables-save execution, iptables-restore execution, or live apply/rollback/verify. No `mpf firewall apply`, `mpf firewall rollback`, or live verify command may be enabled.

@@ -16,6 +16,7 @@ Read these first:
 6. `docs/AI_PHASE_6_TASK.md`
 7. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only Phase 6-D1 boundary contract)
 8. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
+9. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md` (isolated/non-production harness contracts only; non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -370,3 +371,8 @@ When in doubt, read the stricter document and choose the safer implementation.
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
 
+
+
+### `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
+
+Defines Phase 6-E0 isolated/non-production-only harness contracts for deterministic fake/no-op ordering tests. It does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, apply, rollback, or verify.

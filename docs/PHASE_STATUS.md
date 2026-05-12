@@ -301,6 +301,6 @@ Phase 6-C is accepted as offline apply-gate readiness/review only.
 
 The post-Phase-6-C boundary remains **Phase 6-D0 / Phase 6-D** documentation/test-only.
 
-After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0 — Isolated Apply Harness Planning/Contracts**, isolated/non-production only.
+After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only**. Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
 
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted.

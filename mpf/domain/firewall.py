@@ -174,6 +174,51 @@ class FirewallRestorePayload:
     tables: list[FirewallRestoreTable] = field(default_factory=list)
 
 
+
+
+@dataclass(frozen=True)
+class FirewallHarnessSafetyFlags:
+    live_firewall_read: bool = False
+    live_firewall_write: bool = False
+    iptables_save_executed: bool = False
+    iptables_restore_executed: bool = False
+    lock_acquired: bool = False
+    restore_point_written: bool = False
+    database_write: bool = False
+    host_firewall_mutated: bool = False
+    customer_nat_created: bool = False
+    customer_firewall_rule_created: bool = False
+
+
+@dataclass(frozen=True)
+class FirewallHarnessOperation:
+    name: str
+
+
+@dataclass(frozen=True)
+class FirewallHarnessCall:
+    operation: str
+    sequence: int
+
+
+@dataclass(frozen=True)
+class FirewallHarnessFailure:
+    operation: str
+    message: str
+
+
+@dataclass
+class FirewallHarnessResult:
+    ok: bool
+    operation: str
+    calls: list[FirewallHarnessCall] = field(default_factory=list)
+    safety_flags: FirewallHarnessSafetyFlags = field(default_factory=FirewallHarnessSafetyFlags)
+    failure: FirewallHarnessFailure | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
 @dataclass
 class FirewallApplyContract:
     backend: str = "iptables"

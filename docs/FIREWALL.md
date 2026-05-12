@@ -715,3 +715,8 @@ Phase 6-C3 adds acceptance evidence and closure docs only.
 - It does not change firewall/NAT/runtime state.
 
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
+
+
+## Phase 6-E0 Isolated Harness Boundary
+
+Phase 6-E0 is fake/no-op isolated harness planning/contracts only. It does not authorize host production firewall mutation. Real live apply, live rollback, live verify, live firewall read/write, iptables-save, and iptables-restore remain forbidden until a dedicated apply gate is accepted.
