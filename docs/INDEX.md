@@ -26,6 +26,7 @@ Read these first:
 16. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 17. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md` (accepted scope contract, documentation/test-only, non-authorizing)
 18. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
+19. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (planned scope, documentation/test-only, non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -104,7 +105,10 @@ Read:
 28. `docs/INTRANET_INSTALL.md`
 
 Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing. The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
-Reference for the next planned step: `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`.
+Phase 6-G is planned, not accepted.
+Reference for the next planned step: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`.
+
+Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (planned only, documentation/test-only, non-authorizing).
 
 Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, and rollback-readiness checks only. It does not authorize live firewall read/write, live apply/rollback/verify, `iptables-save`, `iptables-restore`, real adapters, DB apply writes, lock acquisition, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
@@ -358,6 +362,10 @@ Defines the accepted Phase 6-F manual canary gate definition scope only (documen
 ### `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
 
 Records farm5 acceptance evidence for Phase 6-F and confirms Phase 6-G is the next planned documentation/test-only non-authorizing work. This acceptance does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+### `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`
+
+Defines planned Phase 6-G controlled live apply gate planning / pre-apply review scope only (documentation/test-only, non-authorizing). It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 
 ### `docs/AI_PHASE_5_TASK.md`

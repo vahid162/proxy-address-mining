@@ -394,7 +394,9 @@ Phase 6-F is accepted as manual canary gate definition only, documentation/test-
 
 The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
 
-Phase 6-G may define future controlled live apply prerequisites, final operator approval requirements, evidence templates, rollback readiness requirements, and pre-apply review criteria only.
+Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`.
+
+Phase 6-G may define future controlled live apply prerequisites, final operator approval requirements, evidence templates, rollback readiness requirements, verify readiness requirements, and pre-apply review criteria only.
 
 Phase 6-G does not authorize host production firewall mutation, live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
