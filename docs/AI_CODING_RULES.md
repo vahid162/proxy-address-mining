@@ -47,7 +47,7 @@ Current gate:
 ```text
 accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-E0 accepted (isolated/non-production apply harness contracts); next planned step: Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only
+current_phase6_step: Phase 6-E1 accepted (isolated/non-production harness contract hardening); next planned step: Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no

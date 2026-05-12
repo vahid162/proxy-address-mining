@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.64 - 2026-05-12
+
+- recorded Phase 6-E1 acceptance evidence from farm5
+- updated PHASE_STATUS accepted results and next planned Phase 6-E2
+- indexed docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- documented that server tests must use the project venv, not system Python
+
 ## 0.1.63 - 2026-05-12
 
 - added Phase 6-E1 isolated harness hardening documentation

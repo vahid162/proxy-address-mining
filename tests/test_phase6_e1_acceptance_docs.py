@@ -1,0 +1,77 @@
+from pathlib import Path
+
+
+def _read(rel: str) -> str:
+    return Path(rel).read_text(encoding="utf-8")
+
+
+def test_e1_acceptance_evidence_exists() -> None:
+    assert Path("docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md").exists()
+
+
+def test_phase_status_current_state_block_unchanged() -> None:
+    t = _read("docs/PHASE_STATUS.md")
+    expected = """## Current State
+
+```text
+current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
+current_working_phase: Phase 6 — Firewall Planner
+server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
+```"""
+    assert expected in t
+
+
+def test_phase_status_has_e1_accepted_evidence_and_e2_next_step() -> None:
+    t = _read("docs/PHASE_STATUS.md")
+    assert "### Phase 6-E1 — Isolated Harness Contract Hardening" in t
+    assert "version accepted on farm5: 0.1.63" in t
+    assert "pytest with venv: 392 passed" in t
+    assert "docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md added" in t
+    assert "Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only" in t
+
+
+def test_docs_do_not_authorize_live_apply_boundary_breaks() -> None:
+    docs = [
+        "README.md",
+        "AGENTS.md",
+        "docs/AI_CODING_RULES.md",
+        "docs/PHASE_STATUS.md",
+        "docs/INDEX.md",
+        "docs/AI_PHASE_6_TASK.md",
+        "docs/FIREWALL.md",
+        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md",
+    ]
+    combined = "\n".join(_read(d).lower() for d in docs)
+    forbidden = [
+        "live apply is authorized now",
+        "iptables-save is allowed now",
+        "iptables-restore is allowed now",
+        "real iptables adapter is allowed now",
+        "db apply writes are allowed now",
+        "locks are allowed now",
+        "restore point writes are allowed now",
+    ]
+    for phrase in forbidden:
+        assert phrase not in combined
+
+
+def test_abuse_invariant_preserved() -> None:
+    combined = "\n".join([_read("docs/ABUSE.md"), _read("docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md")]).lower()
+    checks = [
+        "normal -> over_tracking -> over_grace -> hard",
+        "sustained miner-abuse hardens after about",
+        "farms-over alone must not harden",
+        "worker-over alone must not harden",
+        "all active customers in enabled lanes must be covered",
+        "no silent skip",
+    ]
+    for c in checks:
+        assert c in combined

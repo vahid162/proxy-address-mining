@@ -19,6 +19,7 @@ Read these first:
 9. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md` (isolated/non-production harness contracts only; non-authorizing)
 10. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 11. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (isolated/non-production hardening contract; non-authorizing)
+12. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -61,8 +62,8 @@ Phase 6 — Firewall Planner
 Current Phase 6 step:
 
 ```text
-Phase 6-E0 accepted (isolated/non-production apply harness contracts)
-next planned step: Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only
+Phase 6-E1 accepted (isolated/non-production harness contract hardening)
+next planned step: Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only
 ```
 
 Read:
@@ -74,20 +75,21 @@ Read:
 5. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
 6. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`
 7. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`
-8. `docs/FIREWALL.md`
-9. `docs/BACKEND_PORT_POLICY.md`
-10. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-11. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-12. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-13. `docs/REMAINING_PHASE_PLAN.md`
-14. `docs/SAFETY.md`
-15. `docs/DATA_MODEL.md`
-16. `docs/TAXONOMY.md`
-17. `docs/ABUSE.md`
-18. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-19. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-20. `docs/OBSERVABILITY_HASHRATE.md`
-21. `docs/INTRANET_INSTALL.md`
+8. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`
+9. `docs/FIREWALL.md`
+10. `docs/BACKEND_PORT_POLICY.md`
+11. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+12. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+13. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+14. `docs/REMAINING_PHASE_PLAN.md`
+15. `docs/SAFETY.md`
+16. `docs/DATA_MODEL.md`
+17. `docs/TAXONOMY.md`
+18. `docs/ABUSE.md`
+19. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+20. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+21. `docs/OBSERVABILITY_HASHRATE.md`
+22. `docs/INTRANET_INSTALL.md`
 
 Phase 6-E0 is accepted as isolated/non-production apply harness contracts only. The next planned implementation step is Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only. It may harden fake/no-op harness contracts and tests only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 

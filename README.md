@@ -17,7 +17,7 @@ Current repository/server gate:
 ```text
 accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-E0 accepted (isolated/non-production apply harness contracts); next planned step: Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only
+current_phase6_step: Phase 6-E1 accepted (isolated/non-production harness contract hardening); next planned step: Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -39,7 +39,7 @@ Do not use this repository for production customer traffic yet.
 
 ## Current Phase 6-E0 Accepted State and Next Planned Step
 
-Phase 6-E0 is accepted as isolated/non-production apply harness contracts only. The next planned step is Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only.
+Phase 6-E1 is accepted as isolated/non-production harness contract hardening only. The next planned step is Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only.
 
 Allowed under the current Phase 6 gate (with Phase 6-E1 isolated/non-production next step):
 
@@ -305,7 +305,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-After Phase 6-E0 acceptance, the next planned work is Phase 6-E1 isolated harness contract hardening, isolated/non-production only. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
+After Phase 6-E1 acceptance, the next planned work is Phase 6-E2 isolated harness evidence package / boundary planning, isolated/non-production only. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
 
 ## Backend Port Policy
 
