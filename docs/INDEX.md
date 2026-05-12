@@ -24,6 +24,7 @@ Read these first:
 14. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 15. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md` (accepted, isolated/non-production only, non-authorizing)
 16. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
+17. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md` (planned, documentation/test-only, non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -100,6 +101,7 @@ Read:
 26. `docs/INTRANET_INSTALL.md`
 
 Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only. The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
+Reference for the next planned step: `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`.
 
 Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, and rollback-readiness checks only. It does not authorize live firewall read/write, live apply/rollback/verify, `iptables-save`, `iptables-restore`, real adapters, DB apply writes, lock acquisition, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
@@ -336,11 +338,19 @@ Defines the accepted Phase 6-E2 isolated/non-production evidence package and bou
 
 ### `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md`
 
-Records farm5 acceptance evidence for Phase 6-E2 and confirms that the next safe step is Phase 6-E3 isolated/non-production evidence review/checklist only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+Records farm5 acceptance evidence for Phase 6-E2 and confirms that the historical next safe step was Phase 6-E3 isolated/non-production evidence review/checklist only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 ### `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`
 
 Defines the planned Phase 6-E3 isolated/non-production evidence review and non-authorizing gate checklist. It does not mark Phase 6-E3 accepted. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+### `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
+
+Records farm5 acceptance evidence for Phase 6-E3 and confirms that the next planned step is Phase 6-F manual canary gate definition, documentation/test-only and non-authorizing. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+### `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`
+
+Defines the planned Phase 6-F manual canary gate definition scope only (documentation/test-only, non-authorizing). It allows only manual canary criteria, operator approval requirements, evidence templates, rollback-readiness checks, backend exposure preconditions, local-only runtime preconditions, and safety assertions. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 
 ### `docs/AI_PHASE_5_TASK.md`
