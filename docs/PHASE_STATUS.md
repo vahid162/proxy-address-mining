@@ -366,7 +366,11 @@ Phase 6-E3 is accepted as isolated/non-production evidence review / non-authoriz
 
 The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
 
-References: `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`, `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`.
+Phase 6-F is planned, not accepted.
+
+References: `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`, `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`, `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`.
+
+Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, rollback-readiness checks, backend exposure preconditions, local-only runtime preconditions, and safety assertions only.
 
 Phase 6-F does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 

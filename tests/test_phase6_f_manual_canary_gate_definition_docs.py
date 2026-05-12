@@ -35,7 +35,16 @@ telegram_allowed: no
     assert "Phase 6-E3 is accepted" in text
     assert "next planned implementation step is Phase 6-F" in text
     assert "Phase 6-F — Manual Canary Gate Definition" in text
+    assert "docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md" in text
     assert "Phase 6-F accepted" not in text
+
+
+def _current_phase_read_list(text: str) -> str:
+    anchor = "Read:\n\n"
+    section = _between(text, "## Current Phase Contracts", "## Reading Order by Task")
+    i = section.index(anchor) + len(anchor)
+    j = section.index("\n\nPhase 6-E3 is accepted", i)
+    return section[i:j]
 
 
 def test_index_includes_phase6f_in_required_sections() -> None:
@@ -48,6 +57,9 @@ def test_index_includes_phase6f_in_required_sections() -> None:
     assert phase6f_doc in start_here
     assert phase6f_doc in current_phase
     assert phase6f_doc in doc_summary
+
+    read_list = _current_phase_read_list(text)
+    assert "13. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`" in read_list
 
 
 def test_no_doc_authorizes_live_apply_or_related_mutations_now() -> None:
