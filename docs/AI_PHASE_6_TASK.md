@@ -53,7 +53,28 @@ offline preflight inspection/failure matrix
 safety regression tests
 ```
 
-Phase 6-B is still not a production traffic phase.
+Phase 6-B and Phase 6-C are historical accepted references and are not the current advancement target.
+
+
+## Phase 6-D1 — Live-Apply Boundary Contract
+
+Reference document:
+
+```text
+docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md
+```
+
+Phase 6-D1 is documentation/test-only.
+Phase 6-D1 does not authorize live apply.
+
+Required boundary statements:
+
+- live firewall reads remain forbidden now.
+- live firewall writes remain forbidden now.
+- iptables-save remains forbidden now.
+- iptables-restore remains forbidden now.
+- customer NAT/customer firewall rules remain forbidden now.
+- no lock acquisition, restore point write, DB apply write, live verify, or live rollback is allowed.
 
 ## Allowed Work Now
 
@@ -239,7 +260,7 @@ customer service mutates firewall state directly
 job bypasses firewall service
 ```
 
-## Tests Required Before Advancing Beyond Phase 6-B
+## Tests Required for the Post-Phase-6-C / Phase 6-D1 Documentation-Test-Only Boundary
 
 ```text
 phase status remains Phase 5 accepted / Phase 6 working

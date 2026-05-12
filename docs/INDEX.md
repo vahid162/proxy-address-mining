@@ -32,7 +32,7 @@ Read these before implementation work:
 3. `docs/ROADMAP.md`
 4. `docs/DATA_MODEL.md`
 5. `docs/TAXONOMY.md`
-7. `docs/FIREWALL.md`
+6. `docs/FIREWALL.md`
 7. `docs/ABUSE.md`
 8. `docs/BACKEND_PORT_POLICY.md`
 9. `docs/OBSERVABILITY_HASHRATE.md`
@@ -69,12 +69,12 @@ Read:
 4. `docs/FIREWALL.md`
 5. `docs/BACKEND_PORT_POLICY.md`
 6. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-6. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-7. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-8. `docs/REMAINING_PHASE_PLAN.md`
-8. `docs/SAFETY.md`
-9. `docs/DATA_MODEL.md`
-9. `docs/TAXONOMY.md`
+7. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+8. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+9. `docs/REMAINING_PHASE_PLAN.md`
+10. `docs/SAFETY.md`
+11. `docs/DATA_MODEL.md`
+12. `docs/TAXONOMY.md`
 10. `docs/ABUSE.md`
 11. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
 12. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
@@ -111,7 +111,7 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
 4. `docs/ARCHITECTURE.md`
-6. `docs/SAFETY.md`
+5. `docs/SAFETY.md`
 6. `docs/ROADMAP.md`
 7. `docs/DATA_MODEL.md`
 8. `docs/TAXONOMY.md`
@@ -167,9 +167,9 @@ Read:
 6. `docs/SAFETY.md`
 7. `docs/FIREWALL.md`
 8. `docs/BACKEND_PORT_POLICY.md`
-8. `docs/DATA_MODEL.md`
-9. `docs/CONTROL_RULES.md`
-10. relevant phase/domain document
+9. `docs/DATA_MODEL.md`
+10. `docs/CONTROL_RULES.md`
+11. relevant phase/domain document
 
 Rules:
 
@@ -241,7 +241,7 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
 4. `docs/ARCHITECTURE.md`
-6. `docs/SAFETY.md`
+5. `docs/SAFETY.md`
 6. `docs/ROADMAP.md`
 7. `docs/TAXONOMY.md`
 8. relevant phase/domain document
@@ -284,9 +284,11 @@ Defines the accepted phase, current working phase, allowed work, forbidden work,
 
 ### `docs/AI_PHASE_6_TASK.md`
 
+Defines the active AI coding boundary for current Phase 6 planner/offline contract work and references the Phase 6-D1 boundary.
+
 ### `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`
 
-Defines the active Phase 6 firewall-planner/offline-apply-contract boundary.
+Defines the non-authorizing documentation/test-only live-apply boundary contract for Phase 6-D1.
 
 ### `docs/AI_PHASE_5_TASK.md`
 

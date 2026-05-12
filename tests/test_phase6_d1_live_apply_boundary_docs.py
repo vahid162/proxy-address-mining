@@ -31,6 +31,51 @@ def test_phase6_d1_required_content() -> None:
         assert item in text
 
 
+def test_ai_phase6_task_explicit_d1_boundary_language() -> None:
+    text = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8").lower()
+    required = [
+        "phase 6-d1",
+        "docs/phase_6_d1_live_apply_boundary.md",
+        "documentation/test-only",
+        "does not authorize live apply",
+        "live firewall reads remain forbidden now",
+        "live firewall writes remain forbidden now",
+        "iptables-save remains forbidden now",
+        "iptables-restore remains forbidden now",
+    ]
+    for item in required:
+        assert item in text
+
+    stale = [
+        "tests required before advancing beyond phase 6-b",
+        "phase 6-b is still not a production traffic phase",
+    ]
+    for item in stale:
+        assert item not in text
+
+
+def test_index_has_separate_descriptions_and_no_malformed_numbering() -> None:
+    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    assert "### `docs/AI_PHASE_6_TASK.md`" in text
+    assert (
+        "Defines the active AI coding boundary for current Phase 6 planner/offline contract work and references the Phase 6-D1 boundary."
+        in text
+    )
+    assert "### `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`" in text
+    assert (
+        "Defines the non-authorizing documentation/test-only live-apply boundary contract for Phase 6-D1."
+        in text
+    )
+
+    malformed = [
+        "5. `docs/TAXONOMY.md`\n7. `docs/FIREWALL.md`",
+        "6. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`\n6. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`",
+        "4. `docs/ARCHITECTURE.md`\n6. `docs/SAFETY.md`",
+    ]
+    for item in malformed:
+        assert item not in text
+
+
 def test_phase_status_gate_values_unchanged() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     required = [
@@ -48,8 +93,7 @@ def test_phase_status_gate_values_unchanged() -> None:
 
 def test_no_docs_authorize_live_apply_or_iptables_now() -> None:
     docs_text = "\n".join(
-        path.read_text(encoding="utf-8").lower()
-        for path in Path("docs").glob("*.md")
+        path.read_text(encoding="utf-8").lower() for path in Path("docs").glob("*.md")
     )
     forbidden = [
         "phase 6-d1 authorizes live apply",
