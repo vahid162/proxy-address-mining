@@ -418,18 +418,22 @@ Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is ex
 
 ## Next Planned Step
 
-Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.
-
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
+
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
-The Future dedicated Phase 6 apply gate remains not accepted and not authorized.
-The Future dedicated Phase 6 apply gate remains not accepted and not authorized — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing.
+
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted with separate evidence.
+
 Do not mark firewall_apply_allowed yes.
 Do not mark production_traffic enabled.
 Do not mark abuse_automation_allowed yes.
 
-Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`.
+Reference:
+
+```text
+docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md
+docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md
+```
 
 Phase 6-G may define future controlled live apply prerequisites, final operator approval requirements, evidence templates, rollback readiness requirements, verify readiness requirements, and pre-apply review criteria only.
 

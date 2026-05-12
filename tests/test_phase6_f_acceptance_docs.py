@@ -99,7 +99,7 @@ def test_index_phase6_f_acceptance_location_and_wording():
     assert "docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md" in start_here
 
     current = idx[idx.index("## Current Phase Contracts"):idx.index("## Reading Order by Task")]
-    assert "Phase 6-F accepted (manual canary gate definition only, documentation/test-only, non-authorizing)" in current
+    assert "Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing." in current
     assert "Phase 6-E3 accepted (isolated/non-production evidence review / non-authorizing gate checklist)" not in current
 
     read_block = current[current.index("Read:"): ]

@@ -47,7 +47,7 @@ def test_phase_status_has_required_current_state_and_e0_e1_wording() -> None:
         "telegram_allowed: no",
         "Phase 6-E0 — Isolated Apply Harness Contracts",
         "Phase 6-E1",
-        "manual canary gate definition",
+        "controlled live apply gate planning / pre-apply review",
         "Live apply remains forbidden",
     ]:
         assert needle in t
@@ -98,7 +98,7 @@ def test_phase_status_e0_section_placement_and_no_stale_next_step_wording() -> N
     assert "### Phase 6-E0 — Isolated Apply Harness Contracts" not in next_step
     assert "The post-Phase-6-C boundary remains **Phase 6-D0 / Phase 6-D**" not in t
     assert "After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0" not in t
-    assert "Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing." in next_step
+    assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing." in next_step
     assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing" in next_step
     assert "Live apply remains forbidden until a dedicated apply gate is explicitly accepted" in next_step
 
@@ -113,7 +113,7 @@ def test_index_single_documentation_summary_and_no_duplicate_after_final_rule() 
     final_rule = t.index("## Final Rule")
     assert "## Documentation Summary" not in t[final_rule:]
     assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract. The next planned implementation step is Phase 6-E0" not in t
-    assert "Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing." in t
+    assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing." in t
     assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing" in t
 
 
@@ -121,7 +121,7 @@ def test_ai_phase6_task_e1_current_next_safe_work_and_no_stale_e0_next_wording()
     t = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     required = [
         "current sub-step: Phase 6-F accepted",
-        "next planned step: Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing",
+        "future dedicated apply gate remains not accepted and not authorized",
         "Phase 6-F is accepted. Next safe work is Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing.",
         "Tests Required for the Phase 6-E2 Isolated Evidence/Boundary Planning",
     ]

@@ -32,7 +32,7 @@ ui_allowed: no
 telegram_allowed: no
 ```"""
     assert expected in text
-    assert "Phase 6-F is accepted as manual canary gate definition only" in text
+    assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only" in text
     assert "Future dedicated Phase 6 apply gate remains not accepted and not authorized" in text
     assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review" in text
     assert "docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md" in text
@@ -43,7 +43,7 @@ def _current_phase_read_list(text: str) -> str:
     anchor = "Read:\n\n"
     section = _between(text, "## Current Phase Contracts", "## Reading Order by Task")
     i = section.index(anchor) + len(anchor)
-    j = section.index("\n\nPhase 6-F is accepted as manual canary gate definition only", i)
+    j = section.index("\n\nPhase 6-G is accepted as controlled live apply gate planning / pre-apply review only", i)
     return section[i:j]
 
 

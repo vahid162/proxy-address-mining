@@ -70,8 +70,8 @@ Phase 6 — Firewall Planner
 Current Phase 6 step:
 
 ```text
-Phase 6-F accepted (manual canary gate definition only, documentation/test-only, non-authorizing)
-next planned step: Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted
+Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
+Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 ```
 
 Read:
@@ -90,25 +90,26 @@ Read:
 12. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
 13. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`
 14. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
-15. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
-16. `docs/FIREWALL.md`
-17. `docs/BACKEND_PORT_POLICY.md`
-18. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-19. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-20. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-21. `docs/REMAINING_PHASE_PLAN.md`
-22. `docs/SAFETY.md`
-23. `docs/DATA_MODEL.md`
-24. `docs/TAXONOMY.md`
-25. `docs/ABUSE.md`
-26. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-27. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-28. `docs/OBSERVABILITY_HASHRATE.md`
-29. `docs/INTRANET_INSTALL.md`
+15. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`
+16. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
+17. `docs/FIREWALL.md`
+18. `docs/BACKEND_PORT_POLICY.md`
+19. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+20. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+21. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+22. `docs/REMAINING_PHASE_PLAN.md`
+23. `docs/SAFETY.md`
+24. `docs/DATA_MODEL.md`
+25. `docs/TAXONOMY.md`
+26. `docs/ABUSE.md`
+27. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+28. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+29. `docs/OBSERVABILITY_HASHRATE.md`
+30. `docs/INTRANET_INSTALL.md`
 
-Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing. The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
-Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing; acceptance evidence is recorded in docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md.
-Reference for the next planned step: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`.
+Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
+Future dedicated Phase 6 apply gate remains not accepted and not authorized.
+Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`.
 
 Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md` (documentation/test-only, non-authorizing).
 
@@ -369,6 +370,10 @@ Records farm5 acceptance evidence for Phase 6-F and confirms Phase 6-G is the ne
 
 Defines planned Phase 6-G controlled live apply gate planning / pre-apply review scope only (documentation/test-only, non-authorizing). It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
+### `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
+
+Records farm5 acceptance evidence for Phase 6-G and confirms Phase 6-G is accepted as documentation/test-only and non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
 
 ### `docs/AI_PHASE_5_TASK.md`
 
@@ -443,15 +448,3 @@ When in doubt, read the stricter document and choose the safer implementation.
 
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
-
-
-### `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
-
-- Records farm5 acceptance evidence for Phase 6-G.
-- Confirms Phase 6-G is accepted as documentation/test-only and non-authorizing.
-- Does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-
-The Future dedicated Phase 6 apply gate remains not accepted and not authorized — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing
-
-Phase 6-G acceptance evidence is recorded.
