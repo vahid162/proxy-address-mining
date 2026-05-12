@@ -743,3 +743,7 @@ Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`.
 Phase 6-E1 may only harden isolated harness contracts/tests.
 Host production firewall mutation remains forbidden.
 Real live apply remains forbidden.
+
+
+Phase 6-E2 is accepted. Phase 6-E3 is the current next planned work and remains isolated/non-production only.
+Phase 6-E3 is non-authorizing gate checklist / evidence review only and does not authorize live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT, or customer firewall rules.

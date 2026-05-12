@@ -339,6 +339,8 @@ Phase 6-E2 is accepted as isolated/non-production evidence package / boundary pl
 
 The next planned implementation step is Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only.
 
+Reference: `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`.
+
 Phase 6-E3 does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
