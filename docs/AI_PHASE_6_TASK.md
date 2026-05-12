@@ -19,7 +19,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); future dedicated apply gate remains not accepted and not authorized
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); next planned sub-step: Apply Slice 1 — Live Snapshot Readiness Boundary (planned only, documentation/test-only, non-authorizing); future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -355,3 +355,16 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 - They are not top-level phases and must not displace Phase 7/Phase 8 from the master roadmap.
 - AI agents must not create endless new Phase 6 sub-steps; each new sub-step must close a concrete blocker toward Phase 6 final acceptance.
 - Abuse 1h remains Phase 8 and must not be implemented early.
+
+
+## Apply Slice 1 Planning Boundary
+
+Current next planned sub-step is Apply Slice 1 — Live Snapshot Readiness Boundary.
+
+Apply Slice 1 is planned only, documentation/test-only, and non-authorizing.
+No live firewall read is allowed now.
+iptables-save remains forbidden now.
+subprocess firewall calls remain forbidden now.
+live adapters remain forbidden now.
+Future dedicated apply gate remains not accepted and not authorized.
+AI agents must not implement live adapters, subprocess calls, or CLI runtime paths for live snapshot reads in this step.

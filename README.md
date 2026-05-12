@@ -17,7 +17,7 @@ Current repository/server gate:
 ```text
 accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-F accepted (manual canary gate definition only, documentation/test-only, non-authorizing); next planned step: Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted
+current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); next planned implementation sub-step: Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary (planned, documentation/test-only, non-authorizing); future dedicated Phase 6 apply gate remains not accepted and not authorized
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -39,7 +39,7 @@ Do not use this repository for production customer traffic yet.
 
 ## Current Phase 6-E3 Accepted State and Next Planned Step
 
-Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing. The next planned step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing. The next planned implementation sub-step is Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary (planned, documentation/test-only, non-authorizing). Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
 Allowed under the current Phase 6 gate (with Phase 6-G documentation/test-only non-authorizing next step):
 
@@ -305,7 +305,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-Phase 6-F is accepted. The next planned work is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
+Phase 6-H is accepted. The next planned work is Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary, planned documentation/test-only and non-authorizing. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
 
 ## Backend Port Policy
 

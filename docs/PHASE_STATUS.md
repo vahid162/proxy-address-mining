@@ -21,6 +21,8 @@ telegram_allowed: no
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
+Next planned Phase 6 implementation sub-step is Apply Slice 1 — Live Snapshot Readiness Boundary. It is documentation/test-only and non-authorizing.
+
 ## Accepted Server Results
 
 ### Phase 1 — Bootstrap Without Traffic Changes
@@ -527,4 +529,5 @@ Phase 6-H reference:
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
 docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
+
 
