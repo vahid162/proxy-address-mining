@@ -30,6 +30,7 @@ Read these first:
 20. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
 21. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (accepted scope, documentation/test-only, non-authorizing)
 22. `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
+23. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
