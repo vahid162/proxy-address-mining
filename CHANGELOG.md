@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.67 - 2026-05-12
+
+- recorded Phase 6-E2 acceptance evidence from farm5
+- updated PHASE_STATUS accepted results and next planned Phase 6-E3
+- indexed docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+
 ## 0.1.66 - 2026-05-12
 
 - added Phase 6-E2 isolated harness evidence package / boundary planning documentation

@@ -307,13 +307,39 @@ Do not implement, run, or activate:
 
 Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
 
+### Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning
+
+```text
+version accepted on farm5: 0.1.66
+pytest with venv: 403 passed
+docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md accepted
+docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall read
+no live firewall write
+no live firewall apply
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
 ## Next Planned Step
 
-Phase 6-E1 is accepted as isolated/non-production harness contract hardening only.
+Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only.
 
-The next planned implementation step is Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only.
+The next planned implementation step is Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only.
 
-Phase 6-E2 does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+Phase 6-E3 does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
 

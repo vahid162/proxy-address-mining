@@ -61,9 +61,9 @@ Phase 6-D remains documentation/test-only and does not open the apply gate.
 - Phase 6-E1 contract reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`.
 - Phase 6-E1 accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`.
 - Phase 6-E2 contract reference: `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`.
-- Phase 6-E1 is accepted.
-- Phase 6-E2 is the current next planned step.
-- Phase 6-E2 is Isolated Harness Evidence Package / Boundary Planning and remains isolated/non-production only.
+- Phase 6-E2 is accepted.
+- Phase 6-E3 is the current next planned step.
+- Phase 6-E3 is Isolated Harness Evidence Review / Non-Authorizing Gate Checklist and remains isolated/non-production only.
 - No live apply/read/write, `iptables-save`, `iptables-restore`, real adapters, DB writes, locks, restore points, NAT, or customer firewall rules are allowed.
 - Host production firewall mutation remains forbidden.
 
