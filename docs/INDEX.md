@@ -322,6 +322,11 @@ Defines Phase 6-E1 isolated/non-production-only harness hardening scope for fake
 
 Records farm5 acceptance evidence for Phase 6-E1 and confirms that the next safe step is Phase 6-E2 isolated/non-production boundary planning only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
+### `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`
+
+Defines the planned Phase 6-E2 isolated/non-production evidence package and boundary planning contract. It is non-authorizing and does not mark Phase 6-E2 accepted. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+
 ### `docs/AI_PHASE_5_TASK.md`
 
 Historical active task for accepted Phase 5 Customer CRUD in DB Only.

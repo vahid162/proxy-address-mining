@@ -48,7 +48,15 @@ def test_phase_status_stays_non_accepting_for_e2():
 
 def test_index_includes_e2_in_required_sections():
     t = _read("docs/INDEX.md")
-    assert "docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md" in t
+
+    start_here = t.split("## Start Here", 1)[1].split("## Core Contracts", 1)[0]
+    current_phase = t.split("## Current Phase Contracts", 1)[1].split("## Reading Order by Task", 1)[0]
+    doc_summary = t.split("## Documentation Summary", 1)[1].split("## Current Roadmap Snapshot", 1)[0]
+
+    needle = "docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md"
+    assert needle in start_here
+    assert needle in current_phase
+    assert needle in doc_summary
 
 
 def test_no_e2_authorization_anywhere():

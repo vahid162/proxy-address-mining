@@ -58,23 +58,18 @@ Phase 6-B and Phase 6-C are historical accepted references and are not the curre
 
 ## Phase 6-D1 — Live-Apply Boundary Contract
 
-Phase 6-E1 isolated harness contract hardening is accepted on farm5. Next safe work is Phase 6-E2 isolated harness evidence package / boundary planning, isolated/non-production only.
+Phase 6-E1 isolated harness contract hardening is accepted on farm5.
 
-Reference document:
+Phase 6-E2 is the current safe planned work: isolated harness evidence package / boundary planning, isolated/non-production only.
+
+Reference documents:
 
 ```text
 docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md
-```
-
-Reference document:
-
-```text
 docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md
 ```
 
-Phase 6-D1 is documentation/test-only.
-Phase 6-E1 is current isolated/non-production harness hardening work only.
-Phase 6-D1 does not authorize live apply.
+Phase 6-D1 is documentation/test-only and does not authorize live apply. Phase 6-E2 remains non-authorizing and does not authorize live firewall read/write, `iptables-save`, `iptables-restore`, real adapters, live apply/rollback/verify, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 Required boundary statements:
 
