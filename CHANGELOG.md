@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.58 - 2026-05-12
+
+- aligned remaining Phase 6 documentation after Phase 6-C acceptance
+- added `docs/REMAINING_PHASE_PLAN.md`
+- aligned README/AGENTS/INDEX/AI_CODING_RULES/AI_PHASE_6_TASK/ROADMAP with PHASE_STATUS
+- preserved Phase 5 accepted / Phase 6 working current gate
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, NAT, runtime customer traffic, usage, abuse automation, UI, or Telegram behavior was introduced
+
 ## 0.1.57 - 2026-05-12
 
 - added Phase 6-C acceptance evidence and closure documentation

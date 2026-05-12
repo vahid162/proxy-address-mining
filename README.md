@@ -17,7 +17,7 @@ Current repository/server gate:
 ```text
 accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
+current_phase6_step: Phase 6-C accepted (offline apply-gate readiness/review only); next safe step: Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -37,11 +37,11 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 
 Do not use this repository for production customer traffic yet.
 
-## Current Phase 6-B Scope
+## Current Phase 6-C Accepted State and Next Safe Step
 
-Phase 6-A established the planner/model/diff foundation. Current Phase 6-B work is still offline and inspection-only.
+Phase 6-C is accepted as offline apply-gate readiness/review only. The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review.
 
-Allowed now:
+Allowed under the current Phase 6 gate (with Phase 6-D docs/test-only next step):
 
 ```text
 repository/documentation cleanup that preserves phase gates
@@ -305,7 +305,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-During current Phase 6-B, implement only planner/offline artifact/offline contract/preflight/test behavior. Live apply remains disabled.
+After Phase 6-C acceptance, the next safe work is Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
 
 ## Backend Port Policy
 
