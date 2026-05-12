@@ -87,7 +87,7 @@ def _extract_current_phase_read_block(index_text: str) -> str:
     start = index_text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = index_text.index(read_anchor, start) + len(read_anchor)
-    read_end = index_text.index("\n\nPhase 6-C is accepted", read_start)
+    read_end = index_text.index("\n\nPhase 6-D1 is accepted", read_start)
     return index_text[read_start:read_end].strip()
 
 
@@ -98,20 +98,21 @@ def test_index_current_phase_contracts_read_block_exact_1_to_18_with_d1_acceptan
 2. `docs/AI_PHASE_6_TASK.md`
 3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
 4. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`
-5. `docs/FIREWALL.md`
-6. `docs/BACKEND_PORT_POLICY.md`
-7. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-8. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-9. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-10. `docs/REMAINING_PHASE_PLAN.md`
-11. `docs/SAFETY.md`
-12. `docs/DATA_MODEL.md`
-13. `docs/TAXONOMY.md`
-14. `docs/ABUSE.md`
-15. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-16. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-17. `docs/OBSERVABILITY_HASHRATE.md`
-18. `docs/INTRANET_INSTALL.md`"""
+5. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
+6. `docs/FIREWALL.md`
+7. `docs/BACKEND_PORT_POLICY.md`
+8. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+9. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+10. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+11. `docs/REMAINING_PHASE_PLAN.md`
+12. `docs/SAFETY.md`
+13. `docs/DATA_MODEL.md`
+14. `docs/TAXONOMY.md`
+15. `docs/ABUSE.md`
+16. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+17. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+18. `docs/OBSERVABILITY_HASHRATE.md`
+19. `docs/INTRANET_INSTALL.md`"""
     assert block == expected
 
 

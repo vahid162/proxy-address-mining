@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.61 - 2026-05-12
+
+- added Phase 6-E0 isolated apply harness contracts
+- added fake/no-op harness adapter/service contracts for deterministic plan/apply/verify/rollback ordering simulation
+- added tests proving no host firewall mutation, no iptables-save, no iptables-restore, no DB apply writes, no locks, and no restore point writes
+- indexed docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, NAT, runtime customer traffic, usage, abuse automation, UI, or Telegram behavior was introduced
+
 ## 0.1.60 - 2026-05-12
 
 - recorded Phase 6-D1 acceptance evidence from farm5
