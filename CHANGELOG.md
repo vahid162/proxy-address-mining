@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.76 - 2026-05-12
+
+- updated ROADMAP Current Phase Alignment Note to state Phase 6-F accepted (manual canary gate definition only, documentation/test-only, non-authorizing)
+- kept Phase 6-G as next planned documentation/test-only non-authorizing step
+- confirmed no live firewall reads/writes, live apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior was introduced
+
 ## 0.1.75 - 2026-05-12
 
 - added Phase 6-G controlled live apply gate planning / pre-apply review documentation
