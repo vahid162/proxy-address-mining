@@ -336,7 +336,7 @@ Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does 
 
 Phase 6-E1 is accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (historical accepted evidence).
 Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (historical accepted contract).
-Current active sub-step is Phase 6-G accepted scope only (documentation/test-only, non-authorizing).
+Current active sub-step is Phase 6-H accepted scope only (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing).
 Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.
 
 
@@ -346,7 +346,7 @@ Historical compatibility note: Phase 6-F acceptance preceded Phase 6-G acceptanc
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
 
-Phase 6-H is planned only, documentation/test-only and non-authorizing. No live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram are allowed.
+Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing. No live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram are allowed.
 
 
 ## Master Roadmap Alignment Guard

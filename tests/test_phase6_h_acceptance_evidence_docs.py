@@ -110,3 +110,11 @@ def test_index_phase6h_summaries_inside_documentation_summary_not_stop_condition
 def test_index_current_phase_step_says_phase6h_accepted() -> None:
     text = _read('docs/INDEX.md')
     assert 'Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.' in text
+
+
+def test_ai_phase6_task_no_stale_phase6g_h_wording() -> None:
+    text = _read('docs/AI_PHASE_6_TASK.md')
+    assert 'Current active sub-step is Phase 6-G accepted scope only' not in text
+    assert 'Phase 6-H is planned only' not in text
+    assert 'current sub-step: Phase 6-H accepted' in text
+    assert 'Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing' in text
