@@ -518,6 +518,9 @@ Future customer records remain DB-only until Phase 6 apply and customer NAT/cust
 
 
 Phase 6-H reference:
-text
+
+```text
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
+docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
+```
 
