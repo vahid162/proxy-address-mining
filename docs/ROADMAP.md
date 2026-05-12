@@ -8,6 +8,14 @@ It is an implementation contract for humans and AI coding agents.
 The roadmap must be followed in order.
 Do not start a later phase until the current phase acceptance gate passes.
 
+
+## Current Phase Alignment Note
+
+Phase 6-E3 is accepted.
+Next planned step is Phase 6-F — Manual Canary Gate Definition.
+Phase 6-F is documentation/test-only and non-authorizing.
+It does not authorize live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
 ## 0. Project Objective
 
 Build a Python-first, API-first, PostgreSQL-backed mining customer gateway control plane.

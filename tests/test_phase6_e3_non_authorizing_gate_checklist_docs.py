@@ -62,9 +62,9 @@ ui_allowed: no
 telegram_allowed: no
 ```"""
     assert expected in text
-    assert "### Phase 6-E3" not in text
-    assert "next planned implementation step is Phase 6-E3" in text
-    assert "isolated/non-production only" in text
+    assert "### Phase 6-E3" in text
+    assert "next planned implementation step is Phase 6-F" in text
+    assert "non-authorizing gate checklist only" in text
 
 
 def test_index_includes_e3_doc_in_required_sections() -> None:

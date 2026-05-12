@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.72 - 2026-05-12
+
+- fixed stale README wording to set Phase 6-F as the documentation/test-only non-authorizing next step
+- fixed stale AI Phase 6 task wording so current active work is Phase 6-F and E0/E1/E2/E3 references are historical/accepted
+- added ROADMAP current alignment note for Phase 6-E3 accepted and Phase 6-F non-authorizing scope
+- strengthened docs tests to reject stale "next safe work is Phase 6-E3" wording in README and AI phase task docs
+
+## 0.1.71 - 2026-05-12
+
+- recorded Phase 6-E3 acceptance evidence from farm5
+- updated PHASE_STATUS accepted results and next planned Phase 6-F
+- indexed docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+- kept farm5 time synchronization warning as a blocker before production/usage/abuse automation
+
 ## 0.1.70 - 2026-05-12
 
 - fixed INDEX Phase 6-E3 placement in Current Phase Contracts and Documentation Summary section formatting

@@ -42,7 +42,7 @@ def test_phase_status_stays_non_accepting_for_e3():
     t = _read("docs/PHASE_STATUS.md")
     assert "current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5" in t
     assert "current_working_phase: Phase 6 — Firewall Planner" in t
-    assert "Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only" in t
+    assert "Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing" in t
     assert "Phase 6-E2 accepted" not in t
 
 
