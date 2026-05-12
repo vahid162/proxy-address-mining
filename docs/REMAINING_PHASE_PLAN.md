@@ -57,7 +57,8 @@ Phase 6-D remains documentation/test-only and does not open the apply gate.
 ## Phase 6-E — Isolated Apply Harness
 
 - Reference: `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
-- Phase 6-E0 is isolated/non-production only.
+- Phase 6-E0 accepted on farm5 via `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`.
+- Phase 6-E1 is Isolated Harness Contract Hardening and is isolated/non-production only.
 - Host production firewall mutation remains forbidden.
 
 Purpose: design and validate isolated, non-production apply harness contracts.
@@ -203,3 +204,7 @@ Safety notes: maintain separation between worker identity evidence and firewall 
 Server verification expectations: controlled enforcement evidence with rollback readiness.
 
 Phase 6-E0 must not mutate the host production firewall.
+
+
+Phase 6-E1 must remain fake/no-op, isolated/non-production, and must not mutate the host production firewall.
+Phase 6-E1 allows no live read/write, no iptables-save, no iptables-restore, no real iptables adapter, no DB apply writes, no locks, and no restore points.

@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only
+Status: active task for Phase 6-E1 isolated harness contract hardening, isolated/non-production only
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
@@ -322,3 +322,10 @@ Phase 6-E0 does not authorize apply/rollback/verify, iptables-save/iptables-rest
 Reference: `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
 
 Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does not authorize live firewall read/write, iptables-save execution, iptables-restore execution, or live apply/rollback/verify. No `mpf firewall apply`, `mpf firewall rollback`, or live verify command may be enabled.
+
+
+## Phase 6-E0 Acceptance Note
+
+Phase 6-E0 is accepted on farm5 via `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`.
+Next safe work is Phase 6-E1 isolated harness contract hardening.
+Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.

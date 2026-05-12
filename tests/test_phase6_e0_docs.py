@@ -58,20 +58,21 @@ def test_index_current_phase_read_block_includes_e0_exact_and_sequential() -> No
 3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
 4. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`
 5. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
-6. `docs/FIREWALL.md`
-7. `docs/BACKEND_PORT_POLICY.md`
-8. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-9. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-10. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-11. `docs/REMAINING_PHASE_PLAN.md`
-12. `docs/SAFETY.md`
-13. `docs/DATA_MODEL.md`
-14. `docs/TAXONOMY.md`
-15. `docs/ABUSE.md`
-16. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-17. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-18. `docs/OBSERVABILITY_HASHRATE.md`
-19. `docs/INTRANET_INSTALL.md`"""
+6. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`
+7. `docs/FIREWALL.md`
+8. `docs/BACKEND_PORT_POLICY.md`
+9. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+10. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+11. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+12. `docs/REMAINING_PHASE_PLAN.md`
+13. `docs/SAFETY.md`
+14. `docs/DATA_MODEL.md`
+15. `docs/TAXONOMY.md`
+16. `docs/ABUSE.md`
+17. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+18. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+19. `docs/OBSERVABILITY_HASHRATE.md`
+20. `docs/INTRANET_INSTALL.md`"""
     assert block == expected
 
 
@@ -88,14 +89,14 @@ def test_index_documentation_summary_places_e0_before_roadmap_and_not_after_fina
 
 def test_index_current_phase_text_mentions_e0_isolated_only() -> None:
     text = Path("docs/INDEX.md").read_text(encoding="utf-8")
-    assert "Phase 6-D1 accepted" in text
-    assert "Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only" in text
+    assert "Phase 6-E0 accepted" in text
+    assert "Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only" in text
 
 
 def test_remaining_phase_plan_phase6e_formatting_clean() -> None:
     text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     assert "## Phase 6-E — Isolated Apply Harness" in text
-    assert "Phase 6-E0 is isolated/non-production only" in text
+    assert "Phase 6-E0 accepted on farm5" in text
     assert "Host production firewall mutation remains forbidden" in text
     assert "forbidden. — Isolated Apply Harness" not in text
 
@@ -104,11 +105,10 @@ def test_remaining_phase_plan_phase6e_formatting_clean() -> None:
 def test_ai_phase6_task_e0_status_and_no_stale_d0_wording() -> None:
     text = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     required = [
-        "Status: active task for Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only",
+        "Phase 6-E0 is accepted on farm5",
         "current sub-step: Phase 6-D1 accepted",
-        "next planned step: Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only",
-        "Next safe work now is Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only",
-        "Tests Required for the Phase 6-E0 Isolated Apply Harness Boundary",
+        "Phase 6-E1 isolated harness contract hardening",
+        "non-authorizing",
     ]
     for item in required:
         assert item in text

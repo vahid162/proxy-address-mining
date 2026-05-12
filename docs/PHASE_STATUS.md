@@ -250,6 +250,10 @@ Do not implement, run, or activate:
 
 Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
 
+Next Planned Step: Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only.
+
+Phase 6-E1 does not authorize host production firewall mutation.
+
 ## Current Safety Invariants
 
 ```text
@@ -304,3 +308,34 @@ The post-Phase-6-C boundary remains **Phase 6-D0 / Phase 6-D** documentation/tes
 After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only**. Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
 
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
+
+
+### Phase 6-E0 — Isolated Apply Harness Contracts
+
+```text
+version accepted on farm5: 0.1.61
+pytest passed: 376 passed
+docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md accepted
+docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+fake/no-op harness only
+report-only harness service
+deterministic plan -> apply -> verify ordering tested
+verify-failure rollback-guidance ordering tested
+no live firewall read
+no live firewall write
+no live firewall apply
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
