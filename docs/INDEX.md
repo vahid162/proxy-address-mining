@@ -14,12 +14,13 @@ Read these first:
 4. `docs/PHASE_STATUS.md`
 5. `docs/AI_CODING_RULES.md`
 6. `docs/AI_PHASE_6_TASK.md`
+7. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only Phase 6-D1 boundary contract)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_6_TASK.md` defines the current Phase 6 firewall-planner/offline-apply-contract boundary.
+`docs/AI_PHASE_6_TASK.md` and `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` define the current Phase 6 firewall-planner/offline-apply-contract boundary.
 This file is the documentation map.
 
 ## Core Contracts
@@ -31,7 +32,7 @@ Read these before implementation work:
 3. `docs/ROADMAP.md`
 4. `docs/DATA_MODEL.md`
 5. `docs/TAXONOMY.md`
-6. `docs/FIREWALL.md`
+7. `docs/FIREWALL.md`
 7. `docs/ABUSE.md`
 8. `docs/BACKEND_PORT_POLICY.md`
 9. `docs/OBSERVABILITY_HASHRATE.md`
@@ -64,9 +65,10 @@ Read:
 
 1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_6_TASK.md`
-3. `docs/FIREWALL.md`
-4. `docs/BACKEND_PORT_POLICY.md`
-5. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
+4. `docs/FIREWALL.md`
+5. `docs/BACKEND_PORT_POLICY.md`
+6. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
 6. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
 7. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
 8. `docs/REMAINING_PHASE_PLAN.md`
@@ -109,7 +111,7 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
 4. `docs/ARCHITECTURE.md`
-5. `docs/SAFETY.md`
+6. `docs/SAFETY.md`
 6. `docs/ROADMAP.md`
 7. `docs/DATA_MODEL.md`
 8. `docs/TAXONOMY.md`
@@ -161,9 +163,10 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
 4. `docs/AI_PHASE_6_TASK.md`
-5. `docs/SAFETY.md`
-6. `docs/FIREWALL.md`
-7. `docs/BACKEND_PORT_POLICY.md`
+5. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
+6. `docs/SAFETY.md`
+7. `docs/FIREWALL.md`
+8. `docs/BACKEND_PORT_POLICY.md`
 8. `docs/DATA_MODEL.md`
 9. `docs/CONTROL_RULES.md`
 10. relevant phase/domain document
@@ -238,7 +241,7 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
 4. `docs/ARCHITECTURE.md`
-5. `docs/SAFETY.md`
+6. `docs/SAFETY.md`
 6. `docs/ROADMAP.md`
 7. `docs/TAXONOMY.md`
 8. relevant phase/domain document
@@ -280,6 +283,8 @@ Rules:
 Defines the accepted phase, current working phase, allowed work, forbidden work, and next safe step.
 
 ### `docs/AI_PHASE_6_TASK.md`
+
+### `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`
 
 Defines the active Phase 6 firewall-planner/offline-apply-contract boundary.
 

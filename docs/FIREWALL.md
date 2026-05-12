@@ -56,6 +56,14 @@ read DB/config
 ```
 
 
+## Phase 6-D1 Live-Apply Boundary Contract (Documentation/Test-Only)
+
+Phase 6-D1 only defines boundaries via `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`.
+
+- live apply remains forbidden.
+- iptables-save and iptables-restore remain forbidden before explicit gate acceptance.
+- D1 is non-authorizing and documentation/test-only.
+
 ## Phase 6-C0 Note (Readiness Contract + Manual Canary Runbook Only)
 
 Phase 6-C0 adds a live apply gate readiness contract and manual canary runbook only.
