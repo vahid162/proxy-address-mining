@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6-B firewall planning/offline apply contract work
+Status: active task for Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
@@ -17,7 +17,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
+current sub-step: Phase 6-C accepted (offline apply-gate readiness/review only); next safe step: Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -42,7 +42,7 @@ offline file-backed diff
 planner-only firewall doctor
 ```
 
-Current Phase 6-B work is limited to:
+Phase 6-C accepted work (historical reference) included:
 
 ```text
 offline restore payload artifacts
@@ -283,3 +283,8 @@ Do not combine planner/offline contract work with live apply behavior.
 
 
 Phase 6-C closure is documentation/test-only and live apply remains forbidden.
+
+
+Next safe work now is Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review.
+No `mpf firewall apply`, `mpf firewall rollback`, or live `verify` may be enabled in this step.
+No `iptables-save` or `iptables-restore` execution is authorized in this step.

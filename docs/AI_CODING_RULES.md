@@ -47,7 +47,7 @@ Current gate:
 ```text
 accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
+current_phase6_step: Phase 6-C accepted (offline apply-gate readiness/review only); next safe step: Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -57,9 +57,9 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-## Current Phase 6-B Rule
+## Phase 6-B Historical Rule + Current 6-D0 Safety Continuity
 
-Phase 6-B exists to model the apply/rollback/preflight safety boundary while keeping all behavior offline, artifact-only, inspection-only, and non-mutating.
+Phase 6-B modeled the apply/rollback/preflight boundary and is now historical/accepted. Current next safe work is Phase 6-D0 / Phase 6-D documentation/test-only, with the same non-mutating safety boundary.
 
 Allowed in current Phase 6-B:
 

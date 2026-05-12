@@ -810,3 +810,10 @@ When in doubt, choose safety over speed.
 
 A phase is not complete because code exists.
 A phase is complete only when its acceptance gate passes.
+
+
+## Remaining Plan Alignment (post Phase 6-C acceptance)
+
+6-D, 6-E, 6-F, 6-G, 7, 8, 9, 10, 11, 12, 13, 14 remain in order.
+
+Phase 6-D is documentation/test-only and does not open live apply.

@@ -84,7 +84,7 @@ Current repository gate:
 ```text
 current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 current_working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-B — Offline Apply Contracts / Preflight Inspection
+current_phase6_step: Phase 6-C accepted (offline apply-gate readiness/review only); next safe step: Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -94,7 +94,7 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Current Phase 6-B allowed work:
+Phase 6-B allowed work (historical reference, already accepted):
 
 ```text
 repository/documentation cleanup that preserves gates
@@ -113,7 +113,7 @@ backend exposure classification
 internal backend reachability classification
 ```
 
-Current Phase 6-B forbidden work:
+Phase 6-B forbidden work (historical reference, constraints still forbidden now):
 
 ```text
 production traffic
