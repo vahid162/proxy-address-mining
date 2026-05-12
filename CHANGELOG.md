@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.70 - 2026-05-12
+
+- fixed INDEX Phase 6-E3 placement in Current Phase Contracts and Documentation Summary section formatting
+- added PHASE_STATUS next-step reference to docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md
+- strengthened E3 docs test to validate exact INDEX sections and reject malformed E3 bullet placement
+
 ## 0.1.69 - 2026-05-12
 
 - added Phase 6-E3 non-authorizing gate checklist documentation

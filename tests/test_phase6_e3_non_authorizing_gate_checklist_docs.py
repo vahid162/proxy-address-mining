@@ -5,6 +5,12 @@ def _read(path: str) -> str:
     return Path(path).read_text(encoding="utf-8")
 
 
+def _between(text: str, start: str, end: str) -> str:
+    i = text.index(start)
+    j = text.index(end, i)
+    return text[i:j]
+
+
 def test_phase6_e3_doc_exists_and_status_markers() -> None:
     text = _read("docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md")
     assert "Status: planned, isolated/non-production only, non-authorizing." in text
@@ -63,10 +69,15 @@ telegram_allowed: no
 
 def test_index_includes_e3_doc_in_required_sections() -> None:
     text = _read("docs/INDEX.md")
-    assert "docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md" in text
-    assert "## Start Here" in text
-    assert "## Current Phase Contracts" in text
-    assert "## Documentation Summary" in text
+    start_here = _between(text, "## Start Here", "## Core Contracts")
+    current_phase = _between(text, "## Current Phase Contracts", "## Reading Order by Task")
+    doc_summary = _between(text, "## Documentation Summary", "## Current Roadmap Snapshot")
+
+    e3_doc = "docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md"
+    assert e3_doc in start_here
+    assert e3_doc in current_phase
+    assert e3_doc in doc_summary
+    assert "- `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`" not in doc_summary
 
 
 def test_no_docs_authorize_phase6e3_live_apply_or_mutations() -> None:
