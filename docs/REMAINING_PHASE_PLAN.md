@@ -6,6 +6,10 @@ Status: planning reference aligned to `docs/PHASE_STATUS.md`.
 
 ## Phase 6-D — Documentation Alignment + Live Apply Boundary
 
+Phase 6-D remains documentation/test-only and does not open the apply gate.
+
+- **Phase 6-D1 contract:** `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` defines live-apply boundaries, non-authorization rules, stop conditions, and Phase 6-E entry criteria for isolated/non-production planning only.
+
 ### Purpose
 - Align all phase docs after Phase 6-C acceptance.
 - Define exact future live-apply boundaries without enabling them now.

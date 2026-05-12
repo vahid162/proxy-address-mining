@@ -14,12 +14,13 @@ Read these first:
 4. `docs/PHASE_STATUS.md`
 5. `docs/AI_CODING_RULES.md`
 6. `docs/AI_PHASE_6_TASK.md`
+7. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only Phase 6-D1 boundary contract)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_6_TASK.md` defines the current Phase 6 firewall-planner/offline-apply-contract boundary.
+`docs/AI_PHASE_6_TASK.md` and `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` define the current Phase 6 firewall-planner/offline-apply-contract boundary.
 This file is the documentation map.
 
 ## Core Contracts
@@ -64,20 +65,21 @@ Read:
 
 1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_6_TASK.md`
-3. `docs/FIREWALL.md`
-4. `docs/BACKEND_PORT_POLICY.md`
-5. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-6. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-7. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-8. `docs/REMAINING_PHASE_PLAN.md`
-8. `docs/SAFETY.md`
-9. `docs/DATA_MODEL.md`
-9. `docs/TAXONOMY.md`
-10. `docs/ABUSE.md`
-11. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-12. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-13. `docs/OBSERVABILITY_HASHRATE.md`
-14. `docs/INTRANET_INSTALL.md`
+3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
+4. `docs/FIREWALL.md`
+5. `docs/BACKEND_PORT_POLICY.md`
+6. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+7. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+8. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+9. `docs/REMAINING_PHASE_PLAN.md`
+10. `docs/SAFETY.md`
+11. `docs/DATA_MODEL.md`
+12. `docs/TAXONOMY.md`
+13. `docs/ABUSE.md`
+14. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+15. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+16. `docs/OBSERVABILITY_HASHRATE.md`
+17. `docs/INTRANET_INSTALL.md`
 
 Phase 6-C is accepted as offline apply-gate readiness/review only. The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review. It may align docs/tests and inspect offline artifacts only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
@@ -161,12 +163,13 @@ Read:
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
 4. `docs/AI_PHASE_6_TASK.md`
-5. `docs/SAFETY.md`
-6. `docs/FIREWALL.md`
-7. `docs/BACKEND_PORT_POLICY.md`
-8. `docs/DATA_MODEL.md`
-9. `docs/CONTROL_RULES.md`
-10. relevant phase/domain document
+5. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
+6. `docs/SAFETY.md`
+7. `docs/FIREWALL.md`
+8. `docs/BACKEND_PORT_POLICY.md`
+9. `docs/DATA_MODEL.md`
+10. `docs/CONTROL_RULES.md`
+11. relevant phase/domain document
 
 Rules:
 
@@ -281,7 +284,11 @@ Defines the accepted phase, current working phase, allowed work, forbidden work,
 
 ### `docs/AI_PHASE_6_TASK.md`
 
-Defines the active Phase 6 firewall-planner/offline-apply-contract boundary.
+Defines the active AI coding boundary for current Phase 6 planner/offline contract work and references the Phase 6-D1 boundary.
+
+### `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`
+
+Defines the non-authorizing documentation/test-only live-apply boundary contract for Phase 6-D1.
 
 ### `docs/AI_PHASE_5_TASK.md`
 

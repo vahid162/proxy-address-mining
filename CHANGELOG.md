@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.59 - 2026-05-12
+
+- added Phase 6-D1 live-apply boundary contract.
+- documented no-op/fake adapter, restore, lock, verify, rollback, and audit/event boundaries.
+- updated Phase 6 docs/index/firewall task references.
+- preserved Phase 5 accepted / Phase 6 working gate.
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, NAT, runtime customer traffic, usage, abuse automation, UI, or Telegram behavior was introduced.
+
 ## 0.1.58 - 2026-05-12
 
 - aligned remaining Phase 6 documentation after Phase 6-C acceptance
