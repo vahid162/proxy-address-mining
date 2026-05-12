@@ -41,7 +41,7 @@ Do not use this repository for production customer traffic yet.
 
 Phase 6-C is accepted as offline apply-gate readiness/review only. The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review.
 
-Allowed now:
+Allowed under the current Phase 6 gate (with Phase 6-D docs/test-only next step):
 
 ```text
 repository/documentation cleanup that preserves phase gates
@@ -305,7 +305,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-During current Phase 6-B, implement only planner/offline artifact/offline contract/preflight/test behavior. Live apply remains disabled.
+After Phase 6-C acceptance, the next safe work is Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
 
 ## Backend Port Policy
 

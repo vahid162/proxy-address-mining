@@ -163,7 +163,7 @@ rollback artifact rendered from explicit offline snapshot file
 preflight report combining planner, restore, readiness, package, and optional rollback status
 ```
 
-Required safety flags must remain false for current Phase 6-B commands:
+Required safety flags must remain false before explicit apply gate acceptance:
 
 ```text
 live_firewall_read = false

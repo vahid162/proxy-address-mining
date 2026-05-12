@@ -277,7 +277,7 @@ iptables-restore
 
 Direct firewall commands may appear only in diagnostics, isolated tests, or generated emergency restore artifacts, not as normal production state mutation.
 
-During current Phase 6-B, no live firewall read/write, `iptables-save`, `iptables-restore`, apply, rollback, or verify execution is allowed.
+During the current post-Phase-6-C / Phase-6-D0 documentation/test-only boundary, no live firewall read/write, `iptables-save`, `iptables-restore`, apply, rollback, or verify execution is allowed.
 
 ## 10. Abuse Requirement
 
@@ -442,9 +442,9 @@ Stop and revise before continuing if a change introduces any of these:
 
 ```text
 live firewall apply before explicit Phase 6 apply gate acceptance
-live firewall read/write dependency in current Phase 6-B inspection commands
-iptables-save execution in current Phase 6-B inspection commands
-iptables-restore execution in current Phase 6-B inspection commands
+live firewall read/write dependency before explicit apply gate acceptance
+iptables-save execution before explicit apply gate acceptance
+iptables-restore execution before explicit apply gate acceptance
 abuse automation before Phase 8
 customer firewall rules before accepted gate
 NAT redirects before accepted gate

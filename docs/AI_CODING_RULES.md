@@ -61,7 +61,7 @@ telegram_allowed: no
 
 Phase 6-B modeled the apply/rollback/preflight boundary and is now historical/accepted. Current next safe work is Phase 6-D0 / Phase 6-D documentation/test-only, with the same non-mutating safety boundary.
 
-Allowed in current Phase 6-B:
+Historical Phase 6-B allowed work (accepted reference):
 
 ```text
 repository/documentation cleanup that preserves gates
@@ -80,7 +80,7 @@ backend exposure classification tests
 internal backend reachability classification tests
 ```
 
-Forbidden in current Phase 6-B:
+Forbidden now and still forbidden after Phase 6-C:
 
 ```text
 production traffic
@@ -205,9 +205,9 @@ Stop and revise if a change introduces:
 ```text
 traffic-changing behavior before the matching phase
 live firewall apply before explicit Phase 6 apply gate acceptance
-live firewall read/write dependency in current Phase 6-B inspection commands
-iptables-save execution in current Phase 6-B inspection commands
-iptables-restore execution in current Phase 6-B inspection commands
+live firewall read/write dependency before explicit apply gate acceptance
+iptables-save execution before explicit apply gate acceptance
+iptables-restore execution before explicit apply gate acceptance
 conntrack flush before the relevant runtime gate
 abuse automation before Phase 8
 backend public exposure

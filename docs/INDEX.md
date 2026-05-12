@@ -178,8 +178,8 @@ Rules:
 - backend direct external exposure is critical
 - backend internal reachability failure is also critical
 - never hide backend ports by breaking valid internal paths
-- current Phase 6-B must remain offline/artifact-only/inspection-only until a dedicated apply gate is accepted
-- current Phase 6-B must not execute `iptables-save`, `iptables-restore`, live apply, live rollback, live verify, or conntrack flush
+- current post-Phase-6-C boundary must remain offline/artifact-only/inspection-only until a dedicated apply gate is accepted
+- current post-Phase-6-C boundary must not execute `iptables-save`, `iptables-restore`, live apply, live rollback, live verify, or conntrack flush
 
 ### Hash-rate, share, worker, or observability work
 
@@ -326,9 +326,9 @@ Phase 15  — Worker Policy Enforcement
 Stop and revise if any change introduces:
 
 1. firewall apply before explicit Phase 6 apply gate acceptance
-2. live firewall read/write dependency in current Phase 6-B inspection commands
-3. `iptables-save` execution in current Phase 6-B inspection commands
-4. `iptables-restore` execution in current Phase 6-B inspection commands
+2. live firewall read/write dependency before explicit apply gate acceptance
+3. `iptables-save` execution before explicit apply gate acceptance
+4. `iptables-restore` execution before explicit apply gate acceptance
 5. conntrack flush before the relevant runtime gate
 6. abuse automation before Phase 8
 7. customer rules before their phase
