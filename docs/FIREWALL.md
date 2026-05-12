@@ -56,6 +56,20 @@ read DB/config
 ```
 
 
+## Phase 6-E2 Isolated Harness Evidence Package / Boundary Planning (Isolated/Non-Production Only)
+
+Phase 6-E2 is evidence package and boundary planning only via `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`.
+
+- it does not authorize live apply
+- it does not authorize live firewall read/write
+- it does not authorize `iptables-save` or `iptables-restore`
+- it does not authorize real iptables adapters
+- it does not authorize DB apply writes
+- it does not authorize lock acquisition
+- it does not authorize restore point writes
+- it does not authorize customer NAT redirects
+- it does not authorize customer firewall rules
+
 ## Phase 6-D1 Live-Apply Boundary Contract (Documentation/Test-Only)
 
 Phase 6-D1 only defines boundaries via `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`.

@@ -63,6 +63,12 @@ Phase 6-E1 isolated harness contract hardening is accepted on farm5. Next safe w
 Reference document:
 
 ```text
+docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md
+```
+
+Reference document:
+
+```text
 docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md
 ```
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.66 - 2026-05-12
+
+- added Phase 6-E2 isolated harness evidence package / boundary planning documentation
+- indexed docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- kept Phase 6-E2 non-authorizing and not accepted yet
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+
 ## 0.1.65 - 2026-05-12
 
 - cleaned stale Phase 6-E0/E1 wording in docs and aligned current wording to Phase 6-E1 accepted with Phase 6-E2 as isolated/non-production next step

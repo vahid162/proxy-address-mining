@@ -20,6 +20,7 @@ Read these first:
 10. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 11. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (isolated/non-production hardening contract; non-authorizing)
 12. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
+13. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md` (next planned step contract; isolated/non-production only, non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -76,20 +77,21 @@ Read:
 6. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`
 7. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`
 8. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`
-9. `docs/FIREWALL.md`
-10. `docs/BACKEND_PORT_POLICY.md`
-11. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-12. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-13. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-14. `docs/REMAINING_PHASE_PLAN.md`
-15. `docs/SAFETY.md`
-16. `docs/DATA_MODEL.md`
-17. `docs/TAXONOMY.md`
-18. `docs/ABUSE.md`
-19. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-20. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-21. `docs/OBSERVABILITY_HASHRATE.md`
-22. `docs/INTRANET_INSTALL.md`
+9. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`
+10. `docs/FIREWALL.md`
+11. `docs/BACKEND_PORT_POLICY.md`
+12. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+13. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+14. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+15. `docs/REMAINING_PHASE_PLAN.md`
+16. `docs/SAFETY.md`
+17. `docs/DATA_MODEL.md`
+18. `docs/TAXONOMY.md`
+19. `docs/ABUSE.md`
+20. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+21. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+22. `docs/OBSERVABILITY_HASHRATE.md`
+23. `docs/INTRANET_INSTALL.md`
 
 Phase 6-E1 is accepted as isolated/non-production harness contract hardening only. The next planned implementation step is Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning, isolated/non-production only. Phase 6-E2 may only refine isolated evidence packaging and boundary planning. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
