@@ -309,6 +309,34 @@ no restore point write
 no DB apply write
 ```
 
+
+
+### Phase 6-F — Manual Canary Gate Definition
+
+```text
+version accepted on farm5: 0.1.73
+pytest with venv: 426 passed
+docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md accepted
+docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall read
+no live firewall write
+no live firewall apply
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -362,17 +390,13 @@ Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is ex
 
 ## Next Planned Step
 
-Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only.
+Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.
 
-The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
+The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
 
-Phase 6-F is planned, not accepted.
+Phase 6-G may define future controlled live apply prerequisites, final operator approval requirements, evidence templates, rollback readiness requirements, and pre-apply review criteria only.
 
-References: `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`, `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`, `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`.
-
-Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, rollback-readiness checks, backend exposure preconditions, local-only runtime preconditions, and safety assertions only.
-
-Phase 6-F does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+Phase 6-G does not authorize host production firewall mutation, live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
 

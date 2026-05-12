@@ -5,7 +5,7 @@ def test_phase_status_and_next_step_e1() -> None:
     t = Path('docs/PHASE_STATUS.md').read_text(encoding='utf-8')
     assert 'current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5' in t
     assert 'current_working_phase: Phase 6 — Firewall Planner' in t
-    assert 'Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing' in t
+    assert 'Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted' in t
 
 
 def test_no_cli_live_apply_commands_added() -> None:

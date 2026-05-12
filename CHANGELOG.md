@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.74 - 2026-05-12
+
+- recorded Phase 6-F acceptance evidence from farm5
+- updated PHASE_STATUS accepted results and next planned Phase 6-G
+- indexed docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+- kept farm5 time synchronization warning as a blocker before production/usage/abuse automation
+
 ## 0.1.73 - 2026-05-12
 
 - added Phase 6-F manual canary gate definition documentation

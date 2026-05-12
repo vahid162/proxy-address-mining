@@ -32,7 +32,7 @@ def test_phase6_e3_accepted_block_location_and_next_step():
     warning_start = text.index("## Current Server Warning", accepted_start)
     accepted_block = text[accepted_start:warning_start]
     assert "### Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist" in accepted_block
-    assert "The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing." in text
+    assert "The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted." in text
 
 
 def test_index_contains_e3_acceptance_doc_in_required_sections():
@@ -85,4 +85,4 @@ def test_no_stale_e3_next_step_wording_in_readme_and_ai_phase6_task():
 
     assert "Next safe work now is Phase 6-E3" not in ai_task
     assert "Next safe work is Phase 6-E3" not in ai_task
-    assert "Current active task remains Phase 6-F manual canary gate definition" in ai_task
+    assert "Phase 6-G controlled live apply gate planning / pre-apply review" in ai_task

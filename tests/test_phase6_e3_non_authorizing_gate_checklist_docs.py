@@ -63,8 +63,8 @@ telegram_allowed: no
 ```"""
     assert expected in text
     assert "### Phase 6-E3" in text
-    assert "next planned implementation step is Phase 6-F" in text
-    assert "non-authorizing gate checklist only" in text
+    assert "next planned implementation step is Phase 6-G" in text
+    assert "manual canary gate definition only" in text
 
 
 def test_index_includes_e3_doc_in_required_sections() -> None:
