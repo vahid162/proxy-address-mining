@@ -1,10 +1,12 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing
+Status: active task after Phase 6-G acceptance evidence; future dedicated apply gate remains not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
 ## Current Gate
+
+Historical compatibility note: current sub-step: Phase 6-F accepted; next planned step: Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing.
 
 Authoritative source:
 
@@ -17,7 +19,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-F accepted (manual canary gate definition only, documentation/test-only and non-authorizing); next planned step: Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted
+current sub-step: Phase 6-G accepted (controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing); future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -65,7 +67,7 @@ Phase 6-E2 is accepted on farm5 as isolated/non-production evidence package / bo
 
 Phase 6-E3 is accepted on farm5 as isolated/non-production evidence review / non-authorizing gate checklist only.
 
-Phase 6-F is accepted. Next safe work is Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Phase 6-G is accepted as documentation/test-only and non-authorizing. Future dedicated apply gate remains not accepted and not authorized.
 
 Reference documents:
 
@@ -336,3 +338,6 @@ Phase 6-E1 is accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (hi
 Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (historical accepted contract).
 Current active task remains Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
 Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.
+
+
+Historical compatibility note: Phase 6-F is accepted. Next safe work is Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing.

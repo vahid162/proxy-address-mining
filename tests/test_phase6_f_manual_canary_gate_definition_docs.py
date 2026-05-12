@@ -33,7 +33,7 @@ telegram_allowed: no
 ```"""
     assert expected in text
     assert "Phase 6-F is accepted as manual canary gate definition only" in text
-    assert "next planned implementation step is Phase 6-G" in text
+    assert "Future dedicated Phase 6 apply gate remains not accepted and not authorized" in text
     assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review" in text
     assert "docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md" in text
     assert "Phase 6-F accepted" not in text

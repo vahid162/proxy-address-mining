@@ -18,7 +18,7 @@ def test_phase_status_current_state_block_unchanged() -> None:
 def test_phase_status_phase6g_planned_not_accepted_and_non_authorizing() -> None:
     text = _read("docs/PHASE_STATUS.md")
     assert "Phase 6-F is accepted as manual canary gate definition only" in text
-    assert "The next planned implementation step is Phase 6-G" in text
+    assert "The Future dedicated Phase 6 apply gate remains not accepted and not authorized" in text
     assert "docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md" in text
     assert "Phase 6-G accepted" not in text
     assert "Phase 6-G does not authorize host production firewall mutation" in text
@@ -29,7 +29,7 @@ def test_index_lists_phase6g_in_required_sections() -> None:
     assert "19. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`" in text
     assert "Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`" in text
     assert "### `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`" in text
-    assert "Phase 6-G is planned, not accepted" in text
+    assert "Phase 6-G acceptance evidence is recorded" in text
 
 
 def test_no_doc_authorizes_live_apply_now() -> None:

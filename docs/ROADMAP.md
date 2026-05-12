@@ -12,8 +12,8 @@ Do not start a later phase until the current phase acceptance gate passes.
 ## Current Phase Alignment Note
 
 Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing.
-Next planned step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review.
-Phase 6-G is documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
+Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 It does not authorize live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 ## 0. Project Objective

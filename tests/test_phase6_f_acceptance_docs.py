@@ -36,7 +36,7 @@ def test_phase6_f_block_in_accepted_results_before_warning():
 def test_phase_status_next_step_and_no_authorization_tokens():
     text = Path("docs/PHASE_STATUS.md").read_text().lower()
     assert "phase 6-g — controlled live apply gate planning / pre-apply review" in text
-    assert "documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted" in text
+    assert "documentation/test-only and non-authorizing" in text
     forbidden = [
         "live apply is authorized",
         "iptables-save is allowed now",

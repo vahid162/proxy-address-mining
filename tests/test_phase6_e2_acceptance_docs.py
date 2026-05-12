@@ -39,7 +39,7 @@ def test_phase6_e2_accepted_and_e3_next_step_and_safety():
     ps = docs["docs/PHASE_STATUS.md"]
     assert "### Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning" in ps
     assert "version accepted on farm5: 0.1.66" in ps
-    assert "next planned implementation step is Phase 6-G" in ps
+    assert "Future dedicated Phase 6 apply gate remains not accepted and not authorized" in ps
     assert "non-authorizing" in ps
 
     idx = docs["docs/INDEX.md"]

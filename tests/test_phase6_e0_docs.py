@@ -67,20 +67,21 @@ def test_index_current_phase_read_block_includes_e0_exact_and_sequential() -> No
 12. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
 13. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`
 14. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
-15. `docs/FIREWALL.md`
-16. `docs/BACKEND_PORT_POLICY.md`
-17. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-18. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-19. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-20. `docs/REMAINING_PHASE_PLAN.md`
-21. `docs/SAFETY.md`
-22. `docs/DATA_MODEL.md`
-23. `docs/TAXONOMY.md`
-24. `docs/ABUSE.md`
-25. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-26. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-27. `docs/OBSERVABILITY_HASHRATE.md`
-28. `docs/INTRANET_INSTALL.md`"""
+15. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
+16. `docs/FIREWALL.md`
+17. `docs/BACKEND_PORT_POLICY.md`
+18. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+19. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+20. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+21. `docs/REMAINING_PHASE_PLAN.md`
+22. `docs/SAFETY.md`
+23. `docs/DATA_MODEL.md`
+24. `docs/TAXONOMY.md`
+25. `docs/ABUSE.md`
+26. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+27. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+28. `docs/OBSERVABILITY_HASHRATE.md`
+29. `docs/INTRANET_INSTALL.md`"""
     assert block == expected
 
 
@@ -98,7 +99,7 @@ def test_index_documentation_summary_places_e0_before_roadmap_and_not_after_fina
 def test_index_current_phase_text_mentions_e0_isolated_only() -> None:
     text = Path("docs/INDEX.md").read_text(encoding="utf-8")
     assert "Phase 6-E3 accepted" in text
-    assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted" in text
+    assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing" in text
 
 
 def test_remaining_phase_plan_phase6e_formatting_clean() -> None:
@@ -136,4 +137,4 @@ def test_index_no_stale_d0_next_step_wording_and_has_e0_guidance() -> None:
     assert "The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review" not in text
     assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract" not in text
     assert "Phase 6-F is accepted as manual canary gate definition only, documentation/test-only and non-authorizing." in text
-    assert "The next planned implementation step is Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted" in text
+    assert "The Future dedicated Phase 6 apply gate remains not accepted and not authorized — Controlled Live Apply Gate Planning / Pre-Apply Review, documentation/test-only and non-authorizing" in text
