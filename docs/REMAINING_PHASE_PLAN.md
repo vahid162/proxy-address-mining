@@ -9,6 +9,7 @@ Status: planning reference aligned to `docs/PHASE_STATUS.md`.
 Phase 6-D remains documentation/test-only and does not open the apply gate.
 
 - **Phase 6-D1 contract:** `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` defines live-apply boundaries, non-authorization rules, stop conditions, and Phase 6-E entry criteria for isolated/non-production planning only.
+- **Phase 6-D1 accepted on farm5:** recorded in `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`.
 
 ### Purpose
 - Align all phase docs after Phase 6-C acceptance.
@@ -195,3 +196,5 @@ Acceptance criteria: tested worker-policy lifecycle and enforcement traceability
 Safety notes: maintain separation between worker identity evidence and firewall policy.
 
 Server verification expectations: controlled enforcement evidence with rollback readiness.
+
+Phase 6-E0 must not mutate the host production firewall.

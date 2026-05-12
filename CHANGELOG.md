@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.60 - 2026-05-12
+
+- recorded Phase 6-D1 acceptance evidence from farm5
+- updated PHASE_STATUS accepted results and next planned Phase 6-E0
+- indexed docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall reads/writes, iptables-save, iptables-restore, NAT, runtime customer traffic, usage, abuse automation, UI, or Telegram behavior was introduced
+
 ## 0.1.59 - 2026-05-12
 
 - added Phase 6-D1 live-apply boundary contract.
