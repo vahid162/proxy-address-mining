@@ -1,6 +1,15 @@
 from pathlib import Path
 
 
+def _extract_current_phase_read_block(index_text: str) -> str:
+    anchor = "## Current Phase Contracts"
+    start = index_text.index(anchor)
+    read_anchor = "Read:\n\n"
+    read_start = index_text.index(read_anchor, start) + len(read_anchor)
+    read_end = index_text.index("\n\nPhase 6-C is accepted", read_start)
+    return index_text[read_start:read_end].strip()
+
+
 def test_phase6_d1_doc_exists() -> None:
     assert Path("docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md").exists()
 
@@ -54,6 +63,29 @@ def test_ai_phase6_task_explicit_d1_boundary_language() -> None:
         assert item not in text
 
 
+def test_index_current_phase_contracts_read_list_exact_and_sequential() -> None:
+    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    block = _extract_current_phase_read_block(text)
+    expected = """1. `docs/PHASE_STATUS.md`
+2. `docs/AI_PHASE_6_TASK.md`
+3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
+4. `docs/FIREWALL.md`
+5. `docs/BACKEND_PORT_POLICY.md`
+6. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+7. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+8. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+9. `docs/REMAINING_PHASE_PLAN.md`
+10. `docs/SAFETY.md`
+11. `docs/DATA_MODEL.md`
+12. `docs/TAXONOMY.md`
+13. `docs/ABUSE.md`
+14. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+15. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+16. `docs/OBSERVABILITY_HASHRATE.md`
+17. `docs/INTRANET_INSTALL.md`"""
+    assert block == expected
+
+
 def test_index_has_separate_descriptions_and_no_malformed_numbering() -> None:
     text = Path("docs/INDEX.md").read_text(encoding="utf-8")
     assert "### `docs/AI_PHASE_6_TASK.md`" in text
@@ -71,6 +103,8 @@ def test_index_has_separate_descriptions_and_no_malformed_numbering() -> None:
         "5. `docs/TAXONOMY.md`\n7. `docs/FIREWALL.md`",
         "6. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`\n6. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`",
         "4. `docs/ARCHITECTURE.md`\n6. `docs/SAFETY.md`",
+        "12. `docs/TAXONOMY.md`\n10. `docs/ABUSE.md`",
+        "12. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`",
     ]
     for item in malformed:
         assert item not in text

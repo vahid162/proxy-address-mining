@@ -75,11 +75,11 @@ Read:
 10. `docs/SAFETY.md`
 11. `docs/DATA_MODEL.md`
 12. `docs/TAXONOMY.md`
-10. `docs/ABUSE.md`
-11. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-12. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-13. `docs/OBSERVABILITY_HASHRATE.md`
-14. `docs/INTRANET_INSTALL.md`
+13. `docs/ABUSE.md`
+14. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+15. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+16. `docs/OBSERVABILITY_HASHRATE.md`
+17. `docs/INTRANET_INSTALL.md`
 
 Phase 6-C is accepted as offline apply-gate readiness/review only. The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review. It may align docs/tests and inspect offline artifacts only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
