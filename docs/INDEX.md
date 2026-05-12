@@ -95,7 +95,7 @@ Read:
 23. `docs/OBSERVABILITY_HASHRATE.md`
 24. `docs/INTRANET_INSTALL.md`
 
-Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only. The next planned implementation step is Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only. Phase 6-E2 may only refine isolated evidence packaging and boundary planning. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
+Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only. The next planned implementation step is Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only. Phase 6-E3 may only refine isolated evidence review and non-authorizing gate checklist planning. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 `docs/PHASE_6_C0_APPLY_GATE_READINESS.md` is a future live apply gate readiness contract and manual canary runbook only; it does not authorize live apply in the current phase.
 

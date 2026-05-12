@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.68 - 2026-05-12
+
+- moved Phase 6-E2 accepted evidence block under Accepted Server Results in PHASE_STATUS
+- strengthened E2 docs test to verify Accepted Server Results placement and absence after What Is Forbidden Now
+- cleaned INDEX wording to set E3 as the only next refinement scope
+
 ## 0.1.67 - 2026-05-12
 
 - recorded Phase 6-E2 acceptance evidence from farm5

@@ -256,6 +256,32 @@ no restore point write
 no DB apply write
 ```
 
+### Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning
+
+```text
+version accepted on farm5: 0.1.66
+pytest with venv: 403 passed
+docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md accepted
+docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall read
+no live firewall write
+no live firewall apply
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -306,32 +332,6 @@ Do not implement, run, or activate:
 ```
 
 Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
-
-### Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning
-
-```text
-version accepted on farm5: 0.1.66
-pytest with venv: 403 passed
-docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md accepted
-docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md added
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-no customer NAT redirects
-no customer firewall rules
-no MPF/customer firewall refs
-accepted runtime remained limited local-only
-no live firewall read
-no live firewall write
-no live firewall apply
-no iptables-save execution
-no iptables-restore execution
-no subprocess firewall calls
-no real iptables adapter
-no lock acquisition
-no restore point write
-no DB apply write
-```
 
 ## Next Planned Step
 

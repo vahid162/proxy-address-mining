@@ -67,3 +67,15 @@ def test_abuse_invariant_preserved_in_e2_acceptance_doc():
     assert "worker-over alone must not harden" in text
     assert "all active customers in enabled lanes must be covered" in text
     assert "no silent skip is allowed" in text
+
+
+def test_e2_block_is_inside_accepted_server_results_not_after_forbidden_now():
+    text = Path("docs/PHASE_STATUS.md").read_text()
+    accepted_start = text.index("## Accepted Server Results")
+    warning_start = text.index("## Current Server Warning", accepted_start)
+    accepted_block = text[accepted_start:warning_start]
+    assert "### Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning" in accepted_block
+
+    forbidden_start = text.index("## What Is Forbidden Now")
+    after_forbidden = text[forbidden_start:]
+    assert "### Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning" not in after_forbidden
