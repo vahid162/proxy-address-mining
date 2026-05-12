@@ -37,5 +37,64 @@ def test_phase_status_current_state_unchanged_and_next_step_present() -> None:
 
 def test_no_cli_apply_or_rollback_command_added() -> None:
     t = Path("mpf/interfaces/cli.py").read_text(encoding="utf-8")
-    assert 'def firewall_apply(' not in t
-    assert 'def firewall_rollback(' not in t
+    assert "def firewall_apply(" not in t
+    assert "def firewall_rollback(" not in t
+
+
+def _extract_current_phase_read_block(text: str) -> str:
+    anchor = "## Current Phase Contracts"
+    start = text.index(anchor)
+    read_anchor = "Read:\n\n"
+    read_start = text.index(read_anchor, start) + len(read_anchor)
+    end = text.index("\n\nPhase 6-C is accepted", read_start)
+    return text[read_start:end].strip()
+
+
+def test_index_current_phase_read_block_includes_e0_exact_and_sequential() -> None:
+    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    block = _extract_current_phase_read_block(text)
+    expected = """1. `docs/PHASE_STATUS.md`
+2. `docs/AI_PHASE_6_TASK.md`
+3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
+4. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`
+5. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
+6. `docs/FIREWALL.md`
+7. `docs/BACKEND_PORT_POLICY.md`
+8. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+9. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+10. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+11. `docs/REMAINING_PHASE_PLAN.md`
+12. `docs/SAFETY.md`
+13. `docs/DATA_MODEL.md`
+14. `docs/TAXONOMY.md`
+15. `docs/ABUSE.md`
+16. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+17. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+18. `docs/OBSERVABILITY_HASHRATE.md`
+19. `docs/INTRANET_INSTALL.md`"""
+    assert block == expected
+
+
+def test_index_documentation_summary_places_e0_before_roadmap_and_not_after_final_rule() -> None:
+    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    e0 = "### `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`"
+    summary_anchor = "## Documentation Summary"
+    roadmap_anchor = "## Current Roadmap Snapshot"
+    final_rule_anchor = "## Final Rule"
+    assert e0 in text
+    assert text.index(summary_anchor) < text.index(e0) < text.index(roadmap_anchor)
+    assert text.rfind(e0) < text.index(final_rule_anchor)
+
+
+def test_index_current_phase_text_mentions_e0_isolated_only() -> None:
+    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    assert "Phase 6-D1 accepted" in text
+    assert "Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only" in text
+
+
+def test_remaining_phase_plan_phase6e_formatting_clean() -> None:
+    text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    assert "## Phase 6-E — Isolated Apply Harness" in text
+    assert "Phase 6-E0 is isolated/non-production only" in text
+    assert "Host production firewall mutation remains forbidden" in text
+    assert "forbidden. — Isolated Apply Harness" not in text

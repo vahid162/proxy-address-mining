@@ -54,10 +54,12 @@ Phase 6-D remains documentation/test-only and does not open the apply gate.
 - documentation/test evidence only
 - no host firewall mutation or runtime traffic changes
 
-## Phase 6-E
+## Phase 6-E — Isolated Apply Harness
 
 - Reference: `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
-- Phase 6-E0 is isolated/non-production only and host production firewall mutation remains forbidden. — Isolated Apply Harness
+- Phase 6-E0 is isolated/non-production only.
+- Host production firewall mutation remains forbidden.
+
 Purpose: design and validate isolated, non-production apply harness contracts.
 
 Allowed scope: harness design docs, fake adapter tests, isolated fixture-driven validation.
