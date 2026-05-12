@@ -10,6 +10,8 @@
 - confirmed no live firewall reads/writes, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
 - preserved abuse 1h invariant
 - kept time synchronization as blocker before any future live apply gate or production-dependent automation
+- cleaned Phase 6-H index placement before merge
+- no live behavior introduced
 
 ## 0.1.78 - 2026-05-12
 

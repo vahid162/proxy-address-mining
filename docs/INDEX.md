@@ -26,7 +26,7 @@ Read these first:
 16. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 17. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md` (accepted scope contract, documentation/test-only, non-authorizing)
 18. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-19. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (planned scope, documentation/test-only, non-authorizing)
+19. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (accepted planning scope, documentation/test-only, non-authorizing)
 20. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
 21. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (planned, documentation/test-only, non-authorizing)
 
@@ -93,20 +93,21 @@ Read:
 14. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
 15. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`
 16. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
-17. `docs/FIREWALL.md`
-18. `docs/BACKEND_PORT_POLICY.md`
-19. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-20. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-21. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-22. `docs/REMAINING_PHASE_PLAN.md`
-23. `docs/SAFETY.md`
-24. `docs/DATA_MODEL.md`
-25. `docs/TAXONOMY.md`
-26. `docs/ABUSE.md`
-27. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-28. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-29. `docs/OBSERVABILITY_HASHRATE.md`
-30. `docs/INTRANET_INSTALL.md`
+17. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
+18. `docs/FIREWALL.md`
+19. `docs/BACKEND_PORT_POLICY.md`
+20. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+21. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+22. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+23. `docs/REMAINING_PHASE_PLAN.md`
+24. `docs/SAFETY.md`
+25. `docs/DATA_MODEL.md`
+26. `docs/TAXONOMY.md`
+27. `docs/ABUSE.md`
+28. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+29. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+30. `docs/OBSERVABILITY_HASHRATE.md`
+31. `docs/INTRANET_INSTALL.md`
 
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
@@ -443,14 +444,13 @@ Stop and revise if any change introduces:
 23. public v2rayA UI exposure
 24. public backend exposure
 
+### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
+
+Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
 ## Final Rule
 
 When in doubt, read the stricter document and choose the safer implementation.
 
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
-
-
-### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
-
-Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.

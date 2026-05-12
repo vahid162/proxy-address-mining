@@ -84,3 +84,25 @@ def test_no_doc_authorizes_live_behaviors_now() -> None:
     ]
     for phrase in forbidden:
         assert phrase not in combined
+
+
+def test_index_phase6h_summary_in_documentation_summary_only() -> None:
+    text = _read("docs/INDEX.md")
+    summary_phrase = "Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only."
+    assert "## Documentation Summary" in text
+    doc_summary_block = text.split("## Documentation Summary", 1)[1].split("## Final Rule", 1)[0]
+    assert summary_phrase in doc_summary_block
+    final_rule_block = text.split("## Final Rule", 1)[1]
+    assert summary_phrase not in final_rule_block
+
+
+def test_index_start_here_phase6g_accepted_planning_scope() -> None:
+    text = _read("docs/INDEX.md")
+    assert "docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (accepted planning scope, documentation/test-only, non-authorizing)" in text
+    assert "docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (planned scope, documentation/test-only, non-authorizing)" not in text
+
+
+def test_index_current_phase_read_path_includes_phase6h() -> None:
+    text = _read("docs/INDEX.md")
+    block = text.split("Read:\n\n", 1)[1].split("\n\nPhase 6-G is accepted", 1)[0]
+    assert "17. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`" in block
