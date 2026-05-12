@@ -327,5 +327,6 @@ Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does 
 ## Phase 6-E0 Acceptance Note
 
 Phase 6-E0 is accepted on farm5 via `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`.
+Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`.
 Next safe work is Phase 6-E1 isolated harness contract hardening.
 Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.

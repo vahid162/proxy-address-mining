@@ -58,6 +58,7 @@ Phase 6-D remains documentation/test-only and does not open the apply gate.
 
 - Reference: `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
 - Phase 6-E0 accepted on farm5 via `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`.
+- Phase 6-E1 contract reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`.
 - Phase 6-E1 is Isolated Harness Contract Hardening and is isolated/non-production only.
 - Host production firewall mutation remains forbidden.
 

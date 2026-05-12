@@ -47,7 +47,7 @@ Current gate:
 ```text
 accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-C accepted (offline apply-gate readiness/review only); next safe step: Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
+current_phase6_step: Phase 6-E0 accepted (isolated/non-production apply harness contracts); next planned step: Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -57,9 +57,9 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-## Phase 6-B Historical Rule + Current 6-D0 Safety Continuity
+## Phase 6-B Historical Rule + Current 6-E1 Safety Continuity
 
-Phase 6-B modeled the apply/rollback/preflight boundary and is now historical/accepted. Current next safe work is Phase 6-D0 / Phase 6-D documentation/test-only, with the same non-mutating safety boundary.
+Phase 6-B modeled the apply/rollback/preflight boundary and is now historical/accepted. Current next safe work is Phase 6-E1 isolated/non-production harness hardening only, with the same non-mutating safety boundary.
 
 Historical Phase 6-B allowed work (accepted reference):
 

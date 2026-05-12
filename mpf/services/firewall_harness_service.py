@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from mpf.adapters.firewall_harness import FakeNoopFirewallHarnessAdapter
-from mpf.domain.firewall import FirewallHarnessResult
+from mpf.domain.firewall import FirewallHarnessResult, FirewallHarnessSafetyFlags
 
 
 @dataclass
@@ -18,10 +18,14 @@ class FirewallHarnessWorkflowReport:
     database_write: bool = False
     lock_acquired: bool = False
     restore_point_written: bool = False
+    safety_flags: FirewallHarnessSafetyFlags = field(default_factory=FirewallHarnessSafetyFlags)
 
 
 def run_apply_verify_harness(adapter: FakeNoopFirewallHarnessAdapter) -> FirewallHarnessWorkflowReport:
-    adapter.plan()
+    plan_result = adapter.plan()
+    if not plan_result.ok:
+        return FirewallHarnessWorkflowReport(mode="apply_verify", ok=False, calls=[c.operation for c in adapter.calls])
+
     apply_result = adapter.apply()
     if not apply_result.ok:
         return FirewallHarnessWorkflowReport(mode="apply_verify", ok=False, calls=[c.operation for c in adapter.calls], apply=apply_result)
@@ -31,7 +35,10 @@ def run_apply_verify_harness(adapter: FakeNoopFirewallHarnessAdapter) -> Firewal
 
 
 def run_verify_failure_with_rollback_guidance(adapter: FakeNoopFirewallHarnessAdapter) -> FirewallHarnessWorkflowReport:
-    adapter.plan()
+    plan_result = adapter.plan()
+    if not plan_result.ok:
+        return FirewallHarnessWorkflowReport(mode="verify_failure_rollback_guidance", ok=False, calls=[c.operation for c in adapter.calls])
+
     apply_result = adapter.apply()
     verify_result = adapter.verify() if apply_result.ok else None
     rollback_result = adapter.rollback() if (verify_result is not None and not verify_result.ok) else None
