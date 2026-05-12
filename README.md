@@ -37,11 +37,11 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 
 Do not use this repository for production customer traffic yet.
 
-## Current Phase 6-E3 Accepted State and Next Planned Step
+## Current Phase 6 Accepted State and Next Planned Step
 
 Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing. The next planned implementation sub-step is Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary (planned, documentation/test-only, non-authorizing). Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
-Allowed under the current Phase 6 gate (with Phase 6-G documentation/test-only non-authorizing next step):
+Allowed under the current Phase 6 gate, with Apply Slice 1 as the planned documentation/test-only non-authorizing next sub-step:
 
 ```text
 repository/documentation cleanup that preserves phase gates
