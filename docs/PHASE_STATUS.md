@@ -199,6 +199,36 @@ no restore point write
 no DB apply write
 ```
 
+### Phase 6-E0 — Isolated Apply Harness Contracts
+
+```text
+version accepted on farm5: 0.1.61
+pytest passed: 376 passed
+docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md accepted
+docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+fake/no-op harness only
+report-only harness service
+deterministic plan -> apply -> verify ordering tested
+verify-failure rollback-guidance ordering tested
+no live firewall read
+no live firewall write
+no live firewall apply
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -250,9 +280,15 @@ Do not implement, run, or activate:
 
 Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
 
-Next Planned Step: Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only.
+## Next Planned Step
 
-Phase 6-E1 does not authorize host production firewall mutation.
+Phase 6-E0 is accepted as isolated/non-production apply harness contracts only.
+
+The next planned implementation step is Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only.
+
+Phase 6-E1 does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
 
 ## Current Safety Invariants
 
@@ -298,44 +334,3 @@ no runtime customer traffic is enabled
 ```
 
 Future customer records remain DB-only until Phase 6 apply and customer NAT/customer firewall gates are accepted.
-
-## Next Planned Step
-
-Phase 6-C is accepted as offline apply-gate readiness/review only.
-
-The post-Phase-6-C boundary remains **Phase 6-D0 / Phase 6-D** documentation/test-only.
-
-After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only**. Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
-
-Live apply remains forbidden until a dedicated apply gate is explicitly accepted.
-
-
-### Phase 6-E0 — Isolated Apply Harness Contracts
-
-```text
-version accepted on farm5: 0.1.61
-pytest passed: 376 passed
-docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md accepted
-docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md added
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-no customer NAT redirects
-no customer firewall rules
-no MPF/customer firewall refs
-accepted runtime remained limited local-only
-fake/no-op harness only
-report-only harness service
-deterministic plan -> apply -> verify ordering tested
-verify-failure rollback-guidance ordering tested
-no live firewall read
-no live firewall write
-no live firewall apply
-no iptables-save execution
-no iptables-restore execution
-no subprocess firewall calls
-no real iptables adapter
-no lock acquisition
-no restore point write
-no DB apply write
-```

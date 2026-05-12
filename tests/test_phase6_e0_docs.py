@@ -31,7 +31,7 @@ def test_phase_status_current_state_unchanged_and_next_step_present() -> None:
         "abuse_automation_allowed: no",
     ]:
         assert needle in t
-    assert "Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only" in t
+    assert "Phase 6-E0 — Isolated Apply Harness Contracts" in t
     assert "Live apply remains forbidden until a dedicated apply gate is explicitly accepted." in t
 
 
@@ -46,7 +46,7 @@ def _extract_current_phase_read_block(text: str) -> str:
     start = text.index(anchor)
     read_anchor = "Read:\n\n"
     read_start = text.index(read_anchor, start) + len(read_anchor)
-    end = text.index("\n\nPhase 6-D1 is accepted", read_start)
+    end = text.index("\n\nPhase 6-E0 is accepted as isolated/non-production apply harness contracts only.", read_start)
     return text[read_start:end].strip()
 
 
@@ -106,7 +106,7 @@ def test_ai_phase6_task_e0_status_and_no_stale_d0_wording() -> None:
     text = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     required = [
         "Phase 6-E0 is accepted on farm5",
-        "current sub-step: Phase 6-D1 accepted",
+        "current sub-step: Phase 6-E0 accepted",
         "Phase 6-E1 isolated harness contract hardening",
         "non-authorizing",
     ]
@@ -126,5 +126,6 @@ def test_ai_phase6_task_e0_status_and_no_stale_d0_wording() -> None:
 def test_index_no_stale_d0_next_step_wording_and_has_e0_guidance() -> None:
     text = Path("docs/INDEX.md").read_text(encoding="utf-8")
     assert "The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review" not in text
-    assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract" in text
-    assert "The next planned implementation step is Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only" in text
+    assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract" not in text
+    assert "Phase 6-E0 is accepted as isolated/non-production apply harness contracts only" in text
+    assert "The next planned implementation step is Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only" in text

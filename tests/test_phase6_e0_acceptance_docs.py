@@ -87,3 +87,51 @@ def test_abuse_invariant_and_no_e1_live_authorization() -> None:
         assert "iptables-save is allowed now" not in content
         assert "iptables-restore is allowed now" not in content
         assert "real iptables adapter is allowed now" not in content
+
+
+
+def test_phase_status_e0_section_placement_and_no_stale_next_step_wording() -> None:
+    t = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    assert t.index("### Phase 6-E0 — Isolated Apply Harness Contracts") < t.index("## Current Server Warning")
+    assert t.index("### Phase 6-E0 — Isolated Apply Harness Contracts") < t.index("## Next Planned Step")
+    next_step = t[t.index("## Next Planned Step") :]
+    assert "### Phase 6-E0 — Isolated Apply Harness Contracts" not in next_step
+    assert "The post-Phase-6-C boundary remains **Phase 6-D0 / Phase 6-D**" not in t
+    assert "After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0" not in t
+    assert "Phase 6-E0 is accepted as isolated/non-production apply harness contracts only" in next_step
+    assert "Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only" in next_step
+    assert "Live apply remains forbidden until a dedicated apply gate is explicitly accepted" in next_step
+
+
+def test_index_single_documentation_summary_and_no_duplicate_after_final_rule() -> None:
+    t = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    assert t.count("## Documentation Summary") == 1
+    summary = t.index("## Documentation Summary")
+    roadmap = t.index("## Current Roadmap Snapshot")
+    summary_block = t[summary:roadmap]
+    assert "docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md" in summary_block
+    final_rule = t.index("## Final Rule")
+    assert "## Documentation Summary" not in t[final_rule:]
+    assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract. The next planned implementation step is Phase 6-E0" not in t
+    assert "Phase 6-E0 is accepted as isolated/non-production apply harness contracts only" in t
+    assert "Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only" in t
+
+
+def test_ai_phase6_task_e1_current_next_safe_work_and_no_stale_e0_next_wording() -> None:
+    t = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
+    required = [
+        "current sub-step: Phase 6-E0 accepted",
+        "next planned step: Phase 6-E1 isolated harness contract hardening, isolated/non-production only",
+        "Next safe work now is Phase 6-E1 isolated harness contract hardening, isolated/non-production only",
+        "Tests Required for the Phase 6-E1 Isolated Harness Contract Hardening Boundary",
+    ]
+    for needle in required:
+        assert needle in t
+    stale = [
+        "current sub-step: Phase 6-D1 accepted",
+        "next planned step: Phase 6-E0 isolated apply harness planning/contracts",
+        "Next safe work now is Phase 6-E0 isolated apply harness planning/contracts",
+        "Tests Required for the Phase 6-E0 Isolated Apply Harness Boundary",
+    ]
+    for needle in stale:
+        assert needle not in t

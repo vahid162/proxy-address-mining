@@ -96,11 +96,11 @@ def test_phase_status_does_not_enable_live_apply() -> None:
     assert "abuse_automation_allowed: no" in text
 
 
-def test_phase_status_next_step_mentions_phase6_d0_and_not_authorize_live_apply() -> None:
+def test_phase_status_next_step_mentions_phase6_e1_and_not_authorize_live_apply() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     tl = text.lower()
     assert "## Next Planned Step" in text
-    assert "Phase 6-D0" in text
+    assert "Phase 6-E1" in text
     assert "does not authorize live apply" in tl or "live apply remains forbidden" in tl
 
 

@@ -87,7 +87,7 @@ Read:
 19. `docs/OBSERVABILITY_HASHRATE.md`
 20. `docs/INTRANET_INSTALL.md`
 
-Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract. The next planned implementation step is Phase 6-E0 — Isolated Apply Harness Planning/Contracts, isolated/non-production only. It may add fake/no-op harness contracts and tests only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
+Phase 6-E0 is accepted as isolated/non-production apply harness contracts only. The next planned implementation step is Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only. It may harden fake/no-op harness contracts and tests only. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
 
 `docs/PHASE_6_C0_APPLY_GATE_READINESS.md` is a future live apply gate readiness contract and manual canary runbook only; it does not authorize live apply in the current phase.
 
@@ -304,6 +304,10 @@ Defines the accepted farm5 evidence for Phase 6-D1 and confirms that the next sa
 
 Defines Phase 6-E0 isolated/non-production-only harness contracts for deterministic fake/no-op ordering tests. It does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, apply, rollback, or verify.
 
+### `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`
+
+Records farm5 acceptance evidence for Phase 6-E0 and confirms that the next safe step is Phase 6-E1 isolated/non-production hardening only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, customer NAT/firewall rules, production traffic, DB apply writes, locks, restore points, usage automation, abuse automation, UI, or Telegram.
+
 ### `docs/AI_PHASE_5_TASK.md`
 
 Historical active task for accepted Phase 5 Customer CRUD in DB Only.
@@ -377,11 +381,3 @@ When in doubt, read the stricter document and choose the safer implementation.
 
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
-
-
-
-
-## Documentation Summary
-
-- `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`: defines isolated/non-production fake/no-op harness contracts.
-- `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`: records farm5 acceptance evidence for Phase 6-E0 and preserves non-authorization boundaries.

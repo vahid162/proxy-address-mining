@@ -11,10 +11,10 @@ def test_phase_status_gate_and_next_step_alignment() -> None:
     assert "live firewall apply remains forbidden" in text.lower()
 
 
-def test_next_step_mentions_phase6d0_and_not_authorize_live_apply() -> None:
+def test_next_step_mentions_phase6e1_and_not_authorize_live_apply() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     assert "## Next Planned Step" in text
-    assert "Phase 6-D0" in text
+    assert "Phase 6-E1" in text
     assert "does not authorize live apply" in text.lower() or "live apply remains forbidden" in text.lower()
 
 

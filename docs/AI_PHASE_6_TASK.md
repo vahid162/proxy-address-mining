@@ -17,7 +17,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-D1 accepted (documentation/test-only live-apply boundary contract); next planned step: Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only
+current sub-step: Phase 6-E0 accepted (isolated/non-production apply harness contracts); next planned step: Phase 6-E1 isolated harness contract hardening, isolated/non-production only
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -58,7 +58,7 @@ Phase 6-B and Phase 6-C are historical accepted references and are not the curre
 
 ## Phase 6-D1 — Live-Apply Boundary Contract
 
-Phase 6-D1 boundary contract is accepted on farm5. Next safe work is Phase 6-E0 isolated apply harness planning/contracts (isolated/non-production only).
+Phase 6-E0 isolated apply harness contracts are accepted on farm5. Next safe work is Phase 6-E1 isolated harness contract hardening, isolated/non-production only.
 
 Reference document:
 
@@ -67,7 +67,7 @@ docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md
 ```
 
 Phase 6-D1 is documentation/test-only.
-Phase 6-E0 is current isolated/non-production harness planning/contracts work only.
+Phase 6-E1 is current isolated/non-production harness hardening work only.
 Phase 6-D1 does not authorize live apply.
 
 Required boundary statements:
@@ -263,7 +263,7 @@ customer service mutates firewall state directly
 job bypasses firewall service
 ```
 
-## Tests Required for the Phase 6-E0 Isolated Apply Harness Boundary
+## Tests Required for the Phase 6-E1 Isolated Harness Contract Hardening Boundary
 
 ```text
 phase status remains Phase 5 accepted / Phase 6 working
@@ -309,7 +309,7 @@ Do not combine planner/offline contract work with live apply behavior.
 Phase 6-C closure is documentation/test-only and live apply remains forbidden.
 
 
-Next safe work now is Phase 6-E0 isolated apply harness planning/contracts, isolated/non-production only.
+Next safe work now is Phase 6-E1 isolated harness contract hardening, isolated/non-production only.
 No `mpf firewall apply`, `mpf firewall rollback`, or live `verify` may be enabled in this step.
 No `iptables-save` or `iptables-restore` execution is authorized in this step.
 
