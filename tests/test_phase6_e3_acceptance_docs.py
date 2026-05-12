@@ -73,3 +73,16 @@ def test_abuse_invariant_preserved_in_e3_acceptance_doc():
     assert "worker-over alone must not harden" in text
     assert "all active customers in enabled lanes must be covered" in text
     assert "no silent skip is allowed" in text
+
+
+def test_no_stale_e3_next_step_wording_in_readme_and_ai_phase6_task():
+    readme = Path("README.md").read_text()
+    ai_task = Path("docs/AI_PHASE_6_TASK.md").read_text()
+
+    assert "with Phase 6-E3 isolated/non-production next step" not in readme
+    assert "After Phase 6-E1 acceptance, the next planned work is Phase 6-E2" not in readme
+    assert "with Phase 6-F documentation/test-only non-authorizing next step" in readme
+
+    assert "Next safe work now is Phase 6-E3" not in ai_task
+    assert "Next safe work is Phase 6-E3" not in ai_task
+    assert "Current active task remains Phase 6-F manual canary gate definition" in ai_task

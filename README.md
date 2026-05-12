@@ -41,7 +41,7 @@ Do not use this repository for production customer traffic yet.
 
 Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only. The next planned step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
 
-Allowed under the current Phase 6 gate (with Phase 6-E3 isolated/non-production next step):
+Allowed under the current Phase 6 gate (with Phase 6-F documentation/test-only non-authorizing next step):
 
 ```text
 repository/documentation cleanup that preserves phase gates
@@ -305,7 +305,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-After Phase 6-E1 acceptance, the next planned work is Phase 6-E2 isolated harness evidence package / boundary planning, isolated/non-production only. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
+Phase 6-E3 is accepted. The next planned work is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
 
 ## Backend Port Policy
 

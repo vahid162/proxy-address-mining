@@ -315,7 +315,7 @@ Do not combine planner/offline contract work with live apply behavior.
 Phase 6-C closure is documentation/test-only and live apply remains forbidden.
 
 
-Next safe work now is Phase 6-E3 isolated harness evidence review / non-authorizing gate checklist, isolated/non-production only.
+Next safe work now is Phase 6-F manual canary gate definition, documentation/test-only and non-authorizing.
 No `mpf firewall apply`, `mpf firewall rollback`, or live `verify` may be enabled in this step.
 No `iptables-save` or `iptables-restore` execution is authorized in this step.
 
@@ -332,7 +332,7 @@ Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does 
 
 ## Phase 6-E1 Acceptance Note
 
-Phase 6-E1 is accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`.
-Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`.
-Next safe work is Phase 6-E3 isolated harness evidence review / non-authorizing gate checklist, isolated/non-production only.
+Phase 6-E1 is accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (historical accepted evidence).
+Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (historical accepted contract).
+Current active task remains Phase 6-F manual canary gate definition, documentation/test-only and non-authorizing.
 Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.72 - 2026-05-12
+
+- fixed stale README wording to set Phase 6-F as the documentation/test-only non-authorizing next step
+- fixed stale AI Phase 6 task wording so current active work is Phase 6-F and E0/E1/E2/E3 references are historical/accepted
+- added ROADMAP current alignment note for Phase 6-E3 accepted and Phase 6-F non-authorizing scope
+- strengthened docs tests to reject stale "next safe work is Phase 6-E3" wording in README and AI phase task docs
+
 ## 0.1.71 - 2026-05-12
 
 - recorded Phase 6-E3 acceptance evidence from farm5
