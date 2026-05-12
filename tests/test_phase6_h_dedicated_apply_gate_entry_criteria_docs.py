@@ -42,7 +42,7 @@ telegram_allowed: no
     assert expected in text
     assert "Next planned documentation/test-only step is Phase 6-H" in text
     accepted_section = text.split("## Accepted Server Results", 1)[1]
-    assert "### Phase 6-H" not in accepted_section
+    assert "### Phase 6-H" in accepted_section
 
 
 def test_index_and_ai_phase6_task_reference_phase6h() -> None:
@@ -50,7 +50,7 @@ def test_index_and_ai_phase6_task_reference_phase6h() -> None:
     assert "docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md" in index_text
     assert "Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only." in index_text
     task_text = _read("docs/AI_PHASE_6_TASK.md")
-    assert "next planned documentation/test-only step is Phase 6-H" in task_text
+    assert "current sub-step: Phase 6-H accepted" in task_text
 
 
 def test_no_doc_authorizes_live_behaviors_now() -> None:

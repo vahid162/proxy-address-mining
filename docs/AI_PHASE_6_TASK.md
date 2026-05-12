@@ -19,7 +19,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-G accepted (controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing); next planned documentation/test-only step is Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary; future dedicated apply gate remains not accepted and not authorized
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed

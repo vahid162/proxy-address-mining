@@ -28,7 +28,8 @@ Read these first:
 18. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 19. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (accepted planning scope, documentation/test-only, non-authorizing)
 20. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
-21. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (planned, documentation/test-only, non-authorizing)
+21. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (accepted scope, documentation/test-only, non-authorizing)
+22. `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -94,26 +95,27 @@ Read:
 15. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`
 16. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
 17. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
-18. `docs/FIREWALL.md`
-19. `docs/BACKEND_PORT_POLICY.md`
-20. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-21. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-22. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-23. `docs/REMAINING_PHASE_PLAN.md`
-24. `docs/SAFETY.md`
-25. `docs/DATA_MODEL.md`
-26. `docs/TAXONOMY.md`
-27. `docs/ABUSE.md`
-28. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-29. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-30. `docs/OBSERVABILITY_HASHRATE.md`
-31. `docs/INTRANET_INSTALL.md`
+18. `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`
+19. `docs/FIREWALL.md`
+20. `docs/BACKEND_PORT_POLICY.md`
+21. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+22. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+23. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+24. `docs/REMAINING_PHASE_PLAN.md`
+25. `docs/SAFETY.md`
+26. `docs/DATA_MODEL.md`
+27. `docs/TAXONOMY.md`
+28. `docs/ABUSE.md`
+29. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+30. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+31. `docs/OBSERVABILITY_HASHRATE.md`
+32. `docs/INTRANET_INSTALL.md`
 
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`.
 
-Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`, `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`, and `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (documentation/test-only, non-authorizing).
+Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`, `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`, `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`, and `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (documentation/test-only, non-authorizing).
 
 Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, and rollback-readiness checks only. It does not authorize live firewall read/write, live apply/rollback/verify, `iptables-save`, `iptables-restore`, real adapters, DB apply writes, lock acquisition, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
@@ -447,6 +449,12 @@ Stop and revise if any change introduces:
 ### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
 
 Defines planned Phase 6-H dedicated apply gate entry criteria / authorization boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+### `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`
+
+- Records farm5 acceptance evidence for Phase 6-H.
+- Confirms Phase 6-H is accepted as documentation/test-only and non-authorizing.
+- Does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 ## Final Rule
 

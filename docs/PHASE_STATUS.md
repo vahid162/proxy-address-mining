@@ -497,3 +497,32 @@ Phase 6-H reference:
 ```text
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
 ```
+
+### Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary
+
+```text
+version accepted on farm5: 0.1.79
+pytest with venv: 457 passed
+docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md accepted
+docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall read
+no live firewall write
+no live firewall apply
+no live rollback
+no live verify
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
