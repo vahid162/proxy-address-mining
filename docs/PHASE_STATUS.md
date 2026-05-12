@@ -365,6 +365,34 @@ no restore point write
 no DB apply write
 ```
 
+### Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary
+
+```text
+version accepted on farm5: 0.1.79
+pytest with venv: 457 passed
+docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md accepted
+docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md added
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no customer NAT redirects
+no customer firewall rules
+no MPF/customer firewall refs
+accepted runtime remained limited local-only
+no live firewall read
+no live firewall write
+no live firewall apply
+no live rollback
+no live verify
+no iptables-save execution
+no iptables-restore execution
+no subprocess firewall calls
+no real iptables adapter
+no lock acquisition
+no restore point write
+no DB apply write
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -420,9 +448,7 @@ Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is ex
 
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 
-Next planned documentation/test-only step is Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary.
-
-Phase 6-H is planned only, documentation/test-only and non-authorizing.
+Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
 
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
@@ -435,9 +461,8 @@ Do not mark abuse_automation_allowed yes.
 Reference:
 
 ```text
-docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md
-docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
+docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
 
 Phase 6-G may define future controlled live apply prerequisites, final operator approval requirements, evidence templates, rollback readiness requirements, verify readiness requirements, and pre-apply review criteria only.
@@ -496,4 +521,6 @@ Phase 6-H reference:
 
 ```text
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
+docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
+

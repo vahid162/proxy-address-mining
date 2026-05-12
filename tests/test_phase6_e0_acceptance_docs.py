@@ -120,7 +120,7 @@ def test_index_single_documentation_summary_and_no_duplicate_after_final_rule() 
 def test_ai_phase6_task_e1_current_next_safe_work_and_no_stale_e0_next_wording() -> None:
     t = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     required = [
-        "current sub-step: Phase 6-G accepted",
+        "current sub-step: Phase 6-H accepted",
         "future dedicated apply gate remains not accepted and not authorized",
         "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.",
         "Tests Required for the Phase 6-E2 Isolated Evidence/Boundary Planning",
