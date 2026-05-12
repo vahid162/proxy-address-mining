@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.78 - 2026-05-12
+
+- aligned AI Phase 6 task wording after Phase 6-G acceptance
+- removed stale wording that implied Phase 6-G was still the next pending work
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed future dedicated Phase 6 apply gate remains not accepted and not authorized
+- confirmed no live firewall reads/writes, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, NAT, runtime customer traffic, DB apply writes, locks, restore points, usage, abuse automation, UI, or Telegram behavior was introduced
+- preserved abuse 1h invariant
+
 ## 0.1.77 - 2026-05-12
 
 - recorded Phase 6-G acceptance evidence from farm5

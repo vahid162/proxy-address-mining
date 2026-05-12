@@ -85,4 +85,4 @@ def test_no_stale_e3_next_step_wording_in_readme_and_ai_phase6_task():
 
     assert "Next safe work now is Phase 6-E3" not in ai_task
     assert "Next safe work is Phase 6-E3" not in ai_task
-    assert "Phase 6-G controlled live apply gate planning / pre-apply review" in ai_task
+    assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only" in ai_task

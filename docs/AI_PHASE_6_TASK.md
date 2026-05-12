@@ -6,7 +6,7 @@ This document defines the safe Phase 6 boundary for AI coding agents.
 
 ## Current Gate
 
-Historical compatibility note: current sub-step: Phase 6-F accepted; next planned step: Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing.
+Historical compatibility note: Phase 6-F was accepted before Phase 6-G acceptance; this note is historical only and non-authorizing.
 
 Authoritative source:
 
@@ -317,7 +317,7 @@ Do not combine planner/offline contract work with live apply behavior.
 Phase 6-C closure is documentation/test-only and live apply remains forbidden.
 
 
-Next safe work now is Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 No `mpf firewall apply`, `mpf firewall rollback`, or live `verify` may be enabled in this step.
 No `iptables-save` or `iptables-restore` execution is authorized in this step.
 
@@ -336,8 +336,11 @@ Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does 
 
 Phase 6-E1 is accepted on farm5 via `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (historical accepted evidence).
 Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (historical accepted contract).
-Current active task remains Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing until a separate apply gate is explicitly accepted.
+Current active sub-step is Phase 6-G accepted scope only (documentation/test-only, non-authorizing).
 Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.
 
 
-Historical compatibility note: Phase 6-F is accepted. Next safe work is Phase 6-G controlled live apply gate planning / pre-apply review, documentation/test-only and non-authorizing.
+Historical compatibility note: Phase 6-F acceptance preceded Phase 6-G acceptance; this is historical context only and does not define pending work.
+
+
+Future dedicated Phase 6 apply gate remains not accepted and not authorized.

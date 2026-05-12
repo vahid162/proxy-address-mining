@@ -116,7 +116,7 @@ def test_ai_phase6_task_e0_status_and_no_stale_d0_wording() -> None:
     text = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     required = [
         "Phase 6-E1 isolated harness contract hardening is accepted on farm5",
-        "current sub-step: Phase 6-F accepted",
+        "current sub-step: Phase 6-G accepted",
         "Phase 6-E2 isolated harness evidence package / boundary planning",
         "non-authorizing",
     ]
