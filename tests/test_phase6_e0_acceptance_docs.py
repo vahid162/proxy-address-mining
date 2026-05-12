@@ -98,8 +98,8 @@ def test_phase_status_e0_section_placement_and_no_stale_next_step_wording() -> N
     assert "### Phase 6-E0 — Isolated Apply Harness Contracts" not in next_step
     assert "The post-Phase-6-C boundary remains **Phase 6-D0 / Phase 6-D**" not in t
     assert "After Phase 6-D1 acceptance evidence, the next planned implementation step is **Phase 6-E0" not in t
-    assert "Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only" in next_step
-    assert "Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only" in next_step
+    assert "Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only." in next_step
+    assert "Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing" in next_step
     assert "Live apply remains forbidden until a dedicated apply gate is explicitly accepted" in next_step
 
 
@@ -113,16 +113,16 @@ def test_index_single_documentation_summary_and_no_duplicate_after_final_rule() 
     final_rule = t.index("## Final Rule")
     assert "## Documentation Summary" not in t[final_rule:]
     assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract. The next planned implementation step is Phase 6-E0" not in t
-    assert "Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only" in t
-    assert "Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only" in t
+    assert "Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only." in t
+    assert "Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing" in t
 
 
 def test_ai_phase6_task_e1_current_next_safe_work_and_no_stale_e0_next_wording() -> None:
     t = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     required = [
-        "current sub-step: Phase 6-E2 accepted",
-        "next planned step: Phase 6-E3 isolated harness evidence review / non-authorizing gate checklist, isolated/non-production only",
-        "Next safe work now is Phase 6-E3 isolated harness evidence review / non-authorizing gate checklist, isolated/non-production only",
+        "current sub-step: Phase 6-E3 accepted",
+        "next planned step: Phase 6-F manual canary gate definition, documentation/test-only and non-authorizing",
+        "Phase 6-F is the current safe planned work: manual canary gate definition, documentation/test-only and non-authorizing.",
         "Tests Required for the Phase 6-E2 Isolated Evidence/Boundary Planning",
     ]
     for needle in required:

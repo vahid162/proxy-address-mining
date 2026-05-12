@@ -34,7 +34,7 @@ def test_phase_status_has_e1_accepted_evidence_and_e2_next_step() -> None:
     assert "version accepted on farm5: 0.1.63" in t
     assert "pytest with venv: 392 passed" in t
     assert "docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md added" in t
-    assert "Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only" in t
+    assert "Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing" in t
 
 
 def test_docs_do_not_authorize_live_apply_boundary_breaks() -> None:

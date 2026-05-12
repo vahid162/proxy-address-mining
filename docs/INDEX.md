@@ -22,7 +22,8 @@ Read these first:
 12. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 13. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md` (accepted step contract; isolated/non-production only, non-authorizing)
 14. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-15. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md` (planned, isolated/non-production only, non-authorizing)
+15. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md` (accepted, isolated/non-production only, non-authorizing)
+16. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -65,8 +66,8 @@ Phase 6 — Firewall Planner
 Current Phase 6 step:
 
 ```text
-Phase 6-E2 accepted (isolated/non-production evidence package / boundary planning)
-next planned step: Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only
+Phase 6-E3 accepted (isolated/non-production evidence review / non-authorizing gate checklist)
+next planned step: Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing
 ```
 
 Read:
@@ -82,22 +83,25 @@ Read:
 9. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`
 10. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md`
 11. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`
-12. `docs/FIREWALL.md`
-13. `docs/BACKEND_PORT_POLICY.md`
-14. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-15. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-16. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-17. `docs/REMAINING_PHASE_PLAN.md`
-18. `docs/SAFETY.md`
-19. `docs/DATA_MODEL.md`
-20. `docs/TAXONOMY.md`
-21. `docs/ABUSE.md`
-22. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-23. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-24. `docs/OBSERVABILITY_HASHRATE.md`
-25. `docs/INTRANET_INSTALL.md`
+12. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
+13. `docs/FIREWALL.md`
+14. `docs/BACKEND_PORT_POLICY.md`
+15. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
+16. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
+17. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
+18. `docs/REMAINING_PHASE_PLAN.md`
+19. `docs/SAFETY.md`
+20. `docs/DATA_MODEL.md`
+21. `docs/TAXONOMY.md`
+22. `docs/ABUSE.md`
+23. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
+24. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
+25. `docs/OBSERVABILITY_HASHRATE.md`
+26. `docs/INTRANET_INSTALL.md`
 
-Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only. The next planned implementation step is Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only. Phase 6-E3 may only refine isolated evidence review and non-authorizing gate checklist planning. It must not create NAT redirects, apply firewall rules, execute `iptables-save`, execute `iptables-restore`, introduce real iptables adapters, write DB apply rows, acquire locks, write restore points, activate usage/abuse automation, add lifecycle timers, add block/pause runtime, add worker runtime, expose UI/API publicly, or enable Telegram.
+Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only. The next planned implementation step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
+
+Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, and rollback-readiness checks only. It does not authorize live firewall read/write, live apply/rollback/verify, `iptables-save`, `iptables-restore`, real adapters, DB apply writes, lock acquisition, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 `docs/PHASE_6_C0_APPLY_GATE_READINESS.md` is a future live apply gate readiness contract and manual canary runbook only; it does not authorize live apply in the current phase.
 

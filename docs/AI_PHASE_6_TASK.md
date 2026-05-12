@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6-E3 isolated harness evidence review / non-authorizing gate checklist, isolated/non-production only
+Status: active task for Phase 6-F manual canary gate definition, documentation/test-only and non-authorizing
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
@@ -17,7 +17,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-E2 accepted (isolated/non-production evidence package / boundary planning); next planned step: Phase 6-E3 isolated harness evidence review / non-authorizing gate checklist, isolated/non-production only
+current sub-step: Phase 6-E3 accepted (isolated/non-production evidence review / non-authorizing gate checklist); next planned step: Phase 6-F manual canary gate definition, documentation/test-only and non-authorizing
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -63,7 +63,9 @@ Phase 6-E2 isolated harness evidence package / boundary planning is accepted on 
 
 Phase 6-E2 is accepted on farm5 as isolated/non-production evidence package / boundary planning only.
 
-Phase 6-E3 is the current safe planned work: isolated harness evidence review / non-authorizing gate checklist, isolated/non-production only.
+Phase 6-E3 is accepted on farm5 as isolated/non-production evidence review / non-authorizing gate checklist only.
+
+Phase 6-F is the current safe planned work: manual canary gate definition, documentation/test-only and non-authorizing.
 
 Reference documents:
 

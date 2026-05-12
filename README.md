@@ -17,7 +17,7 @@ Current repository/server gate:
 ```text
 accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-E2 accepted (isolated/non-production evidence package / boundary planning); next planned step: Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only
+current_phase6_step: Phase 6-E3 accepted (isolated/non-production evidence review / non-authorizing gate checklist); next planned step: Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -37,9 +37,9 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 
 Do not use this repository for production customer traffic yet.
 
-## Current Phase 6-E2 Accepted State and Next Planned Step
+## Current Phase 6-E3 Accepted State and Next Planned Step
 
-Phase 6-E2 is accepted as isolated/non-production evidence package / boundary planning only. The next planned step is Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist, isolated/non-production only.
+Phase 6-E3 is accepted as isolated/non-production evidence review / non-authorizing gate checklist only. The next planned step is Phase 6-F — Manual Canary Gate Definition, documentation/test-only and non-authorizing.
 
 Allowed under the current Phase 6 gate (with Phase 6-E3 isolated/non-production next step):
 

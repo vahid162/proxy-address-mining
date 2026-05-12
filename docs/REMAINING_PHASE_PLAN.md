@@ -79,7 +79,7 @@ Safety notes: no production gate change; no runtime customer traffic.
 
 Server verification expectations: isolated evidence only, no production firewall mutation.
 
-## Phase 6-F — Manual Canary Gate
+## Phase 6-F — Manual Canary Gate Definition
 Purpose: operator-reviewed canary gate definition before controlled apply.
 
 Allowed scope: canary checklist docs, operator approval/evidence templates, dry-run-only checks.
