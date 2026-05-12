@@ -825,3 +825,8 @@ A phase is complete only when its acceptance gate passes.
 6-D, 6-E, 6-F, 6-G, 7, 8, 9, 10, 11, 12, 13, 14 remain in order.
 
 Phase 6-D is documentation/test-only and does not open live apply.
+
+
+Phase 6-G is accepted as planning/pre-apply review only (documentation/test-only, non-authorizing).
+Next planned documentation/test-only step is Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary.
+Future dedicated apply gate remains not accepted and not authorized.
