@@ -2,6 +2,7 @@
 
 ## 0.1.81 - 2026-05-12
 
+- aligned root VERSION with package version (0.1.81) and added version consistency test
 - aligned remaining Phase 6 slices with master roadmap
 - clarified Phase 6-G/6-H are safety sub-steps inside Phase 6, not new top-level phases
 - preserved Phase 7 as Usage + Policy/Reject Accounting and Phase 8 as Abuse 1h Core
