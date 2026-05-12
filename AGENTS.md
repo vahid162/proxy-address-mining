@@ -84,7 +84,7 @@ Current repository gate:
 ```text
 current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 current_working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-C accepted (offline apply-gate readiness/review only); next safe step: Phase 6-D0 / Phase 6-D documentation/test-only live-apply boundary review
+current_phase6_step: Phase 6-E0 accepted (isolated/non-production apply harness contracts); next planned step: Phase 6-E1 — Isolated Harness Contract Hardening, isolated/non-production only
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -277,7 +277,7 @@ iptables-restore
 
 Direct firewall commands may appear only in diagnostics, isolated tests, or generated emergency restore artifacts, not as normal production state mutation.
 
-During the current post-Phase-6-C / Phase-6-D0 documentation/test-only boundary, no live firewall read/write, `iptables-save`, `iptables-restore`, apply, rollback, or verify execution is allowed.
+During the current post-Phase-6-E0 / Phase-6-E1 isolated/non-production boundary, no live firewall read/write, `iptables-save`, `iptables-restore`, apply, rollback, or verify execution is allowed.
 
 ## 10. Abuse Requirement
 

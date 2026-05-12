@@ -725,6 +725,7 @@ Phase 6-E0 is fake/no-op isolated harness planning/contracts only. It does not a
 ## Phase 6-E0 Acceptance Note
 
 Phase 6-E0 is accepted as fake/no-op isolated harness contracts only (`docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`).
+Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`.
 Phase 6-E1 may only harden isolated harness contracts/tests.
 Host production firewall mutation remains forbidden.
 Real live apply remains forbidden.
