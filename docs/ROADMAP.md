@@ -832,4 +832,6 @@ Next planned documentation/test-only step is Phase 6-H — Dedicated Apply Gate 
 Future dedicated apply gate remains not accepted and not authorized.
 
 
-Phase 6-H is accepted as documentation/test-only and non-authorizing. Future dedicated Phase 6 apply gate remains not accepted and not authorized. No live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram are allowed.
+Phase 6-H is accepted as documentation/test-only and non-authorizing. Future dedicated Phase 6 apply gate remains not accepted and not authorized.
+
+Phase 6-G and Phase 6-H are Phase 6 safety sub-steps only. They do not create new top-level roadmap phases and do not change the master roadmap ordering. Remaining Phase 6 work must converge to Phase 6 final acceptance and then continue with Phase 7 — Usage + Policy/Reject Accounting. Do not create open-ended Phase 6 documentation-only sub-phases. No live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram are allowed.

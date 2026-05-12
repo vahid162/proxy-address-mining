@@ -452,6 +452,10 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
+Next work must align remaining Phase 6 implementation slices with docs/ROADMAP.md.
+No new top-level phase is created by Phase 6-G/6-H safety sub-step work.
+Future dedicated Phase 6 apply gate remains not accepted and not authorized.
+
 Live apply remains forbidden until a dedicated apply gate is explicitly accepted with separate evidence.
 
 Do not mark firewall_apply_allowed yes.

@@ -347,3 +347,11 @@ Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
 
 Phase 6-H is planned only, documentation/test-only and non-authorizing. No live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram are allowed.
+
+
+## Master Roadmap Alignment Guard
+
+- Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6.
+- They are not top-level phases and must not displace Phase 7/Phase 8 from the master roadmap.
+- AI agents must not create endless new Phase 6 sub-steps; each new sub-step must close a concrete blocker toward Phase 6 final acceptance.
+- Abuse 1h remains Phase 8 and must not be implemented early.

@@ -229,3 +229,42 @@ Future dedicated apply gate remains not accepted and not authorized.
 
 
 Phase 6-H is accepted as documentation/test-only and non-authorizing. Future dedicated Phase 6 apply gate remains not accepted and not authorized. No live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram are allowed.
+
+
+## Remaining Phase 6 Alignment With Master Roadmap
+
+Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.
+They do not change the master roadmap phase ordering.
+After Phase 6 final acceptance, execution must return to the master roadmap sequence:
+
+- Phase 7 remains **Usage + Policy/Reject Accounting**.
+- Phase 8 remains **Abuse 1h Core**.
+- Abuse automation must not start before Phase 8.
+
+No further documentation-only Phase 6 sub-step should be added unless it closes a concrete blocker for the dedicated apply gate path and Phase 6 final acceptance.
+
+### Finite Remaining Phase 6 Implementation Slices
+
+A. **Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary**
+- planned only
+- may define exactly how a future live snapshot read will be gated
+- does not authorize `iptables-save` or live firewall read now
+
+B. **Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness**
+- planned only
+- may define/prepare contracts and tests
+- does not write DB restore points, locks, or apply records now
+
+C. **Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness**
+- planned only
+- isolated/non-production only
+- no customer NAT, no customer firewall rules, no production traffic
+
+D. **Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal**
+- planned only
+- requires time synchronization fixed and evidenced
+- requires separate `docs/PHASE_STATUS.md` update and server evidence before any authorization
+
+Phase 6 final acceptance is allowed only after apply/verify/rollback safety is proven.
+Phase 7 starts only after Phase 6 final acceptance.
+
