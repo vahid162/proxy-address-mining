@@ -483,11 +483,9 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 
 - Apply Slice 1 has been server-synced and accepted only as a documentation/test-only readiness boundary.
 - Apply Slice 2 has been server-synced and accepted only as a documentation/test-only readiness boundary.
-- Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries.
-- Apply Slice 3 is now documented as planned, documentation/test-only, non-authorizing controlled no-customer harness contract.
+- Apply Slice 3 is documented as planned, documentation/test-only, non-authorizing controlled no-customer harness contract.
 - Next planned Phase 6 implementation sub-step is Apply Slice 4 — Manual Canary Apply Gate Proposal.
 - Apply Slice 4 must remain documentation/test-only and non-authorizing unless a separate explicit gate changes that.
-- Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 - No no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
