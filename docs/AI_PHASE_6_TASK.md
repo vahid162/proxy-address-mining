@@ -384,3 +384,5 @@ Slice 4 is documentation/test-only and non-authorizing.
 Slice 4 does not authorize manual canary apply.
 Future dedicated apply gate remains not accepted and not authorized.
 AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+Gated live snapshot read service boundary exists, but it remains NOT_AUTHORIZED/BLOCKED and does not execute live read or iptables-save.
