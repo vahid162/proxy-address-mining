@@ -24,7 +24,7 @@ telegram_allowed: no
     assert expected in text
 
 
-def test_phase_status_has_slice12_sync_evidence_and_slice3_next() -> None:
+def test_phase_status_has_slice12_sync_evidence_and_slice4_next() -> None:
     text = _read("docs/PHASE_STATUS.md")
     for phrase in [
         "### Phase 6 Apply Slice 1-2 — Documentation/Readiness Boundary Sync",
@@ -33,7 +33,7 @@ def test_phase_status_has_slice12_sync_evidence_and_slice3_next() -> None:
         "sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip",
         "backup: /var/backups/mpf/source-before-zip-sync-20260513T055542Z",
         "Slice 1 and Slice 2 are accepted only as documentation/test-only readiness boundaries",
-        "Next planned Phase 6 implementation sub-step is Apply Slice 3 — Controlled No-Customer Apply Harness.",
+        "Next planned Phase 6 implementation sub-step is Apply Slice 4 — Manual Canary Apply Gate Proposal.",
     ]:
         assert phrase in text
     assert "firewall_apply_allowed: yes" not in text
@@ -41,10 +41,11 @@ def test_phase_status_has_slice12_sync_evidence_and_slice3_next() -> None:
     assert "abuse_automation_allowed: yes" not in text
 
 
-def test_slice3_referenced_as_next_planned_across_docs() -> None:
+def test_slice3_documented_and_slice4_next_planned_across_docs() -> None:
     for path in ["README.md", "AGENTS.md", "docs/AI_CODING_RULES.md", "docs/AI_PHASE_6_TASK.md"]:
         text = _read(path)
-        assert "Apply Slice 3 — Controlled No-Customer Apply Harness" in text
+        assert "Slice 3" in text
+        assert "Apply Slice 4 — Manual Canary Apply Gate Proposal" in text
         assert "Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned" not in text
 
 

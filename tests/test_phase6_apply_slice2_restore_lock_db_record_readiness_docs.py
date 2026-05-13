@@ -16,7 +16,7 @@ def test_slice2_doc_exists_and_status():
 def test_phase_status_current_state_unchanged_and_next_step_slice3():
     expected = """current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5\ncurrent_working_phase: Phase 6 — Firewall Planner\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no"""
     assert expected in PHASE_STATUS
-    assert "Apply Slice 3 — Controlled No-Customer Apply Harness" in PHASE_STATUS
+    assert "Apply Slice 4 — Manual Canary Apply Gate Proposal" in PHASE_STATUS
 
 
 def test_not_accepted_server_results_and_indexing():

@@ -19,7 +19,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); next planned sub-step: Apply Slice 3 — Controlled No-Customer Apply Harness (planned only, documentation/test-only, non-authorizing); future dedicated apply gate remains not accepted and not authorized
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 is documented as planned, documentation/test-only, non-authorizing controlled no-customer harness contract; next planned sub-step: Apply Slice 4 — Manual Canary Apply Gate Proposal (planned only, documentation/test-only, non-authorizing); future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -360,7 +360,8 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 ## Apply Slice 1-3 Planning Boundary
 
 - Slice 1 and Slice 2 are server-synced documentation/test-only readiness boundaries.
-- Apply Slice 3 — Controlled No-Customer Apply Harness is the next planned sub-step.
-- Slice 3 must stay documentation/test-only and non-authorizing.
+- Slice 3 is documentation/test-only and non-authorizing.
+- Slice 3 does not authorize no-customer apply.
+- Slice 4 — Manual Canary Apply Gate Proposal is the next planned sub-step and must remain documentation/test-only and non-authorizing.
 - AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 - Future dedicated apply gate remains not accepted and not authorized.
