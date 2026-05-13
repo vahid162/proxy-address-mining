@@ -4,7 +4,7 @@ Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness after 0.
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
-Current note: After 0.1.90, apply-gate-readiness and gate-review are read-only/report-only and remain BLOCKED. The next planning target is a separate Future Phase 6 Live Snapshot Read Gate proposal. It is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
+Current note: After 0.1.90, apply-gate-readiness and gate-review are read-only/report-only and remain BLOCKED. The next planning target is a separate Future Phase 6 Live Snapshot Read Gate proposal. It is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md. Historical reference: Future Dedicated Phase 6 Apply Gate Proposal/Review remains non-authorizing.
 
 ## Current Gate
 
@@ -16,12 +16,12 @@ docs/PHASE_STATUS.md
 
 Current state:
 
-Next planning target is documented in `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` and remains proposal/review only, documentation/test-only, and non-authorizing.
+Next planning target is Future Phase 6 Live Snapshot Read Gate proposal. `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` remains historical/reference context only and is non-authorizing.
 
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 and Slice 4 are server-synced documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated apply gate remains not accepted and not authorized
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 and Slice 4 are server-synced documentation/test-only boundaries; next planning target: Future Phase 6 Live Snapshot Read Gate proposal; future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed

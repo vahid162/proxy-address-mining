@@ -425,45 +425,6 @@ no UI
 no Telegram
 ```
 
-### Phase 6 Apply Gate Readiness Integration — Server Sync
-
-```text
-version accepted on farm5: 0.1.90
-sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
-backup: /var/backups/mpf/source-before-zip-sync-20260513T095401Z
-pytest with venv during sync: 511 passed
-current phase safety gate: OK
-source aligned with GitHub zip: OK
-mpf --version: 0.1.90
-mpf config validate: OK
-mpf doctor: OK
-mpf db status: OK
-mpf proxy doctor final_verdict: OK
-firewall.apply_mode: plan_only
-proxy.runtime_activation_allowed: false
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-no MPF/customer IPv4 firewall references
-no MPF/customer IPv6 firewall references
-no customer NAT redirects
-accepted limited runtime listeners remain local-only
-v2rayA UI listener: 127.0.0.1:2015
-BTC backend listener: 127.0.0.1:60010
-mpf firewall apply-gate-readiness remains read-only/report-only and BLOCKED
-mpf firewall gate-review includes apply_gate_readiness_summary and remains BLOCKED
-no live firewall read/write/apply/rollback/verify
-no iptables-save or iptables-restore
-no real adapters or subprocess firewall calls
-no restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations
-no customer NAT/customer firewall rules
-no production traffic
-no usage automation
-no abuse automation
-no UI
-no Telegram
-```
-
 ### Phase 6 Apply Slice 3-4 — Documentation Boundary Sync
 
 ```text
@@ -496,7 +457,7 @@ no usage automation
 no abuse automation
 no UI
 no Telegram
-
+```
 
 ### Phase 6 Apply Gate Proposal Review — Documentation Sync
 
@@ -529,6 +490,45 @@ Future Dedicated Phase 6 Apply Gate Proposal/Review remains documentation/test-o
 no dedicated apply gate
 no manual canary apply
 no no-customer apply
+no live firewall read/write/apply/rollback/verify
+no iptables-save or iptables-restore
+no real adapters or subprocess firewall calls
+no restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations
+no customer NAT/customer firewall rules
+no production traffic
+no usage automation
+no abuse automation
+no UI
+no Telegram
+```
+
+### Phase 6 Apply Gate Readiness Integration — Server Sync
+
+```text
+version accepted on farm5: 0.1.90
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260513T095401Z
+pytest with venv during sync: 511 passed
+current phase safety gate: OK
+source aligned with GitHub zip: OK
+mpf --version: 0.1.90
+mpf config validate: OK
+mpf doctor: OK
+mpf db status: OK
+mpf proxy doctor final_verdict: OK
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no MPF/customer IPv4 firewall references
+no MPF/customer IPv6 firewall references
+no customer NAT redirects
+accepted limited runtime listeners remain local-only
+v2rayA UI listener: 127.0.0.1:2015
+BTC backend listener: 127.0.0.1:60010
+mpf firewall apply-gate-readiness remains read-only/report-only and BLOCKED
+mpf firewall gate-review includes apply_gate_readiness_summary and remains BLOCKED
 no live firewall read/write/apply/rollback/verify
 no iptables-save or iptables-restore
 no real adapters or subprocess firewall calls
@@ -604,6 +604,9 @@ Phase 6-G does not authorize host production firewall mutation, live firewall re
 - Apply Slice 2 has been server-synced and accepted only as a documentation/test-only readiness boundary.
 - Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries.
 - Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
+- Next planning target is Future Phase 6 Live Snapshot Read Gate proposal.
+- This proposal is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
+- No live firewall read, no iptables-save, no apply, no restore, no customer NAT/customer firewall rules, and no production traffic are authorized.
 - Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 - No dedicated apply gate, manual canary apply, no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
