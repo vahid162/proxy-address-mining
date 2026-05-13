@@ -34,6 +34,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 1. Complete the Phase 6 Live Snapshot Read Gate Proposal.
 2. Then, in a separate PR, implement read-only live snapshot scaffolding only after proposal review.
+   - status update: fail-closed scaffolding report now exists (`mpf firewall live-snapshot-scaffold`) and remains non-authorizing/report-only.
 3. Actual live read requires separate `docs/PHASE_STATUS.md` acceptance and farm5 evidence.
 4. Apply/restore/NAT/customer firewall rules remain later gates.
 

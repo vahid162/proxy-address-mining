@@ -14,6 +14,7 @@ from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, C
 from mpf.domain.health import HealthReport
 from mpf.services import (
     firewall_apply_gate_readiness_service,
+    firewall_live_snapshot_scaffold_service,
     config_service,
     customer_mutation_service,
     customer_read_service,
@@ -533,6 +534,22 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
     blockers = report["blockers"]
     typer.echo(f"missing_requirements: {', '.join(missing) if missing else '-'}")
     typer.echo(f"blockers: {', '.join(blockers) if blockers else '-'}")
+
+
+@firewall_app.command("live-snapshot-scaffold")
+def firewall_live_snapshot_scaffold(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
+    """Render fail-closed, non-authorizing scaffolding report for future live snapshot read gate."""
+    cfg = _load(config)
+    report = firewall_live_snapshot_scaffold_service.build_live_snapshot_scaffold_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    for key, value in report.items():
+        if isinstance(value, bool):
+            value = str(value).lower()
+        if isinstance(value, list):
+            value = ", ".join(value) if value else "-"
+        typer.echo(f"{key}: {value}")
 
 @firewall_app.command("plan")
 def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
