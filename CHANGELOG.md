@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.90 - 2026-05-13
+
+- included non-authorizing apply gate readiness summary in the Phase 6 firewall gate review path
+- kept gate-review and apply-gate-readiness BLOCKED under the current Phase 5 accepted / Phase 6 working gate
+- surfaced apply gate readiness blockers and missing requirements in review output
+- confirmed no live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, subprocess firewall calls, real adapters, restore point writes, locks, DB writes, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior introduced
+- preserved abuse 1h invariant
+
 ## 0.1.89 - 2026-05-13
 
 - added non-authorizing Phase 6 apply gate readiness report
