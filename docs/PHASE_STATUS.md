@@ -613,6 +613,101 @@ No firewall write/apply/rollback/verify, iptables-restore, customer NAT, custome
 Apply and gate-review final decisions remain BLOCKED.
 The next implementation target is a separate explicit restore point + lock + DB apply record gate proposal/acceptance boundary, still without customer NAT/customer firewall rules.
 
+
+### Phase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary
+
+Status:
+- proposal/boundary only
+- non-authorizing
+- no runtime behavior enabled by this PR
+
+Purpose:
+- define the future explicit gate boundary for restore point write, lock acquisition, and DB apply record write
+- prepare the next controlled Phase 6 step before any no-customer apply/verify/rollback work
+
+This PR does not authorize the gate yet.
+It only defines what a later explicit acceptance must require.
+
+Future gate may be considered only after all of these are true:
+
+- separate explicit acceptance in docs/PHASE_STATUS.md
+- operator approval
+- farm5 evidence included
+- python -m pytest -q passes
+- current phase safety gate passes
+- mpf config validate OK
+- mpf doctor OK
+- mpf db status OK
+- mpf proxy doctor final_verdict OK
+- mpf firewall restore-lock-record-readiness final_decision remains BLOCKED and NOT_AUTHORIZED_FOR_WRITES before the gate is accepted
+- mpf firewall apply-gate-readiness remains BLOCKED
+- mpf firewall gate-review remains BLOCKED
+- firewall.apply_mode remains plan_only
+- proxy.runtime_activation_allowed remains false
+- production_traffic remains none
+- firewall_apply_allowed remains no
+- abuse_automation_allowed remains no
+- no MPF/customer IPv4 firewall references
+- no MPF/customer IPv6 firewall references
+- no customer NAT redirects
+- no customer firewall rules
+- backend external exposure remains NO
+- backend internal reachability remains OK
+- accepted limited runtime listeners remain local-only
+- time synchronization is fixed and evidenced, or explicitly remains a blocker for any write/production/usage/abuse gate
+
+Future allowed operation if accepted later:
+
+Only after a later explicit acceptance in docs/PHASE_STATUS.md, the future gate may allow:
+
+- create one restore point record/artifact for inspection-controlled apply preparation
+- acquire one scoped firewall/apply lock
+- create one DB apply record in a pre-apply or prepared/blocked state
+- correlate restore point, lock, DB apply record, source snapshot hash, payload hash, operator identity, and correlation_id
+- keep final apply decision BLOCKED unless a later apply gate is separately accepted
+
+Even if the future gate is later accepted, it must still NOT allow:
+
+- live firewall write
+- live firewall apply
+- live rollback
+- live verify
+- iptables-restore
+- customer NAT
+- customer firewall rules
+- production traffic
+- usage automation
+- abuse automation
+- UI
+- Telegram
+- public API binding
+- public v2rayA UI exposure
+- public backend exposure
+
+Stop conditions:
+
+The future gate must be blocked if any of these are true:
+
+- Current State changes unexpectedly
+- firewall_apply_allowed becomes yes
+- production_traffic is enabled
+- abuse_automation_allowed becomes yes before Phase 8
+- firewall.apply_mode is not plan_only before explicit gate acceptance
+- proxy.runtime_activation_allowed becomes true
+- backend external exposure appears
+- backend internal reachability breaks
+- MPF/customer firewall references appear unexpectedly
+- customer NAT redirects appear
+- customer firewall rules appear
+- time synchronization is still unverified for write-dependent work
+- tests fail
+- operator evidence is missing
+- restore point/lock/DB apply record behavior is implemented without separate explicit acceptance
+
+This boundary does not authorize restore point writes, lock acquisition, DB apply writes, DB apply records, firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+Apply and gate-review final decisions remain BLOCKED.
+The next implementation target after this proposal is a separate acceptance/readiness implementation for controlled restore point + lock + DB apply record behavior, still without customer NAT/customer firewall rules.
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
