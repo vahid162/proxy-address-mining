@@ -33,7 +33,7 @@ def _risk_rows() -> list[FirewallGateReviewRiskItem]:
     ]
 
 
-def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None, live_snapshot_scaffold: dict[str, object] | None = None, live_snapshot_read: dict[str, object] | None = None, restore_lock_record_readiness: dict[str, object] | None = None) -> FirewallGateReviewReport:
+def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None, live_snapshot_scaffold: dict[str, object] | None = None, live_snapshot_read: dict[str, object] | None = None, restore_lock_record_gate: dict[str, object] | None = None, restore_lock_record_readiness: dict[str, object] | None = None) -> FirewallGateReviewReport:
     if evidence is None:
         if plan is None:
             raise ValueError("plan or evidence is required")
@@ -124,6 +124,15 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
         "blockers": ["restore_lock_record_readiness_not_provided"],
     }
 
+    restore_lock_record_gate_summary = restore_lock_record_gate or {
+        "component": "firewall_restore_lock_record_gate",
+        "final_decision": "BLOCKED",
+        "authorization_status": "NOT_ACCEPTED",
+        "report_only": True,
+        "apply_decision": "BLOCKED",
+        "blockers": ["restore_lock_record_gate_not_provided"],
+    }
+
     return FirewallGateReviewReport(
         phase_gate_summary={"firewall_apply_allowed": "no", "production_traffic": "none", "abuse_automation_allowed": "no"},
         evidence_summary={"present": True, "evidence_version": evidence.evidence_version, "final_verdict": evidence.final_verdict, "planner_customer_source": evidence.planner_customer_source, "db_customer_input_loaded": evidence.db_customer_input_loaded},
@@ -134,6 +143,7 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
         apply_gate_readiness_summary=apply_gate_readiness_summary,
         live_snapshot_scaffold_summary=live_snapshot_scaffold_summary,
         live_snapshot_read_summary=live_snapshot_read_summary,
+        restore_lock_record_gate_summary=restore_lock_record_gate_summary,
         restore_lock_record_readiness_summary=restore_lock_record_readiness_summary,
         abuse_requirement_summary={"state_flow": "normal -> over_tracking -> over_grace -> hard", "sustained_hardening_seconds": 3600, "preserved": True},
         safety_flags=safety_flags,
