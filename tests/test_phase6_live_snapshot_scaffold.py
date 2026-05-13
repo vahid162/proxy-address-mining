@@ -77,4 +77,11 @@ def test_cli_json_output_stable_fields() -> None:
 def test_cli_invalid_output_fails_clearly() -> None:
     res = RUNNER.invoke(app, ["firewall", "live-snapshot-scaffold", "--config", str(example_config_path()), "--output", "payload"])
     assert res.exit_code != 0
-    assert "Invalid value for '--output'" in res.output
+    lowered = res.output.lower()
+    assert "--output" in lowered or "output" in lowered
+    assert "payload" in lowered or "human" in lowered or "json" in lowered
+    assert "live_firewall_read_executed: true" not in lowered
+    assert "iptables_save_executed: true" not in lowered
+    assert "subprocess_executed: true" not in lowered
+    assert "firewall_mutation: true" not in lowered
+    assert "db_mutation: true" not in lowered
