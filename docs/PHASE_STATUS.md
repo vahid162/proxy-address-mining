@@ -457,6 +457,49 @@ no usage automation
 no abuse automation
 no UI
 no Telegram
+
+
+### Phase 6 Apply Gate Proposal Review — Documentation Sync
+
+```text
+version accepted on farm5: 0.1.88
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260513T084028Z
+pytest during sync: 504 passed
+manual pytest with project venv: 504 passed
+current phase safety gate: OK
+source aligned with GitHub zip: OK
+mpf --version: 0.1.88
+/opt/mpf-py-src/VERSION: 0.1.88
+mpf config validate: OK
+mpf doctor: OK
+mpf db status: OK
+mpf proxy doctor final_verdict: OK
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+no MPF/customer IPv4 firewall references
+no MPF/customer IPv6 firewall references
+no customer NAT redirects
+accepted limited runtime listeners remain local-only
+v2rayA UI listener: 127.0.0.1:2015
+BTC backend listener: 127.0.0.1:60010
+Future Dedicated Phase 6 Apply Gate Proposal/Review remains documentation/test-only and non-authorizing
+no dedicated apply gate
+no manual canary apply
+no no-customer apply
+no live firewall read/write/apply/rollback/verify
+no iptables-save or iptables-restore
+no real adapters or subprocess firewall calls
+no restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations
+no customer NAT/customer firewall rules
+no production traffic
+no usage automation
+no abuse automation
+no UI
+no Telegram
 ```
 
 ## Current Server Warning
