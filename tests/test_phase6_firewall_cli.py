@@ -590,6 +590,8 @@ def test_firewall_gate_review_human_default_db(monkeypatch) -> None:
     assert "final_decision: BLOCKED" in res.output
     assert "apply_gate_readiness: summary" in res.output
     assert "  final_decision: BLOCKED" in res.output
+    assert "live_snapshot_scaffold: summary" in res.output
+    assert "  authorization_status: NOT_AUTHORIZED" in res.output
 
 
 def test_firewall_gate_review_json_flags(monkeypatch) -> None:
@@ -602,6 +604,8 @@ def test_firewall_gate_review_json_flags(monkeypatch) -> None:
     assert '"applyable": false' in res.output
     assert '"final_decision": "BLOCKED"' in res.output
     assert '"apply_gate_readiness_summary": {' in res.output
+    assert '"live_snapshot_scaffold_summary": {' in res.output
+    assert '"authorization_status": "NOT_AUTHORIZED"' in res.output
     assert '"final_decision": "BLOCKED"' in res.output
 
 

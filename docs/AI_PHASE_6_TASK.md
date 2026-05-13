@@ -6,6 +6,7 @@ This document defines the safe Phase 6 boundary for AI coding agents.
 
 Current note: After 0.1.90, apply-gate-readiness and gate-review are read-only/report-only and remain BLOCKED. The current task is proposal-only: Phase 6 Live Snapshot Read Gate Proposal. This PR does not authorize live read implementation. The next possible implementation in a separate PR is read-only live snapshot scaffolding, still fail-closed and non-authorizing unless `docs/PHASE_STATUS.md` explicitly accepts a gate. Historical reference: Future Dedicated Phase 6 Apply Gate Proposal/Review remains non-authorizing.
 Current implementation note: read-only live snapshot scaffolding report exists as fail-closed/non-authorizing output only (`mpf firewall live-snapshot-scaffold`). It does not execute live read, does not run `iptables-save`, and remains BLOCKED until explicit `docs/PHASE_STATUS.md` acceptance plus farm5 evidence in a future gate.
+Gate-review now includes the fail-closed live snapshot scaffold summary; final_decision remains BLOCKED, and actual live read still requires separate docs/PHASE_STATUS.md acceptance plus farm5 evidence.
 
 ## Current Gate
 

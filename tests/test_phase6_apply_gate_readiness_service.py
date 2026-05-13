@@ -46,6 +46,9 @@ def test_service_current_state_and_dangerous_capabilities() -> None:
         "customer_firewall_rules_allowed",
     ):
         assert report[key] is False
+    assert report["live_snapshot_scaffold_present"] is True
+    assert report["live_snapshot_authorization_status"] == "NOT_AUTHORIZED"
+    assert report["live_snapshot_final_decision"] == "BLOCKED"
 
 
 def test_service_blocks_when_runtime_activation_allowed_true() -> None:
