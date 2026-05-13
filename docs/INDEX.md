@@ -33,7 +33,8 @@ Read these first:
 23. `docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md` (planned readiness boundary, documentation/test-only, non-authorizing)
 24. `docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md` (planned readiness boundary, documentation/test-only, non-authorizing)
 25. `docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md` (planned contract, documentation/test-only, non-authorizing)
-26. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
+26. `docs/PHASE_6_APPLY_SLICE_4_MANUAL_CANARY_APPLY_GATE_PROPOSAL.md` (planned contract, documentation/test-only, non-authorizing)
+27. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -78,7 +79,7 @@ Current Phase 6 step:
 ```text
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-Apply Slice 3 is documented as planned documentation/test-only controlled no-customer harness contract, not accepted by server evidence yet, and not authorized. Next planned implementation sub-step is Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal (planned, documentation/test-only, non-authorizing).
+Apply Slice 3 is documented as planned documentation/test-only controlled no-customer harness contract, not accepted by server evidence yet, and not authorized. Apply Slice 4 is documented as planned, documentation/test-only, non-authorizing manual canary apply gate proposal. Next operational step is batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries.
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 ```
 

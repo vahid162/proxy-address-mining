@@ -17,7 +17,7 @@ Current repository/server gate:
 ```text
 accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 is documented as planned documentation/test-only non-authorizing controlled no-customer harness contract; next planned implementation sub-step: Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal (planned, documentation/test-only, non-authorizing); future dedicated Phase 6 apply gate remains not accepted and not authorized
+current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 is documented as planned documentation/test-only non-authorizing controlled no-customer harness contract; Apply Slice 4 is now documented as planned, documentation/test-only, non-authorizing manual canary apply gate proposal; next operational step: batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries; future dedicated Phase 6 apply gate remains not accepted and not authorized
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no

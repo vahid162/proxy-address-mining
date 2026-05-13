@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.86 - 2026-05-13
+
+- added concise Apply Slice 4 manual canary apply gate proposal contract
+- indexed Slice 4 document and advanced next operational step to batch server sync/review
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no manual canary apply, no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, locks, DB apply writes, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior introduced
+- preserved abuse 1h invariant
+
 ## 0.1.85 - 2026-05-13
 
 - added concise Apply Slice 3 controlled no-customer harness contract
