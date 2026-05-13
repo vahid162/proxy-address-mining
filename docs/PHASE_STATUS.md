@@ -559,11 +559,11 @@ apply-gate-readiness: BLOCKED, plan_only preserved, live firewall read/write not
 firewall gate-review: BLOCKED, applyable=false, inspection_only=true, artifact_only=true, live_apply_allowed=false, abuse requirement preserved (normal -> over_tracking -> over_grace -> hard, sustained_hardening_seconds=3600), safety flags confirm no live read/write/save/restore/database/filesystem mutations
 ```
 
-This server result is report-only and non-authorizing.
-No live firewall read is authorized.
-No iptables-save is authorized.
-No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
-The next possible step is a separate explicit Phase 6 read-only live snapshot acceptance gate, only if operator evidence remains clean.
+This server result is report-only for the earlier readiness boundary and remains non-authorizing for apply/write paths.
+The explicitly gated read-only `iptables-save` snapshot path is now authorized with successful farm5 evidence (see section below).
+No firewall write/apply/rollback/verify, `iptables-restore`, restore point write, lock acquisition, DB apply write/record, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply and gate-review final decisions remain BLOCKED.
+The next implementation target is restore point + lock + DB apply record readiness, still without customer NAT/customer firewall rules.
 
 
 ### Phase 6 Read-Only iptables-save Snapshot — Server Evidence
@@ -651,9 +651,10 @@ Phase 6-G does not authorize host production firewall mutation, live firewall re
 - Apply Slice 2 has been server-synced and accepted only as a documentation/test-only readiness boundary.
 - Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries.
 - Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
-- Next planning target is Future Phase 6 Live Snapshot Read Gate proposal.
-- This proposal is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
-- No live firewall read, no iptables-save, no apply, no restore, no customer NAT/customer firewall rules, and no production traffic are authorized.
+- The explicitly gated read-only `iptables-save` snapshot path is authorized and has successful farm5 evidence.
+- No firewall write/apply/rollback/verify, `iptables-restore`, restore point write, lock acquisition, DB apply write/record, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+- Apply and gate-review final decisions remain BLOCKED.
+- Next implementation target: restore point + lock + DB apply record readiness, still without customer NAT/customer firewall rules.
 - Historical/reference context only: Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
 - Future Dedicated Phase 6 Apply Gate Proposal/Review remains historical/reference context only.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
