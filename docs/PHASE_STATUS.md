@@ -541,6 +541,29 @@ no UI
 no Telegram
 ```
 
+### Phase 6 Live Snapshot Readiness Report-Only Server Sync
+
+```text
+version accepted on farm5: 0.1.90
+sync: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip (backup: /var/backups/mpf/source-before-zip-sync-20260513T124116Z)
+pytest: 532 passed in 11.70s (venv), 532 passed in 10.00s (/opt/mpf-py-src)
+source aligned with GitHub zip: OK; phase safety gate: OK; mpf --version: 0.1.90
+mpf checks: config validate OK, doctor OK, db status OK, proxy doctor final_verdict OK
+database: alembic_version=0002_phase5_customer_lifecycle, public_table_count=64, lanes=3, customers=1, job_runs=0, firewall_applies=0, abuse_states=0
+runtime/gates: firewall.apply_mode=plan_only, proxy.runtime_activation_allowed=false, production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no
+safety: no MPF/customer IPv4/IPv6 firewall refs, no customer NAT redirects, listeners local-only (v2rayA 127.0.0.1:2015, BTC backend 127.0.0.1:60010), Docker local publish DNAT informational only
+live-snapshot-scaffold: BLOCKED, NOT_AUTHORIZED, no live read, no iptables-save, no subprocess, no firewall/db mutation, no restore/lock, current_state_preserved=true
+live-snapshot-readiness: BLOCKED, NOT_AUTHORIZED, live read allowed/executed=false, iptables-save allowed/executed=false, subprocess/filesystem allowed/executed=false, no mutation, snapshot counts=0/0/0, current_state_preserved=true, next_required_gate=explicit docs/PHASE_STATUS.md acceptance plus farm5 evidence
+apply-gate-readiness: BLOCKED, plan_only preserved, live firewall read/write not allowed, iptables-save/restore not allowed, real adapter/subprocess calls not allowed, customer NAT/firewall rules not allowed, live snapshot scaffold/read summaries present and BLOCKED
+firewall gate-review: BLOCKED, applyable=false, inspection_only=true, artifact_only=true, live_apply_allowed=false, abuse requirement preserved (normal -> over_tracking -> over_grace -> hard, sustained_hardening_seconds=3600), safety flags confirm no live read/write/save/restore/database/filesystem mutations
+```
+
+This server result is report-only and non-authorizing.
+No live firewall read is authorized.
+No iptables-save is authorized.
+No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+The next possible step is a separate explicit Phase 6 read-only live snapshot acceptance gate, only if operator evidence remains clean.
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -665,4 +688,3 @@ Phase 6-H reference:
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
 docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
-
