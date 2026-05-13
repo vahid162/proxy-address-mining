@@ -553,6 +553,30 @@ def firewall_live_snapshot_readiness(config: Path | None = typer.Option(None, "-
         typer.echo(f"{key}: {value}")
 
 
+@firewall_app.command("live-snapshot-read")
+def firewall_live_snapshot_read(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    execute: bool = typer.Option(False, "--execute", help="Execute one explicit read-only iptables-save command."),
+) -> None:
+    """Render readiness or execute one explicitly-gated read-only live snapshot read."""
+    cfg = _load(config)
+    report = firewall_live_snapshot_read_service.build_live_snapshot_read_report(cfg, execute=execute)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        if report["final_decision"] in ("FAILED_READ_ONLY_SNAPSHOT", "BLOCKED"):
+            raise typer.Exit(1)
+        return
+    for key, value in report.items():
+        if isinstance(value, bool):
+            value = str(value).lower()
+        if isinstance(value, list):
+            value = ", ".join(value) if value else "-"
+        typer.echo(f"{key}: {value}")
+    if report["final_decision"] in ("FAILED_READ_ONLY_SNAPSHOT", "BLOCKED"):
+        raise typer.Exit(1)
+
+
 @firewall_app.command("live-snapshot-scaffold")
 def firewall_live_snapshot_scaffold(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     """Render fail-closed, non-authorizing scaffolding report for future live snapshot read gate."""

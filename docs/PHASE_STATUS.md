@@ -17,6 +17,7 @@ customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
 ```
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
@@ -688,3 +689,29 @@ Phase 6-H reference:
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
 docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
+
+
+### Phase 6 Read-Only Live Snapshot Gate — Limited Authorization
+
+- limited authorization: iptables-save read-only snapshot only
+- no iptables-restore
+- no firewall write
+- no apply
+- no rollback
+- no restore point write
+- no lock acquisition
+- no DB apply write
+- no DB apply record
+- no customer NAT
+- no customer firewall rules
+- no production traffic
+- no usage automation
+- no abuse automation
+- no UI
+- no Telegram
+- output is inspection-only
+- failure must be fail-closed
+- empty snapshot fallback is forbidden
+- guessed firewall state is forbidden
+- result may feed parser/planner/diff only
+- apply/gate-review final decision must remain BLOCKED
