@@ -537,7 +537,7 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
 
 
 @firewall_app.command("live-snapshot-scaffold")
-def firewall_live_snapshot_scaffold(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
+def firewall_live_snapshot_scaffold(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     """Render fail-closed, non-authorizing scaffolding report for future live snapshot read gate."""
     cfg = _load(config)
     report = firewall_live_snapshot_scaffold_service.build_live_snapshot_scaffold_report(cfg)
@@ -886,7 +886,12 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
         raise typer.Exit(code=1)
     evidence = firewall_evidence_service.build_evidence_bundle_report(result, rollback_artifact=rollback_artifact)
     apply_gate_readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
-    report = firewall_gate_review_service.build_gate_review_report(evidence=evidence, apply_gate_readiness=apply_gate_readiness)
+    live_snapshot_scaffold = firewall_live_snapshot_scaffold_service.build_live_snapshot_scaffold_report(cfg)
+    report = firewall_gate_review_service.build_gate_review_report(
+        evidence=evidence,
+        apply_gate_readiness=apply_gate_readiness,
+        live_snapshot_scaffold=live_snapshot_scaffold,
+    )
     if output == "json":
         typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
         return
@@ -912,6 +917,20 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"  runtime_activation_allowed: {str(agr.get('runtime_activation_allowed', False)).lower()}")
     typer.echo(f"  blockers: {len(agr.get('blockers', []))}")
     typer.echo(f"  missing_requirements: {len(agr.get('missing_requirements', []))}")
+    lss = report.live_snapshot_scaffold_summary
+    typer.echo("live_snapshot_scaffold: summary")
+    typer.echo(f"  component: {lss.get('component', '-')}")
+    typer.echo(f"  final_decision: {lss.get('final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {lss.get('authorization_status', 'NOT_AUTHORIZED')}")
+    typer.echo(f"  live_firewall_read_executed: {str(lss.get('live_firewall_read_executed', False)).lower()}")
+    typer.echo(f"  iptables_save_executed: {str(lss.get('iptables_save_executed', False)).lower()}")
+    typer.echo(f"  subprocess_executed: {str(lss.get('subprocess_executed', False)).lower()}")
+    typer.echo(f"  firewall_mutation: {str(lss.get('firewall_mutation', False)).lower()}")
+    typer.echo(f"  db_mutation: {str(lss.get('db_mutation', False)).lower()}")
+    typer.echo(f"  customer_nat_changed: {str(lss.get('customer_nat_changed', False)).lower()}")
+    typer.echo(f"  customer_firewall_rules_changed: {str(lss.get('customer_firewall_rules_changed', False)).lower()}")
+    typer.echo(f"  production_traffic_changed: {str(lss.get('production_traffic_changed', False)).lower()}")
+    typer.echo(f"  blockers: {len(lss.get('blockers', []))}")
     typer.echo("abuse_requirement: preserved")
     typer.echo(f"firewall_change: {report.safety_flags['firewall_change']}")
     typer.echo(f"nat_change: {report.safety_flags['nat_change']}")

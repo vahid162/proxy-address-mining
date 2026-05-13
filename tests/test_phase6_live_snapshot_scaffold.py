@@ -72,3 +72,9 @@ def test_cli_json_output_stable_fields() -> None:
     assert '"final_decision": "BLOCKED"' in res.output
     assert '"live_firewall_read_executed": false' in res.output
     assert '"iptables_save_executed": false' in res.output
+
+
+def test_cli_invalid_output_fails_clearly() -> None:
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-scaffold", "--config", str(example_config_path()), "--output", "payload"])
+    assert res.exit_code != 0
+    assert "Invalid value for '--output'" in res.output

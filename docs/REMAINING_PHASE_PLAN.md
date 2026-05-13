@@ -24,6 +24,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - farm5 sync evidence for 0.1.88 was recorded.
 - apply-gate-readiness was implemented as read-only/report-only.
 - gate-review now includes apply_gate_readiness_summary.
+- Gate-review now includes the fail-closed live snapshot scaffold summary; final_decision remains BLOCKED, and actual live read still requires separate docs/PHASE_STATUS.md acceptance plus farm5 evidence.
 - farm5 was synced to 0.1.90 successfully.
 - Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
 - Host production firewall mutation remains forbidden; must not mutate the host production firewall.

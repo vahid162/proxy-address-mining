@@ -33,7 +33,7 @@ def _risk_rows() -> list[FirewallGateReviewRiskItem]:
     ]
 
 
-def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None) -> FirewallGateReviewReport:
+def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None, live_snapshot_scaffold: dict[str, object] | None = None) -> FirewallGateReviewReport:
     if evidence is None:
         if plan is None:
             raise ValueError("plan or evidence is required")
@@ -67,6 +67,21 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
     safety_flags = dict(evidence.safety_flags)
     safety_flags.update({"restore_point_written": False, "rollback_written": False})
 
+    live_snapshot_scaffold_summary = live_snapshot_scaffold or {
+        "component": "firewall_live_snapshot_scaffold",
+        "final_decision": "BLOCKED",
+        "authorization_status": "NOT_AUTHORIZED",
+        "live_firewall_read_executed": False,
+        "iptables_save_executed": False,
+        "subprocess_executed": False,
+        "firewall_mutation": False,
+        "db_mutation": False,
+        "customer_nat_changed": False,
+        "customer_firewall_rules_changed": False,
+        "production_traffic_changed": False,
+        "blockers": ["live_snapshot_scaffold_not_provided"],
+    }
+
     apply_gate_readiness_summary = apply_gate_readiness or {
         "final_decision": "BLOCKED",
         "documentation_boundary_present": False,
@@ -86,6 +101,7 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
         rollback_readiness_summary={"status": "blocked_for_future_gate"},
         canary_readiness_summary={"status": "blocked_for_future_gate"},
         apply_gate_readiness_summary=apply_gate_readiness_summary,
+        live_snapshot_scaffold_summary=live_snapshot_scaffold_summary,
         abuse_requirement_summary={"state_flow": "normal -> over_tracking -> over_grace -> hard", "sustained_hardening_seconds": 3600, "preserved": True},
         safety_flags=safety_flags,
         risks=risks,

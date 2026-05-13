@@ -18,6 +18,21 @@ def test_gate_review_core_flags_and_decision_states() -> None:
     assert report.final_decision == "BLOCKED"
     assert report.apply_gate_readiness_summary["final_decision"] == "BLOCKED"
     assert set(report.allowed_decision_states) == {"BLOCKED", "READY_FOR_FUTURE_GATE_REVIEW", "REJECTED_NEEDS_REWORK"}
+    live = report.live_snapshot_scaffold_summary
+    assert live["component"] == "firewall_live_snapshot_scaffold"
+    assert live["final_decision"] == "BLOCKED"
+    assert live["authorization_status"] == "NOT_AUTHORIZED"
+    for key in (
+        "live_firewall_read_executed",
+        "iptables_save_executed",
+        "subprocess_executed",
+        "firewall_mutation",
+        "db_mutation",
+        "customer_nat_changed",
+        "customer_firewall_rules_changed",
+        "production_traffic_changed",
+    ):
+        assert live[key] is False
 
 
 def test_gate_review_risk_ids_and_summary_are_deterministic() -> None:

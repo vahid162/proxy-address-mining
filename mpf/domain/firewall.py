@@ -599,6 +599,7 @@ class FirewallGateReviewReport:
     rollback_readiness_summary: dict[str, Any] = field(default_factory=dict)
     canary_readiness_summary: dict[str, Any] = field(default_factory=dict)
     apply_gate_readiness_summary: dict[str, Any] = field(default_factory=dict)
+    live_snapshot_scaffold_summary: dict[str, Any] = field(default_factory=dict)
     abuse_requirement_summary: dict[str, Any] = field(default_factory=dict)
     safety_flags: dict[str, Any] = field(default_factory=dict)
     risks: list[FirewallGateReviewRiskItem] = field(default_factory=list)
