@@ -25,8 +25,8 @@ ui_allowed: no
 telegram_allowed: no"""
     assert expected in phase_status
     accepted = phase_status.split("## Accepted Server Results", 1)[1].split("## Next Planned Step", 1)[0]
-    assert "Apply Slice 3" not in accepted
-    assert "Next planned Phase 6 implementation sub-step is Apply Slice 4 — Manual Canary Apply Gate Proposal." in phase_status
+    assert "Phase 6 Apply Slice 3-4 — Documentation Boundary Sync" in accepted
+    assert "Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries." in phase_status
 
 
 def test_docs_alignment_and_non_authorization_bundle() -> None:
@@ -42,7 +42,7 @@ def test_docs_alignment_and_non_authorization_bundle() -> None:
     ]
     text = "\n".join(_read(d).lower() for d in docs)
     assert "docs/phase_6_apply_slice_3_controlled_no_customer_harness.md" in _read("docs/INDEX.md").lower()
-    assert "apply slice 4 — manual canary apply gate proposal" in _read("docs/AI_PHASE_6_TASK.md").lower()
+    assert "future dedicated phase 6 apply gate proposal/review" in _read("docs/AI_PHASE_6_TASK.md").lower()
     required = [
         "does not authorize no-customer apply",
         "live firewall read/write/apply/rollback/verify",

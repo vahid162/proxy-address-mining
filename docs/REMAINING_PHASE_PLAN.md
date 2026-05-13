@@ -225,7 +225,7 @@ Phase 6-G does not authorize live apply/read/write, iptables-save, iptables-rest
 
 Phase 6-G is accepted as planning/pre-apply review only (documentation/test-only, non-authorizing).
 Apply Slice 1 is already documented as a planned documentation/test-only boundary and is not accepted by server evidence unless explicitly recorded elsewhere.
-Apply Slice 3 is documented as planned documentation/test-only controlled no-customer harness contract, not accepted by server evidence yet, and not authorized. Apply Slice 4 is documented as planned documentation/test-only manual canary apply gate proposal, not accepted by server evidence yet, and not authorized.
+Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries, not authorized for runtime behavior.
 Future dedicated apply gate remains not accepted and not authorized.
 
 
@@ -268,16 +268,27 @@ B. **Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness*
 - no real adapters or subprocess firewall calls now
 
 C. **Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness**
-- next planned sub-step
-- planned only, documentation/test-only, non-authorizing
-- isolated/non-production only
-- must not authorize no-customer apply or real runtime apply
-- no customer NAT, no customer firewall rules, no production traffic
+- server-synced and accepted only as documentation/test-only boundary
+- not authorized for runtime behavior
+- no no-customer apply
+- no real runtime apply
+- no live firewall read/write/apply
+- no customer NAT
+- no customer firewall rules
+- no production traffic
 
-D. **Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal (documentation/test-only, non-authorizing)**
-- planned only
-- requires time synchronization fixed and evidenced
-- requires separate `docs/PHASE_STATUS.md` update and server evidence before any authorization
+D. **Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal**
+- server-synced and accepted only as documentation/test-only boundary
+- not authorized for runtime behavior
+- no manual canary apply
+- no real runtime apply
+- no live firewall read/write/apply
+- no customer NAT
+- no customer firewall rules
+- no production traffic
+
+Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
+It must be a separate PR and must remain non-authorizing unless docs/PHASE_STATUS.md explicitly accepts a gate later with server evidence.
 
 Phase 6 final acceptance is allowed only after apply/verify/rollback safety is proven.
 Phase 7 starts only after Phase 6 final acceptance.

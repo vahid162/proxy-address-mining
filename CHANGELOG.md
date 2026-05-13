@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.87 - 2026-05-13
+
+- recorded farm5 0.1.86 sync evidence for Slice 3 and Slice 4 documentation/test-only boundaries
+- aligned next planning target to Future Dedicated Phase 6 Apply Gate Proposal/Review
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no dedicated apply gate, manual canary apply, no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, locks, DB apply writes, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior introduced
+- preserved abuse 1h invariant
+
 ## 0.1.86 - 2026-05-13
 
 - added concise Apply Slice 4 manual canary apply gate proposal contract

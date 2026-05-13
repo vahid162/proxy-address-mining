@@ -15,7 +15,7 @@ def test_phase_status_current_state_unchanged_and_slice4_not_accepted() -> None:
     assert "current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5" in phase
     assert "current_working_phase: Phase 6 — Firewall Planner" in phase
     assert "### Phase 6 Apply Slice 4" not in phase
-    assert "Next planned step is server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries." in phase
+    assert "Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review." in phase
 
 
 def test_index_and_ai_task_have_batch_sync_next_step() -> None:
