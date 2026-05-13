@@ -11,6 +11,10 @@ _EXPECTED_CURRENT_STATE = {
     "production_traffic": "none",
     "firewall_apply_allowed": "no",
     "abuse_automation_allowed": "no",
+    "customer_onboarding_allowed": "db_only",
+    "proxy_data_plane_allowed": "limited_runtime_local_only",
+    "ui_allowed": "no",
+    "telegram_allowed": "no",
 }
 
 
@@ -57,6 +61,14 @@ def build_live_snapshot_read_report(cfg: MPFConfig, repo_root: Path | None = Non
                 blockers.append("firewall_apply_allowed is not no")
             if current_state.get("abuse_automation_allowed") != "no":
                 blockers.append("abuse_automation_allowed is not no")
+            if current_state.get("customer_onboarding_allowed") != "db_only":
+                blockers.append("customer_onboarding_allowed is not db_only")
+            if current_state.get("proxy_data_plane_allowed") != "limited_runtime_local_only":
+                blockers.append("proxy_data_plane_allowed is not limited_runtime_local_only")
+            if current_state.get("ui_allowed") != "no":
+                blockers.append("ui_allowed is not no")
+            if current_state.get("telegram_allowed") != "no":
+                blockers.append("telegram_allowed is not no")
 
     apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
     if not apply_mode_plan_only:

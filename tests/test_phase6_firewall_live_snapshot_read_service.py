@@ -50,3 +50,44 @@ def test_live_snapshot_read_service_has_no_forbidden_execution_calls() -> None:
     src = Path("mpf/services/firewall_live_snapshot_read_service.py").read_text(encoding="utf-8")
     for forbidden in ("import subprocess", "os.system", "iptables-save", "iptables-restore"):
         assert forbidden not in src
+
+
+def test_live_snapshot_read_current_state_preserved_is_true() -> None:
+    report = build_live_snapshot_read_report(_cfg())
+    assert report["current_state_preserved"] is True
+
+
+def _with_overrides(tmp_path, **overrides):
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    state = {
+        "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
+        "current_working_phase": "Phase 6 — Firewall Planner",
+        "server_state": "farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active",
+        "production_traffic": "none",
+        "firewall_apply_allowed": "no",
+        "abuse_automation_allowed": "no",
+        "customer_onboarding_allowed": "db_only",
+        "proxy_data_plane_allowed": "limited_runtime_local_only",
+        "ui_allowed": "no",
+        "telegram_allowed": "no",
+    }
+    state.update(overrides)
+    body = "\n".join(f"{k}: {v}" for k, v in state.items())
+    (docs / "PHASE_STATUS.md").write_text(f"## Current State\n```text\n{body}\n```\n", encoding="utf-8")
+    return build_live_snapshot_read_report(_cfg(), repo_root=tmp_path)
+
+
+def test_live_snapshot_read_blocks_when_ui_allowed_yes(tmp_path) -> None:
+    report = _with_overrides(tmp_path, ui_allowed="yes")
+    assert "ui_allowed is not no" in report["blockers"]
+
+
+def test_live_snapshot_read_blocks_when_telegram_allowed_yes(tmp_path) -> None:
+    report = _with_overrides(tmp_path, telegram_allowed="yes")
+    assert "telegram_allowed is not no" in report["blockers"]
+
+
+def test_live_snapshot_read_blocks_when_proxy_data_plane_changed(tmp_path) -> None:
+    report = _with_overrides(tmp_path, proxy_data_plane_allowed="runtime_full")
+    assert "proxy_data_plane_allowed is not limited_runtime_local_only" in report["blockers"]
