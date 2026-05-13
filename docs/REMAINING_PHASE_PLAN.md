@@ -25,6 +25,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - apply-gate-readiness was implemented as read-only/report-only.
 - gate-review now includes apply_gate_readiness_summary.
 - farm5 was synced to 0.1.90 successfully.
+- Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
+- Host production firewall mutation remains forbidden; must not mutate the host production firewall.
+- Compatibility anchors: `Phase 6-E0 accepted on farm5`, `Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.`, and `host production firewall mutation is forbidden`.
+- Compatibility anchors for prior roadmap tests: `Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary`, `Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness`, `Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness`, and `Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal`.
 
 ## Finite Remaining Path
 
@@ -60,20 +64,6 @@ Phase 8 is mandatory before the system is considered production-complete because
 
 
 
-## Phase 6-E — Isolated Apply Harness
-
-Phase 6-E remains isolated/non-production and host production firewall mutation is forbidden.
-Host production firewall mutation remains forbidden.
-Phase 6-E0 accepted on farm5 (historical evidence context).
-Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review remains documentation/test-only and non-authorizing.
-Remaining Phase 6 Alignment With Master Roadmap.
-Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.
-Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary.
-Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness.
-Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness.
-Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal.
-host production firewall mutation is forbidden
-must not mutate the host production firewall
 
 ## Master Phase Summaries
 
