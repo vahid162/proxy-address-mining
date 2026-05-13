@@ -118,7 +118,6 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
         "abuse_automation_allowed_runtime": False,
         "ui_allowed_runtime": False,
         "telegram_allowed_runtime": False,
-        "restore_lock_record_gate_present": True,
         "restore_lock_record_readiness_present": True,
         "restore_lock_record_readiness_authorization_status": restore_readiness_report["authorization_status"],
         "restore_lock_record_readiness_final_decision": restore_readiness_report["final_decision"],
