@@ -21,7 +21,7 @@ telegram_allowed: no
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Next Planned Step: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. Future Dedicated Phase 6 Apply Gate Proposal/Review is documented as proposal/review only. It is documentation/test-only and non-authorizing. Future dedicated Phase 6 apply gate remains not accepted and not authorized. No live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Next planning target: Future Phase 6 Live Snapshot Read Gate proposal. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The proposal is non-authorizing until explicitly accepted in `docs/PHASE_STATUS.md`. No live firewall read is authorized by this PR. No iptables-save is authorized by this PR. No apply/restore/customer NAT/customer firewall rules/production traffic is authorized.
 
 ## Accepted Server Results
 
@@ -413,6 +413,45 @@ no MPF/customer IPv6 firewall references
 no customer NAT redirects
 accepted limited runtime listeners remain local-only
 Slice 1 and Slice 2 are accepted only as documentation/test-only readiness boundaries
+no live firewall read/write/apply/rollback/verify
+no iptables-save or iptables-restore
+no real adapters or subprocess firewall calls
+no restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations
+no customer NAT/customer firewall rules
+no production traffic
+no usage automation
+no abuse automation
+no UI
+no Telegram
+```
+
+### Phase 6 Apply Gate Readiness Integration — Server Sync
+
+```text
+version accepted on farm5: 0.1.90
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260513T095401Z
+pytest with venv during sync: 511 passed
+current phase safety gate: OK
+source aligned with GitHub zip: OK
+mpf --version: 0.1.90
+mpf config validate: OK
+mpf doctor: OK
+mpf db status: OK
+mpf proxy doctor final_verdict: OK
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no MPF/customer IPv4 firewall references
+no MPF/customer IPv6 firewall references
+no customer NAT redirects
+accepted limited runtime listeners remain local-only
+v2rayA UI listener: 127.0.0.1:2015
+BTC backend listener: 127.0.0.1:60010
+mpf firewall apply-gate-readiness remains read-only/report-only and BLOCKED
+mpf firewall gate-review includes apply_gate_readiness_summary and remains BLOCKED
 no live firewall read/write/apply/rollback/verify
 no iptables-save or iptables-restore
 no real adapters or subprocess firewall calls

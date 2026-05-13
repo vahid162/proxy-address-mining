@@ -1,12 +1,12 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task after Phase 6-G acceptance evidence; future dedicated apply gate remains not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness after 0.1.90 sync; live gates remain not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
-## Current Gate
+Current note: After 0.1.90, apply-gate-readiness and gate-review are read-only/report-only and remain BLOCKED. The next planning target is a separate Future Phase 6 Live Snapshot Read Gate proposal. It is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
 
-Historical compatibility note: Phase 6-F was accepted before Phase 6-G acceptance; this note is historical only and non-authorizing.
+## Current Gate
 
 Authoritative source:
 
@@ -82,12 +82,19 @@ Phase 6-D1 is documentation/test-only and does not authorize live apply. Phase 6
 
 Required boundary statements:
 
-- live firewall reads remain forbidden now.
-- live firewall writes remain forbidden now.
-- iptables-save remains forbidden now.
 - iptables-restore remains forbidden now.
-- customer NAT/customer firewall rules remain forbidden now.
-- no lock acquisition, restore point write, DB apply write, live verify, or live rollback is allowed.
+- iptables-save remains forbidden now.
+- live firewall writes remain forbidden now.
+- live firewall reads remain forbidden now.
+- no live firewall read before explicit read gate.
+- no iptables-save before explicit read gate.
+- no live firewall write/apply/rollback/verify before explicit apply gate.
+- no iptables-restore before explicit apply gate.
+- no customer NAT/customer firewall rules.
+- no production traffic.
+- no usage automation.
+- no abuse automation before Phase 8.
+- abuse 1h invariant is preserved (normal -> over_tracking -> over_grace -> hard).
 
 ## Allowed Work Now
 
