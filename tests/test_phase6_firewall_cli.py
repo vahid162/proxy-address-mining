@@ -667,7 +667,7 @@ def test_firewall_live_snapshot_readiness_human_output() -> None:
     res = RUNNER.invoke(app, ["firewall", "live-snapshot-readiness", "--config", str(example_config_path())])
     assert res.exit_code == 0
     assert "component: firewall_live_snapshot_read" in res.output
-    assert "authorization_status: NOT_AUTHORIZED" in res.output
+    assert "authorization_status: AUTHORIZED_READ_ONLY" in res.output
 
 
 def test_firewall_live_snapshot_readiness_json_output() -> None:
@@ -685,3 +685,32 @@ def test_firewall_live_snapshot_readiness_invalid_output_nonzero() -> None:
 def test_firewall_live_snapshot_readiness_does_not_require_root() -> None:
     res = RUNNER.invoke(app, ["firewall", "live-snapshot-readiness", "--config", str(example_config_path())])
     assert res.exit_code == 0
+
+
+def test_firewall_live_snapshot_read_no_execute_does_not_run_subprocess(monkeypatch) -> None:
+    import subprocess
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("no subprocess")))
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-read", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "subprocess_executed: false" in res.output
+
+
+def test_firewall_live_snapshot_read_execute_runs_iptables_save(monkeypatch) -> None:
+    import subprocess
+    calls = {}
+    def _run(args, **kwargs):
+        calls["args"] = args
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="*filter\n:INPUT ACCEPT [0:0]\nCOMMIT\n", stderr="")
+    monkeypatch.setattr(subprocess, "run", _run)
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-read", "--config", str(example_config_path()), "--execute", "--output", "json"])
+    assert res.exit_code == 0
+    assert calls["args"] == ["iptables-save"]
+    assert '"final_decision": "READ_ONLY_SNAPSHOT_COLLECTED"' in res.output
+
+
+def test_firewall_live_snapshot_read_execute_empty_stdout_fails_closed(monkeypatch) -> None:
+    import subprocess
+    monkeypatch.setattr(subprocess, "run", lambda args, **kwargs: subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr=""))
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-read", "--config", str(example_config_path()), "--execute"])
+    assert res.exit_code == 1
+    assert "FAILED_READ_ONLY_SNAPSHOT" in res.output

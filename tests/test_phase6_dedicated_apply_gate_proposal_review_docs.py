@@ -33,6 +33,7 @@ customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
 ```
 """
     assert expected_current_state in phase_status
