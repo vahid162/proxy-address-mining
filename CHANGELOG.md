@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.83 - 2026-05-12
+
+- added Apply Slice 2 restore point, lock, and DB apply record readiness boundary documentation
+- indexed Apply Slice 2 document
+- aligned Phase 6 next planned sub-step wording to Apply Slice 2
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations introduced
+- confirmed no live firewall read/write/apply/rollback/verify behavior introduced
+- confirmed no iptables-save, iptables-restore, real adapters, subprocess firewall calls, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior introduced
+- preserved abuse 1h invariant
+
 ## 0.1.82 - 2026-05-12
 
 - added Apply Slice 1 live snapshot readiness boundary documentation

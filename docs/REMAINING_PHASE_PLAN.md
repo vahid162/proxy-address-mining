@@ -224,7 +224,8 @@ Phase 6-G does not authorize live apply/read/write, iptables-save, iptables-rest
 
 
 Phase 6-G is accepted as planning/pre-apply review only (documentation/test-only, non-authorizing).
-Next planned implementation sub-step is Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary (planned, documentation/test-only, non-authorizing).
+Apply Slice 1 is already documented as a planned documentation/test-only boundary and is not accepted by server evidence unless explicitly recorded elsewhere.
+Next planned implementation sub-step is Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned, documentation/test-only, non-authorizing).
 Future dedicated apply gate remains not accepted and not authorized.
 
 
@@ -257,9 +258,16 @@ A. **Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary**
 - no restore point or lock now
 
 B. **Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness**
-- planned only
-- may define/prepare contracts and tests
-- does not write DB restore points, locks, or apply records now
+- current planned documentation/test-only readiness boundary
+- not accepted yet
+- not authorized
+- no restore point writes now
+- no lock acquisition now
+- no DB apply writes now
+- no migrations now
+- no live firewall read/write/apply now
+- no iptables-save or iptables-restore now
+- no real adapters or subprocess firewall calls now
 
 C. **Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness**
 - planned only
