@@ -586,7 +586,32 @@ This server result proves only the explicitly gated read-only `iptables-save` sn
 No `iptables-restore` is authorized.
 No firewall write, apply, rollback, restore point write, lock acquisition, DB apply write, DB apply record, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 Apply and gate-review final decisions remain BLOCKED.
-The next implementation target is restore point + lock + DB apply record readiness, still without customer NAT/customer firewall rules.
+The next implementation target is separate explicit restore point + lock + DB apply record gate proposal/acceptance boundary, still without customer NAT/customer firewall rules.
+
+### Phase 6 Restore/Lock/DB Apply Record Readiness — Server Sync
+
+```text
+version accepted on farm5: 0.1.90
+sync: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip (backup: /var/backups/mpf/source-before-zip-sync-20260513T182123Z)
+pytest (venv during sync): 544 passed in 12.13s
+source aligned with GitHub zip: OK; current phase safety gate: OK; mpf --version: 0.1.90
+mpf checks: config validate OK; doctor OK; db status OK; proxy doctor final_verdict OK
+runtime/gates: firewall.apply_mode=plan_only; proxy.runtime_activation_allowed=false; production_traffic=none; firewall_apply_allowed=no; abuse_automation_allowed=no
+runtime safety: no MPF/customer IPv4/IPv6 firewall refs; no customer NAT redirects; listeners local-only (v2rayA 127.0.0.1:2015, BTC backend 127.0.0.1:60010)
+restore-lock-record-readiness: final_decision=BLOCKED; authorization_status=NOT_AUTHORIZED_FOR_WRITES; inspection_only=true; report_only=true
+actions executed: restore_point_write=false; lock_acquired=false; db_apply_record_write=false; iptables_restore_executed=false; customer_nat_changed=false; customer_firewall_rules_changed=false
+apply-gate-readiness: final_decision=BLOCKED
+gate-review: final_decision=BLOCKED
+time_sync_required_before_future_write/production/usage/abuse_gate=true
+```
+
+This server result proves only the report-only restore point + lock + DB apply record readiness surface.
+No restore point write is authorized.
+No lock acquisition is authorized.
+No DB apply write or DB apply record is authorized.
+No firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply and gate-review final decisions remain BLOCKED.
+The next implementation target is a separate explicit restore point + lock + DB apply record gate proposal/acceptance boundary, still without customer NAT/customer firewall rules.
 
 ## Current Server Warning
 
@@ -654,7 +679,7 @@ Phase 6-G does not authorize host production firewall mutation, live firewall re
 - The explicitly gated read-only `iptables-save` snapshot path is authorized and has successful farm5 evidence.
 - No firewall write/apply/rollback/verify, `iptables-restore`, restore point write, lock acquisition, DB apply write/record, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 - Apply and gate-review final decisions remain BLOCKED.
-- Next implementation target: restore point + lock + DB apply record readiness, still without customer NAT/customer firewall rules.
+- Next implementation target: separate explicit restore point + lock + DB apply record gate proposal/acceptance boundary, still without customer NAT/customer firewall rules.
 - Historical/reference context only: Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
 - Future Dedicated Phase 6 Apply Gate Proposal/Review remains historical/reference context only.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
