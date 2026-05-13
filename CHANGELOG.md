@@ -1,14 +1,11 @@
 # Changelog
 
-## 0.1.90 - 2026-05-13
-
-- fixed apply-gate readiness to read actual proxy.runtime_activation_allowed from config and add a fail-closed blocker when true
-
 ## 0.1.89 - 2026-05-13
 
 - added non-authorizing Phase 6 apply gate readiness report
 - exposed a read-only firewall apply-gate readiness CLI command
 - report remains BLOCKED under the current Phase 5 accepted / Phase 6 working gate
+- readiness report reads actual proxy.runtime_activation_allowed from config and adds a fail-closed blocker when true
 - confirmed no live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, locks, DB writes, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior introduced
 - preserved abuse 1h invariant
 
