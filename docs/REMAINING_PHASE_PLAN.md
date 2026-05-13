@@ -225,7 +225,7 @@ Phase 6-G does not authorize live apply/read/write, iptables-save, iptables-rest
 
 Phase 6-G is accepted as planning/pre-apply review only (documentation/test-only, non-authorizing).
 Apply Slice 1 is already documented as a planned documentation/test-only boundary and is not accepted by server evidence unless explicitly recorded elsewhere.
-Next planned implementation sub-step is Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness (planned, documentation/test-only, non-authorizing).
+Apply Slice 3 is documented as planned documentation/test-only controlled no-customer harness contract, not accepted by server evidence yet, and not authorized. Next planned implementation sub-step is Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal (planned, documentation/test-only, non-authorizing).
 Future dedicated apply gate remains not accepted and not authorized.
 
 

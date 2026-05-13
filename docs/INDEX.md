@@ -32,7 +32,8 @@ Read these first:
 22. `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
 23. `docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md` (planned readiness boundary, documentation/test-only, non-authorizing)
 24. `docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md` (planned readiness boundary, documentation/test-only, non-authorizing)
-25. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
+25. `docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md` (planned contract, documentation/test-only, non-authorizing)
+26. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -77,7 +78,7 @@ Current Phase 6 step:
 ```text
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-Next planned implementation sub-step is Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness (planned, documentation/test-only, non-authorizing).
+Apply Slice 3 is documented as planned documentation/test-only controlled no-customer harness contract, not accepted by server evidence yet, and not authorized. Next planned implementation sub-step is Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal (planned, documentation/test-only, non-authorizing).
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 ```
 
@@ -470,3 +471,6 @@ Phase 6-C is accepted as offline apply-gate readiness/review only and does not a
 
 
 Documentation Summary: docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md defines the planned Phase 6 Apply Slice 2 restore point, lock, and DB apply record readiness boundary only. It is documentation/test-only and non-authorizing. It does not authorize restore point writes, lock acquisition, DB apply writes, DB apply records, migrations, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+
+Documentation Summary: docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md defines the planned controlled no-customer harness contract only (documentation/test-only, non-authorizing). It does not authorize no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB apply writes/records, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
