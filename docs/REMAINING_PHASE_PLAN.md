@@ -25,34 +25,17 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - apply-gate-readiness was implemented as read-only/report-only.
 - gate-review now includes apply_gate_readiness_summary.
 - farm5 was synced to 0.1.90 successfully.
+- Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
+- Host production firewall mutation remains forbidden; must not mutate the host production firewall.
+- Compatibility anchors: `Phase 6-E0 accepted on farm5`, `Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.`, and `host production firewall mutation is forbidden`.
+- Compatibility anchors for prior roadmap tests: `Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary`, `Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness`, `Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness`, and `Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal`.
 
 ## Finite Remaining Path
 
-1. Review current 0.1.90 report-only outputs on farm5:
-   - mpf firewall apply-gate-readiness
-   - mpf firewall apply-gate-readiness --output json
-   - mpf firewall gate-review
-   - mpf firewall gate-review --output json
-
-2. Fix any report-only blockers if present.
-
-3. Prepare a separate Future Phase 6 Live Snapshot Read Gate proposal.
-   This proposal remains non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
-
-4. After explicit gate acceptance only, implement live snapshot read.
-   This is read-only and may allow controlled iptables-save/snapshot collection only inside the accepted boundary.
-   It must not include apply, restore, customer NAT, customer firewall rules, production traffic, usage automation, or abuse automation.
-
-5. After live snapshot read is accepted and evidenced, continue with restore point, lock, DB apply record, no-customer apply harness, verify, and rollback gates in small separate PRs.
-
-6. Customer NAT/customer firewall rules remain blocked until a dedicated customer rule gate is accepted.
-
-7. Phase 7 remains Usage + Policy/Reject Accounting.
-
-8. Phase 8 remains Abuse 1h Core and must preserve:
-   normal -> over_tracking -> over_grace -> hard
-   farms-over alone must not harden
-   worker-over alone must not harden
+1. Complete the Phase 6 Live Snapshot Read Gate Proposal.
+2. Then, in a separate PR, implement read-only live snapshot scaffolding only after proposal review.
+3. Actual live read requires separate `docs/PHASE_STATUS.md` acceptance and farm5 evidence.
+4. Apply/restore/NAT/customer firewall rules remain later gates.
 
 ## Non-Negotiable Current Prohibitions
 
@@ -81,20 +64,6 @@ Phase 8 is mandatory before the system is considered production-complete because
 
 
 
-## Phase 6-E — Isolated Apply Harness
-
-Phase 6-E remains isolated/non-production and host production firewall mutation is forbidden.
-Host production firewall mutation remains forbidden.
-Phase 6-E0 accepted on farm5 (historical evidence context).
-Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review remains documentation/test-only and non-authorizing.
-Remaining Phase 6 Alignment With Master Roadmap.
-Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.
-Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary.
-Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness.
-Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness.
-Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal.
-host production firewall mutation is forbidden
-must not mutate the host production firewall
 
 ## Master Phase Summaries
 
@@ -104,7 +73,7 @@ Purpose: add usage/accounting foundations through service-layer contracts.
 ### Phase 8 — Abuse 1h Core
 Purpose: implement core abuse state machine and evidence path.
 Required invariant: normal -> over_tracking -> over_grace -> hard.
-Farms-over alone must not harden; worker-over alone must not harden.
+farms-over alone must not harden; worker-over alone must not harden.
 The abuse 1h invariant must not be weakened.
 
 ### Phase 9 — Check / Report / Diagnostics

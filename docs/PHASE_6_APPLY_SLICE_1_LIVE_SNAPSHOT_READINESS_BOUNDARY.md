@@ -1,33 +1,28 @@
-# Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary
+# Phase 6 Live Snapshot Read Gate Proposal
 
-Status: planned, documentation/test-only, non-authorizing
+Status: planned, documentation/test-only, non-authorizing (proposal only; non-authorizing)
 
-## Purpose
+## A. Purpose
 
-Define the planned readiness boundary for a **future** live firewall snapshot read gate, without authorizing or implementing any live firewall reads in this step.
+Define the first future live read-only boundary needed before any apply/verify/rollback work.
 
-## Scope
+## B. Non-Authorization
 
-This step is limited to documentation/test-only planning contracts and regression checks.
-
-## Non-Authorization Statement
-
-This document is planned only, documentation/test-only, and non-authorizing.
+This PR does not authorize live firewall read or `iptables-save`. It only defines the future gate proposal.
 
 It does **not** authorize:
 
 - live firewall read
 - `iptables-save`
-- live firewall write
-- live firewall apply
-- live rollback
-- live verify
+- firewall write
 - `iptables-restore`
-- real iptables adapter
-- subprocess firewall calls
-- DB apply writes
+- apply
+- rollback
+- verify that mutates state
+- restore point write
 - lock acquisition
-- restore point writes
+- DB apply write
+- DB apply record
 - customer NAT redirects
 - customer firewall rules
 - production traffic
@@ -36,103 +31,67 @@ It does **not** authorize:
 - UI
 - Telegram
 
-## Current Gate Snapshot
+## C. Future Gate Entry Criteria
 
-Authoritative source:
+A future live snapshot read gate may be proposed only when all criteria are met:
 
-```text
-docs/PHASE_STATUS.md
-```
-
-Current state remains:
-
-```text
-current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
-current_working_phase: Phase 6 — Firewall Planner
-server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-customer_onboarding_allowed: db_only
-proxy_data_plane_allowed: limited_runtime_local_only
-ui_allowed: no
-telegram_allowed: no
-```
-
-## Why Live Snapshot Readiness Exists
-
-A future dedicated apply gate may require trusted live snapshot inputs. This slice defines safety/readiness conditions before any authorization can be proposed.
-
-## Future Live Snapshot Entry Criteria
-
-Before any future live snapshot read can be proposed, all of the following must be evidenced:
-
-- separate accepted gate in `docs/PHASE_STATUS.md`
+- separate acceptance in `docs/PHASE_STATUS.md`
 - explicit operator approval
-- time synchronization fixed and evidenced
-- `python -m pytest -q` passes
-- `bash scripts/verify_current_phase_gate.sh` passes
-- `mpf --version` matches repository version
-- `mpf phase-status` matches `docs/PHASE_STATUS.md` Current State
+- farm5 evidence included
+- `python -m pytest -q` passing
+- current phase safety gate OK
 - `mpf config validate` OK
 - `mpf doctor` OK
 - `mpf db status` OK
 - `mpf proxy doctor` OK
+- `firewall.apply_mode` remains `plan_only` before authorization
+- `proxy.runtime_activation_allowed` remains `false`
+- `production_traffic` remains `none`
+- no customer NAT redirects
+- no customer firewall rules
+- no MPF/customer firewall references
 - backend external exposure = NO
 - backend internal reachability = OK
-- no customer NAT redirects before gate
-- no customer firewall rules before gate
-- no MPF/customer firewall references before gate
-- `firewall.apply_mode` remains `plan_only` until explicit accepted gate changes it
-- `proxy.runtime_activation_allowed` remains `false` until explicit accepted gate changes it
-- production traffic remains none
-- dry-run/offline snapshot parser tests pass
-- clear failure behavior if live snapshot is unavailable
-- no fallback to empty snapshot if live read fails
-- no fallback to guessed firewall state if live read fails
+- time synchronization fixed, or explicitly treated as a blocker for production-dependent phases
 
-## Required Preconditions Before Any Future Live Snapshot Read
+## D. Future Allowed Operation If Accepted Later
 
-Any future live snapshot read proposal must be introduced only in a separate, explicitly accepted gate with separate evidence and explicit gate-value updates.
+If and only if a later gate is accepted in `docs/PHASE_STATUS.md`, the allowed boundary is:
 
-## Operator Approval Requirements
+- one explicit read-only live firewall snapshot operation
+- controlled read of live firewall state through an approved adapter
+- `iptables-save` only if explicitly accepted later in `docs/PHASE_STATUS.md`
+- no parsing fallback to empty firewall
+- no guessed firewall state
+- no mutation of firewall/runtime/DB state
+- output must be human-readable and JSON
+- errors must be fail-closed
+- live snapshot failure must not be treated as clean/empty firewall
+- result feeds planner/diff only
+- final decision remains BLOCKED for apply until a later apply gate
 
-Future authorization proposal must include named operator approvers, dated approvals, and explicit sign-off on boundary constraints.
+## E. Stop Conditions
 
-## Time Synchronization Requirement
+Stop and block if any of the following occurs:
 
-Time synchronization must be fixed and evidenced before any future live snapshot read authorization can be proposed.
+- Current State changes unexpectedly
+- `firewall_apply_allowed` becomes `yes`
+- `production_traffic` is enabled
+- live write/apply/rollback/verify appears
+- `iptables-restore` appears
+- customer NAT/customer firewall rules appear
+- backend external exposure appears
+- backend internal reachability breaks
+- tests fail
+- operator evidence is missing
 
-## Backend Exposure Preconditions
+## F. Next Step After This Proposal
 
-Backend external exposure must remain `NO` and backend internal reachability must remain `OK`.
+After this proposal is merged, the next implementation PR may add read-only live snapshot service/adapter scaffolding only if `docs/PHASE_STATUS.md` remains non-authorizing and the implementation is fail-closed. It must still not execute live read unless a later gate explicitly accepts it.
 
-## Local-only Runtime Preconditions
+## G. Abuse Invariant
 
-Runtime exposure must remain local-only under current gate constraints unless a separate accepted gate changes that policy.
-
-## Customer/NAT Preconditions
-
-No customer NAT redirects and no customer firewall rules may exist before future live snapshot read authorization.
-
-## Safety Stop Conditions
-
-Stop and block future authorization proposals if gate values are changed without explicit acceptance evidence, if time sync remains unconfirmed, if backend exposure is unsafe, or if any non-authorized behavior is introduced.
-
-## Required Evidence Before Any Future Authorization
-
-Required evidence must include gate verification outputs, version alignment outputs, doctor/config/db/proxy checks, backend exposure/reachability evidence, no NAT/customer firewall evidence, and production-traffic-none evidence.
-
-## Failure Behavior For Future Live Snapshot Read
-
-- failure to read live snapshot must block apply
-- failure must be reported clearly to operator
-- failure must not be treated as an empty firewall
-- failure must not be treated as a clean firewall
-- failure must not silently continue to restore/lock/apply
-- no destructive cleanup may run after snapshot failure
-
-## Abuse Invariant Preservation
+Keep unchanged:
 
 - `normal -> over_tracking -> over_grace -> hard`
 - sustained miner-abuse hardens after about 3600 seconds
@@ -141,19 +100,3 @@ Required evidence must include gate verification outputs, version alignment outp
 - all active customers in enabled lanes must be covered
 - no silent skip is allowed
 - abuse automation remains forbidden until Phase 8
-
-## Boundary With Apply Slice 2
-
-Apply Slice 1 only defines future live snapshot readiness.
-Apply Slice 2 may later define restore point, lock, and DB apply record readiness.
-Apply Slice 1 must not create restore points, acquire locks, or write DB apply records.
-
-## Acceptance Criteria For This Documentation Step
-
-- document exists and is indexed
-- status remains planned/documentation-test-only/non-authorizing
-- `docs/PHASE_STATUS.md` Current State remains unchanged
-- next planned step wording points to Apply Slice 1 readiness boundary
-- no live firewall read or `iptables-save` authorization is introduced
-- no runtime/firewall/DB mutation behavior is introduced
-- abuse invariant remains explicit and unchanged
