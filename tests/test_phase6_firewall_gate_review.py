@@ -16,6 +16,7 @@ def test_gate_review_core_flags_and_decision_states() -> None:
     assert report.live_apply_allowed is False
     assert report.applyable is False
     assert report.final_decision == "BLOCKED"
+    assert report.apply_gate_readiness_summary["final_decision"] == "BLOCKED"
     assert set(report.allowed_decision_states) == {"BLOCKED", "READY_FOR_FUTURE_GATE_REVIEW", "REJECTED_NEEDS_REWORK"}
 
 

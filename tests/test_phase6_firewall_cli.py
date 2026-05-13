@@ -588,6 +588,8 @@ def test_firewall_gate_review_human_default_db(monkeypatch) -> None:
     assert res.exit_code == 0
     assert "MPF firewall gate review (offline)" in res.output
     assert "final_decision: BLOCKED" in res.output
+    assert "apply_gate_readiness: summary" in res.output
+    assert "  final_decision: BLOCKED" in res.output
 
 
 def test_firewall_gate_review_json_flags(monkeypatch) -> None:
@@ -598,6 +600,8 @@ def test_firewall_gate_review_json_flags(monkeypatch) -> None:
     assert '"artifact_only": true' in res.output
     assert '"live_apply_allowed": false' in res.output
     assert '"applyable": false' in res.output
+    assert '"final_decision": "BLOCKED"' in res.output
+    assert '"apply_gate_readiness_summary": {' in res.output
     assert '"final_decision": "BLOCKED"' in res.output
 
 

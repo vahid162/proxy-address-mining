@@ -13,6 +13,7 @@ from mpf.domain.customer_lifecycle import CustomerLifecycleInput
 from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, CustomerDisableRequest, CustomerPolicyInput, CustomerRenewRequest, CustomerSetIpsRequest, CustomerUpdateRequest
 from mpf.domain.health import HealthReport
 from mpf.services import (
+    firewall_apply_gate_readiness_service,
     config_service,
     customer_mutation_service,
     customer_read_service,
@@ -867,7 +868,8 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
         typer.echo(f"ERROR: {exc}")
         raise typer.Exit(code=1)
     evidence = firewall_evidence_service.build_evidence_bundle_report(result, rollback_artifact=rollback_artifact)
-    report = firewall_gate_review_service.build_gate_review_report(evidence=evidence)
+    apply_gate_readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
+    report = firewall_gate_review_service.build_gate_review_report(evidence=evidence, apply_gate_readiness=apply_gate_readiness)
     if output == "json":
         typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
         return
@@ -883,6 +885,16 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"checklist_summary: total={cs['total']} pass={cs['pass']} warn={cs['warn']} blocked={cs['blocked']}")
     typer.echo(f"rollback_readiness: {report.rollback_readiness_summary['status']}")
     typer.echo(f"canary_readiness: {report.canary_readiness_summary['status']}")
+    agr = report.apply_gate_readiness_summary
+    typer.echo("apply_gate_readiness: summary")
+    typer.echo(f"  final_decision: {agr.get('final_decision', 'BLOCKED')}")
+    typer.echo(f"  documentation_boundary_present: {str(agr.get('documentation_boundary_present', False)).lower()}")
+    typer.echo(f"  farm5_0_1_88_sync_evidence_present: {str(agr.get('farm5_0_1_88_sync_evidence_present', False)).lower()}")
+    typer.echo(f"  current_state_preserved: {str(agr.get('current_state_preserved', False)).lower()}")
+    typer.echo(f"  apply_mode_plan_only: {str(agr.get('apply_mode_plan_only', False)).lower()}")
+    typer.echo(f"  runtime_activation_allowed: {str(agr.get('runtime_activation_allowed', False)).lower()}")
+    typer.echo(f"  blockers: {len(agr.get('blockers', []))}")
+    typer.echo(f"  missing_requirements: {len(agr.get('missing_requirements', []))}")
     typer.echo("abuse_requirement: preserved")
     typer.echo(f"firewall_change: {report.safety_flags['firewall_change']}")
     typer.echo(f"nat_change: {report.safety_flags['nat_change']}")

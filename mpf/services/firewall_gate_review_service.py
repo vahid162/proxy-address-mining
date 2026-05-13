@@ -33,7 +33,7 @@ def _risk_rows() -> list[FirewallGateReviewRiskItem]:
     ]
 
 
-def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None) -> FirewallGateReviewReport:
+def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None) -> FirewallGateReviewReport:
     if evidence is None:
         if plan is None:
             raise ValueError("plan or evidence is required")
@@ -67,6 +67,17 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
     safety_flags = dict(evidence.safety_flags)
     safety_flags.update({"restore_point_written": False, "rollback_written": False})
 
+    apply_gate_readiness_summary = apply_gate_readiness or {
+        "final_decision": "BLOCKED",
+        "documentation_boundary_present": False,
+        "farm5_0_1_88_sync_evidence_present": False,
+        "current_state_preserved": False,
+        "apply_mode_plan_only": True,
+        "runtime_activation_allowed": False,
+        "blockers": ["apply_gate_readiness_not_provided"],
+        "missing_requirements": [],
+    }
+
     return FirewallGateReviewReport(
         phase_gate_summary={"firewall_apply_allowed": "no", "production_traffic": "none", "abuse_automation_allowed": "no"},
         evidence_summary={"present": True, "evidence_version": evidence.evidence_version, "final_verdict": evidence.final_verdict, "planner_customer_source": evidence.planner_customer_source, "db_customer_input_loaded": evidence.db_customer_input_loaded},
@@ -74,6 +85,7 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
         checklist_summary=checklist_summary,
         rollback_readiness_summary={"status": "blocked_for_future_gate"},
         canary_readiness_summary={"status": "blocked_for_future_gate"},
+        apply_gate_readiness_summary=apply_gate_readiness_summary,
         abuse_requirement_summary={"state_flow": "normal -> over_tracking -> over_grace -> hard", "sustained_hardening_seconds": 3600, "preserved": True},
         safety_flags=safety_flags,
         risks=risks,
