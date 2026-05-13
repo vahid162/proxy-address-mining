@@ -607,7 +607,8 @@ Phase 6-G does not authorize host production firewall mutation, live firewall re
 - Next planning target is Future Phase 6 Live Snapshot Read Gate proposal.
 - This proposal is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
 - No live firewall read, no iptables-save, no apply, no restore, no customer NAT/customer firewall rules, and no production traffic are authorized.
-- Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
+- Historical/reference context only: Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
+- Future Dedicated Phase 6 Apply Gate Proposal/Review remains historical/reference context only.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 - No dedicated apply gate, manual canary apply, no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 - Live apply remains forbidden until a dedicated apply gate is explicitly accepted.

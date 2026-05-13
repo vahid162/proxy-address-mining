@@ -13,13 +13,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - mpf firewall apply-gate-readiness is read-only/report-only and remains BLOCKED.
 - mpf firewall gate-review includes apply_gate_readiness_summary and remains BLOCKED.
 - Production traffic, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, customer NAT/customer firewall rules, usage automation, abuse automation, UI, and Telegram remain unauthorized.
+- Host production firewall mutation remains forbidden.
 
 ## Completed Phase 6 Safety Sub-Steps
 
 - Phase 6-C through Phase 6-H established offline/readiness/boundary/review contracts.
 - Apply Slice 1 and Slice 2 were server-synced as documentation/test-only readiness boundaries.
 - Apply Slice 3 and Slice 4 were server-synced as documentation/test-only boundaries.
-- Future Dedicated Phase 6 Apply Gate Proposal/Review was documented as non-authorizing.
+- Future Dedicated Phase 6 Apply Gate Proposal/Review was documented as non-authorizing historical/reference context.
 - farm5 sync evidence for 0.1.88 was recorded.
 - apply-gate-readiness was implemented as read-only/report-only.
 - gate-review now includes apply_gate_readiness_summary.
@@ -50,6 +51,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 8. Phase 8 remains Abuse 1h Core and must preserve:
    normal -> over_tracking -> over_grace -> hard
+   farms-over alone must not harden
+   worker-over alone must not harden
 
 ## Non-Negotiable Current Prohibitions
 
@@ -60,6 +63,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - no iptables-restore until a dedicated apply gate is accepted
 - no real firewall adapter or subprocess firewall calls
 - no restore point writes, lock acquisition, DB apply writes, or migrations
+- no migrations
 - no customer NAT or customer firewall rules
 - no usage automation
 - no abuse automation before Phase 8
@@ -80,12 +84,17 @@ Phase 8 is mandatory before the system is considered production-complete because
 ## Phase 6-E — Isolated Apply Harness
 
 Phase 6-E remains isolated/non-production and host production firewall mutation is forbidden.
-
+Host production firewall mutation remains forbidden.
+Phase 6-E0 accepted on farm5 (historical evidence context).
 Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review remains documentation/test-only and non-authorizing.
-
-Remaining Phase 6 Alignment With Master Roadmap
-
+Remaining Phase 6 Alignment With Master Roadmap.
 Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.
+Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary.
+Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness.
+Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness.
+Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal.
+host production firewall mutation is forbidden
+must not mutate the host production firewall
 
 ## Master Phase Summaries
 
@@ -95,6 +104,8 @@ Purpose: add usage/accounting foundations through service-layer contracts.
 ### Phase 8 — Abuse 1h Core
 Purpose: implement core abuse state machine and evidence path.
 Required invariant: normal -> over_tracking -> over_grace -> hard.
+Farms-over alone must not harden; worker-over alone must not harden.
+The abuse 1h invariant must not be weakened.
 
 ### Phase 9 — Check / Report / Diagnostics
 Purpose: richer operator diagnostics/report surfaces.
@@ -113,22 +124,3 @@ Purpose: staged Telegram integration (notification-first).
 
 ### Phase 14 — Worker Policy Enforcement
 Purpose: implement worker-policy enforcement boundary.
-
-
-Remaining Phase 6 Alignment With Master Roadmap
-
-Phase 6-E0 and Phase 6-E1 must not mutate the host production firewall.
-The abuse 1h invariant must not be weakened.
-
-no migrations
-
-Phase 6-E0 accepted on farm5.
-
-Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary
-Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness
-Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness
-Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal
-
-Phase 8 abuse invariants: farms-over alone must not harden; worker-over alone must not harden.
-
-Host production firewall mutation remains forbidden.
