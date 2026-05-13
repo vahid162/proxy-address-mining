@@ -20,13 +20,13 @@ def test_phase_status_current_state_unchanged():
 
 
 def test_apply_slice1_is_next_planned_not_accepted():
-    assert "Next planned Phase 6 implementation sub-step is Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness." in PHASE_STATUS
+    assert "Apply Slice 1 has been server-synced and accepted only as a documentation/test-only readiness boundary." in PHASE_STATUS
+    assert "Next planned Phase 6 implementation sub-step is Apply Slice 3 — Controlled No-Customer Apply Harness." in PHASE_STATUS
 
 
 def test_index_and_ai_task_reference_apply_slice1():
     assert "docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md" in INDEX
-    assert "Apply Slice 1 — Live Snapshot Readiness Boundary" in AI_TASK
-    assert "planned only, documentation/test-only, non-authorizing" in AI_TASK
+    assert "Slice 1 and Slice 2 are server-synced documentation/test-only readiness boundaries." in AI_TASK
 
 
 def test_no_authorization_claims_in_changed_docs():
@@ -80,8 +80,8 @@ def test_abuse_invariant_and_stale_wording_rejection():
 
 
 def test_readme_and_phase_status_next_step_wording():
-    assert "Apply Slice 2 as the planned documentation/test-only non-authorizing next sub-step" in README
+    assert "Apply Slice 3 as the planned documentation/test-only non-authorizing next sub-step" in README
     assert "with Phase 6-G documentation/test-only non-authorizing next step" not in README
     assert "## Next Planned Step" in PHASE_STATUS
-    assert "Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness" in PHASE_STATUS
+    assert "Apply Slice 3 — Controlled No-Customer Apply Harness" in PHASE_STATUS
     assert "Next planned documentation/test-only step is Phase 6-H" not in PHASE_STATUS

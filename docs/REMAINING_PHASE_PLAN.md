@@ -225,7 +225,7 @@ Phase 6-G does not authorize live apply/read/write, iptables-save, iptables-rest
 
 Phase 6-G is accepted as planning/pre-apply review only (documentation/test-only, non-authorizing).
 Apply Slice 1 is already documented as a planned documentation/test-only boundary and is not accepted by server evidence unless explicitly recorded elsewhere.
-Next planned implementation sub-step is Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned, documentation/test-only, non-authorizing).
+Next planned implementation sub-step is Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness (planned, documentation/test-only, non-authorizing).
 Future dedicated apply gate remains not accepted and not authorized.
 
 
@@ -247,8 +247,7 @@ No further documentation-only Phase 6 sub-step should be added unless it closes 
 ### Finite Remaining Phase 6 Implementation Slices
 
 A. **Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary**
-- planned documentation/test-only readiness boundary
-- not accepted yet
+- server-synced and accepted only as documentation/test-only readiness boundary
 - not authorized
 - no live snapshot read now
 - no `iptables-save` now
@@ -258,8 +257,7 @@ A. **Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary**
 - no restore point or lock now
 
 B. **Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness**
-- current planned documentation/test-only readiness boundary
-- not accepted yet
+- server-synced and accepted only as documentation/test-only readiness boundary
 - not authorized
 - no restore point writes now
 - no lock acquisition now
@@ -270,8 +268,10 @@ B. **Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness*
 - no real adapters or subprocess firewall calls now
 
 C. **Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness**
-- planned only
+- next planned sub-step
+- planned only, documentation/test-only, non-authorizing
 - isolated/non-production only
+- must not authorize no-customer apply or real runtime apply
 - no customer NAT, no customer firewall rules, no production traffic
 
 D. **Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal**
@@ -281,4 +281,3 @@ D. **Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal**
 
 Phase 6 final acceptance is allowed only after apply/verify/rollback safety is proven.
 Phase 7 starts only after Phase 6 final acceptance.
-

@@ -13,18 +13,17 @@ def test_slice2_doc_exists_and_status():
     assert "Status: planned, documentation/test-only, non-authorizing" in t
 
 
-def test_phase_status_current_state_unchanged_and_next_step_slice2():
+def test_phase_status_current_state_unchanged_and_next_step_slice3():
     expected = """current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5\ncurrent_working_phase: Phase 6 — Firewall Planner\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no"""
     assert expected in PHASE_STATUS
-    assert "Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness" in PHASE_STATUS
+    assert "Apply Slice 3 — Controlled No-Customer Apply Harness" in PHASE_STATUS
 
 
 def test_not_accepted_server_results_and_indexing():
     accepted_block = PHASE_STATUS.split("## Accepted Server Results", 1)[1].split("## Next Planned Step", 1)[0]
-    assert "Apply Slice 2" not in accepted_block
-    assert "Apply Slice 1" not in accepted_block
+    assert "Apply Slice 1-2" in accepted_block
     assert "docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md" in INDEX
-    assert "Apply Slice 2" in AI_TASK
+    assert "Slice 1 and Slice 2 are server-synced documentation/test-only readiness boundaries." in AI_TASK
     assert "finite" in REMAINING.lower()
 
 
@@ -36,7 +35,7 @@ def test_non_authorizing_terms_and_abuse_invariant_preserved():
         Path("docs/ROADMAP.md").read_text(),
     ]).lower()
     required = [
-        "no restore point writes", "no lock acquisition", "no db apply writes", "no db apply records",
+        "no restore point writes", "no lock acquisition", "no db apply writes", "db apply record",
         "no migrations", "no live firewall read/write/apply/rollback/verify", "no iptables-save",
         "no iptables-restore", "no real adapters", "no subprocess firewall calls",
         "no customer nat", "no customer firewall rules", "no production traffic",

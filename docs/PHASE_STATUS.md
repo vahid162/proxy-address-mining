@@ -21,7 +21,7 @@ telegram_allowed: no
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Next planned Phase 6 implementation sub-step is Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness. It is planned, documentation/test-only, and non-authorizing.
+Next planned Phase 6 implementation sub-step is Apply Slice 3 — Controlled No-Customer Apply Harness. It is planned, documentation/test-only, and non-authorizing.
 
 ## Accepted Server Results
 
@@ -395,6 +395,36 @@ no restore point write
 no DB apply write
 ```
 
+### Phase 6 Apply Slice 1-2 — Documentation/Readiness Boundary Sync
+
+```text
+version accepted on farm5: 0.1.83
+pytest with venv: 486 passed
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260513T055542Z
+current phase safety gate: OK
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+no MPF/customer IPv4 firewall references
+no MPF/customer IPv6 firewall references
+no customer NAT redirects
+accepted limited runtime listeners remain local-only
+Slice 1 and Slice 2 are accepted only as documentation/test-only readiness boundaries
+no live firewall read/write/apply/rollback/verify
+no iptables-save or iptables-restore
+no real adapters or subprocess firewall calls
+no restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations
+no customer NAT/customer firewall rules
+no production traffic
+no usage automation
+no abuse automation
+no UI
+no Telegram
+```
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -451,13 +481,11 @@ Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is ex
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
 
-- Apply Slice 1 has been documented as planned, documentation/test-only, non-authorizing readiness boundary.
-- Next planned Phase 6 implementation sub-step is Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness.
-- It is planned, documentation/test-only, and non-authorizing.
-- Apply Slice 2 does not authorize restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations.
-- Apply Slice 2 does not authorize live firewall read/write/apply/rollback/verify.
-- Apply Slice 2 does not authorize iptables-save, iptables-restore, real adapters, subprocess firewall calls, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-- Phase 6-G and Phase 6-H are accepted historical safety sub-steps only.
+- Apply Slice 1 has been server-synced and accepted only as a documentation/test-only readiness boundary.
+- Apply Slice 2 has been server-synced and accepted only as a documentation/test-only readiness boundary.
+- Next planned Phase 6 implementation sub-step is Apply Slice 3 — Controlled No-Customer Apply Harness.
+- Apply Slice 3 must remain documentation/test-only and non-authorizing unless a separate explicit gate changes that.
+- Apply Slice 3 must not authorize no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB apply writes, DB apply records, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
 Phase 6-G does not authorize host production firewall mutation, live firewall read/write, live apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, lock acquisition, restore point writes, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
@@ -529,5 +557,4 @@ Phase 6-H reference:
 docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md
 docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 ```
-
 

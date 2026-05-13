@@ -19,7 +19,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); next planned sub-step: Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned only, documentation/test-only, non-authorizing); future dedicated apply gate remains not accepted and not authorized
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); next planned sub-step: Apply Slice 3 — Controlled No-Customer Apply Harness (planned only, documentation/test-only, non-authorizing); future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -357,30 +357,10 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 - Abuse 1h remains Phase 8 and must not be implemented early.
 
 
-## Apply Slice 1 Planning Boundary
+## Apply Slice 1-3 Planning Boundary
 
-Current next planned sub-step is Apply Slice 1 — Live Snapshot Readiness Boundary.
-
-Apply Slice 1 is planned only, documentation/test-only, and non-authorizing.
-No live firewall read is allowed now.
-iptables-save remains forbidden now.
-subprocess firewall calls remain forbidden now.
-live adapters remain forbidden now.
-Future dedicated apply gate remains not accepted and not authorized.
-AI agents must not implement live adapters, subprocess calls, or CLI runtime paths for live snapshot reads in this step.
-
-
-## Apply Slice 2 Planning Boundary
-
-- Current next planned sub-step is Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness.
-- Apply Slice 2 is planned only, documentation/test-only, non-authorizing.
-- Apply Slice 1 remains planned documentation/test-only and non-authorizing; do not mark it accepted.
-- No restore point writes are permitted in this step.
-- No lock acquisition is permitted in this step.
-- No DB apply writes and no DB apply records are permitted in this step.
-- No migrations are permitted in this step.
-- No live firewall read/write/apply/rollback/verify is permitted in this step.
-- No iptables-save or iptables-restore is permitted in this step.
-- No subprocess firewall calls or live adapters are permitted in this step.
+- Slice 1 and Slice 2 are server-synced documentation/test-only readiness boundaries.
+- Apply Slice 3 — Controlled No-Customer Apply Harness is the next planned sub-step.
+- Slice 3 must stay documentation/test-only and non-authorizing.
+- AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 - Future dedicated apply gate remains not accepted and not authorized.
-- AI agents must not implement services, adapters, CLI runtime paths, migrations, DB writes, locks, or restore point writes in this step.

@@ -77,7 +77,7 @@ Current Phase 6 step:
 ```text
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-Next planned implementation sub-step is Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned, documentation/test-only, non-authorizing).
+Next planned implementation sub-step is Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness (planned, documentation/test-only, non-authorizing).
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 ```
 
