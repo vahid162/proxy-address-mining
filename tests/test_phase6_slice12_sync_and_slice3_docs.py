@@ -33,7 +33,7 @@ def test_phase_status_has_slice12_sync_evidence_and_slice4_next() -> None:
         "sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip",
         "backup: /var/backups/mpf/source-before-zip-sync-20260513T055542Z",
         "Slice 1 and Slice 2 are accepted only as documentation/test-only readiness boundaries",
-        "Next planned Phase 6 implementation sub-step is Apply Slice 4 — Manual Canary Apply Gate Proposal.",
+        "Next planned step is server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries.",
     ]:
         assert phrase in text
     assert "firewall_apply_allowed: yes" not in text

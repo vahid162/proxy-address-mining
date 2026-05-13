@@ -19,7 +19,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 is documented as planned, documentation/test-only, non-authorizing controlled no-customer harness contract; next planned sub-step: Apply Slice 4 — Manual Canary Apply Gate Proposal (planned only, documentation/test-only, non-authorizing); future dedicated apply gate remains not accepted and not authorized
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 is documented as planned, documentation/test-only, non-authorizing controlled no-customer harness contract; Apply Slice 4 — Manual Canary Apply Gate Proposal is documented as planned documentation/test-only non-authorizing contract; next operational step: batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries; future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
@@ -365,3 +365,11 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 - Slice 4 — Manual Canary Apply Gate Proposal is the next planned sub-step and must remain documentation/test-only and non-authorizing.
 - AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 - Future dedicated apply gate remains not accepted and not authorized.
+
+
+Batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries.
+
+Slice 4 is documentation/test-only and non-authorizing.
+Slice 4 does not authorize manual canary apply.
+Future dedicated apply gate remains not accepted and not authorized.
+AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
