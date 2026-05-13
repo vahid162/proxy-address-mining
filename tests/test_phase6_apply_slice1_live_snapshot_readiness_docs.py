@@ -21,7 +21,7 @@ def test_phase_status_current_state_unchanged():
 
 def test_apply_slice1_is_next_planned_not_accepted():
     assert "Apply Slice 1 has been server-synced and accepted only as a documentation/test-only readiness boundary." in PHASE_STATUS
-    assert "Next planned Phase 6 implementation sub-step is Apply Slice 4 — Manual Canary Apply Gate Proposal." in PHASE_STATUS
+    assert "Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries." in PHASE_STATUS
 
 
 def test_index_and_ai_task_reference_apply_slice1():
@@ -80,8 +80,8 @@ def test_abuse_invariant_and_stale_wording_rejection():
 
 
 def test_readme_and_phase_status_next_step_wording():
-    assert "Apply Slice 4" in README
+    assert "Future Dedicated Phase 6 Apply Gate Proposal/Review" in README
     assert "with Phase 6-G documentation/test-only non-authorizing next step" not in README
     assert "## Next Planned Step" in PHASE_STATUS
-    assert "Apply Slice 4 — Manual Canary Apply Gate Proposal" in PHASE_STATUS
+    assert "Future Dedicated Phase 6 Apply Gate Proposal/Review" in PHASE_STATUS
     assert "Next planned documentation/test-only step is Phase 6-H" not in PHASE_STATUS

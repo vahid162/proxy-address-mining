@@ -79,7 +79,7 @@ Current Phase 6 step:
 ```text
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-Apply Slice 3 is documented as planned documentation/test-only controlled no-customer harness contract, not accepted by server evidence yet, and not authorized. Apply Slice 4 is documented as planned, documentation/test-only, non-authorizing manual canary apply gate proposal. Next operational step is batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries.
+Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 ```
 

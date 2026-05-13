@@ -19,7 +19,7 @@ Current state:
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 is documented as planned, documentation/test-only, non-authorizing controlled no-customer harness contract; Apply Slice 4 — Manual Canary Apply Gate Proposal is documented as planned documentation/test-only non-authorizing contract; next operational step: batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries; future dedicated apply gate remains not accepted and not authorized
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 and Slice 4 are server-synced documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated apply gate remains not accepted and not authorized
 production traffic: none
 live firewall apply: not allowed
 abuse automation: not allowed
