@@ -244,6 +244,8 @@ After Phase 6 final acceptance, execution must return to the master roadmap sequ
 
 No further documentation-only Phase 6 sub-step should be added unless it closes a concrete blocker for the dedicated apply gate path and Phase 6 final acceptance.
 
+Future Dedicated Phase 6 Apply Gate Proposal/Review is documentation/test-only and non-authorizing; actual gate opening must be a separate PR with docs/PHASE_STATUS.md server evidence.
+
 ### Finite Remaining Phase 6 Implementation Slices
 
 A. **Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary**
