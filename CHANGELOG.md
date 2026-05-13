@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.90 - 2026-05-13
+
+- fixed apply-gate readiness to read actual proxy.runtime_activation_allowed from config and add a fail-closed blocker when true
+
 ## 0.1.89 - 2026-05-13
 
 - added non-authorizing Phase 6 apply gate readiness report

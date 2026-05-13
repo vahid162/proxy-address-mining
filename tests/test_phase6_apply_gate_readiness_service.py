@@ -3,15 +3,15 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from mpf.config import load_config
-
-
-def example_config_path() -> Path:
-    return Path("configs/mpf.example.yaml")
 from mpf.interfaces.cli import app
 from mpf.services import firewall_apply_gate_readiness_service
 
 
 RUNNER = CliRunner()
+
+
+def example_config_path() -> Path:
+    return Path("configs/mpf.example.yaml")
 
 
 def test_service_returns_blocked_under_current_gate() -> None:
@@ -48,6 +48,15 @@ def test_service_current_state_and_dangerous_capabilities() -> None:
         assert report[key] is False
 
 
+def test_service_blocks_when_runtime_activation_allowed_true() -> None:
+    cfg = load_config(example_config_path())
+    cfg.proxy.runtime_activation_allowed = True
+    report = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
+    assert report["final_decision"] == "BLOCKED"
+    assert report["runtime_activation_allowed"] is True
+    assert "proxy.runtime_activation_allowed is not false" in report["blockers"]
+
+
 def test_service_fails_closed_when_phase_status_missing(tmp_path: Path) -> None:
     cfg = load_config(example_config_path())
     (tmp_path / "docs").mkdir()
@@ -73,3 +82,5 @@ def test_cli_output_contains_required_lines() -> None:
     assert "iptables_save_allowed: false" in res.output
     assert "customer_nat_allowed: false" in res.output
     assert "next_operator_action:" in res.output
+    assert "missing_requirements:" in res.output
+    assert "blockers:" in res.output

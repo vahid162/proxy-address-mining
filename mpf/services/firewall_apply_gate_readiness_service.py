@@ -74,6 +74,10 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
     if not farm5_sync_evidence_present:
         missing_requirements.append("missing farm5 0.1.88 sync evidence in docs/PHASE_STATUS.md")
 
+    runtime_activation_allowed = bool(cfg.proxy.runtime_activation_allowed)
+    if runtime_activation_allowed:
+        blockers.append("proxy.runtime_activation_allowed is not false")
+
     report = {
         "component": "firewall_apply_gate_readiness",
         "final_decision": "BLOCKED",
@@ -84,7 +88,7 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
         "farm5_0_1_88_sync_evidence_present": farm5_sync_evidence_present,
         "current_state_preserved": current_state_preserved,
         "apply_mode_plan_only": apply_mode_plan_only,
-        "runtime_activation_allowed": False,
+        "runtime_activation_allowed": runtime_activation_allowed,
         "production_traffic": _EXPECTED_CURRENT_STATE["production_traffic"],
         "firewall_apply_allowed": _EXPECTED_CURRENT_STATE["firewall_apply_allowed"],
         "abuse_automation_allowed": _EXPECTED_CURRENT_STATE["abuse_automation_allowed"],

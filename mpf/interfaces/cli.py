@@ -520,7 +520,7 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
         return
     for key in (
         "component","final_decision","future_gate","documentation_boundary_present","farm5_0_1_88_sync_evidence_present",
-        "current_state_preserved","apply_mode_plan_only","production_traffic","firewall_apply_allowed","abuse_automation_allowed",
+        "current_state_preserved","apply_mode_plan_only","runtime_activation_allowed","production_traffic","firewall_apply_allowed","abuse_automation_allowed",
         "live_firewall_read_allowed","live_firewall_write_allowed","iptables_save_allowed","iptables_restore_allowed",
         "real_adapter_allowed","subprocess_firewall_calls_allowed","customer_nat_allowed","customer_firewall_rules_allowed","next_operator_action",
     ):
@@ -528,6 +528,10 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
         if isinstance(value, bool):
             value = str(value).lower()
         typer.echo(f"{key}: {value}")
+    missing = report["missing_requirements"]
+    blockers = report["blockers"]
+    typer.echo(f"missing_requirements: {', '.join(missing) if missing else '-'}")
+    typer.echo(f"blockers: {', '.join(blockers) if blockers else '-'}")
 
 @firewall_app.command("plan")
 def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
