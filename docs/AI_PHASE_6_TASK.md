@@ -16,6 +16,8 @@ docs/PHASE_STATUS.md
 
 Current state:
 
+Next planning target is documented in `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` and remains proposal/review only, documentation/test-only, and non-authorizing.
+
 ```text
 accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working phase: Phase 6 — Firewall Planner
