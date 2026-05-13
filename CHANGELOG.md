@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.84 - 2026-05-13
+
+- recorded farm5 0.1.83 sync evidence for Apply Slice 1 and Slice 2 documentation/readiness boundaries
+- advanced next planned Phase 6 sub-step to Apply Slice 3 controlled no-customer apply harness planning
+- preserved Phase 5 accepted / Phase 6 working gate
+- confirmed no live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, locks, DB apply writes, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram behavior introduced
+- preserved abuse 1h invariant
+
 ## 0.1.83 - 2026-05-12
 
 - added Apply Slice 2 restore point, lock, and DB apply record readiness boundary documentation
