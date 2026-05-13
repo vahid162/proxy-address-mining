@@ -4,7 +4,7 @@ from typer.testing import CliRunner
 
 from mpf.config import load_config
 from mpf.interfaces.cli import app
-from mpf.services import firewall_apply_gate_readiness_service, firewall_restore_lock_record_gate_service
+from mpf.services import firewall_apply_gate_readiness_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 from mpf.services.firewall_gate_review_service import build_gate_review_report
 from mpf.services.firewall_planner_service import build_plan
 
@@ -119,3 +119,49 @@ def test_static_safety_no_forbidden_tokens() -> None:
     ]
     for token in forbidden:
         assert token not in text
+
+
+def test_readiness_command_still_not_authorized_for_writes() -> None:
+    report = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(_cfg())
+    assert report["authorization_status"] == "NOT_AUTHORIZED_FOR_WRITES"
+    res = RUNNER.invoke(app, ["firewall", "restore-lock-record-readiness", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"authorization_status": "NOT_AUTHORIZED_FOR_WRITES"' in res.output
+
+
+def test_invalid_output_fails_for_both_commands() -> None:
+    bad_ready = RUNNER.invoke(app, ["firewall", "restore-lock-record-readiness", "--config", str(example_config_path()), "--output", "yaml"])
+    bad_gate = RUNNER.invoke(app, ["firewall", "restore-lock-record-gate", "--config", str(example_config_path()), "--output", "yaml"])
+    assert bad_ready.exit_code != 0
+    assert bad_gate.exit_code != 0
+
+
+def test_gate_review_preserves_readiness_and_gate_summaries() -> None:
+    cfg = _cfg()
+    gate_report = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(cfg)
+    readiness_report = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg)
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[])
+    review = build_gate_review_report(plan=plan, restore_lock_record_gate=gate_report, restore_lock_record_readiness=readiness_report)
+    assert review.restore_lock_record_gate_summary["authorization_status"] == "NOT_ACCEPTED"
+    assert review.restore_lock_record_readiness_summary["authorization_status"] == "NOT_AUTHORIZED_FOR_WRITES"
+    assert review.final_decision == "BLOCKED"
+
+
+def test_apply_gate_readiness_contains_gate_and_readiness_fields() -> None:
+    apply = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(_cfg())
+    assert apply["restore_lock_record_readiness_present"] is True
+    assert apply["restore_lock_record_readiness_authorization_status"] == "NOT_AUTHORIZED_FOR_WRITES"
+    assert apply["restore_lock_record_readiness_final_decision"] == "BLOCKED"
+    assert apply["restore_lock_record_gate_present"] is True
+    assert apply["restore_lock_record_gate_authorization_status"] == "NOT_ACCEPTED"
+    assert apply["restore_lock_record_gate_final_decision"] == "BLOCKED"
+
+
+def test_phase_status_docs_mentions_readiness_vs_gate_distinction() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    assert "`restore-lock-record-readiness` remains report-only readiness" in text
+    assert "`restore-lock-record-gate` is the proposal-boundary/preflight" in text
+
+
+def test_no_new_docs_created() -> None:
+    assert not Path("docs/PHASE_6_RESTORE_LOCK_RECORD_GATE.md").exists()

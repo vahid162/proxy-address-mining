@@ -616,6 +616,8 @@ The next implementation target is a separate explicit restore point + lock + DB 
 
 ### Phase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary
 
+Compatibility note: `restore-lock-record-readiness` remains report-only readiness (`NOT_AUTHORIZED_FOR_WRITES` / `BLOCKED`), while `restore-lock-record-gate` is the proposal-boundary/preflight surface (`NOT_ACCEPTED` / `BLOCKED`). Both are inspection/report-only and do not permit restore point writes, lock acquisition, DB apply writes/records, firewall write/apply/rollback/verify, `iptables-restore`, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram. `apply-gate-readiness` and `gate-review` remain `BLOCKED`.
+
 Status:
 - proposal/boundary only
 - non-authorizing
