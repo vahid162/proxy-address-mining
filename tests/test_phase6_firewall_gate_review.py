@@ -18,8 +18,8 @@ def test_gate_review_core_flags_and_decision_states() -> None:
     assert report.final_decision == "BLOCKED"
     assert report.apply_gate_readiness_summary["final_decision"] == "BLOCKED"
     assert set(report.allowed_decision_states) == {"BLOCKED", "READY_FOR_FUTURE_GATE_REVIEW", "REJECTED_NEEDS_REWORK"}
-    live = report.live_snapshot_scaffold_summary
-    assert live["component"] == "firewall_live_snapshot_scaffold"
+    live = report.live_snapshot_read_summary
+    assert live["component"] == "firewall_live_snapshot_read"
     assert live["final_decision"] == "BLOCKED"
     assert live["authorization_status"] == "NOT_AUTHORIZED"
     for key in (
@@ -66,3 +66,14 @@ def test_config_only_source_has_warning() -> None:
     item = next(c for c in report.checklist if c.key == "config_source_warning")
     assert item.status == "WARN"
     assert report.checklist_summary["warn"] == 1
+
+
+def test_gate_review_contains_live_snapshot_read_summary() -> None:
+    report = build_gate_review_report(plan=_plan())
+    assert report.final_decision == "BLOCKED"
+    live = report.live_snapshot_read_summary
+    assert live["authorization_status"] == "NOT_AUTHORIZED"
+    assert live["live_firewall_read_executed"] is False
+    assert live["iptables_save_executed"] is False
+    assert live["subprocess_executed"] is False
+    assert isinstance(report.live_snapshot_read_summary, dict)

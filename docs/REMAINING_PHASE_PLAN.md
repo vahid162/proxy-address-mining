@@ -95,3 +95,5 @@ Purpose: staged Telegram integration (notification-first).
 
 ### Phase 14 — Worker Policy Enforcement
 Purpose: implement worker-policy enforcement boundary.
+
+Gated live snapshot read service boundary exists, but it remains NOT_AUTHORIZED/BLOCKED and does not execute live read or iptables-save.

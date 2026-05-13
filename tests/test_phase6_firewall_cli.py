@@ -661,3 +661,27 @@ def test_firewall_gate_review_snapshot_directory_exits_nonzero(tmp_path) -> None
     res = RUNNER.invoke(app, ["firewall", "gate-review", "--config", str(example_config_path()), "--rollback-snapshot-file", str(snapdir)])
     assert res.exit_code == 1
     assert "not a file" in res.output
+
+
+def test_firewall_live_snapshot_readiness_human_output() -> None:
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-readiness", "--config", str(example_config_path())])
+    assert res.exit_code == 0
+    assert "component: firewall_live_snapshot_read" in res.output
+    assert "authorization_status: NOT_AUTHORIZED" in res.output
+
+
+def test_firewall_live_snapshot_readiness_json_output() -> None:
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-readiness", "--config", str(example_config_path()), "--output", "json"])
+    assert res.exit_code == 0
+    assert '"component": "firewall_live_snapshot_read"' in res.output
+    assert '"live_firewall_read_executed": false' in res.output
+
+
+def test_firewall_live_snapshot_readiness_invalid_output_nonzero() -> None:
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-readiness", "--config", str(example_config_path()), "--output", "yaml"])
+    assert res.exit_code != 0
+
+
+def test_firewall_live_snapshot_readiness_does_not_require_root() -> None:
+    res = RUNNER.invoke(app, ["firewall", "live-snapshot-readiness", "--config", str(example_config_path())])
+    assert res.exit_code == 0
