@@ -21,7 +21,7 @@ telegram_allowed: no
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Next planning target: Future Phase 6 Live Snapshot Read Gate proposal. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The proposal is non-authorizing until explicitly accepted in `docs/PHASE_STATUS.md`. No live firewall read is authorized by this PR. No iptables-save is authorized by this PR. No apply/restore/customer NAT/customer firewall rules/production traffic is authorized.
+Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Current planning target: Phase 6 Live Snapshot Read Gate Proposal. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. This proposal remains documentation/test-only and non-authorizing until explicitly accepted in `docs/PHASE_STATUS.md`. No live firewall read, `iptables-save`, apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 
 ## Accepted Server Results
 

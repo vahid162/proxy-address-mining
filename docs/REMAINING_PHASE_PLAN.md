@@ -28,31 +28,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Finite Remaining Path
 
-1. Review current 0.1.90 report-only outputs on farm5:
-   - mpf firewall apply-gate-readiness
-   - mpf firewall apply-gate-readiness --output json
-   - mpf firewall gate-review
-   - mpf firewall gate-review --output json
-
-2. Fix any report-only blockers if present.
-
-3. Prepare a separate Future Phase 6 Live Snapshot Read Gate proposal.
-   This proposal remains non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
-
-4. After explicit gate acceptance only, implement live snapshot read.
-   This is read-only and may allow controlled iptables-save/snapshot collection only inside the accepted boundary.
-   It must not include apply, restore, customer NAT, customer firewall rules, production traffic, usage automation, or abuse automation.
-
-5. After live snapshot read is accepted and evidenced, continue with restore point, lock, DB apply record, no-customer apply harness, verify, and rollback gates in small separate PRs.
-
-6. Customer NAT/customer firewall rules remain blocked until a dedicated customer rule gate is accepted.
-
-7. Phase 7 remains Usage + Policy/Reject Accounting.
-
-8. Phase 8 remains Abuse 1h Core and must preserve:
-   normal -> over_tracking -> over_grace -> hard
-   farms-over alone must not harden
-   worker-over alone must not harden
+1. Complete the Phase 6 Live Snapshot Read Gate Proposal.
+2. Then, in a separate PR, implement read-only live snapshot scaffolding only after proposal review.
+3. Actual live read requires separate `docs/PHASE_STATUS.md` acceptance and farm5 evidence.
+4. Apply/restore/NAT/customer firewall rules remain later gates.
 
 ## Non-Negotiable Current Prohibitions
 
@@ -104,7 +83,7 @@ Purpose: add usage/accounting foundations through service-layer contracts.
 ### Phase 8 — Abuse 1h Core
 Purpose: implement core abuse state machine and evidence path.
 Required invariant: normal -> over_tracking -> over_grace -> hard.
-Farms-over alone must not harden; worker-over alone must not harden.
+farms-over alone must not harden; worker-over alone must not harden.
 The abuse 1h invariant must not be weakened.
 
 ### Phase 9 — Check / Report / Diagnostics

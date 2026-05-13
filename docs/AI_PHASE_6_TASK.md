@@ -4,7 +4,7 @@ Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness after 0.
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
-Current note: After 0.1.90, apply-gate-readiness and gate-review are read-only/report-only and remain BLOCKED. The next planning target is a separate Future Phase 6 Live Snapshot Read Gate proposal. It is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md. Historical reference: Future Dedicated Phase 6 Apply Gate Proposal/Review remains non-authorizing.
+Current note: After 0.1.90, apply-gate-readiness and gate-review are read-only/report-only and remain BLOCKED. The current task is proposal-only: Phase 6 Live Snapshot Read Gate Proposal. This PR does not authorize live read implementation. The next possible implementation in a separate PR is read-only live snapshot scaffolding, still fail-closed and non-authorizing unless `docs/PHASE_STATUS.md` explicitly accepts a gate. Historical reference: Future Dedicated Phase 6 Apply Gate Proposal/Review remains non-authorizing.
 
 ## Current Gate
 
