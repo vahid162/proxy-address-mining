@@ -22,7 +22,7 @@ live_snapshot_read_allowed: iptables_save_read_only
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Current planning target: Phase 6 Live Snapshot Read Gate Proposal. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. This proposal remains documentation/test-only and non-authorizing until explicitly accepted in `docs/PHASE_STATUS.md`. No live firewall read, `iptables-save`, apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Current planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path is authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 
 ## Accepted Server Results
 
@@ -559,11 +559,34 @@ apply-gate-readiness: BLOCKED, plan_only preserved, live firewall read/write not
 firewall gate-review: BLOCKED, applyable=false, inspection_only=true, artifact_only=true, live_apply_allowed=false, abuse requirement preserved (normal -> over_tracking -> over_grace -> hard, sustained_hardening_seconds=3600), safety flags confirm no live read/write/save/restore/database/filesystem mutations
 ```
 
-This server result is report-only and non-authorizing.
-No live firewall read is authorized.
-No iptables-save is authorized.
-No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
-The next possible step is a separate explicit Phase 6 read-only live snapshot acceptance gate, only if operator evidence remains clean.
+This server result is report-only for the earlier readiness boundary and remains non-authorizing for apply/write paths.
+The explicitly gated read-only `iptables-save` snapshot path is now authorized with successful farm5 evidence (see section below).
+No firewall write/apply/rollback/verify, `iptables-restore`, restore point write, lock acquisition, DB apply write/record, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply and gate-review final decisions remain BLOCKED.
+The next implementation target is restore point + lock + DB apply record readiness, still without customer NAT/customer firewall rules.
+
+
+### Phase 6 Read-Only iptables-save Snapshot — Server Evidence
+
+```text
+version accepted on farm5: 0.1.90
+sync: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip (backup: /var/backups/mpf/source-before-zip-sync-20260513T134528Z)
+pytest (venv during sync): 536 passed in 11.57s
+source aligned with GitHub zip: OK; phase safety gate: OK
+current state preserved: production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only
+mpf checks: config validate OK; doctor OK; db status OK; proxy doctor final_verdict OK
+runtime safety: firewall.apply_mode=plan_only; proxy.runtime_activation_allowed=false; no MPF/customer IPv4/IPv6 refs; no customer NAT redirects; listeners local-only (v2rayA 127.0.0.1:2015, BTC backend 127.0.0.1:60010)
+live-snapshot-readiness: READY_FOR_READ_ONLY_SNAPSHOT; AUTHORIZED_READ_ONLY; live_firewall_read_allowed=true; iptables_save_allowed=true; apply_decision=BLOCKED; blockers=none; errors=none
+live-snapshot-read (dry, no execute): READY_FOR_READ_ONLY_SNAPSHOT; AUTHORIZED_READ_ONLY; subprocess_executed=false; iptables_save_executed=false; apply_decision=BLOCKED
+live-snapshot-read (--execute, json output): READ_ONLY_SNAPSHOT_COLLECTED; AUTHORIZED_READ_ONLY; live_firewall_read_executed=true; iptables_save_executed=true; subprocess_args=["iptables-save"]; subprocess_returncode=0; parser_input_source=iptables-save stdout; stdout_line_count=60; source_snapshot_sha256=4f506c5871a4fa518b874e6a635eac56cb61351f49901a1ff6fc9aeb4fb94019; snapshot_rule_count=0; snapshot_chain_count=0; snapshot_table_count=0; filesystem_write_executed=false; firewall_mutation=false; db_mutation=false; restore_point_written=false; lock_acquired=false; customer_nat_changed=false; customer_firewall_rules_changed=false; production_traffic_changed=false; apply_decision=BLOCKED; errors=none
+parser scope note: snapshot counters track MPF-owned chains/rules only; with no MPF/customer firewall refs, counts 0/0/0 are expected while stdout_line_count=60 confirms iptables-save returned content
+```
+
+This server result proves only the explicitly gated read-only `iptables-save` snapshot path.
+No `iptables-restore` is authorized.
+No firewall write, apply, rollback, restore point write, lock acquisition, DB apply write, DB apply record, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply and gate-review final decisions remain BLOCKED.
+The next implementation target is restore point + lock + DB apply record readiness, still without customer NAT/customer firewall rules.
 
 ## Current Server Warning
 
@@ -628,9 +651,10 @@ Phase 6-G does not authorize host production firewall mutation, live firewall re
 - Apply Slice 2 has been server-synced and accepted only as a documentation/test-only readiness boundary.
 - Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries.
 - Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
-- Next planning target is Future Phase 6 Live Snapshot Read Gate proposal.
-- This proposal is non-authorizing until explicitly accepted in docs/PHASE_STATUS.md.
-- No live firewall read, no iptables-save, no apply, no restore, no customer NAT/customer firewall rules, and no production traffic are authorized.
+- The explicitly gated read-only `iptables-save` snapshot path is authorized and has successful farm5 evidence.
+- No firewall write/apply/rollback/verify, `iptables-restore`, restore point write, lock acquisition, DB apply write/record, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+- Apply and gate-review final decisions remain BLOCKED.
+- Next implementation target: restore point + lock + DB apply record readiness, still without customer NAT/customer firewall rules.
 - Historical/reference context only: Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
 - Future Dedicated Phase 6 Apply Gate Proposal/Review remains historical/reference context only.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
