@@ -47,7 +47,7 @@ Current gate:
 ```text
 accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); next planned implementation sub-step: Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary (planned, documentation/test-only, non-authorizing); future dedicated Phase 6 apply gate remains not accepted and not authorized
+current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); next planned implementation sub-step: Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned, documentation/test-only, non-authorizing); future dedicated Phase 6 apply gate remains not accepted and not authorized
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no

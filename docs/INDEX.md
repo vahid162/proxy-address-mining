@@ -31,7 +31,8 @@ Read these first:
 21. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (accepted scope, documentation/test-only, non-authorizing)
 22. `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
 23. `docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md` (planned readiness boundary, documentation/test-only, non-authorizing)
-24. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
+24. `docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md` (planned readiness boundary, documentation/test-only, non-authorizing)
+25. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -76,7 +77,7 @@ Current Phase 6 step:
 ```text
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-Next planned implementation sub-step is Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary (planned, documentation/test-only, non-authorizing).
+Next planned implementation sub-step is Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned, documentation/test-only, non-authorizing).
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 ```
 
@@ -466,3 +467,6 @@ When in doubt, read the stricter document and choose the safer implementation.
 
 
 Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
+
+
+Documentation Summary: docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md defines the planned Phase 6 Apply Slice 2 restore point, lock, and DB apply record readiness boundary only. It is documentation/test-only and non-authorizing. It does not authorize restore point writes, lock acquisition, DB apply writes, DB apply records, migrations, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.

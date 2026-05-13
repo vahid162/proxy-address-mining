@@ -21,7 +21,7 @@ telegram_allowed: no
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Next planned Phase 6 implementation sub-step is Apply Slice 1 — Live Snapshot Readiness Boundary. It is documentation/test-only and non-authorizing.
+Next planned Phase 6 implementation sub-step is Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness. It is planned, documentation/test-only, and non-authorizing.
 
 ## Accepted Server Results
 
@@ -451,11 +451,12 @@ Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is ex
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
 
-- Next planned Phase 6 implementation sub-step is Apply Slice 1 — Live Snapshot Readiness Boundary.
+- Apply Slice 1 has been documented as planned, documentation/test-only, non-authorizing readiness boundary.
+- Next planned Phase 6 implementation sub-step is Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness.
 - It is planned, documentation/test-only, and non-authorizing.
-- It does not authorize live firewall read or iptables-save.
-- It does not authorize live firewall write/apply/rollback/verify.
-- It does not authorize iptables-restore, real adapters, subprocess firewall calls, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+- Apply Slice 2 does not authorize restore point writes, lock acquisition, DB apply writes, DB apply records, or migrations.
+- Apply Slice 2 does not authorize live firewall read/write/apply/rollback/verify.
+- Apply Slice 2 does not authorize iptables-save, iptables-restore, real adapters, subprocess firewall calls, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 - Phase 6-G and Phase 6-H are accepted historical safety sub-steps only.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 
