@@ -31,6 +31,7 @@ from mpf.services import (
     firewall_preflight_service,
     firewall_evidence_service,
     firewall_gate_review_service,
+    firewall_apply_gate_readiness_service,
     proxy_doctor_service,
 )
 
@@ -506,6 +507,31 @@ def proxy_config_check(config: Path | None = typer.Option(None, "--config", "-c"
     """Validate proxy planning config without runtime activation."""
     _emit_health_report(proxy_doctor_service.config_check(_config_path(config)))
 
+
+
+
+@firewall_app.command("apply-gate-readiness")
+def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
+    """Render non-authorizing Phase 6 apply gate readiness report (read-only)."""
+    cfg = _load(config)
+    report = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    for key in (
+        "component","final_decision","future_gate","documentation_boundary_present","farm5_0_1_88_sync_evidence_present",
+        "current_state_preserved","apply_mode_plan_only","runtime_activation_allowed","production_traffic","firewall_apply_allowed","abuse_automation_allowed",
+        "live_firewall_read_allowed","live_firewall_write_allowed","iptables_save_allowed","iptables_restore_allowed",
+        "real_adapter_allowed","subprocess_firewall_calls_allowed","customer_nat_allowed","customer_firewall_rules_allowed","next_operator_action",
+    ):
+        value = report[key]
+        if isinstance(value, bool):
+            value = str(value).lower()
+        typer.echo(f"{key}: {value}")
+    missing = report["missing_requirements"]
+    blockers = report["blockers"]
+    typer.echo(f"missing_requirements: {', '.join(missing) if missing else '-'}")
+    typer.echo(f"blockers: {', '.join(blockers) if blockers else '-'}")
 
 @firewall_app.command("plan")
 def firewall_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source")) -> None:
