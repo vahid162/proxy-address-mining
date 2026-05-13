@@ -362,7 +362,7 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 - Slice 1 and Slice 2 are server-synced documentation/test-only readiness boundaries.
 - Slice 3 is documentation/test-only and non-authorizing.
 - Slice 3 does not authorize no-customer apply.
-- Slice 4 — Manual Canary Apply Gate Proposal is the next planned sub-step and must remain documentation/test-only and non-authorizing.
+- Slice 4 — Manual Canary Apply Gate Proposal is documented as planned, documentation/test-only, and non-authorizing.
 - AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 - Future dedicated apply gate remains not accepted and not authorized.
 
