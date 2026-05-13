@@ -34,7 +34,7 @@ from mpf.services import (
     firewall_preflight_service,
     firewall_evidence_service,
     firewall_gate_review_service,
-    firewall_restore_lock_record_readiness_service,
+    firewall_restore_lock_record_gate_service,
     proxy_doctor_service,
 )
 
@@ -526,7 +526,7 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
         "current_state_preserved","apply_mode_plan_only","runtime_activation_allowed","production_traffic","firewall_apply_allowed","abuse_automation_allowed",
         "live_firewall_read_allowed","live_firewall_write_allowed","iptables_save_allowed","iptables_restore_allowed",
         "real_adapter_allowed","subprocess_firewall_calls_allowed","customer_nat_allowed","customer_firewall_rules_allowed",
-        "restore_lock_record_readiness_present","restore_lock_record_readiness_authorization_status","restore_lock_record_readiness_final_decision","next_operator_action",
+        "restore_lock_record_gate_present","restore_lock_record_gate_authorization_status","restore_lock_record_gate_final_decision","next_operator_action",
     ):
         value = report[key]
         if isinstance(value, bool):
@@ -539,17 +539,18 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
 
 
 
-@firewall_app.command("restore-lock-record-readiness")
-def firewall_restore_lock_record_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
-    """Render report-only restore/lock/DB apply-record readiness for future gate review."""
+@firewall_app.command("restore-lock-record-gate")
+def firewall_restore_lock_record_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render report-only restore/lock/DB apply-record gate report for future gate review."""
     cfg = _load(config)
-    report = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg)
+    report = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(cfg)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
         return
     for key in (
         "component", "final_decision", "authorization_status", "inspection_only", "report_only",
-        "read_only_snapshot_gate_authorized", "read_only_snapshot_evidence_present",
+        "gate_status", "authorization_status", "preflight_only",
+        "proposal_boundary_present", "read_only_snapshot_evidence_present",
         "restore_point_write_allowed", "lock_acquisition_allowed", "db_apply_record_write_allowed",
         "iptables_restore_allowed", "customer_nat_allowed", "customer_firewall_rules_allowed",
         "apply_decision", "next_required_gate",
@@ -561,6 +562,12 @@ def firewall_restore_lock_record_readiness(config: Path | None = typer.Option(No
     for key in ("blockers", "warnings", "errors"):
         values = report[key]
         typer.echo(f"{key}: {', '.join(values) if values else '-'}")
+
+
+@firewall_app.command("restore-lock-record-readiness")
+def firewall_restore_lock_record_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Backward-compatible alias for restore-lock-record-gate."""
+    firewall_restore_lock_record_gate(config=config, output=output)
 
 @firewall_app.command("live-snapshot-readiness")
 def firewall_live_snapshot_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
@@ -954,13 +961,13 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     apply_gate_readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
     live_snapshot_scaffold = firewall_live_snapshot_scaffold_service.build_live_snapshot_scaffold_report(cfg)
     live_snapshot_read = firewall_live_snapshot_read_service.build_live_snapshot_read_report(cfg)
-    restore_lock_record_readiness = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg)
+    restore_lock_record_gate = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(cfg)
     report = firewall_gate_review_service.build_gate_review_report(
         evidence=evidence,
         apply_gate_readiness=apply_gate_readiness,
         live_snapshot_scaffold=live_snapshot_scaffold,
         live_snapshot_read=live_snapshot_read,
-        restore_lock_record_readiness=restore_lock_record_readiness,
+        restore_lock_record_gate=restore_lock_record_gate,
     )
     if output == "json":
         typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
@@ -1001,8 +1008,8 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"  customer_firewall_rules_changed: {str(lss.get('customer_firewall_rules_changed', False)).lower()}")
     typer.echo(f"  production_traffic_changed: {str(lss.get('production_traffic_changed', False)).lower()}")
     typer.echo(f"  blockers: {len(lss.get('blockers', []))}")
-    rlr = report.restore_lock_record_readiness_summary
-    typer.echo("restore_lock_record_readiness: summary")
+    rlr = report.restore_lock_record_gate_summary
+    typer.echo("restore_lock_record_gate: summary")
     typer.echo(f"  final_decision: {rlr.get('final_decision', 'BLOCKED')}")
     typer.echo(f"  authorization_status: {rlr.get('authorization_status', 'NOT_AUTHORIZED_FOR_WRITES')}")
     typer.echo(f"  report_only: {str(rlr.get('report_only', True)).lower()}")
