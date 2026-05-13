@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf.config import MPFConfig
+from mpf.services import firewall_restore_lock_record_readiness_service
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -78,6 +79,8 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
     if runtime_activation_allowed:
         blockers.append("proxy.runtime_activation_allowed is not false")
 
+    restore_report = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg, repo_root=root)
+
     report = {
         "component": "firewall_apply_gate_readiness",
         "final_decision": "BLOCKED",
@@ -114,6 +117,9 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
         "abuse_automation_allowed_runtime": False,
         "ui_allowed_runtime": False,
         "telegram_allowed_runtime": False,
+        "restore_lock_record_readiness_present": True,
+        "restore_lock_record_readiness_authorization_status": restore_report["authorization_status"],
+        "restore_lock_record_readiness_final_decision": restore_report["final_decision"],
         "missing_requirements": missing_requirements,
         "blockers": blockers,
         "next_operator_action": "prepare separate explicit gate-opening proposal only after operator approval and required evidence; no runtime action is authorized now",
