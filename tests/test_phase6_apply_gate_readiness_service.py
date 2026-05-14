@@ -85,5 +85,8 @@ def test_cli_output_contains_required_lines() -> None:
     assert "iptables_save_allowed: false" in res.output
     assert "customer_nat_allowed: false" in res.output
     assert "next_operator_action:" in res.output
+    assert "restore_lock_record_acceptance_gate_present: true" in res.output
+    assert "restore_lock_record_acceptance_gate_authorization_status: NOT_ACCEPTED_FOR_EXECUTION" in res.output
+    assert "restore_lock_record_acceptance_gate_final_decision: BLOCKED" in res.output
     assert "missing_requirements:" in res.output
     assert "blockers:" in res.output
