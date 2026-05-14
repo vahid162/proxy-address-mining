@@ -22,13 +22,11 @@ def _base_text() -> str:
 def test_service_blocked_and_not_authorized() -> None:
     r = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(_cfg())
     assert r["final_decision"] == "BLOCKED"
-    assert r["authorization_status"] == "NOT_AUTHORIZED_FOR_EXECUTION"
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN"
     assert r["execution_allowed"] is False
-    assert r["explicit_execution_authorization_present"] is False
     assert r["farm5_time_sync_resolved"] is True
-    assert r["restore_lock_record_acceptance_gate_server_sync_evidence_present"] is True
-    assert "explicit controlled restore point + lock + DB apply record execution authorization is not accepted" in r["blockers"]
-
+    assert r["restore_lock_record_acceptance_gate_evidence_present"] is True
+    
 
 def test_blocks_on_changed_current_state(tmp_path: Path) -> None:
     (tmp_path / "docs").mkdir()
@@ -59,7 +57,7 @@ def test_cli_human_json_invalid_output() -> None:
     human = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml"])
     assert human.exit_code == 0
     assert "final_decision: BLOCKED" in human.output
-    assert "authorization_status: NOT_AUTHORIZED_FOR_EXECUTION" in human.output
+    assert "authorization_status: CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN" in human.output
     js = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--output", "json"])
     assert js.exit_code == 0
     assert '"component": "firewall_restore_lock_record_execution_gate"' in js.output
@@ -72,15 +70,41 @@ def test_integrations_remain_blocked() -> None:
     eg = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg)
     plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[])
     review = build_gate_review_report(plan=plan, restore_lock_record_execution_gate=eg)
-    assert review.restore_lock_record_execution_gate_summary["authorization_status"] == "NOT_AUTHORIZED_FOR_EXECUTION"
+    assert review.restore_lock_record_execution_gate_summary["authorization_status"] == "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN"
     assert review.final_decision == "BLOCKED"
     apply = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
     assert apply["restore_lock_record_execution_gate_present"] is True
-    assert apply["restore_lock_record_execution_gate_authorization_status"] == "NOT_AUTHORIZED_FOR_EXECUTION"
+    assert apply["restore_lock_record_execution_gate_authorization_status"] == "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN"
     assert apply["restore_lock_record_execution_gate_final_decision"] == "BLOCKED"
     assert apply["restore_lock_record_execution_gate_execution_allowed"] is False
     assert apply["final_decision"] == "BLOCKED"
 
+
+
+
+def test_cli_requires_operator_reason_yes_for_execution() -> None:
+    miss_op = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--reason", "r", "--yes"])
+    assert miss_op.exit_code == 0
+    assert "execution_allowed: false" in miss_op.output
+    miss_reason = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--yes"])
+    assert "execution_allowed: false" in miss_reason.output
+    miss_yes = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--reason", "r"])
+    assert "execution_allowed: false" in miss_yes.output
+
+def test_controlled_execution_writes_only_three_records_via_fake_writer() -> None:
+    calls=[]
+    def writer(payload):
+        calls.append(payload)
+        return {"restore_point_id": 10, "firewall_apply_id": 20, "lock_expires_at": payload["lock_expires_at"]}
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(_cfg(), execute_controlled_boundary=True, operator="alice", reason="test", yes=True, record_writer=writer)
+    assert r["execution_allowed"] is True
+    assert r["restore_point_written"] is True
+    assert r["lock_acquired"] is True
+    assert r["db_apply_record_written"] is True
+    assert r["apply_decision"] == "BLOCKED"
+    assert r["iptables_restore_executed"] is False
+    assert r["customer_nat_changed"] is False
+    assert len(calls) == 1
 
 def test_static_safety_tokens() -> None:
     text = Path("mpf/services/firewall_restore_lock_record_execution_gate_service.py").read_text(encoding="utf-8").lower()
