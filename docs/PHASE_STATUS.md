@@ -708,7 +708,7 @@ The future gate must be blocked if any of these are true:
 
 This boundary does not authorize restore point writes, lock acquisition, DB apply writes, DB apply records, firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 Apply and gate-review final decisions remain BLOCKED.
-The next implementation target after this proposal is a separate acceptance/readiness implementation for controlled restore point + lock + DB apply record behavior, still without customer NAT/customer firewall rules.
+The next implementation target is an operator-approved controlled restore point + lock + DB apply record execution gate with fresh farm5 evidence, still without customer NAT/customer firewall rules and still without firewall apply.
 
 ### Phase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync
 
@@ -735,6 +735,33 @@ No lock acquisition is authorized.
 No DB apply write or DB apply record is authorized.
 No firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 Apply and gate-review final decisions remain BLOCKED.
+
+### Phase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync
+
+```text
+version accepted on farm5: 0.1.90
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260514T075352Z
+pytest with venv during sync: 559 passed in 12.64s
+source aligned with GitHub zip: OK
+current phase safety gate: OK
+mpf --version: 0.1.90
+core smoke checks: mpf config validate=OK; mpf doctor=OK; mpf db status=OK; mpf proxy doctor final_verdict=OK
+database status: alembic_version=0002_phase5_customer_lifecycle; public_table_count=64; lanes=3; customers=1; job_runs=0; firewall_applies=0; abuse_states=0
+runtime/safety: firewall.apply_mode=plan_only; proxy.runtime_activation_allowed=false; production_traffic=none; firewall_apply_allowed=no; abuse_automation_allowed=no; no MPF/customer IPv4/IPv6 firewall refs; no customer NAT redirects; listeners local-only (v2rayA UI 127.0.0.1:2015, BTC backend 127.0.0.1:60010); Docker-managed local publish DNAT informational only
+restore-lock-record-acceptance-gate: final_decision=BLOCKED; gate_status=ACCEPTANCE_PREREQUISITES_READY; authorization_status=NOT_ACCEPTED_FOR_EXECUTION; inspection_only=true; report_only=true; preflight_only=true; execution_allowed=false; farm5_time_sync_evidence_present=true; farm5_time_sync_resolved=true; restore_point_write_allowed=false; lock_acquisition_allowed=false; db_apply_record_write_allowed=false; iptables_restore_allowed=false; customer_nat_allowed=false; customer_firewall_rules_allowed=false; apply_decision=BLOCKED; blockers=none; errors=none
+restore-lock-record-acceptance-gate --output json: current_state_preserved=true; read_only_snapshot_evidence_present=true; restore_lock_record_readiness_evidence_present=true; restore_lock_record_gate_proposal_present=true; restore_lock_record_gate_server_sync_evidence_present=true; farm5_time_sync_evidence_present=true; farm5_time_sync_resolved=true; future_restore_point_gate_prereq_ready=true; future_lock_gate_prereq_ready=true; future_db_apply_record_gate_prereq_ready=true; execution_allowed=false; restore_point_written=false; lock_acquired=false; db_apply_record_written=false; iptables_restore_executed=false; customer_nat_changed=false; customer_firewall_rules_changed=false; production_traffic_changed=false
+apply-gate-readiness: final_decision=BLOCKED; restore_lock_record_acceptance_gate_present=true; restore_lock_record_acceptance_gate_authorization_status=NOT_ACCEPTED_FOR_EXECUTION; restore_lock_record_acceptance_gate_final_decision=BLOCKED; missing_requirements=none; blockers=none
+gate-review: final_decision=BLOCKED; applyable=false; live_apply_allowed=false; restore_lock_record_acceptance_gate summary present; restore_lock_record_acceptance_gate authorization_status=NOT_ACCEPTED_FOR_EXECUTION; restore_lock_record_readiness authorization_status=NOT_AUTHORIZED_FOR_WRITES; restore_lock_record_gate authorization_status=NOT_ACCEPTED; abuse requirement preserved normal->over_tracking->over_grace->hard; sustained_hardening_seconds=3600; command=mpf firewall gate-review --output json
+```
+
+This server result proves only the report-only/preflight restore-lock-record acceptance gate surface.
+No restore point write is authorized.
+No lock acquisition is authorized.
+No DB apply write or DB apply record is authorized.
+No firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply and gate-review final decisions remain BLOCKED.
+The next implementation target is an operator-approved controlled restore point + lock + DB apply record execution gate with fresh farm5 evidence, still without customer NAT/customer firewall rules and still without firewall apply.
 
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
