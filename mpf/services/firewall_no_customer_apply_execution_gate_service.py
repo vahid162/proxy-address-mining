@@ -20,6 +20,40 @@ _EXPECTED_CURRENT_STATE = {
     "restore_lock_record_execution_allowed": "controlled_boundary_only",
 }
 
+_MUTATION_SAFETY_FLAGS = (
+    "live_firewall_write_allowed",
+    "live_firewall_apply_allowed",
+    "live_firewall_verify_allowed",
+    "live_firewall_rollback_allowed",
+    "iptables_restore_allowed",
+    "iptables_restore_executed",
+    "subprocess_firewall_calls_allowed",
+    "subprocess_firewall_calls_executed",
+    "real_adapter_allowed",
+    "real_adapter_executed",
+    "restore_point_write_allowed",
+    "restore_point_written",
+    "lock_acquisition_allowed",
+    "lock_acquired",
+    "db_apply_record_write_allowed",
+    "db_apply_record_written",
+    "db_mutation",
+    "filesystem_write_executed",
+    "customer_nat_allowed",
+    "customer_nat_changed",
+    "customer_firewall_rules_allowed",
+    "customer_firewall_rules_changed",
+    "production_traffic_changed",
+    "usage_automation_allowed",
+    "abuse_automation_allowed_runtime",
+    "ui_allowed_runtime",
+    "telegram_allowed_runtime",
+)
+
+
+def _all_mutation_safety_flags_false(report: dict[str, object]) -> bool:
+    return all(report.get(key) is False for key in _MUTATION_SAFETY_FLAGS)
+
 def _parse_current_state_block(text: str) -> dict[str, str] | None:
     start = text.find("## Current State")
     if start < 0:
@@ -78,11 +112,11 @@ def build_no_customer_apply_execution_gate_report(cfg: MPFConfig, repo_root: Pat
     no_customer_apply_scaffold_report_present=bool(scaffold)
     no_customer_apply_scaffold_blocked=scaffold.get("final_decision")=="BLOCKED"
     no_customer_apply_scaffold_execution_disallowed=scaffold.get("execution_allowed") is False
-    no_customer_apply_scaffold_mutation_flags_false=bool(scaffold.get("customer_nat_allowed") is False and scaffold.get("customer_firewall_rules_allowed") is False and scaffold.get("production_traffic_changed") is False)
+    no_customer_apply_scaffold_mutation_flags_false = _all_mutation_safety_flags_false(scaffold)
     no_customer_apply_acceptance_gate_report_present=bool(acc)
     no_customer_apply_acceptance_gate_blocked=acc.get("final_decision")=="BLOCKED"
     no_customer_apply_acceptance_gate_execution_disallowed=acc.get("execution_allowed") is False
-    no_customer_apply_acceptance_gate_mutation_flags_false=bool(acc.get("customer_nat_allowed") is False and acc.get("customer_firewall_rules_allowed") is False and acc.get("production_traffic_changed") is False)
+    no_customer_apply_acceptance_gate_mutation_flags_false = _all_mutation_safety_flags_false(acc)
 
     for ok,msg in ((no_customer_apply_scaffold_report_present,"scaffold report is missing"),(no_customer_apply_scaffold_blocked,"scaffold report is not BLOCKED"),(no_customer_apply_scaffold_execution_disallowed,"scaffold execution_allowed is not false"),(no_customer_apply_scaffold_mutation_flags_false,"scaffold mutation flag is true"),(no_customer_apply_acceptance_gate_report_present,"acceptance gate report is missing"),(no_customer_apply_acceptance_gate_blocked,"acceptance gate report is not BLOCKED"),(no_customer_apply_acceptance_gate_execution_disallowed,"acceptance gate execution_allowed is not false"),(no_customer_apply_acceptance_gate_mutation_flags_false,"acceptance gate mutation flag is true")):
         if not ok:blockers.append(msg)

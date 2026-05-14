@@ -35,6 +35,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - farm5 was synced to 0.1.90 successfully.
 - No-customer apply/verify/rollback scaffold exists as report-only/non-authorizing surface and remains BLOCKED / NOT_AUTHORIZED_FOR_APPLY.
 - No-customer apply/verify/rollback explicit acceptance-gate report exists as report-only/non-executing surface and remains BLOCKED for execution until separate server evidence is collected.
+- No-customer apply/verify/rollback acceptance-gate server evidence was recorded on farm5 as report-only/non-executing; apply/verify/rollback decisions remained BLOCKED and no firewall/NAT/customer rule runtime behavior was authorized.
+- No-customer apply/verify/rollback execution-gate report exists as report-only/non-executing surface and remains BLOCKED / NOT_ACCEPTED_FOR_EXECUTION.
 - Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
 - Host production firewall mutation remains forbidden; must not mutate the host production firewall.
 - Compatibility anchors: `Phase 6-E0 accepted on farm5`, `Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.`, and `host production firewall mutation is forbidden`.
@@ -42,10 +44,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Finite Remaining Path
 
-1. Dedicated Apply Gate Proposal/Review
-2. No-customer apply/verify/rollback scaffold
-3. No-customer apply/verify/rollback explicit acceptance
-4. No-customer apply/verify/rollback server evidence
+1. Dedicated Apply Gate Proposal/Review — done
+2. No-customer apply/verify/rollback scaffold — done
+3. No-customer apply/verify/rollback explicit acceptance — report-only gate done and server evidence recorded
+4. No-customer apply/verify/rollback controlled execution evidence — next target after separate explicit execution acceptance
 5. Manual canary customer NAT/customer firewall rules proposal
 6. Manual canary customer NAT/customer firewall rules explicit acceptance
 7. Phase 6 final acceptance
@@ -110,9 +112,3 @@ Purpose: staged Telegram integration (notification-first).
 
 ### Phase 14 — Worker Policy Enforcement
 Purpose: implement worker-policy enforcement boundary.
-
-The explicitly gated read-only iptables-save live snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.
-
-- No-customer apply/verify/rollback acceptance-gate server evidence was recorded on farm5 as report-only/non-executing; apply/verify/rollback decisions remained BLOCKED and no firewall/NAT/customer rule runtime behavior was authorized.
-
-- No-customer apply/verify/rollback execution-gate report exists as report-only/non-executing surface and remains BLOCKED / NOT_ACCEPTED_FOR_EXECUTION.
