@@ -710,6 +710,33 @@ This boundary does not authorize restore point writes, lock acquisition, DB appl
 Apply and gate-review final decisions remain BLOCKED.
 The next implementation target after this proposal is a separate acceptance/readiness implementation for controlled restore point + lock + DB apply record behavior, still without customer NAT/customer firewall rules.
 
+### Phase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync
+
+```text
+version accepted on farm5: 0.1.90
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260513T190936Z
+pytest with venv during sync: 552 passed in 14.05s
+source aligned with GitHub zip: OK
+current phase safety gate: OK
+mpf --version: 0.1.90
+core smoke checks: mpf config validate=OK; mpf doctor=OK; mpf db status=OK; mpf proxy doctor final_verdict=OK
+database status: alembic_version=0002_phase5_customer_lifecycle; public_table_count=64; lanes=3; customers=1; job_runs=0; firewall_applies=0; abuse_states=0
+runtime/safety: firewall.apply_mode=plan_only; proxy.runtime_activation_allowed=false; production_traffic=none; firewall_apply_allowed=no; abuse_automation_allowed=no; no MPF/customer IPv4/IPv6 firewall refs; no customer NAT redirects; listeners local-only (v2rayA UI 127.0.0.1:2015, BTC backend 127.0.0.1:60010); Docker-managed local publish DNAT informational only
+restore-lock-record-readiness: final_decision=BLOCKED; authorization_status=NOT_AUTHORIZED_FOR_WRITES; inspection_only=true; report_only=true; read_only_snapshot_gate_authorized=true; read_only_snapshot_evidence_present=true; restore_point_write_allowed=false; lock_acquisition_allowed=false; db_apply_record_write_allowed=false; iptables_restore_allowed=false; customer_nat_allowed=false; customer_firewall_rules_allowed=false; blockers=none; errors=none
+restore-lock-record-gate: final_decision=BLOCKED; authorization_status=NOT_ACCEPTED; gate_status=PROPOSAL_BOUNDARY_DEFINED; inspection_only=true; report_only=true; preflight_only=true; proposal_boundary_present=true; read_only_snapshot_evidence_present=true; restore_lock_record_readiness_evidence_present=true; restore_point_write_allowed=false; lock_acquisition_allowed=false; db_apply_record_write_allowed=false; iptables_restore_allowed=false; customer_nat_allowed=false; customer_firewall_rules_allowed=false; blockers=none; errors=none
+apply-gate-readiness: final_decision=BLOCKED; restore_lock_record_readiness_present=true; restore_lock_record_readiness_authorization_status=NOT_AUTHORIZED_FOR_WRITES; restore_lock_record_readiness_final_decision=BLOCKED; restore_lock_record_gate_present=true; restore_lock_record_gate_authorization_status=NOT_ACCEPTED; restore_lock_record_gate_final_decision=BLOCKED; missing_requirements=none; blockers=none
+gate-review: final_decision=BLOCKED; applyable=false; live_apply_allowed=false; restore_lock_record_gate summary present; restore_lock_record_gate authorization_status=NOT_ACCEPTED; restore_lock_record_readiness summary present; restore_lock_record_readiness authorization_status=NOT_AUTHORIZED_FOR_WRITES; abuse requirement preserved normal->over_tracking->over_grace->hard; sustained_hardening_seconds=3600
+```
+
+This server result proves only the report-only/preflight restore-lock-record gate surface and the compatibility-preserved readiness surface.
+No restore point write is authorized.
+No lock acquisition is authorized.
+No DB apply write or DB apply record is authorized.
+No firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply and gate-review final decisions remain BLOCKED.
+Before any future write-dependent gate, farm5 time synchronization must be fixed and evidenced.
+
 ## Current Server Warning
 
 Time synchronization has previously been reported as not confirmed on `farm5`:
@@ -776,7 +803,7 @@ Phase 6-G does not authorize host production firewall mutation, live firewall re
 - The explicitly gated read-only `iptables-save` snapshot path is authorized and has successful farm5 evidence.
 - No firewall write/apply/rollback/verify, `iptables-restore`, restore point write, lock acquisition, DB apply write/record, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 - Apply and gate-review final decisions remain BLOCKED.
-- Next implementation target: separate explicit restore point + lock + DB apply record gate proposal/acceptance boundary, still without customer NAT/customer firewall rules.
+- Next implementation target: farm5 time synchronization evidence, then explicit controlled restore point + lock + DB apply record acceptance gate, still without customer NAT/customer firewall rules.
 - Historical/reference context only: Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
 - Future Dedicated Phase 6 Apply Gate Proposal/Review remains historical/reference context only.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
