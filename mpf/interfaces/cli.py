@@ -599,6 +599,12 @@ def firewall_restore_lock_record_execution_gate(config: Path | None = typer.Opti
     """Render controlled boundary report or execute guarded restore/lock/db-apply-record writes."""
     cfg = _load(config)
     report = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(cfg, execute_controlled_boundary=execute_controlled_boundary, operator=operator, reason=reason, yes=yes)
+    if execute_controlled_boundary and (not operator or not reason or not yes):
+        if output == "json":
+            typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            typer.echo("controlled execution arguments are incomplete")
+        raise typer.Exit(1)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
         return
