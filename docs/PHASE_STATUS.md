@@ -978,6 +978,35 @@ The future implementation must not perform:
 - firewall apply
 - firewall rollback
 - firewall verify
+- customer NAT
+- customer firewall rules
+- production traffic changes
+- usage automation
+- abuse automation
+
+Stop conditions for the future implementation:
+
+- Current State does not contain restore_lock_record_execution_allowed: controlled_boundary_only
+- Current State changes unexpectedly
+- tests fail
+- operator approval is missing
+- explicit execution flag is missing
+- operator identity is missing
+- reason is missing
+- farm5 time synchronization is unresolved
+- firewall.apply_mode is not plan_only
+- proxy.runtime_activation_allowed is true
+- production_traffic is not none
+- firewall_apply_allowed is not no
+- abuse_automation_allowed is not no
+- live_snapshot_read_allowed is not iptables_save_read_only
+- MPF/customer firewall references appear unexpectedly
+- customer NAT redirects appear
+- customer firewall rules appear
+- backend external exposure appears
+- backend internal reachability fails
+
+The next implementation target is a separate guarded code PR for `mpf firewall restore-lock-record-execution-gate` that may add a dry-run default and an explicit `--execute-controlled-boundary` path for the accepted controlled boundary only: one restore point record/artifact, one scoped lock, and one DB apply record in prepared/blocked state, still without firewall apply and still without customer NAT/customer firewall rules.
 
 ### Phase 6 Controlled Restore/Lock/DB Apply Record Execution — Server Evidence
 
@@ -1022,35 +1051,6 @@ no Telegram
 ```
 
 This server result proves only the explicitly gated controlled restore point + scoped lock + DB apply record preparation boundary. It does not authorize firewall apply, firewall rollback, firewall verify, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram. Apply and gate-review final decisions remain BLOCKED.
-- customer NAT
-- customer firewall rules
-- production traffic changes
-- usage automation
-- abuse automation
-
-Stop conditions for the future implementation:
-
-- Current State does not contain restore_lock_record_execution_allowed: controlled_boundary_only
-- Current State changes unexpectedly
-- tests fail
-- operator approval is missing
-- explicit execution flag is missing
-- operator identity is missing
-- reason is missing
-- farm5 time synchronization is unresolved
-- firewall.apply_mode is not plan_only
-- proxy.runtime_activation_allowed is true
-- production_traffic is not none
-- firewall_apply_allowed is not no
-- abuse_automation_allowed is not no
-- live_snapshot_read_allowed is not iptables_save_read_only
-- MPF/customer firewall references appear unexpectedly
-- customer NAT redirects appear
-- customer firewall rules appear
-- backend external exposure appears
-- backend internal reachability fails
-
-The next implementation target is a separate guarded code PR for `mpf firewall restore-lock-record-execution-gate` that may add a dry-run default and an explicit `--execute-controlled-boundary` path for the accepted controlled boundary only: one restore point record/artifact, one scoped lock, and one DB apply record in prepared/blocked state, still without firewall apply and still without customer NAT/customer firewall rules.
 
 
 ### Phase 6 farm5 Time Synchronization — Server Evidence
