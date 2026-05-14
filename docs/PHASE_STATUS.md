@@ -1121,6 +1121,34 @@ Purpose: Prepare an inspectable report-only surface for the future no-customer a
 Next step after this scaffold: a separate explicit acceptance gate with fresh farm5 evidence before any real no-customer apply execution.
 
 
+### Phase 6 No-Customer Apply/Verify/Rollback Acceptance Gate — Report-Only
+
+```text
+explicit acceptance-gate report only
+non-executing
+non-authorizing for runtime
+no firewall apply
+no firewall verify
+no firewall rollback
+no iptables-restore
+no subprocess firewall calls
+no real adapter execution
+no customer NAT
+no customer firewall rules
+no production traffic
+no DB writes
+no restore point writes
+no lock acquisition
+final_decision remains BLOCKED
+apply_decision remains BLOCKED
+verify_decision remains BLOCKED
+rollback_decision remains BLOCKED
+execution_allowed remains false
+```
+
+Purpose: Record that the acceptance gate for future no-customer apply/verify/rollback is now modeled and inspectable, but future execution still requires separate server evidence and a separate execution PR/gate.
+
+
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
 ```text

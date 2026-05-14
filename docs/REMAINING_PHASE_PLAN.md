@@ -33,6 +33,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - gate-review now includes apply_gate_readiness_summary.
 - Gate-review now includes the fail-closed live snapshot scaffold summary; final_decision remains BLOCKED, and actual live read still requires separate docs/PHASE_STATUS.md acceptance plus farm5 evidence.
 - farm5 was synced to 0.1.90 successfully.
+- No-customer apply/verify/rollback scaffold exists as report-only/non-authorizing surface and remains BLOCKED / NOT_AUTHORIZED_FOR_APPLY.
+- No-customer apply/verify/rollback explicit acceptance-gate report exists as report-only/non-executing surface and remains BLOCKED for execution until separate server evidence is collected.
 - Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
 - Host production firewall mutation remains forbidden; must not mutate the host production firewall.
 - Compatibility anchors: `Phase 6-E0 accepted on farm5`, `Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.`, and `host production firewall mutation is forbidden`.
@@ -109,4 +111,4 @@ Purpose: staged Telegram integration (notification-first).
 ### Phase 14 — Worker Policy Enforcement
 Purpose: implement worker-policy enforcement boundary.
 
-Gated live snapshot read service boundary exists, but it remains NOT_AUTHORIZED/BLOCKED and does not execute live read or iptables-save.
+The explicitly gated read-only iptables-save live snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.

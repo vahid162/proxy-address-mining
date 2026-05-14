@@ -14,6 +14,7 @@ from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, C
 from mpf.domain.health import HealthReport
 from mpf.services import (
     firewall_apply_gate_readiness_service,
+    firewall_no_customer_apply_acceptance_gate_service,
     firewall_no_customer_apply_scaffold_service,
     firewall_live_snapshot_scaffold_service,
     firewall_live_snapshot_read_service,
@@ -657,6 +658,28 @@ def firewall_no_customer_apply_scaffold(config: Path | None = typer.Option(None,
         values = report[key]
         typer.echo(f"{key}: {', '.join(values) if values else '-'}")
 
+@firewall_app.command("no-customer-apply-acceptance-gate")
+def firewall_no_customer_apply_acceptance_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render report-only explicit acceptance gate for future no-customer apply/verify/rollback."""
+    cfg = _load(config)
+    report = firewall_no_customer_apply_acceptance_gate_service.build_no_customer_apply_acceptance_gate_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    for key in (
+        "component","final_decision","authorization_status","gate_status","execution_allowed","apply_decision","verify_decision","rollback_decision",
+        "production_traffic","firewall_apply_allowed","live_snapshot_read_allowed","restore_lock_record_execution_allowed",
+        "no_customer_apply_scaffold_report_present","no_customer_apply_scaffold_blocked","no_customer_apply_scaffold_execution_disallowed",
+        "no_customer_apply_scaffold_mutation_flags_false","customer_nat_allowed","customer_firewall_rules_allowed","iptables_restore_allowed",
+    ):
+        value = report[key]
+        if isinstance(value, bool):
+            value = str(value).lower()
+        typer.echo(f"{key}: {value}")
+    for key in ("blockers", "errors"):
+        values = report[key]
+        typer.echo(f"{key}: {', '.join(values) if values else '-'}")
+
 
 @firewall_app.command("restore-lock-record-acceptance-gate")
 def firewall_restore_lock_record_acceptance_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
@@ -1071,6 +1094,7 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     evidence = firewall_evidence_service.build_evidence_bundle_report(result, rollback_artifact=rollback_artifact)
     apply_gate_readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
     no_customer_apply_scaffold = firewall_no_customer_apply_scaffold_service.build_no_customer_apply_scaffold_report(cfg)
+    no_customer_apply_acceptance_gate = firewall_no_customer_apply_acceptance_gate_service.build_no_customer_apply_acceptance_gate_report(cfg)
     live_snapshot_scaffold = firewall_live_snapshot_scaffold_service.build_live_snapshot_scaffold_report(cfg)
     live_snapshot_read = firewall_live_snapshot_read_service.build_live_snapshot_read_report(cfg)
     restore_lock_record_gate = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(cfg)
@@ -1081,6 +1105,7 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
         evidence=evidence,
         apply_gate_readiness=apply_gate_readiness,
         no_customer_apply_scaffold=no_customer_apply_scaffold,
+        no_customer_apply_acceptance_gate=no_customer_apply_acceptance_gate,
         live_snapshot_scaffold=live_snapshot_scaffold,
         live_snapshot_read=live_snapshot_read,
         restore_lock_record_gate=restore_lock_record_gate,
@@ -1119,6 +1144,12 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"  final_decision: {ncas.get('no_customer_apply_scaffold_final_decision', 'BLOCKED')}")
     typer.echo(f"  authorization_status: {ncas.get('no_customer_apply_scaffold_authorization_status', 'NOT_AUTHORIZED_FOR_APPLY')}")
     typer.echo(f"  execution_allowed: {str(ncas.get('no_customer_apply_scaffold_execution_allowed', False)).lower()}")
+    ncag = report.apply_gate_readiness_summary.get("no_customer_apply_acceptance_gate_summary", {})
+    typer.echo("no_customer_apply_acceptance_gate: summary")
+    typer.echo(f"  present: {str(ncag.get('no_customer_apply_acceptance_gate_present', False)).lower()}")
+    typer.echo(f"  final_decision: {ncag.get('no_customer_apply_acceptance_gate_final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {ncag.get('no_customer_apply_acceptance_gate_authorization_status', 'ACCEPTANCE_GATE_DEFINED_NOT_EXECUTABLE')}")
+    typer.echo(f"  execution_allowed: {str(ncag.get('no_customer_apply_acceptance_gate_execution_allowed', False)).lower()}")
     lss = report.live_snapshot_scaffold_summary
     typer.echo("live_snapshot_scaffold: summary")
     typer.echo(f"  component: {lss.get('component', '-')}")
