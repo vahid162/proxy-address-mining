@@ -7,6 +7,7 @@ from pathlib import Path
 import uuid
 
 from mpf.config import MPFConfig
+from mpf.db import _local_peer_dbname, write_controlled_execution_records_local_peer_as_mpf
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -44,10 +45,8 @@ def _parse_current_state_block(text: str) -> dict[str, str] | None:
 
 
 
-def _write_controlled_records(cfg: MPFConfig, *, metadata: dict[str, object], checksum: str, operator: str, reason: str, lock_name: str, lock_expires_at: str, backend: str, apply_mode: str) -> dict[str, object]:
-    import psycopg
-
-    with psycopg.connect(cfg.database.url, connect_timeout=5) as conn:
+def _write_controlled_records(connection_factory, *, metadata: dict[str, object], checksum: str, operator: str, reason: str, lock_name: str, lock_expires_at: str, backend: str, apply_mode: str) -> dict[str, object]:
+    with connection_factory() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute("select 1 from scheduler_locks where lock_name=%s and expires_at > now()", (lock_name,))
@@ -83,7 +82,57 @@ def _write_controlled_records(cfg: MPFConfig, *, metadata: dict[str, object], ch
                 firewall_apply_id = int(cur.fetchone()[0])
     return {"restore_point_id": restore_point_id, "firewall_apply_id": firewall_apply_id, "lock_expires_at": str(lock_exp)}
 
-def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path | None = None, *, execute_controlled_boundary: bool = False, operator: str | None = None, reason: str | None = None, yes: bool = False, record_writer=None) -> dict[str, object]:
+def _default_connection_factory(cfg: MPFConfig):
+    import psycopg
+
+    return lambda: psycopg.connect(cfg.database.url, connect_timeout=5)
+
+
+def _default_record_writer(cfg: MPFConfig, payload: dict[str, object]) -> dict[str, object]:
+    local_peer_dbname = _local_peer_dbname(cfg.database.url)
+    if local_peer_dbname and __import__("os").geteuid() == 0:
+        result = write_controlled_execution_records_local_peer_as_mpf(
+            dbname=local_peer_dbname,
+            payload_json=json.dumps(
+                {
+                    "metadata": payload["metadata"],
+                    "checksum": payload["checksum"],
+                    "operator": payload["operator"],
+                    "reason": payload["reason"],
+                    "lock_name": payload["lock_name"],
+                    "lock_expires_at": payload["lock_expires_at"],
+                    "backend": payload["backend"],
+                    "apply_mode": payload["apply_mode"],
+                    "lock_metadata": {
+                        "controlled_boundary": True,
+                        "correlation_id": payload["metadata"]["correlation_id"],
+                        "reason": payload["reason"],
+                        "apply_decision": "BLOCKED",
+                    },
+                    "plan_json": {
+                        "controlled_boundary": True,
+                        "apply_decision": "BLOCKED",
+                        "no_firewall_apply": True,
+                        "no_iptables_restore": True,
+                        "no_customer_nat": True,
+                        "no_customer_firewall_rules": True,
+                        "correlation_id": payload["metadata"]["correlation_id"],
+                    },
+                },
+                separators=(",", ":"),
+            ),
+        )
+        return {
+            "restore_point_id": result.restore_point_id,
+            "firewall_apply_id": result.firewall_apply_id,
+            "lock_expires_at": result.lock_expires_at,
+        }
+
+    connection_factory = _default_connection_factory(cfg)
+    return _write_controlled_records(connection_factory, **payload)
+
+
+def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path | None = None, *, execute_controlled_boundary: bool = False, operator: str | None = None, reason: str | None = None, yes: bool = False, record_writer=None, connection_factory=None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = root / "docs" / "PHASE_STATUS.md"
     blockers: list[str] = []
@@ -128,14 +177,26 @@ def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path
     report={"component":"firewall_restore_lock_record_execution_gate","phase":"Phase 6 — Firewall Planner","final_decision":"BLOCKED","gate_status":"CONTROLLED_BOUNDARY_READY" if evidence["controlled_execution_boundary_accepted_present"] else "EXECUTION_GATE_SCAFFOLD_READY","authorization_status":"CONTROLLED_BOUNDARY_EXECUTED" if execution_allowed else "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN","inspection_only":not execution_allowed,"report_only":not execution_allowed,"preflight_only":not execution_allowed,"dry_run":dry_run,"execute_controlled_boundary":execute_controlled_boundary,"execution_allowed":execution_allowed,"controlled_boundary_accepted":evidence["controlled_execution_boundary_accepted_present"],"operator":operator or "-","reason":reason or "-","correlation_id":correlation_id,"current_state_preserved":current_state_preserved,"restore_lock_record_execution_allowed":current_state.get("restore_lock_record_execution_allowed",""),"apply_mode_plan_only":apply_mode_plan_only,"runtime_activation_allowed":runtime_activation_allowed,"production_traffic":"none","firewall_apply_allowed":"no","abuse_automation_allowed":"no","live_snapshot_read_allowed":"iptables_save_read_only",**evidence,"farm5_time_sync_resolved":farm5_time_sync_resolved,"restore_point_write_allowed":execution_allowed,"restore_point_written":False,"restore_point_id":None,"restore_point_artifact_written":False,"restore_point_artifact_path":"-","restore_point_checksum":checksum,"lock_acquisition_allowed":execution_allowed,"lock_acquired":False,"lock_name":"phase6_restore_lock_record_execution","lock_owner":operator or "-","lock_expires_at":"-","db_apply_record_write_allowed":execution_allowed,"db_apply_record_written":False,"firewall_apply_id":None,"db_mutation":False,"firewall_snapshot_write_allowed":False,"firewall_snapshot_written":False,"live_firewall_read_allowed":False,"live_firewall_read_executed":False,"iptables_save_allowed":False,"iptables_save_executed":False,"live_firewall_write_allowed":False,"live_firewall_apply_allowed":False,"live_firewall_rollback_allowed":False,"live_firewall_verify_allowed":False,"iptables_restore_allowed":False,"iptables_restore_executed":False,"customer_nat_allowed":False,"customer_nat_changed":False,"customer_firewall_rules_allowed":False,"customer_firewall_rules_changed":False,"production_traffic_changed":False,"usage_automation_allowed":False,"abuse_automation_allowed_runtime":False,"ui_allowed_runtime":False,"telegram_allowed_runtime":False,"apply_decision":"BLOCKED","next_required_gate":"Future Dedicated Phase 6 Apply Gate Proposal/Review","blockers":blockers,"warnings":warnings,"errors":errors}
     if execution_allowed:
         if record_writer is None:
-            record_writer = lambda payload: _write_controlled_records(cfg, **payload)
+            if connection_factory is None:
+                record_writer = lambda payload: _default_record_writer(cfg, payload)
+            else:
+                record_writer = lambda payload: _write_controlled_records(connection_factory, **payload)
         try:
             now=datetime.now(timezone.utc)
             result=record_writer({"metadata":metadata,"checksum":checksum,"operator":operator,"reason":reason,"lock_name":"phase6_restore_lock_record_execution","lock_expires_at":(now+timedelta(minutes=10)).isoformat(),"backend":cfg.firewall.backend,"apply_mode":cfg.firewall.apply_mode})
             report.update({"restore_point_written":True,"lock_acquired":True,"db_apply_record_written":True,"db_mutation":True,"restore_point_id":result.get("restore_point_id"),"firewall_apply_id":result.get("firewall_apply_id"),"lock_expires_at":result.get("lock_expires_at",report["lock_expires_at"])})
         except Exception as exc:
+            report.update({
+                "authorization_status": "CONTROLLED_BOUNDARY_EXECUTION_FAILED",
+                "inspection_only": True,
+                "report_only": True,
+                "preflight_only": True,
+                "execution_allowed": False,
+                "restore_point_write_allowed": False,
+                "lock_acquisition_allowed": False,
+                "db_apply_record_write_allowed": False,
+            })
             report["errors"].append(str(exc))
-            report["execution_allowed"]=False
     return report
 
 def build_restore_lock_record_execution_gate_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:

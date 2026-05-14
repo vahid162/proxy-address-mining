@@ -1,8 +1,10 @@
+import builtins
 from pathlib import Path
 
 from typer.testing import CliRunner
 
 from mpf.config import load_config
+from mpf.db import write_controlled_execution_records_local_peer_as_mpf
 from mpf.interfaces.cli import app
 from mpf.services import firewall_apply_gate_readiness_service, firewall_restore_lock_record_execution_gate_service
 from mpf.services.firewall_gate_review_service import build_gate_review_report
@@ -132,12 +134,16 @@ def test_cli_requires_operator_reason_yes_for_execution() -> None:
     miss_op = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--reason", "r", "--yes"])
     assert miss_op.exit_code != 0
     miss_reason = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--yes"])
+    assert miss_reason.exit_code != 0
     miss_yes = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--reason", "r"])
+    assert miss_yes.exit_code != 0
 
 def test_controlled_execution_real_db_writer_creates_three_records(monkeypatch) -> None:
     db = _FakeDB()
     _install_fake_psycopg(monkeypatch, db)
-    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(_cfg(), execute_controlled_boundary=True, operator="alice", reason="test", yes=True)
+    cfg = _cfg()
+    cfg.database.url = "postgresql://mpf@127.0.0.1/mpf"
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True)
     assert r["execution_allowed"] is True
     assert r["restore_point_written"] is True
     assert r["lock_acquired"] is True
@@ -317,3 +323,181 @@ def test_phase6_controlled_execution_boundary_accepted_still_forbidden_tokens() 
     ]
     for token in forbidden_listed:
         assert token in text
+
+
+def test_db_failure_sets_execution_failed_status() -> None:
+    cfg = _cfg()
+    def boom(_payload):
+        raise RuntimeError("db down")
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True, record_writer=boom
+    )
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTION_FAILED"
+    assert r["execution_allowed"] is False
+    assert r["restore_point_write_allowed"] is False
+    assert r["lock_acquisition_allowed"] is False
+    assert r["db_apply_record_write_allowed"] is False
+    assert r["restore_point_written"] is False
+    assert r["lock_acquired"] is False
+    assert r["db_apply_record_written"] is False
+    assert r["db_mutation"] is False
+    assert r["errors"]
+
+
+def test_lock_conflict_blocks_without_partial_records() -> None:
+    cfg = _cfg()
+    class ConflictCursor:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def execute(self, sql, params=None):
+            self._sql = sql
+        def fetchone(self):
+            if "select 1 from scheduler_locks" in " ".join(self._sql.lower().split()):
+                return (1,)
+            return None
+
+    class ConflictConn:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def cursor(self): return ConflictCursor()
+        def transaction(self): return self
+
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True, connection_factory=lambda: ConflictConn()
+    )
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTION_FAILED"
+    assert r["restore_point_written"] is False
+    assert r["lock_acquired"] is False
+    assert r["db_apply_record_written"] is False
+    assert r["db_mutation"] is False
+    assert any("scoped controlled execution lock already exists" in e for e in r["errors"])
+
+
+def test_writer_uses_connection_factory_not_direct_cfg_url(monkeypatch) -> None:
+    called = {"factory": 0}
+
+    class _C:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def transaction(self): return self
+        def cursor(self): return _FakeCursor(_FakeDB())
+
+    def factory():
+        called["factory"] += 1
+        return _C()
+
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        _cfg(), execute_controlled_boundary=True, operator="alice", reason="test", yes=True, connection_factory=factory
+    )
+    assert called["factory"] == 1
+    assert r["restore_point_written"] is True
+
+
+def test_local_peer_root_default_writer_uses_mpf_psql_path(monkeypatch) -> None:
+    cfg = _cfg()
+    cfg.database.url = "postgresql:///mpf"
+    real_import = builtins.__import__
+    monkeypatch.setattr(
+        builtins,
+        "__import__",
+        lambda name, *a, **k: type("M", (), {"geteuid": staticmethod(lambda: 0)})() if name == "os" else real_import(name, *a, **k),
+    )
+    called = {"psql": 0, "psycopg": 0}
+
+    def fake_psql(*, dbname: str, payload_json: str):
+        called["psql"] += 1
+        assert dbname == "mpf"
+        assert "phase6_restore_lock_record_execution" in payload_json
+        from mpf.db import ControlledExecutionWriteResult
+        return ControlledExecutionWriteResult(restore_point_id=1, firewall_apply_id=1, lock_expires_at="2026-01-01T00:00:00+00:00")
+
+    monkeypatch.setattr(
+        firewall_restore_lock_record_execution_gate_service,
+        "write_controlled_execution_records_local_peer_as_mpf",
+        fake_psql,
+    )
+
+    class _P:
+        @staticmethod
+        def connect(*args, **kwargs):
+            called["psycopg"] += 1
+            raise AssertionError("should not call psycopg.connect for local-peer root default path")
+
+    monkeypatch.setitem(__import__("sys").modules, "psycopg", _P)
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True
+    )
+    assert called["psql"] == 1
+    assert called["psycopg"] == 0
+    assert r["restore_point_written"] is True
+    assert r["lock_acquired"] is True
+    assert r["db_apply_record_written"] is True
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTED"
+
+
+def test_local_peer_root_default_writer_failure_is_reported(monkeypatch) -> None:
+    cfg = _cfg()
+    cfg.database.url = "postgresql:///mpf"
+    real_import = builtins.__import__
+    monkeypatch.setattr(
+        builtins,
+        "__import__",
+        lambda name, *a, **k: type("M", (), {"geteuid": staticmethod(lambda: 0)})() if name == "os" else real_import(name, *a, **k),
+    )
+    monkeypatch.setattr(
+        firewall_restore_lock_record_execution_gate_service,
+        "write_controlled_execution_records_local_peer_as_mpf",
+        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("sudo psql failed")),
+    )
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True
+    )
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTION_FAILED"
+    assert r["execution_allowed"] is False
+    assert r["restore_point_write_allowed"] is False
+    assert r["lock_acquisition_allowed"] is False
+    assert r["db_apply_record_write_allowed"] is False
+    assert r["db_mutation"] is False
+
+
+def test_local_peer_psql_command_and_sql_shape(monkeypatch) -> None:
+    captured = {}
+
+    class _R:
+        returncode = 0
+        stdout = "false,11,22,2026-01-01 00:00:00+00\n"
+        stderr = ""
+
+    def fake_run(cmd, text, input, capture_output):
+        captured["cmd"] = cmd
+        captured["sql"] = input
+        return _R()
+
+    monkeypatch.setattr("mpf.db.subprocess.run", fake_run)
+    out = write_controlled_execution_records_local_peer_as_mpf(dbname="mpf", payload_json='{"lock_name":"x"}')
+    assert out.restore_point_id == 11
+    assert out.firewall_apply_id == 22
+    assert out.lock_expires_at == "2026-01-01 00:00:00+00"
+    assert "-v" in captured["cmd"]
+    assert "ON_ERROR_STOP=1" in captured["cmd"]
+    sql = captured["sql"]
+    assert "do $$" not in sql.lower()
+    assert "with payload as" in sql.lower()
+    assert "lock_conflict as" in sql.lower()
+    assert ":'payload_json'" in sql
+
+
+def test_local_peer_psql_lock_conflict_raises(monkeypatch) -> None:
+    class _R:
+        returncode = 0
+        stdout = "true,,,\n"
+        stderr = ""
+
+    def fake_run(*args, **kwargs):
+        return _R()
+
+    monkeypatch.setattr("mpf.db.subprocess.run", fake_run)
+    import pytest
+
+    with pytest.raises(RuntimeError, match="scoped controlled execution lock already exists"):
+        write_controlled_execution_records_local_peer_as_mpf(dbname="mpf", payload_json='{"lock_name":"x"}')
