@@ -595,17 +595,23 @@ def firewall_restore_lock_record_readiness(config: Path | None = typer.Option(No
 
 
 @firewall_app.command("restore-lock-record-execution-gate")
-def firewall_restore_lock_record_execution_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
-    """Render fail-closed execution-gate scaffold for future controlled restore/lock/db-apply writes."""
+def firewall_restore_lock_record_execution_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output"), execute_controlled_boundary: bool = typer.Option(False, "--execute-controlled-boundary"), operator: str | None = typer.Option(None, "--operator"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes")) -> None:
+    """Render controlled boundary report or execute guarded restore/lock/db-apply-record writes."""
     cfg = _load(config)
-    report = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg)
+    report = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(cfg, execute_controlled_boundary=execute_controlled_boundary, operator=operator, reason=reason, yes=yes)
+    if execute_controlled_boundary and (not operator or not reason or not yes):
+        if output == "json":
+            typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            typer.echo("controlled execution arguments are incomplete")
+        raise typer.Exit(1)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
         return
     for key in (
-        "component", "final_decision", "gate_status", "authorization_status", "inspection_only", "report_only", "preflight_only", "execution_allowed",
-        "explicit_execution_authorization_present", "operator_approval_present", "fresh_farm5_execution_evidence_present", "farm5_time_sync_resolved",
-        "restore_point_write_allowed", "lock_acquisition_allowed", "db_apply_record_write_allowed", "iptables_restore_allowed",
+        "component", "final_decision", "gate_status", "authorization_status", "inspection_only", "report_only", "preflight_only", "dry_run", "execute_controlled_boundary", "execution_allowed",
+        "controlled_boundary_accepted", "farm5_time_sync_resolved",
+        "restore_point_write_allowed", "restore_point_written", "lock_acquisition_allowed", "lock_acquired", "db_apply_record_write_allowed", "db_apply_record_written", "iptables_restore_allowed",
         "customer_nat_allowed", "customer_firewall_rules_allowed", "apply_decision", "next_required_gate",
     ):
         value = report[key]

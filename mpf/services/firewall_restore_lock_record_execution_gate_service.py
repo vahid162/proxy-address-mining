@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+import hashlib
+import json
 from pathlib import Path
+import uuid
 
 from mpf.config import MPFConfig
 
@@ -16,8 +20,8 @@ _EXPECTED_CURRENT_STATE = {
     "ui_allowed": "no",
     "telegram_allowed": "no",
     "live_snapshot_read_allowed": "iptables_save_read_only",
+    "restore_lock_record_execution_allowed": "controlled_boundary_only",
 }
-
 
 def _parse_current_state_block(text: str) -> dict[str, str] | None:
     marker = "## Current State"
@@ -39,123 +43,100 @@ def _parse_current_state_block(text: str) -> dict[str, str] | None:
     return parsed if parsed else None
 
 
-def build_restore_lock_record_execution_gate_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
+
+def _write_controlled_records(cfg: MPFConfig, *, metadata: dict[str, object], checksum: str, operator: str, reason: str, lock_name: str, lock_expires_at: str, backend: str, apply_mode: str) -> dict[str, object]:
+    import psycopg
+
+    with psycopg.connect(cfg.database.url, connect_timeout=5) as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute("select 1 from scheduler_locks where lock_name=%s and expires_at > now()", (lock_name,))
+                if cur.fetchone() is not None:
+                    raise RuntimeError("scoped controlled execution lock already exists")
+                cur.execute(
+                    """
+                    insert into restore_points (restore_type, subject_type, subject_id, snapshot_id, backup_id, metadata_json, created_by, reason, checksum)
+                    values (%s,%s,%s,%s,%s,%s::jsonb,%s,%s,%s) returning id
+                    """,
+                    ("firewall", "phase6_controlled_execution", None, None, None, json.dumps(metadata, sort_keys=True), operator, reason, checksum),
+                )
+                restore_point_id = int(cur.fetchone()[0])
+                cur.execute(
+                    """
+                    insert into scheduler_locks (lock_name, owner, acquired_at, expires_at, metadata_json)
+                    values (%s,%s,now(),%s,%s::jsonb) returning expires_at
+                    """,
+                    (lock_name, operator, lock_expires_at, json.dumps({"controlled_boundary": True, "correlation_id": metadata["correlation_id"], "reason": reason, "apply_decision": "BLOCKED"}, sort_keys=True)),
+                )
+                lock_exp = cur.fetchone()[0]
+                cur.execute(
+                    """
+                    insert into firewall_applies (action, status, apply_mode, backend, restore_point_id, snapshot_before_id, snapshot_after_id, plan_json, summary, created_by, correlation_id)
+                    values (%s,%s,%s,%s,%s,%s,%s,%s::jsonb,%s,%s,%s) returning id
+                    """,
+                    (
+                        "prepare", "blocked", apply_mode, backend, restore_point_id, None, None,
+                        json.dumps({"controlled_boundary": True, "apply_decision": "BLOCKED", "no_firewall_apply": True, "no_iptables_restore": True, "no_customer_nat": True, "no_customer_firewall_rules": True, "correlation_id": metadata["correlation_id"]}, sort_keys=True),
+                        "controlled restore/lock/db apply record boundary prepared; apply remains blocked", operator, metadata["correlation_id"],
+                    ),
+                )
+                firewall_apply_id = int(cur.fetchone()[0])
+    return {"restore_point_id": restore_point_id, "firewall_apply_id": firewall_apply_id, "lock_expires_at": str(lock_exp)}
+
+def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path | None = None, *, execute_controlled_boundary: bool = False, operator: str | None = None, reason: str | None = None, yes: bool = False, record_writer=None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = root / "docs" / "PHASE_STATUS.md"
-
     blockers: list[str] = []
     warnings: list[str] = []
     errors: list[str] = []
-
-    current_state_preserved = False
-    read_only_snapshot_evidence_present = False
-    farm5_time_sync_evidence_present = False
-    farm5_time_sync_resolved = False
-    restore_lock_record_readiness_evidence_present = False
-    restore_lock_record_gate_proposal_present = False
-    restore_lock_record_gate_server_sync_evidence_present = False
-    restore_lock_record_acceptance_gate_server_sync_evidence_present = False
-
-    if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
-    else:
-        text = phase_status.read_text(encoding="utf-8")
-        current_state = _parse_current_state_block(text)
-        if current_state is None:
-            blockers.append("Current State block is missing or malformed")
-        else:
-            current_state_preserved = all(current_state.get(k) == v for k, v in _EXPECTED_CURRENT_STATE.items())
-            if not current_state_preserved:
-                blockers.append("Current State does not match required gate")
-            if current_state.get("live_snapshot_read_allowed") != "iptables_save_read_only":
-                blockers.append("live_snapshot_read_allowed is not iptables_save_read_only")
-
-        read_only_snapshot_evidence_present = "Phase 6 Read-Only iptables-save Snapshot — Server Evidence" in text
-        farm5_time_sync_evidence_present = "Phase 6 farm5 Time Synchronization — Server Evidence" in text
-        restore_lock_record_readiness_evidence_present = "Phase 6 Restore/Lock/DB Apply Record Readiness — Server Sync" in text
-        restore_lock_record_gate_proposal_present = "Phase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary" in text
-        restore_lock_record_gate_server_sync_evidence_present = "Phase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync" in text
-        restore_lock_record_acceptance_gate_server_sync_evidence_present = "Phase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync" in text
-
-        if not read_only_snapshot_evidence_present:
-            blockers.append("Phase 6 Read-Only iptables-save Snapshot — Server Evidence is missing")
-        if not farm5_time_sync_evidence_present:
-            blockers.append("Phase 6 farm5 Time Synchronization — Server Evidence is missing")
-        if not restore_lock_record_readiness_evidence_present:
-            blockers.append("Phase 6 Restore/Lock/DB Apply Record Readiness — Server Sync is missing")
-        if not restore_lock_record_gate_proposal_present:
-            blockers.append("Phase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary is missing")
-        if not restore_lock_record_gate_server_sync_evidence_present:
-            blockers.append("Phase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync is missing")
-        if not restore_lock_record_acceptance_gate_server_sync_evidence_present:
-            blockers.append("Phase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync is missing")
-
-        if "System clock synchronized: yes" not in text:
-            blockers.append("farm5 time sync evidence does not include System clock synchronized: yes")
-        if "NTPSynchronized=yes" not in text:
-            blockers.append("farm5 time sync evidence does not include NTPSynchronized=yes")
-        if "194.225.150.25" not in text:
-            blockers.append("farm5 time sync evidence does not include 194.225.150.25")
-        farm5_time_sync_resolved = (
-            "System clock synchronized: yes" in text and "NTPSynchronized=yes" in text and "194.225.150.25" in text
-        )
-
+    text = phase_status.read_text(encoding="utf-8") if phase_status.exists() else ""
+    current_state = _parse_current_state_block(text) or {}
+    current_state_preserved = all(current_state.get(k) == v for k, v in _EXPECTED_CURRENT_STATE.items())
+    required_tokens = {
+        "read_only_snapshot_evidence_present": "Phase 6 Read-Only iptables-save Snapshot — Server Evidence",
+        "farm5_time_sync_evidence_present": "Phase 6 farm5 Time Synchronization — Server Evidence",
+        "restore_lock_record_readiness_evidence_present": "Phase 6 Restore/Lock/DB Apply Record Readiness — Server Sync",
+        "restore_lock_record_gate_report_evidence_present": "Phase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync",
+        "restore_lock_record_acceptance_gate_evidence_present": "Phase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync",
+        "restore_lock_record_execution_scaffold_evidence_present": "Phase 6 Restore/Lock/DB Apply Record Execution Gate Scaffold — Server Sync",
+        "controlled_execution_proposal_review_present": "Phase 6 Controlled Restore/Lock/DB Apply Record Execution Gate — Proposal Review",
+        "controlled_execution_boundary_accepted_present": "Phase 6 Controlled Restore/Lock/DB Apply Record Execution Boundary — Accepted",
+    }
+    evidence={k:(v in text) for k,v in required_tokens.items()}
+    farm5_time_sync_resolved = all(tok in text for tok in ("System clock synchronized: yes","NTPSynchronized=yes","194.225.150.25"))
     apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
     runtime_activation_allowed = bool(cfg.proxy.runtime_activation_allowed)
-    if not apply_mode_plan_only:
-        blockers.append("firewall.apply_mode is not plan_only")
-    if runtime_activation_allowed:
-        blockers.append("proxy.runtime_activation_allowed is true")
-
-    explicit_execution_authorization_present = False
-    operator_approval_present = False
-    fresh_farm5_execution_evidence_present = False
-    blockers.append("explicit controlled restore point + lock + DB apply record execution authorization is not accepted")
-
-    return {
-        "component": "firewall_restore_lock_record_execution_gate",
-        "phase": "Phase 6 — Firewall Planner",
-        "final_decision": "BLOCKED",
-        "gate_status": "EXECUTION_GATE_SCAFFOLD_READY",
-        "authorization_status": "NOT_AUTHORIZED_FOR_EXECUTION",
-        "inspection_only": True,
-        "report_only": True,
-        "preflight_only": True,
-        "execution_allowed": False,
-        "current_state_preserved": current_state_preserved,
-        "read_only_snapshot_evidence_present": read_only_snapshot_evidence_present,
-        "farm5_time_sync_evidence_present": farm5_time_sync_evidence_present,
-        "farm5_time_sync_resolved": farm5_time_sync_resolved,
-        "restore_lock_record_readiness_evidence_present": restore_lock_record_readiness_evidence_present,
-        "restore_lock_record_gate_proposal_present": restore_lock_record_gate_proposal_present,
-        "restore_lock_record_gate_server_sync_evidence_present": restore_lock_record_gate_server_sync_evidence_present,
-        "restore_lock_record_acceptance_gate_server_sync_evidence_present": restore_lock_record_acceptance_gate_server_sync_evidence_present,
-        "explicit_execution_authorization_present": explicit_execution_authorization_present,
-        "operator_approval_present": operator_approval_present,
-        "fresh_farm5_execution_evidence_present": fresh_farm5_execution_evidence_present,
-        "apply_mode_plan_only": apply_mode_plan_only,
-        "runtime_activation_allowed": runtime_activation_allowed,
-        "production_traffic": _EXPECTED_CURRENT_STATE["production_traffic"],
-        "firewall_apply_allowed": _EXPECTED_CURRENT_STATE["firewall_apply_allowed"],
-        "abuse_automation_allowed": _EXPECTED_CURRENT_STATE["abuse_automation_allowed"],
-        "live_snapshot_read_allowed": _EXPECTED_CURRENT_STATE["live_snapshot_read_allowed"],
-        "restore_point_write_allowed": False, "restore_point_written": False, "restore_point_artifact_written": False,
-        "firewall_snapshot_write_allowed": False, "firewall_snapshot_written": False,
-        "lock_acquisition_allowed": False, "lock_acquired": False, "lock_file_write_allowed": False, "lock_file_written": False,
-        "scheduler_lock_write_allowed": False, "scheduler_lock_written": False,
-        "db_apply_record_write_allowed": False, "db_apply_record_written": False,
-        "db_mutation": False, "migration_allowed": False, "migration_executed": False,
-        "live_firewall_read_allowed": True, "live_firewall_read_executed": False,
-        "iptables_save_allowed": True, "iptables_save_executed": False,
-        "live_firewall_write_allowed": False, "live_firewall_apply_allowed": False, "live_firewall_rollback_allowed": False,
-        "live_firewall_verify_allowed": False, "iptables_restore_allowed": False, "iptables_restore_executed": False,
-        "customer_nat_allowed": False, "customer_nat_changed": False,
-        "customer_firewall_rules_allowed": False, "customer_firewall_rules_changed": False,
-        "production_traffic_changed": False, "usage_automation_allowed": False,
-        "abuse_automation_allowed_runtime": False, "ui_allowed_runtime": False, "telegram_allowed_runtime": False,
-        "apply_decision": "BLOCKED",
-        "next_required_gate": "explicit operator-approved execution acceptance for controlled restore point + lock + DB apply record writes with fresh farm5 evidence",
-        "blockers": blockers,
-        "warnings": warnings,
-        "errors": errors,
+    if not current_state_preserved: blockers.append("Current State does not match required gate")
+    if not apply_mode_plan_only: blockers.append("firewall.apply_mode is not plan_only")
+    if runtime_activation_allowed: blockers.append("proxy.runtime_activation_allowed is true")
+    missing_map={
+        "farm5_time_sync_evidence_present":"Phase 6 farm5 Time Synchronization — Server Evidence is missing",
+        "restore_lock_record_acceptance_gate_evidence_present":"Phase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync is missing",
     }
+    for k,v in evidence.items():
+        if not v:
+            blockers.append(missing_map.get(k, f"{k} is false"))
+    if not farm5_time_sync_resolved: blockers.append("farm5 time sync evidence is incomplete")
+    if execute_controlled_boundary and not operator: blockers.append("operator is required for controlled execution")
+    if execute_controlled_boundary and not reason: blockers.append("reason is required for controlled execution")
+    if execute_controlled_boundary and not yes: blockers.append("--yes is required for controlled execution")
+    dry_run=not execute_controlled_boundary
+    execution_allowed=execute_controlled_boundary and not blockers
+    correlation_id=str(uuid.uuid4())
+    metadata={"controlled_boundary":True,"source":"restore_lock_record_execution_gate","apply_decision":"BLOCKED","firewall_apply_allowed":"no","production_traffic":"none","operator":operator or "-","reason":reason or "-","correlation_id":correlation_id}
+    checksum=hashlib.sha256(json.dumps(metadata, sort_keys=True).encode()).hexdigest()
+    report={"component":"firewall_restore_lock_record_execution_gate","phase":"Phase 6 — Firewall Planner","final_decision":"BLOCKED","gate_status":"CONTROLLED_BOUNDARY_READY" if evidence["controlled_execution_boundary_accepted_present"] else "EXECUTION_GATE_SCAFFOLD_READY","authorization_status":"CONTROLLED_BOUNDARY_EXECUTED" if execution_allowed else "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN","inspection_only":not execution_allowed,"report_only":not execution_allowed,"preflight_only":not execution_allowed,"dry_run":dry_run,"execute_controlled_boundary":execute_controlled_boundary,"execution_allowed":execution_allowed,"controlled_boundary_accepted":evidence["controlled_execution_boundary_accepted_present"],"operator":operator or "-","reason":reason or "-","correlation_id":correlation_id,"current_state_preserved":current_state_preserved,"restore_lock_record_execution_allowed":current_state.get("restore_lock_record_execution_allowed",""),"apply_mode_plan_only":apply_mode_plan_only,"runtime_activation_allowed":runtime_activation_allowed,"production_traffic":"none","firewall_apply_allowed":"no","abuse_automation_allowed":"no","live_snapshot_read_allowed":"iptables_save_read_only",**evidence,"farm5_time_sync_resolved":farm5_time_sync_resolved,"restore_point_write_allowed":execution_allowed,"restore_point_written":False,"restore_point_id":None,"restore_point_artifact_written":False,"restore_point_artifact_path":"-","restore_point_checksum":checksum,"lock_acquisition_allowed":execution_allowed,"lock_acquired":False,"lock_name":"phase6_restore_lock_record_execution","lock_owner":operator or "-","lock_expires_at":"-","db_apply_record_write_allowed":execution_allowed,"db_apply_record_written":False,"firewall_apply_id":None,"db_mutation":False,"firewall_snapshot_write_allowed":False,"firewall_snapshot_written":False,"live_firewall_read_allowed":False,"live_firewall_read_executed":False,"iptables_save_allowed":False,"iptables_save_executed":False,"live_firewall_write_allowed":False,"live_firewall_apply_allowed":False,"live_firewall_rollback_allowed":False,"live_firewall_verify_allowed":False,"iptables_restore_allowed":False,"iptables_restore_executed":False,"customer_nat_allowed":False,"customer_nat_changed":False,"customer_firewall_rules_allowed":False,"customer_firewall_rules_changed":False,"production_traffic_changed":False,"usage_automation_allowed":False,"abuse_automation_allowed_runtime":False,"ui_allowed_runtime":False,"telegram_allowed_runtime":False,"apply_decision":"BLOCKED","next_required_gate":"Future Dedicated Phase 6 Apply Gate Proposal/Review","blockers":blockers,"warnings":warnings,"errors":errors}
+    if execution_allowed:
+        if record_writer is None:
+            record_writer = lambda payload: _write_controlled_records(cfg, **payload)
+        try:
+            now=datetime.now(timezone.utc)
+            result=record_writer({"metadata":metadata,"checksum":checksum,"operator":operator,"reason":reason,"lock_name":"phase6_restore_lock_record_execution","lock_expires_at":(now+timedelta(minutes=10)).isoformat(),"backend":cfg.firewall.backend,"apply_mode":cfg.firewall.apply_mode})
+            report.update({"restore_point_written":True,"lock_acquired":True,"db_apply_record_written":True,"db_mutation":True,"restore_point_id":result.get("restore_point_id"),"firewall_apply_id":result.get("firewall_apply_id"),"lock_expires_at":result.get("lock_expires_at",report["lock_expires_at"])})
+        except Exception as exc:
+            report["errors"].append(str(exc))
+            report["execution_allowed"]=False
+    return report
+
+def build_restore_lock_record_execution_gate_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
+    return run_restore_lock_record_controlled_execution(cfg, repo_root=repo_root)

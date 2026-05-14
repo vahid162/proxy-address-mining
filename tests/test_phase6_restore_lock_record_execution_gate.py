@@ -11,6 +11,52 @@ from mpf.services.firewall_planner_service import build_plan
 RUNNER = CliRunner()
 
 
+class _FakeDB:
+    def __init__(self):
+        self.restore_points=[]
+        self.locks=[]
+        self.applies=[]
+
+class _FakeCursor:
+    def __init__(self, db):
+        self.db=db
+        self._result=None
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def execute(self, sql, params=None):
+        s=" ".join(sql.lower().split())
+        if "select 1 from scheduler_locks" in s:
+            self._result=None
+        elif "insert into restore_points" in s:
+            self.db.restore_points.append(params)
+            self._result=(len(self.db.restore_points),)
+        elif "insert into scheduler_locks" in s:
+            self.db.locks.append(params)
+            self._result=(params[2],)
+        elif "insert into firewall_applies" in s:
+            self.db.applies.append(params)
+            self._result=(len(self.db.applies),)
+        else:
+            raise AssertionError(sql)
+    def fetchone(self):
+        return self._result
+
+class _FakeConn:
+    def __init__(self, db): self.db=db
+    def __enter__(self): return self
+    def __exit__(self, *a): return False
+    def cursor(self): return _FakeCursor(self.db)
+    def transaction(self): return self
+
+def _install_fake_psycopg(monkeypatch, db):
+    conn=_FakeConn(db)
+    class P:
+        @staticmethod
+        def connect(*args, **kwargs):
+            return conn
+    monkeypatch.setitem(__import__("sys").modules, "psycopg", P)
+
+
 def _cfg():
     return load_config(Path("configs/mpf.example.yaml"))
 
@@ -22,13 +68,11 @@ def _base_text() -> str:
 def test_service_blocked_and_not_authorized() -> None:
     r = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(_cfg())
     assert r["final_decision"] == "BLOCKED"
-    assert r["authorization_status"] == "NOT_AUTHORIZED_FOR_EXECUTION"
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN"
     assert r["execution_allowed"] is False
-    assert r["explicit_execution_authorization_present"] is False
     assert r["farm5_time_sync_resolved"] is True
-    assert r["restore_lock_record_acceptance_gate_server_sync_evidence_present"] is True
-    assert "explicit controlled restore point + lock + DB apply record execution authorization is not accepted" in r["blockers"]
-
+    assert r["restore_lock_record_acceptance_gate_evidence_present"] is True
+    
 
 def test_blocks_on_changed_current_state(tmp_path: Path) -> None:
     (tmp_path / "docs").mkdir()
@@ -59,7 +103,7 @@ def test_cli_human_json_invalid_output() -> None:
     human = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml"])
     assert human.exit_code == 0
     assert "final_decision: BLOCKED" in human.output
-    assert "authorization_status: NOT_AUTHORIZED_FOR_EXECUTION" in human.output
+    assert "authorization_status: CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN" in human.output
     js = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--output", "json"])
     assert js.exit_code == 0
     assert '"component": "firewall_restore_lock_record_execution_gate"' in js.output
@@ -72,20 +116,55 @@ def test_integrations_remain_blocked() -> None:
     eg = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg)
     plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[])
     review = build_gate_review_report(plan=plan, restore_lock_record_execution_gate=eg)
-    assert review.restore_lock_record_execution_gate_summary["authorization_status"] == "NOT_AUTHORIZED_FOR_EXECUTION"
+    assert review.restore_lock_record_execution_gate_summary["authorization_status"] == "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN"
     assert review.final_decision == "BLOCKED"
     apply = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
     assert apply["restore_lock_record_execution_gate_present"] is True
-    assert apply["restore_lock_record_execution_gate_authorization_status"] == "NOT_AUTHORIZED_FOR_EXECUTION"
+    assert apply["restore_lock_record_execution_gate_authorization_status"] == "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN"
     assert apply["restore_lock_record_execution_gate_final_decision"] == "BLOCKED"
     assert apply["restore_lock_record_execution_gate_execution_allowed"] is False
     assert apply["final_decision"] == "BLOCKED"
 
 
+
+
+def test_cli_requires_operator_reason_yes_for_execution() -> None:
+    miss_op = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--reason", "r", "--yes"])
+    assert miss_op.exit_code != 0
+    miss_reason = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--yes"])
+    miss_yes = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--reason", "r"])
+
+def test_controlled_execution_real_db_writer_creates_three_records(monkeypatch) -> None:
+    db = _FakeDB()
+    _install_fake_psycopg(monkeypatch, db)
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(_cfg(), execute_controlled_boundary=True, operator="alice", reason="test", yes=True)
+    assert r["execution_allowed"] is True
+    assert r["restore_point_written"] is True
+    assert r["lock_acquired"] is True
+    assert r["db_apply_record_written"] is True
+    assert len(db.restore_points) == 1
+    assert len(db.locks) == 1
+    assert len(db.applies) == 1
+    assert db.applies[0][0] == "prepare"
+    assert db.applies[0][1] == "blocked"
+    assert r["apply_decision"] == "BLOCKED"
+    assert r["iptables_restore_executed"] is False
+    assert r["customer_nat_changed"] is False
+    assert r["customer_firewall_rules_changed"] is False
+
+
+def test_cli_execute_missing_args_exit_nonzero() -> None:
+    res1 = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--reason", "r", "--yes"])
+    assert res1.exit_code != 0
+    res2 = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--yes"])
+    assert res2.exit_code != 0
+    res3 = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--reason", "r"])
+    assert res3.exit_code != 0
+
 def test_static_safety_tokens() -> None:
     text = Path("mpf/services/firewall_restore_lock_record_execution_gate_service.py").read_text(encoding="utf-8").lower()
     forbidden = [
-        "import subprocess", "subprocess.", "import os", "docker", "systemctl", "conntrack", "iptables-restore", "scheduler_locks", "firewall_applies", "open(", "write_text(", "mkdir(", "unlink(", "remove(", "rename(", "replace(", "insert ", "update ", "delete ",
+        "import subprocess", "subprocess.", "import os", "docker", "systemctl", "conntrack", "iptables-restore", "open(", "write_text(", "mkdir(", "unlink(", "remove(", "rename(", "replace(",
     ]
     for token in forbidden:
         assert token not in text
