@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.93 - 2026-05-14
+
+- fix gate-review JSON serialization by adding `FirewallPlanMessage.to_dict()` so config-only warnings/errors render as dictionaries without crashing
+
 ## 0.1.92 - 2026-05-14
 
 - refined Phase 6 docs wording in-place (no duplicate finite path) and clarified repo 0.1.92 vs last farm5 sync 0.1.90

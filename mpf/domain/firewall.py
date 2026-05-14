@@ -63,6 +63,9 @@ class FirewallPlanMessage:
     message: str
     severity: str
 
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
 
 @dataclass(frozen=True)
 class FirewallPlanChange:
