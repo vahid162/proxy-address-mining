@@ -1040,6 +1040,7 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     restore_lock_record_gate = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(cfg)
     restore_lock_record_readiness = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg)
     restore_lock_record_acceptance_gate = firewall_restore_lock_record_acceptance_gate_service.build_restore_lock_record_acceptance_gate_report(cfg)
+    restore_lock_record_execution_gate = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg)
     report = firewall_gate_review_service.build_gate_review_report(
         evidence=evidence,
         apply_gate_readiness=apply_gate_readiness,
@@ -1048,6 +1049,7 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
         restore_lock_record_gate=restore_lock_record_gate,
         restore_lock_record_readiness=restore_lock_record_readiness,
         restore_lock_record_acceptance_gate=restore_lock_record_acceptance_gate,
+        restore_lock_record_execution_gate=restore_lock_record_execution_gate,
     )
     if output == "json":
         typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
@@ -1101,6 +1103,12 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"  final_decision: {rlex.get('final_decision', 'BLOCKED')}")
     typer.echo(f"  authorization_status: {rlex.get('authorization_status', 'NOT_AUTHORIZED_FOR_EXECUTION')}")
     typer.echo(f"  execution_allowed: {str(rlex.get('execution_allowed', False)).lower()}")
+    typer.echo(f"  controlled_boundary_accepted: {str(rlex.get('controlled_boundary_accepted', False)).lower()}")
+    typer.echo(f"  dry_run: {str(rlex.get('dry_run', True)).lower()}")
+    typer.echo(f"  execute_controlled_boundary: {str(rlex.get('execute_controlled_boundary', False)).lower()}")
+    typer.echo(f"  restore_point_write_allowed: {str(rlex.get('restore_point_write_allowed', False)).lower()}")
+    typer.echo(f"  lock_acquisition_allowed: {str(rlex.get('lock_acquisition_allowed', False)).lower()}")
+    typer.echo(f"  db_apply_record_write_allowed: {str(rlex.get('db_apply_record_write_allowed', False)).lower()}")
     typer.echo(f"  report_only: {str(rlex.get('report_only', True)).lower()}")
     typer.echo(f"  preflight_only: {str(rlex.get('preflight_only', True)).lower()}")
     typer.echo(f"  apply_decision: {rlex.get('apply_decision', 'BLOCKED')}")

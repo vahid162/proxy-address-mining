@@ -20,6 +20,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 6-C through Phase 6-H established offline/readiness/boundary/review contracts.
 - Apply Slice 1 and Slice 2 were server-synced as documentation/test-only readiness boundaries.
 - Apply Slice 3 and Slice 4 were server-synced as documentation/test-only boundaries.
+- Controlled restore point + scoped lock + DB apply record preparation boundary was executed once on farm5 under the accepted controlled boundary; final_decision/apply_decision remained BLOCKED and no live firewall/NAT/customer rule runtime behavior was authorized.
 - Future Dedicated Phase 6 Apply Gate Proposal/Review was documented as non-authorizing historical/reference context.
 - farm5 sync evidence for 0.1.88 was recorded.
 - apply-gate-readiness was implemented as read-only/report-only.
@@ -33,11 +34,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Finite Remaining Path
 
-1. Complete the Phase 6 Live Snapshot Read Gate Proposal.
-2. Then, in a separate PR, implement read-only live snapshot scaffolding only after proposal review.
-   - status update: fail-closed scaffolding report now exists (`mpf firewall live-snapshot-scaffold`) and remains non-authorizing/report-only.
-3. Actual live read requires separate `docs/PHASE_STATUS.md` acceptance and farm5 evidence.
-4. Apply/restore/NAT/customer firewall rules remain later gates.
+1. Future Dedicated Phase 6 Apply Gate Proposal/Review remains the next planning target.
+2. After dedicated proposal/review acceptance, no-customer apply/verify/rollback gate review remains a separate later gate.
+3. Manual canary customer NAT/customer firewall rules gate remains a separate later gate after no-customer apply/verify/rollback evidence.
+4. Firewall apply, iptables-restore, customer NAT/customer firewall rules, and production traffic remain forbidden until their dedicated gates are explicitly accepted in `docs/PHASE_STATUS.md`.
 
 ## Non-Negotiable Current Prohibitions
 
@@ -47,7 +47,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - no iptables-save until a dedicated read gate is accepted
 - no iptables-restore until a dedicated apply gate is accepted
 - no real firewall adapter or subprocess firewall calls
-- no restore point writes, lock acquisition, DB apply writes, or migrations
+- no uncontrolled restore point writes, lock acquisition, or DB apply writes outside the accepted controlled execution boundary
 - no migrations
 - no customer NAT or customer firewall rules
 - no usage automation
