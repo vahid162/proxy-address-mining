@@ -15,6 +15,9 @@ def test_gate_review_includes_no_customer_scaffold_summary() -> None:
     res = RUNNER.invoke(app, ["firewall", "gate-review", "--config", str(example_config_path()), "--source", "config-only"])
     assert res.exit_code == 0
     assert "no_customer_apply_scaffold: summary" in res.output
+    assert "present: true" in res.output
+    assert "final_decision: BLOCKED" in res.output
+    assert "authorization_status: NOT_AUTHORIZED_FOR_APPLY" in res.output
     assert "execution_allowed: false" in res.output
 
 
