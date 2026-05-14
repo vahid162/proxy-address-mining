@@ -16,7 +16,7 @@ def _cfg():
 
 
 def _base_text() -> str:
-    return """## Current State\n```text\ncurrent_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5\ncurrent_working_phase: Phase 6 — Firewall Planner\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\n```\nPhase 6 Read-Only iptables-save Snapshot — Server Evidence\nPhase 6 farm5 Time Synchronization — Server Evidence\nPhase 6 Restore/Lock/DB Apply Record Readiness — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary\nPhase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync\nSystem clock synchronized: yes\nNTPSynchronized=yes\n194.225.150.25\n"""
+    return """## Current State\n```text\ncurrent_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5\ncurrent_working_phase: Phase 6 — Firewall Planner\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\nrestore_lock_record_execution_allowed: controlled_boundary_only\n```\nPhase 6 Read-Only iptables-save Snapshot — Server Evidence\nPhase 6 farm5 Time Synchronization — Server Evidence\nPhase 6 Restore/Lock/DB Apply Record Readiness — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary\nPhase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync\nSystem clock synchronized: yes\nNTPSynchronized=yes\n194.225.150.25\n"""
 
 
 def test_service_blocked_and_not_authorized() -> None:
@@ -126,7 +126,8 @@ customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
-live_snapshot_read_allowed: iptables_save_read_only"""
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only"""
     assert expected in text
 
 
@@ -175,6 +176,52 @@ def test_phase6_controlled_execution_gate_proposal_review_acceptance_criteria_to
 
 
 def test_phase6_controlled_execution_gate_proposal_review_still_forbidden_tokens() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    forbidden_listed = [
+        "iptables-restore",
+        "live firewall apply",
+        "live rollback",
+        "live verify",
+        "customer NAT",
+        "customer firewall rules",
+        "production traffic",
+        "usage automation",
+        "abuse automation",
+        "UI",
+        "Telegram",
+    ]
+    for token in forbidden_listed:
+        assert token in text
+
+
+def test_phase6_controlled_execution_boundary_accepted_section_tokens() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    assert "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Boundary — Accepted" in text
+    required = [
+        "accepted boundary only",
+        "documentation/test-only",
+        "no execution performed by this PR",
+        "no runtime behavior enabled by this PR",
+        "one restore point record/artifact",
+        "one scoped firewall/apply lock",
+        "one DB apply record in prepared/blocked state",
+        "apply_decision=BLOCKED",
+        "firewall_apply_allowed=no",
+        "production_traffic=none",
+        "restore_lock_record_execution_allowed: controlled_boundary_only",
+        "--execute-controlled-boundary",
+        "operator identity",
+        "reason",
+        "dry-run/default mode",
+        "operator approval",
+        "farm5 time sync evidence",
+        "read-only iptables-save snapshot evidence",
+    ]
+    for token in required:
+        assert token in text
+
+
+def test_phase6_controlled_execution_boundary_accepted_still_forbidden_tokens() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     forbidden_listed = [
         "iptables-restore",
