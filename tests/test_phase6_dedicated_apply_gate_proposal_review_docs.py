@@ -21,6 +21,12 @@ live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only"""
     assert current_state in text
     assert "### Phase 6 Dedicated Apply Gate — Proposal Review" in text
+    controlled_heading = "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution — Server Evidence"
+    proposal_heading = "### Phase 6 Dedicated Apply Gate — Proposal Review"
+    controlled_start = text.index(controlled_heading)
+    proposal_start = text.index(proposal_heading)
+    controlled_slice = text[controlled_start:proposal_start]
+    assert "version accepted on farm5: 0.1.90" in controlled_slice
 
 
 def test_proposal_review_contains_required_non_authorizing_terms() -> None:
@@ -50,6 +56,15 @@ def test_proposal_review_contains_required_non_authorizing_terms() -> None:
         assert phrase in text
 
 
+def test_controlled_execution_evidence_stays_under_controlled_section() -> None:
+    text = _read("docs/PHASE_STATUS.md")
+    controlled_start = text.index("### Phase 6 Controlled Restore/Lock/DB Apply Record Execution — Server Evidence")
+    proposal_start = text.index("### Phase 6 Dedicated Apply Gate — Proposal Review")
+    controlled_slice = text[controlled_start:proposal_start]
+    assert "version accepted on farm5: 0.1.90" in controlled_slice
+    assert "controlled execution: authorization_status=CONTROLLED_BOUNDARY_EXECUTED" in controlled_slice
+
+
 def test_remaining_plan_ai_task_and_readme_alignment() -> None:
     remaining = _read("docs/REMAINING_PHASE_PLAN.md")
     ai_task = _read("docs/AI_PHASE_6_TASK.md")
@@ -64,10 +79,16 @@ def test_remaining_plan_ai_task_and_readme_alignment() -> None:
     assert "Live Snapshot Read Gate Proposal" not in ai_task
     assert "live_snapshot_read_allowed: iptables_save_read_only" in ai_task
     assert "restore_lock_record_execution_allowed: controlled_boundary_only" in ai_task
+    assert "iptables-save remains forbidden now. (historical compatibility wording)" not in ai_task
+    assert "live firewall reads remain forbidden now. (historical compatibility wording)" not in ai_task
+    assert "read-only iptables-save live snapshot is authorized and evidenced." in ai_task
+    assert "unauthorized iptables-save execution remains forbidden." in ai_task
 
     assert "docs/PHASE_STATUS.md" in readme
     assert "Phase 6-H accepted" not in readme
     assert "Phase 6 Dedicated Apply Gate Proposal/Review" in readme
+    assert "\niptables-save execution\n" not in readme
+    assert "unauthorized iptables-save execution" in readme
 
 
 def test_abuse_invariant_still_present_in_docs() -> None:

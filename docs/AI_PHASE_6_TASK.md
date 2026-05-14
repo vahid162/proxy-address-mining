@@ -90,8 +90,9 @@ Required boundary statements:
 
 - iptables-restore remains forbidden now.
 - read-only iptables-save live snapshot is authorized and evidenced.
-- iptables-save remains forbidden now. (historical compatibility wording)
-- live firewall reads remain forbidden now. (historical compatibility wording)
+- unauthorized iptables-save execution remains forbidden.
+- iptables-save remains forbidden now (for unauthorized execution paths).
+- live firewall reads remain forbidden now.
 - live firewall writes remain forbidden now.
 - live firewall write/apply/rollback/verify remains forbidden now.
 - read-only iptables-save live snapshot path is authorized and evidenced.
@@ -99,6 +100,7 @@ Required boundary statements:
 - no iptables-restore before explicit apply gate.
 - no customer NAT/customer firewall rules.
 - no production traffic.
+- production traffic remains none.
 - no usage automation.
 - no abuse automation before Phase 8.
 - abuse 1h invariant is preserved (normal -> over_tracking -> over_grace -> hard).

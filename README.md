@@ -75,7 +75,7 @@ customer firewall rules
 live firewall apply
 live firewall rollback
 live firewall verify
-iptables-save execution
+unauthorized iptables-save execution
 iptables-restore execution
 conntrack flush
 usage timers
