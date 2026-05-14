@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 
 from typer.testing import CliRunner
@@ -629,6 +630,21 @@ def test_firewall_gate_review_config_only_warning(monkeypatch) -> None:
     assert "WARNING" in res.output
 
 
+def test_firewall_gate_review_config_only_json_is_valid(monkeypatch) -> None:
+    monkeypatch.setattr(firewall_planner_service, "build_plan_from_config", lambda cfg: _config_plan())
+    res = RUNNER.invoke(app, ["firewall", "gate-review", "--config", str(example_config_path()), "--source", "config-only", "--output", "json"])
+    assert res.exit_code == 0
+    payload = json.loads(res.output)
+    assert payload["final_decision"] == "BLOCKED"
+    assert payload["applyable"] is False
+    assert payload["live_apply_allowed"] is False
+    assert isinstance(payload["warnings"], list)
+    assert payload["warnings"]
+    for warning in payload["warnings"]:
+        assert isinstance(warning, dict)
+        assert {"code", "message", "severity"}.issubset(warning)
+
+
 def test_firewall_gate_review_db_failure_exits_nonzero(monkeypatch) -> None:
     monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: (_ for _ in ()).throw(RuntimeError("failed to load lanes: db down")))
     res = RUNNER.invoke(app, ["firewall", "gate-review", "--config", str(example_config_path())])
@@ -722,6 +738,7 @@ def test_firewall_live_snapshot_read_execute_runs_iptables_save(monkeypatch) -> 
 
 
 def test_firewall_live_snapshot_read_execute_empty_stdout_fails_closed(monkeypatch) -> None:
+    import json
     import subprocess
     monkeypatch.setattr(subprocess, "run", lambda args, **kwargs: subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr=""))
     res = RUNNER.invoke(app, ["firewall", "live-snapshot-read", "--config", str(example_config_path()), "--execute"])

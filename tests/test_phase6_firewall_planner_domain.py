@@ -35,3 +35,12 @@ def test_human_and_json_include_planner_customer_source_fields() -> None:
     text = plan.to_human()
     assert "planner_customer_source: config_only" in text
     assert "db_customer_input_loaded: false" in text
+
+
+def test_firewall_plan_message_to_dict() -> None:
+    msg = FirewallPlanMessage(code="cfg_only", message="config-only input used", severity="warning")
+    assert msg.to_dict() == {
+        "code": "cfg_only",
+        "message": "config-only input used",
+        "severity": "warning",
+    }
