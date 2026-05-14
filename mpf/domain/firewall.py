@@ -603,6 +603,7 @@ class FirewallGateReviewReport:
     live_snapshot_read_summary: dict[str, Any] = field(default_factory=dict)
     restore_lock_record_gate_summary: dict[str, Any] = field(default_factory=dict)
     restore_lock_record_acceptance_gate_summary: dict[str, Any] = field(default_factory=dict)
+    restore_lock_record_execution_gate_summary: dict[str, Any] = field(default_factory=dict)
     restore_lock_record_readiness_summary: dict[str, Any] = field(default_factory=dict)
     abuse_requirement_summary: dict[str, Any] = field(default_factory=dict)
     safety_flags: dict[str, Any] = field(default_factory=dict)

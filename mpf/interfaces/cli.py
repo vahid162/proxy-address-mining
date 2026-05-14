@@ -35,6 +35,7 @@ from mpf.services import (
     firewall_evidence_service,
     firewall_gate_review_service,
     firewall_restore_lock_record_acceptance_gate_service,
+    firewall_restore_lock_record_execution_gate_service,
     firewall_restore_lock_record_gate_service,
     firewall_restore_lock_record_readiness_service,
     proxy_doctor_service,
@@ -531,6 +532,7 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
         "restore_lock_record_readiness_present","restore_lock_record_readiness_authorization_status","restore_lock_record_readiness_final_decision",
         "restore_lock_record_gate_present","restore_lock_record_gate_authorization_status","restore_lock_record_gate_final_decision","next_operator_action",
         "restore_lock_record_acceptance_gate_present","restore_lock_record_acceptance_gate_authorization_status","restore_lock_record_acceptance_gate_final_decision",
+        "restore_lock_record_execution_gate_present", "restore_lock_record_execution_gate_authorization_status", "restore_lock_record_execution_gate_final_decision", "restore_lock_record_execution_gate_execution_allowed",
     ):
         value = report[key]
         if isinstance(value, bool):
@@ -588,6 +590,29 @@ def firewall_restore_lock_record_readiness(config: Path | None = typer.Option(No
             value = str(value).lower()
         typer.echo(f"{key}: {value}")
     for key in ("blockers", "warnings", "errors"):
+        values = report[key]
+        typer.echo(f"{key}: {', '.join(values) if values else '-'}")
+
+
+@firewall_app.command("restore-lock-record-execution-gate")
+def firewall_restore_lock_record_execution_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render fail-closed execution-gate scaffold for future controlled restore/lock/db-apply writes."""
+    cfg = _load(config)
+    report = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    for key in (
+        "component", "final_decision", "gate_status", "authorization_status", "inspection_only", "report_only", "preflight_only", "execution_allowed",
+        "explicit_execution_authorization_present", "operator_approval_present", "fresh_farm5_execution_evidence_present", "farm5_time_sync_resolved",
+        "restore_point_write_allowed", "lock_acquisition_allowed", "db_apply_record_write_allowed", "iptables_restore_allowed",
+        "customer_nat_allowed", "customer_firewall_rules_allowed", "apply_decision", "next_required_gate",
+    ):
+        value = report[key]
+        if isinstance(value, bool):
+            value = str(value).lower()
+        typer.echo(f"{key}: {value}")
+    for key in ("blockers", "errors"):
         values = report[key]
         typer.echo(f"{key}: {', '.join(values) if values else '-'}")
 
