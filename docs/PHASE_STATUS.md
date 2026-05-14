@@ -1008,6 +1008,50 @@ Stop conditions for the future implementation:
 
 The next implementation target is a separate guarded code PR for `mpf firewall restore-lock-record-execution-gate` that may add a dry-run default and an explicit `--execute-controlled-boundary` path for the accepted controlled boundary only: one restore point record/artifact, one scoped lock, and one DB apply record in prepared/blocked state, still without firewall apply and still without customer NAT/customer firewall rules.
 
+### Phase 6 Controlled Restore/Lock/DB Apply Record Execution — Server Evidence
+
+```text
+version accepted on farm5: 0.1.90
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260514T120405Z
+pytest with venv during sync: 583 passed in 13.10s
+source aligned with GitHub zip: OK
+current phase safety gate: OK
+mpf --version: 0.1.90
+Current State preserved: OK
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
+no MPF/customer IPv4 firewall references
+no MPF/customer IPv6 firewall references
+no customer NAT redirects
+accepted limited runtime listeners remain local-only
+v2rayA UI listener: 127.0.0.1:2015
+BTC backend listener: 127.0.0.1:60010
+dry-run before execution: authorization_status=CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN; execution_allowed=false; restore_point_written=false; lock_acquired=false; db_apply_record_written=false; db_mutation=false; errors=none
+controlled execution: authorization_status=CONTROLLED_BOUNDARY_EXECUTED; execution_allowed=true; restore_point_written=true; restore_point_id=1; lock_acquired=true; lock_name=phase6_restore_lock_record_execution; lock_owner=vahid; db_apply_record_written=true; firewall_apply_id=1; db_mutation=true; errors=none
+controlled execution safety: final_decision=BLOCKED; apply_decision=BLOCKED; firewall_apply_allowed=no; production_traffic=none; iptables_save_executed=false; iptables_restore_executed=false; live_firewall_apply_allowed=false; live_firewall_rollback_allowed=false; live_firewall_verify_allowed=false; customer_nat_changed=false; customer_firewall_rules_changed=false; production_traffic_changed=false; usage_automation_allowed=false; abuse_automation_allowed_runtime=false; ui_allowed_runtime=false; telegram_allowed_runtime=false
+database status after execution: alembic_version=0002_phase5_customer_lifecycle; public_table_count=64; lanes=3; customers=1; firewall_applies=1; abuse_states=0
+apply-gate-readiness: final_decision=BLOCKED; restore_lock_record_execution_gate_present=true; restore_lock_record_execution_gate_execution_allowed=false
+gate-review: final_decision=BLOCKED; applyable=false; live_apply_allowed=false
+no firewall apply
+no firewall rollback
+no firewall verify
+no iptables-restore
+no customer NAT/customer firewall rules
+no production traffic
+no usage automation
+no abuse automation
+no UI
+no Telegram
+```
+
+This server result proves only the explicitly gated controlled restore point + scoped lock + DB apply record preparation boundary. It does not authorize firewall apply, firewall rollback, firewall verify, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram. Apply and gate-review final decisions remain BLOCKED.
+
 
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
