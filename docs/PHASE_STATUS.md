@@ -763,6 +763,48 @@ No firewall write/apply/rollback/verify, iptables-restore, customer NAT, custome
 Apply and gate-review final decisions remain BLOCKED.
 The next implementation target is an operator-approved controlled restore point + lock + DB apply record execution gate with fresh farm5 evidence, still without customer NAT/customer firewall rules and still without firewall apply.
 
+### Phase 6 Restore/Lock/DB Apply Record Execution Gate Scaffold — Server Sync
+
+```text
+version accepted on farm5: 0.1.90
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260514T095337Z
+pytest with venv during sync: 566 passed in 12.51s
+source aligned with GitHub zip: OK
+current phase safety gate: OK
+mpf --version: 0.1.90
+mpf config validate: OK
+mpf doctor: OK
+mpf db status: OK
+mpf proxy doctor final_verdict: OK
+database status: alembic_version=0002_phase5_customer_lifecycle; public_table_count=64; lanes=3; customers=1; job_runs=0; firewall_applies=0; abuse_states=0
+runtime/safety: firewall.apply_mode=plan_only; proxy.runtime_activation_allowed=false; production_traffic=none; firewall_apply_allowed=no; abuse_automation_allowed=no
+no MPF/customer IPv4 firewall references
+no MPF/customer IPv6 firewall references
+no customer NAT redirects
+accepted limited runtime listeners remain local-only
+v2rayA UI listener: 127.0.0.1:2015
+BTC backend listener: 127.0.0.1:60010
+restore-lock-record-execution-gate: final_decision=BLOCKED; gate_status=EXECUTION_GATE_SCAFFOLD_READY; authorization_status=NOT_AUTHORIZED_FOR_EXECUTION; execution_allowed=false; explicit_execution_authorization_present=false; operator_approval_present=false; fresh_farm5_execution_evidence_present=false; farm5_time_sync_resolved=true
+execution-gate safety: restore_point_write_allowed=false; lock_acquisition_allowed=false; db_apply_record_write_allowed=false; iptables_restore_allowed=false; customer_nat_allowed=false; customer_firewall_rules_allowed=false; apply_decision=BLOCKED
+execution-gate blocker: explicit controlled restore point + lock + DB apply record execution authorization is not accepted
+apply-gate-readiness: final_decision=BLOCKED; restore_lock_record_execution_gate_present=true; restore_lock_record_execution_gate_authorization_status=NOT_AUTHORIZED_FOR_EXECUTION; restore_lock_record_execution_gate_final_decision=BLOCKED; restore_lock_record_execution_gate_execution_allowed=false
+gate-review: final_decision=BLOCKED; applyable=false; live_apply_allowed=false
+no restore point write
+no lock acquisition
+no DB apply record write
+no firewall write/apply/rollback/verify
+no iptables-restore
+no customer NAT/customer firewall rules
+no production traffic
+no usage automation
+no abuse automation
+no UI
+no Telegram
+```
+
+This server result proves only the fail-closed execution-gate scaffold for future controlled restore point + lock + DB apply record work. It does not authorize execution. Actual restore point writes, lock acquisition, DB apply record writes, firewall apply/rollback/verify, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain blocked until a later explicit gate acceptance with fresh farm5 evidence.
+
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
 ```text

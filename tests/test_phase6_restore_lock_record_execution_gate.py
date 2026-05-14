@@ -89,3 +89,42 @@ def test_static_safety_tokens() -> None:
     ]
     for token in forbidden:
         assert token not in text
+
+
+def test_phase_status_execution_gate_sync_evidence_tokens_present() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    assert "### Phase 6 Restore/Lock/DB Apply Record Execution Gate Scaffold — Server Sync" in text
+    required = [
+        "pytest with venv during sync: 566 passed in 12.51s",
+        "NOT_AUTHORIZED_FOR_EXECUTION",
+        "execution_allowed=false",
+        "restore_point_write_allowed=false",
+        "lock_acquisition_allowed=false",
+        "db_apply_record_write_allowed=false",
+        "iptables_restore_allowed=false",
+        "customer_nat_allowed=false",
+        "customer_firewall_rules_allowed=false",
+        "production_traffic: none",
+        "no usage automation",
+        "no abuse automation",
+        "no UI",
+        "no Telegram",
+    ]
+    for token in required:
+        assert token in text
+
+
+def test_phase_status_current_state_block_unchanged() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    expected = """current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
+current_working_phase: Phase 6 — Firewall Planner
+server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only"""
+    assert expected in text
