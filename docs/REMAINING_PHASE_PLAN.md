@@ -112,3 +112,17 @@ Purpose: staged Telegram integration (notification-first).
 
 ### Phase 14 — Worker Policy Enforcement
 Purpose: implement worker-policy enforcement boundary.
+
+
+- No-customer apply/verify/rollback execution acceptance package exists as artifact-only/report-only/non-executing surface and remains BLOCKED / EXECUTION_ACCEPTANCE_DEFINED_NOT_EXECUTABLE.
+
+Finite Remaining Path:
+1. Dedicated Apply Gate Proposal/Review — done
+2. No-customer apply/verify/rollback scaffold — done
+3. No-customer apply/verify/rollback explicit acceptance — report-only gate done and server evidence recorded
+4. No-customer apply/verify/rollback controlled execution package — report-only/non-executing package done; runtime execution evidence remains next target after separate explicit runtime approval
+5. Manual canary customer NAT/customer firewall rules proposal
+6. Manual canary customer NAT/customer firewall rules explicit acceptance
+7. Phase 6 final acceptance
+8. Phase 7 Usage + Policy/Reject Accounting
+9. Phase 8 Abuse 1h Core

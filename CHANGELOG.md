@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.91 - 2026-05-14
+
+- added report-only no-customer apply package and execution acceptance services plus CLI surfaces
+- integrated both summaries into apply-gate-readiness and gate-review while keeping decisions BLOCKED/non-executable
+- recorded PR #98 farm5 execution-gate server sync evidence and aligned Phase 6 wording in core docs
+
 ## 0.1.90 - 2026-05-13
 
 - included non-authorizing apply gate readiness summary in the Phase 6 firewall gate review path

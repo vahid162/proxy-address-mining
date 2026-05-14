@@ -80,8 +80,7 @@ Current Phase 6 step:
 ```text
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
-Future dedicated Phase 6 apply gate remains not accepted and not authorized.
+Phase 5 remains accepted and Phase 6 remains working. Read-only iptables-save snapshot is authorized/evidenced. Controlled restore/lock/DB apply record boundary executed once and evidenced. No-customer scaffold, acceptance gate, execution gate, package, and execution acceptance are report-only/non-executing. Firewall apply, iptables-restore, customer NAT/rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized.
 ```
 
 Read:
