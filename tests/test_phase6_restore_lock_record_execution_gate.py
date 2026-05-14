@@ -1,3 +1,4 @@
+import builtins
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -139,7 +140,9 @@ def test_cli_requires_operator_reason_yes_for_execution() -> None:
 def test_controlled_execution_real_db_writer_creates_three_records(monkeypatch) -> None:
     db = _FakeDB()
     _install_fake_psycopg(monkeypatch, db)
-    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(_cfg(), execute_controlled_boundary=True, operator="alice", reason="test", yes=True)
+    cfg = _cfg()
+    cfg.database.url = "postgresql://mpf@127.0.0.1/mpf"
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True)
     assert r["execution_allowed"] is True
     assert r["restore_point_written"] is True
     assert r["lock_acquired"] is True
@@ -387,3 +390,70 @@ def test_writer_uses_connection_factory_not_direct_cfg_url(monkeypatch) -> None:
     )
     assert called["factory"] == 1
     assert r["restore_point_written"] is True
+
+
+def test_local_peer_root_default_writer_uses_mpf_psql_path(monkeypatch) -> None:
+    cfg = _cfg()
+    cfg.database.url = "postgresql:///mpf"
+    real_import = builtins.__import__
+    monkeypatch.setattr(
+        builtins,
+        "__import__",
+        lambda name, *a, **k: type("M", (), {"geteuid": staticmethod(lambda: 0)})() if name == "os" else real_import(name, *a, **k),
+    )
+    called = {"psql": 0, "psycopg": 0}
+
+    def fake_psql(*, dbname: str, payload_json: str):
+        called["psql"] += 1
+        assert dbname == "mpf"
+        assert "phase6_restore_lock_record_execution" in payload_json
+        from mpf.db import ControlledExecutionWriteResult
+        return ControlledExecutionWriteResult(restore_point_id=1, firewall_apply_id=1, lock_expires_at="2026-01-01T00:00:00+00:00")
+
+    monkeypatch.setattr(
+        firewall_restore_lock_record_execution_gate_service,
+        "write_controlled_execution_records_local_peer_as_mpf",
+        fake_psql,
+    )
+
+    class _P:
+        @staticmethod
+        def connect(*args, **kwargs):
+            called["psycopg"] += 1
+            raise AssertionError("should not call psycopg.connect for local-peer root default path")
+
+    monkeypatch.setitem(__import__("sys").modules, "psycopg", _P)
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True
+    )
+    assert called["psql"] == 1
+    assert called["psycopg"] == 0
+    assert r["restore_point_written"] is True
+    assert r["lock_acquired"] is True
+    assert r["db_apply_record_written"] is True
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTED"
+
+
+def test_local_peer_root_default_writer_failure_is_reported(monkeypatch) -> None:
+    cfg = _cfg()
+    cfg.database.url = "postgresql:///mpf"
+    real_import = builtins.__import__
+    monkeypatch.setattr(
+        builtins,
+        "__import__",
+        lambda name, *a, **k: type("M", (), {"geteuid": staticmethod(lambda: 0)})() if name == "os" else real_import(name, *a, **k),
+    )
+    monkeypatch.setattr(
+        firewall_restore_lock_record_execution_gate_service,
+        "write_controlled_execution_records_local_peer_as_mpf",
+        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("sudo psql failed")),
+    )
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True
+    )
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTION_FAILED"
+    assert r["execution_allowed"] is False
+    assert r["restore_point_write_allowed"] is False
+    assert r["lock_acquisition_allowed"] is False
+    assert r["db_apply_record_write_allowed"] is False
+    assert r["db_mutation"] is False

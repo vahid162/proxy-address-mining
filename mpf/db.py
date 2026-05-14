@@ -23,6 +23,13 @@ class DBQueryResult:
     message: str
 
 
+@dataclass(frozen=True)
+class ControlledExecutionWriteResult:
+    restore_point_id: int
+    firewall_apply_id: int
+    lock_expires_at: str
+
+
 def _local_peer_dbname(url: str) -> str | None:
     """Return DB name for local peer URLs such as postgresql:///mpf.
 
@@ -76,6 +83,72 @@ def _query_local_peer_as_mpf(dbname: str, sql: str) -> DBQueryResult:
         return DBQueryResult(False, [], f"failed to parse psql CSV output: {exc}")
     return DBQueryResult(True, [dict(row) for row in rows], "OK")
 
+
+def write_controlled_execution_records_local_peer_as_mpf(*, dbname: str, payload_json: str) -> ControlledExecutionWriteResult:
+    cmd = [
+        "sudo", "-u", "mpf", "psql", "-d", dbname, "--csv", "-X", "-q", "-t",
+        "-v", f"payload_json={payload_json}",
+        "-f", "-",
+    ]
+    sql = """
+begin;
+do $$
+declare p jsonb := (:'payload_json')::jsonb;
+begin
+  if exists(select 1 from scheduler_locks where lock_name = p->>'lock_name' and expires_at > now()) then
+    raise exception 'scoped controlled execution lock already exists';
+  end if;
+end $$;
+with payload as (
+  select (:'payload_json')::jsonb as j
+), rp as (
+  insert into restore_points (restore_type, subject_type, subject_id, snapshot_id, backup_id, metadata_json, created_by, reason, checksum)
+  select 'firewall','phase6_controlled_execution',null,null,null,
+         ((select j->'metadata' from payload)::jsonb),
+         (select j->>'operator' from payload),
+         (select j->>'reason' from payload),
+         (select j->>'checksum' from payload)
+  from payload
+  returning id
+), lk as (
+  insert into scheduler_locks (lock_name, owner, acquired_at, expires_at, metadata_json)
+  select (select j->>'lock_name' from payload),
+         (select j->>'operator' from payload),
+         now(),
+         ((select j->>'lock_expires_at' from payload))::timestamptz,
+         ((select j->'lock_metadata' from payload)::jsonb)
+  from rp
+  returning expires_at
+), fa as (
+  insert into firewall_applies (action, status, apply_mode, backend, restore_point_id, snapshot_before_id, snapshot_after_id, plan_json, summary, created_by, correlation_id)
+  select 'prepare','blocked',
+         (select j->>'apply_mode' from payload),
+         (select j->>'backend' from payload),
+         (select id from rp),
+         null,null,
+         ((select j->'plan_json' from payload)::jsonb),
+         'controlled restore/lock/db apply record boundary prepared; apply remains blocked',
+         (select j->>'operator' from payload),
+         (select j->'metadata'->>'correlation_id' from payload)
+  from lk
+  returning id
+)
+select (select id from rp) as restore_point_id, (select id from fa) as firewall_apply_id, (select expires_at from lk) as lock_expires_at;
+commit;
+"""
+    result = subprocess.run(cmd, text=True, input=sql, capture_output=True)
+    if result.returncode != 0:
+        message = result.stderr.strip() or result.stdout.strip() or "db controlled write failed"
+        if "lock_conflict" in message:
+            raise RuntimeError("scoped controlled execution lock already exists")
+        raise RuntimeError(message)
+    output = result.stdout.strip()
+    if not output:
+        raise RuntimeError("db controlled write returned no rows")
+    row = next(csv.reader([output]))
+    if len(row) != 3:
+        raise RuntimeError(f"db controlled write returned unexpected columns: {output!r}")
+    return ControlledExecutionWriteResult(restore_point_id=int(row[0]), firewall_apply_id=int(row[1]), lock_expires_at=row[2])
 
 
 def write_local_peer_root_guard_message(url: str, *, command_hint: str) -> str | None:
