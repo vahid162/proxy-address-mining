@@ -397,3 +397,6 @@ Future dedicated apply gate remains not accepted and not authorized.
 AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 The explicitly gated read-only iptables-save live snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.
+
+
+Current report-only command: `mpf firewall no-customer-apply-execution-gate` (report-only, execution-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic).

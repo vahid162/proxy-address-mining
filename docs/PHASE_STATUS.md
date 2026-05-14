@@ -1149,6 +1149,37 @@ execution_allowed remains false
 Purpose: Record that the acceptance gate for future no-customer apply/verify/rollback is now modeled and inspectable, but future execution still requires separate server evidence and a separate execution PR/gate.
 
 
+
+### Phase 6 No-Customer Apply/Verify/Rollback Acceptance Gate — Server Evidence
+
+```text
+version accepted on farm5: 0.1.90
+sync command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup: /var/backups/mpf/source-before-zip-sync-20260514T134606Z
+pytest with venv during sync: 606 passed in 14.29s
+current phase safety gate: OK
+source aligned with GitHub zip: OK
+mpf --version: 0.1.90
+mpf config validate: OK
+mpf doctor: OK
+mpf db status: OK
+mpf proxy doctor final_verdict: OK
+database status: alembic_version=0002_phase5_customer_lifecycle; public_table_count=64; lanes=3; customers=1; job_runs=0; firewall_applies=1; abuse_states=0
+runtime safety: firewall.apply_mode=plan_only; proxy.runtime_activation_allowed=false; production_traffic=none; firewall_apply_allowed=no; abuse_automation_allowed=no
+runtime listeners: v2rayA UI 127.0.0.1:2015; BTC backend 127.0.0.1:60010
+firewall safety: no MPF/customer IPv4 firewall references detected; no MPF/customer IPv6 firewall references detected; no customer NAT redirects detected
+Docker-managed local publish DNAT references for 127.0.0.1:2015 and 127.0.0.1:60010 are accepted limited-runtime local publish rules only
+accepted limited runtime listeners remain local-only
+current Phase 5 accepted / Phase 6 working safety gate passed
+production customer traffic remains disabled
+```
+
+This server result proves only repository/server sync and report-only acceptance-gate availability. It does not authorize firewall apply, firewall verify, firewall rollback, iptables-restore, subprocess firewall calls, real adapter execution, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram. Apply, verify, rollback, and execution decisions remain BLOCKED.
+
+### Phase 6 No-Customer Apply/Verify/Rollback Execution Gate — Report-Only
+
+This section defines a controlled execution-gate report only surface for future no-customer apply/verify/rollback and is non-executing and non-authorizing for runtime. It does not authorize firewall apply, firewall verify, firewall rollback, iptables-restore, subprocess firewall calls, real adapter execution, customer NAT, customer firewall rules, production traffic, DB writes, restore point writes, or lock acquisition. final_decision remains BLOCKED; apply_decision remains BLOCKED; verify_decision remains BLOCKED; rollback_decision remains BLOCKED; execution_allowed remains false.
+
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
 ```text
