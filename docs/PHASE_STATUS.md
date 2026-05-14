@@ -805,6 +805,92 @@ no Telegram
 
 This server result proves only the fail-closed execution-gate scaffold for future controlled restore point + lock + DB apply record work. It does not authorize execution. Actual restore point writes, lock acquisition, DB apply record writes, firewall apply/rollback/verify, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain blocked until a later explicit gate acceptance with fresh farm5 evidence.
 
+### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Gate — Proposal Review
+
+Status: proposal/review only (documentation/test-only, non-authorizing).
+
+This PR does not authorize execution. The execution-gate scaffold remains `BLOCKED` / `NOT_AUTHORIZED_FOR_EXECUTION`, and execution_allowed remains false.
+
+The following remain forbidden: restore point writes, lock acquisition, DB apply record writes, firewall apply/rollback/verify, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram.
+
+Purpose: define the exact future acceptance criteria for a separate PR that may request controlled execution of one restore point record/artifact, one scoped lock, and one DB apply record in prepared/blocked state only. Even in that future execution gate, apply_decision must remain BLOCKED and no firewall apply is allowed.
+
+Future acceptance criteria (all required, with fresh farm5 evidence):
+
+- operator approval is explicitly recorded
+- fresh farm5 evidence is included
+- python -m pytest -q passes from the project venv
+- current phase safety gate passes
+- mpf --version reports 0.1.90 unless a later version bump is intentionally accepted
+- mpf config validate OK
+- mpf doctor OK
+- mpf db status OK
+- mpf proxy doctor final_verdict OK
+- mpf firewall restore-lock-record-execution-gate remains BLOCKED / NOT_AUTHORIZED_FOR_EXECUTION before the gate is accepted
+- mpf firewall apply-gate-readiness remains BLOCKED
+- mpf firewall gate-review remains BLOCKED
+- firewall.apply_mode remains plan_only
+- proxy.runtime_activation_allowed remains false
+- production_traffic remains none
+- firewall_apply_allowed remains no
+- abuse_automation_allowed remains no
+- live_snapshot_read_allowed remains iptables_save_read_only
+- farm5 time sync remains resolved: System clock synchronized: yes; NTPSynchronized=yes; NTP source 194.225.150.25
+- no MPF/customer IPv4 firewall references
+- no MPF/customer IPv6 firewall references
+- no customer NAT redirects
+- no customer firewall rules
+- accepted limited runtime listeners remain local-only: v2rayA UI 127.0.0.1:2015; BTC backend 127.0.0.1:60010
+
+Future allowed operation only after separate explicit acceptance:
+
+- create one restore point record/artifact for controlled pre-apply preparation
+- acquire one scoped firewall/apply lock
+- create one DB apply record in prepared/blocked state
+- correlate restore point, lock, DB apply record, source snapshot hash, intended payload hash, operator identity, and correlation_id
+- preserve apply_decision=BLOCKED
+- preserve firewall_apply_allowed=no
+- preserve production_traffic=none
+
+Future still forbidden even after that controlled execution gate:
+
+- iptables-restore
+- live firewall apply
+- live rollback
+- live verify
+- customer NAT
+- customer firewall rules
+- production traffic
+- usage automation
+- abuse automation
+- UI
+- Telegram
+- public API binding
+- public v2rayA UI exposure
+- public backend exposure
+
+Stop conditions (gate remains blocked):
+
+- Current State changes unexpectedly
+- tests fail
+- operator approval is missing
+- fresh farm5 evidence is missing
+- farm5 time synchronization is unresolved
+- firewall.apply_mode is not plan_only
+- proxy.runtime_activation_allowed is true
+- production_traffic is not none
+- firewall_apply_allowed is not no
+- abuse_automation_allowed is not no
+- backend external exposure appears
+- backend internal reachability fails
+- MPF/customer firewall references appear unexpectedly
+- customer NAT redirects appear
+- customer firewall rules appear
+- restore point/lock/DB apply record behavior is implemented without separate explicit acceptance
+- any code path introduces iptables-restore, firewall apply, rollback, verify, customer NAT, customer firewall rules, usage automation, or abuse automation
+
+The next implementation target after this proposal review is a separate controlled execution-gate PR that may request explicit acceptance for restore point + scoped lock + DB apply record writes only, still without firewall apply and still without customer NAT/customer firewall rules.
+
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
 ```text

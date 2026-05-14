@@ -128,3 +128,66 @@ ui_allowed: no
 telegram_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only"""
     assert expected in text
+
+
+def test_phase6_controlled_execution_gate_proposal_review_section_present() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    assert "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Gate — Proposal Review" in text
+    required = [
+        "proposal/review only",
+        "non-authorizing",
+        "execution_allowed remains false",
+        "restore point writes",
+        "lock acquisition",
+        "DB apply record writes",
+        "iptables-restore",
+        "customer NAT/customer firewall rules",
+        "production traffic",
+        "usage automation",
+        "abuse automation",
+    ]
+    for token in required:
+        assert token in text
+
+
+def test_phase6_controlled_execution_gate_proposal_review_acceptance_criteria_tokens() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    required = [
+        "operator approval is explicitly recorded",
+        "fresh farm5 evidence is included",
+        "python -m pytest -q",
+        "current phase safety gate passes",
+        "mpf config validate OK",
+        "mpf doctor OK",
+        "mpf db status OK",
+        "mpf proxy doctor final_verdict OK",
+        "farm5 time sync remains resolved",
+        "System clock synchronized: yes",
+        "NTPSynchronized=yes",
+        "194.225.150.25",
+        "one restore point record/artifact",
+        "one scoped firewall/apply lock",
+        "one DB apply record in prepared/blocked state",
+        "apply_decision=BLOCKED",
+    ]
+    for token in required:
+        assert token in text
+
+
+def test_phase6_controlled_execution_gate_proposal_review_still_forbidden_tokens() -> None:
+    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    forbidden_listed = [
+        "iptables-restore",
+        "live firewall apply",
+        "live rollback",
+        "live verify",
+        "customer NAT",
+        "customer firewall rules",
+        "production traffic",
+        "usage automation",
+        "abuse automation",
+        "UI",
+        "Telegram",
+    ]
+    for token in forbidden_listed:
+        assert token in text
