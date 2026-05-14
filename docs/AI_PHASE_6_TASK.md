@@ -124,6 +124,7 @@ planner, contract, package, rollback, and preflight tests
 safety regression tests proving no live firewall side effects
 proxy/backend safety checks that preserve internal reachability + external non-exposure contracts
 mpf firewall no-customer-apply-scaffold (report-only, scaffold-only, non-authorizing, default dry-run, final_decision=BLOCKED, no apply/verify/rollback execution, no iptables-restore, no customer NAT/customer firewall rules)
+mpf firewall no-customer-apply-acceptance-gate (report-only, acceptance-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules)
 ```
 
 ## Forbidden Work Now
@@ -395,4 +396,4 @@ Slice 4 does not authorize manual canary apply.
 Future dedicated apply gate remains not accepted and not authorized.
 AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
-Gated live snapshot read service boundary exists, but it remains NOT_AUTHORIZED/BLOCKED and does not execute live read or iptables-save.
+The explicitly gated read-only iptables-save live snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.
