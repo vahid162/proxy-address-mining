@@ -12,7 +12,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
 - mpf firewall apply-gate-readiness is read-only/report-only and remains BLOCKED.
 - mpf firewall gate-review includes apply_gate_readiness_summary and remains BLOCKED.
-- Production traffic, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, customer NAT/customer firewall rules, usage automation, abuse automation, UI, and Telegram remain unauthorized.
+- Read-only iptables-save live snapshot path is explicitly authorized and evidenced.
+- Restore point + scoped lock + DB apply record controlled boundary was executed once and evidenced.
+- Live firewall write/apply/rollback/verify remains unauthorized.
+- iptables-restore remains unauthorized.
+- customer NAT/customer firewall rules remain unauthorized.
+- production traffic remains none.
+- usage automation and abuse automation remain unauthorized.
 - Host production firewall mutation remains forbidden.
 
 ## Completed Phase 6 Safety Sub-Steps
@@ -34,22 +40,29 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Finite Remaining Path
 
-1. Future Dedicated Phase 6 Apply Gate Proposal/Review remains the next planning target.
-2. After dedicated proposal/review acceptance, no-customer apply/verify/rollback gate review remains a separate later gate.
-3. Manual canary customer NAT/customer firewall rules gate remains a separate later gate after no-customer apply/verify/rollback evidence.
-4. Firewall apply, iptables-restore, customer NAT/customer firewall rules, and production traffic remain forbidden until their dedicated gates are explicitly accepted in `docs/PHASE_STATUS.md`.
+1. Dedicated Apply Gate Proposal/Review
+2. No-customer apply/verify/rollback scaffold
+3. No-customer apply/verify/rollback explicit acceptance
+4. No-customer apply/verify/rollback server evidence
+5. Manual canary customer NAT/customer firewall rules proposal
+6. Manual canary customer NAT/customer firewall rules explicit acceptance
+7. Phase 6 final acceptance
+8. Phase 7 Usage + Policy/Reject Accounting
+9. Phase 8 Abuse 1h Core
+
+Compatibility note: Future Dedicated Phase 6 Apply Gate Proposal/Review remains the documented next planning target label in historical checks.
 
 ## Non-Negotiable Current Prohibitions
 
 - no production traffic
 - no live firewall write/apply/rollback/verify
-- no live firewall read until a dedicated read gate is accepted
-- no iptables-save until a dedicated read gate is accepted
+- read-only iptables-save live snapshot is authorized and evidenced
 - no iptables-restore until a dedicated apply gate is accepted
 - no real firewall adapter or subprocess firewall calls
 - no uncontrolled restore point writes, lock acquisition, or DB apply writes outside the accepted controlled execution boundary
 - no migrations
 - no customer NAT or customer firewall rules
+- firewall apply, iptables-restore, customer NAT/customer firewall rules, and production traffic remain forbidden
 - no usage automation
 - no abuse automation before Phase 8
 - no UI or Telegram

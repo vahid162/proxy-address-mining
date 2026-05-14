@@ -1052,6 +1052,46 @@ no Telegram
 
 This server result proves only the explicitly gated controlled restore point + scoped lock + DB apply record preparation boundary. It does not authorize firewall apply, firewall rollback, firewall verify, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram. Apply and gate-review final decisions remain BLOCKED.
 
+### Phase 6 Dedicated Apply Gate — Proposal Review
+
+Status:
+
+```text
+proposal/review only
+documentation/test-only
+non-authorizing
+no runtime behavior enabled by this PR
+firewall_apply_allowed remains no
+production_traffic remains none
+apply_decision remains BLOCKED
+```
+
+Purpose: define the exact future gate for the first no-customer apply/verify/rollback lifecycle inside Phase 6.
+
+This proposal may prepare a future gate for:
+
+- using the already proven read-only iptables-save snapshot evidence
+- using the already proven restore point + scoped lock + DB apply record preparation boundary
+- preparing a no-customer apply payload
+- applying only a no-customer-safe firewall payload
+- verifying the result
+- rolling back the result
+- recording apply/verify/rollback evidence
+
+Important: the future apply gate still must NOT include customer NAT, customer firewall rules, production customer traffic, usage automation, abuse automation, UI, Telegram, public API binding, public v2rayA UI exposure, or public backend exposure.
+
+Future gate may be considered only after all are true and evidenced: operator approval explicitly recorded; fresh farm5 evidence included; `python -m pytest -q` passes from project venv; current phase safety gate passes; `mpf --version` reports `0.1.90` unless a later version bump is explicitly accepted; `mpf config validate OK`; `mpf doctor OK`; `mpf db status OK`; `mpf proxy doctor final_verdict OK`; `mpf firewall restore-lock-record-execution-gate` default dry-run remains `BLOCKED / CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN`; `mpf firewall apply-gate-readiness` remains BLOCKED; `mpf firewall gate-review` remains BLOCKED; `firewall.apply_mode` remains `plan_only` until explicit future gate acceptance; `proxy.runtime_activation_allowed` remains false; `production_traffic` remains none; `firewall_apply_allowed` remains no until explicit future apply gate acceptance; `abuse_automation_allowed` remains no; `live_snapshot_read_allowed` remains `iptables_save_read_only`; `restore_lock_record_execution_allowed` remains `controlled_boundary_only`; farm5 time sync remains resolved; no MPF/customer IPv4 firewall references appear unexpectedly; no MPF/customer IPv6 firewall references appear unexpectedly; no customer NAT redirects appear; no customer firewall rules appear; accepted limited runtime listeners remain local-only (`v2rayA UI 127.0.0.1:2015`, `BTC backend 127.0.0.1:60010`); backend external exposure remains NO; backend internal reachability remains OK.
+
+Future allowed operation, only after separate explicit acceptance: a later implementation PR may add a guarded no-customer apply/verify/rollback path for a no-customer-safe payload. The future implementation must default to dry-run/report-only, require an explicit execution flag, require operator identity, require reason, require confirmation, acquire a scoped apply lock, create or reference a restore point, create or reference a `firewall_applies` record, use atomic apply mechanics, verify after apply, provide rollback, and keep customer NAT/customer firewall rules forbidden.
+
+Future still forbidden even after this proposal: customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, Telegram.
+
+Stop conditions for any future apply gate: Current State changes unexpectedly; tests fail; operator approval missing; fresh farm5 evidence missing; farm5 time sync unresolved; `firewall.apply_mode` not explicitly accepted for the future gate; `proxy.runtime_activation_allowed` is true; `production_traffic` is not none; `abuse_automation_allowed` is not no; customer NAT redirects appear; customer firewall rules appear; backend external exposure appears; backend internal reachability fails; restore point/lock/DB apply record evidence missing; rollback plan missing; verify plan missing; any customer rule included in the no-customer payload.
+
+Evidence anchor references for this proposal/review context: `CONTROLLED_BOUNDARY_EXECUTED`, `restore_point_id=1`, `firewall_apply_id=1`, `apply_decision=BLOCKED`, `iptables_restore_executed=false`, `customer_nat_changed=false`, `customer_firewall_rules_changed=false`, `production_traffic_changed=false`.
+
+The next implementation target after this proposal review is a separate guarded no-customer apply/verify/rollback scaffold PR that must remain dry-run/report-only by default and must not include customer NAT/customer firewall rules.
+
 
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 

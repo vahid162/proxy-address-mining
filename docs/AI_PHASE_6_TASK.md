@@ -4,9 +4,10 @@ Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness after 0.
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
-Current note: After 0.1.90, apply-gate-readiness and gate-review are read-only/report-only and remain BLOCKED. The current task is proposal-only: Phase 6 Live Snapshot Read Gate Proposal. This PR does not authorize live read implementation. The next possible implementation in a separate PR is read-only live snapshot scaffolding, still fail-closed and non-authorizing unless `docs/PHASE_STATUS.md` explicitly accepts a gate. Historical reference: Future Dedicated Phase 6 Apply Gate Proposal/Review remains non-authorizing.
+Current note: After PR #94, read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized. The current planning target is Phase 6 Dedicated Apply Gate Proposal/Review for a future no-customer apply/verify/rollback lifecycle. This document is not authoritative; docs/PHASE_STATUS.md is authoritative.
+Compatibility note: Future Dedicated Phase 6 Apply Gate Proposal/Review remains the cross-doc planning label.
 Current implementation note: read-only live snapshot scaffolding report exists as fail-closed/non-authorizing output only (`mpf firewall live-snapshot-scaffold`). It does not execute live read, does not run `iptables-save`, and remains BLOCKED until explicit `docs/PHASE_STATUS.md` acceptance plus farm5 evidence in a future gate.
-Gate-review now includes the fail-closed live snapshot scaffold summary; final_decision remains BLOCKED, and actual live read still requires separate docs/PHASE_STATUS.md acceptance plus farm5 evidence.
+Gate-review remains BLOCKED and non-authorizing.
 
 ## Current Gate
 
@@ -18,19 +19,22 @@ docs/PHASE_STATUS.md
 
 Current state:
 
-Next planning target is Future Phase 6 Live Snapshot Read Gate proposal. `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` remains historical/reference context only and is non-authorizing.
+Next planning target is Phase 6 Dedicated Apply Gate Proposal/Review. `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` remains historical/reference context only and is non-authorizing.
 
 ```text
-accepted phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
-working phase: Phase 6 — Firewall Planner
-current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 and Slice 4 are server-synced documentation/test-only boundaries; next planning target: Future Phase 6 Live Snapshot Read Gate proposal; future dedicated apply gate remains not accepted and not authorized
-production traffic: none
-live firewall apply: not allowed
-abuse automation: not allowed
-customer onboarding: db_only
-proxy data plane: limited_runtime_local_only
-UI: not allowed
-Telegram: not allowed
+current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
+current_working_phase: Phase 6 — Firewall Planner
+current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 and Slice 4 are server-synced documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated apply gate remains not accepted and not authorized
+server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
 ## Purpose
@@ -85,15 +89,18 @@ Phase 6-D1 is documentation/test-only and does not authorize live apply. Phase 6
 Required boundary statements:
 
 - iptables-restore remains forbidden now.
-- iptables-save remains forbidden now.
-- live firewall writes remain forbidden now.
+- read-only iptables-save live snapshot is authorized and evidenced.
+- unauthorized iptables-save execution remains forbidden.
+- iptables-save remains forbidden now (for unauthorized execution paths).
 - live firewall reads remain forbidden now.
-- no live firewall read before explicit read gate.
-- no iptables-save before explicit read gate.
+- live firewall writes remain forbidden now.
+- live firewall write/apply/rollback/verify remains forbidden now.
+- read-only iptables-save live snapshot path is authorized and evidenced.
 - no live firewall write/apply/rollback/verify before explicit apply gate.
 - no iptables-restore before explicit apply gate.
 - no customer NAT/customer firewall rules.
 - no production traffic.
+- production traffic remains none.
 - no usage automation.
 - no abuse automation before Phase 8.
 - abuse 1h invariant is preserved (normal -> over_tracking -> over_grace -> hard).
