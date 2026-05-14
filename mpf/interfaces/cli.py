@@ -530,6 +530,7 @@ def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--co
         "real_adapter_allowed","subprocess_firewall_calls_allowed","customer_nat_allowed","customer_firewall_rules_allowed",
         "restore_lock_record_readiness_present","restore_lock_record_readiness_authorization_status","restore_lock_record_readiness_final_decision",
         "restore_lock_record_gate_present","restore_lock_record_gate_authorization_status","restore_lock_record_gate_final_decision","next_operator_action",
+        "restore_lock_record_acceptance_gate_present","restore_lock_record_acceptance_gate_authorization_status","restore_lock_record_acceptance_gate_final_decision",
     ):
         value = report[key]
         if isinstance(value, bool):
