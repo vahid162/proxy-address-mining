@@ -735,18 +735,34 @@ No lock acquisition is authorized.
 No DB apply write or DB apply record is authorized.
 No firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 Apply and gate-review final decisions remain BLOCKED.
-Before any future write-dependent gate, farm5 time synchronization must be fixed and evidenced.
+
+### Phase 6 farm5 Time Synchronization — Server Evidence
+
+```text
+date -Is: 2026-05-14T10:19:31+03:30
+timedatectl: Local time Thu 2026-05-14 10:19:31 +0330; Universal time Thu 2026-05-14 06:49:31 UTC; Time zone Asia/Tehran (+0330); System clock synchronized: yes; NTP service: active; RTC in local TZ: no
+timedatectl show: Timezone=Asia/Tehran; NTP=yes; NTPSynchronized=yes; TimeUSec=Thu 2026-05-14 10:19:31 +0330
+timesync-status: Server=194.225.150.25; Poll interval=1min 4s; Leap=normal; Version=4; Stratum=2; Root distance=85.822ms; Offset=+44us; Delay=1.862ms; Jitter=16us; Packet count=2
+configured NTP source: /etc/systemd/timesyncd.conf.d/10-mpf-intranet-ntp.conf -> [Time] NTP=194.225.150.25 158.252.7.7; FallbackNTP=
+journal evidence: systemd-timesyncd contacted 194.225.150.25:123; initial clock synchronization completed
+context: farm5 has no public internet access and now uses intranet-accessible NTP; previous ntp.ubuntu.com timeout issue resolved
+```
+
+This server result resolves the previous farm5 time synchronization blocker for future write-dependent gate planning. It does not authorize restore point writes, lock acquisition, DB apply writes/records, firewall write/apply/rollback/verify, iptables-restore, customer NAT, customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram. Apply and gate-review final decisions remain BLOCKED. Future controlled restore point + lock + DB apply record acceptance still requires a separate explicit gate and farm5 evidence.
 
 ## Current Server Warning
 
-Time synchronization has previously been reported as not confirmed on `farm5`:
+Time synchronization warning status on `farm5` is now resolved with accepted server evidence:
 
 ```text
-System clock synchronized: no
+historical note: unsynchronized state was observed previously
+System clock synchronized: yes
+NTPSynchronized: yes
+NTP source: 194.225.150.25
 NTP service: active
 ```
 
-This is not a Phase 6 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+Historical context remains important: time synchronization must still be re-checked before any future production/write/usage/abuse gate.
 
 ## What Is Allowed Now
 
@@ -803,7 +819,7 @@ Phase 6-G does not authorize host production firewall mutation, live firewall re
 - The explicitly gated read-only `iptables-save` snapshot path is authorized and has successful farm5 evidence.
 - No firewall write/apply/rollback/verify, `iptables-restore`, restore point write, lock acquisition, DB apply write/record, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 - Apply and gate-review final decisions remain BLOCKED.
-- Next implementation target: farm5 time synchronization evidence, then explicit controlled restore point + lock + DB apply record acceptance gate, still without customer NAT/customer firewall rules.
+- Next implementation target: explicit controlled restore point + lock + DB apply record acceptance gate, still without customer NAT/customer firewall rules and still requiring fresh farm5 evidence.
 - Historical/reference context only: Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review.
 - Future Dedicated Phase 6 Apply Gate Proposal/Review remains historical/reference context only.
 - Future dedicated Phase 6 apply gate remains not accepted and not authorized.
