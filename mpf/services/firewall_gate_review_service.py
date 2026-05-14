@@ -33,7 +33,29 @@ def _risk_rows() -> list[FirewallGateReviewRiskItem]:
     ]
 
 
-def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None, live_snapshot_scaffold: dict[str, object] | None = None, live_snapshot_read: dict[str, object] | None = None, restore_lock_record_gate: dict[str, object] | None = None, restore_lock_record_readiness: dict[str, object] | None = None, restore_lock_record_acceptance_gate: dict[str, object] | None = None, restore_lock_record_execution_gate: dict[str, object] | None = None) -> FirewallGateReviewReport:
+def _compact_no_customer_apply_scaffold_summary(report: dict[str, object] | None) -> dict[str, object]:
+    if report is None:
+        return {
+            "no_customer_apply_scaffold_present": False,
+            "no_customer_apply_scaffold_final_decision": "BLOCKED",
+            "no_customer_apply_scaffold_authorization_status": "NOT_PROVIDED",
+            "no_customer_apply_scaffold_execution_allowed": False,
+            "no_customer_apply_scaffold_apply_decision": "BLOCKED",
+            "no_customer_apply_scaffold_verify_decision": "BLOCKED",
+            "no_customer_apply_scaffold_rollback_decision": "BLOCKED",
+        }
+    return {
+        "no_customer_apply_scaffold_present": True,
+        "no_customer_apply_scaffold_final_decision": report.get("final_decision", "BLOCKED"),
+        "no_customer_apply_scaffold_authorization_status": report.get("authorization_status", "NOT_AUTHORIZED_FOR_APPLY"),
+        "no_customer_apply_scaffold_execution_allowed": bool(report.get("execution_allowed", False)),
+        "no_customer_apply_scaffold_apply_decision": report.get("apply_decision", "BLOCKED"),
+        "no_customer_apply_scaffold_verify_decision": report.get("verify_decision", "BLOCKED"),
+        "no_customer_apply_scaffold_rollback_decision": report.get("rollback_decision", "BLOCKED"),
+    }
+
+
+def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None, no_customer_apply_scaffold: dict[str, object] | None = None, live_snapshot_scaffold: dict[str, object] | None = None, live_snapshot_read: dict[str, object] | None = None, restore_lock_record_gate: dict[str, object] | None = None, restore_lock_record_readiness: dict[str, object] | None = None, restore_lock_record_acceptance_gate: dict[str, object] | None = None, restore_lock_record_execution_gate: dict[str, object] | None = None) -> FirewallGateReviewReport:
     if evidence is None:
         if plan is None:
             raise ValueError("plan or evidence is required")
@@ -112,6 +134,8 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
         "blockers": ["apply_gate_readiness_not_provided"],
         "missing_requirements": [],
     }
+    no_customer_apply_scaffold_summary = _compact_no_customer_apply_scaffold_summary(no_customer_apply_scaffold)
+    apply_gate_readiness_summary["no_customer_apply_scaffold_summary"] = no_customer_apply_scaffold_summary
 
 
 

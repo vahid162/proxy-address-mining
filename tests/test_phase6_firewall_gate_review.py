@@ -77,3 +77,25 @@ def test_gate_review_contains_live_snapshot_read_summary() -> None:
     assert live["iptables_save_executed"] is False
     assert live["subprocess_executed"] is False
     assert isinstance(report.live_snapshot_read_summary, dict)
+
+
+def test_gate_review_compacts_no_customer_scaffold_summary_keys() -> None:
+    full_report = {
+        "component": "firewall_no_customer_apply_scaffold",
+        "final_decision": "BLOCKED",
+        "authorization_status": "NOT_AUTHORIZED_FOR_APPLY",
+        "execution_allowed": False,
+        "apply_decision": "BLOCKED",
+        "verify_decision": "BLOCKED",
+        "rollback_decision": "BLOCKED",
+    }
+    report = build_gate_review_report(plan=_plan(), no_customer_apply_scaffold=full_report)
+    summary = report.apply_gate_readiness_summary["no_customer_apply_scaffold_summary"]
+    assert summary["no_customer_apply_scaffold_present"] is True
+    assert summary["no_customer_apply_scaffold_final_decision"] == "BLOCKED"
+    assert summary["no_customer_apply_scaffold_authorization_status"] == "NOT_AUTHORIZED_FOR_APPLY"
+    assert summary["no_customer_apply_scaffold_execution_allowed"] is False
+    assert summary["no_customer_apply_scaffold_apply_decision"] == "BLOCKED"
+    assert summary["no_customer_apply_scaffold_verify_decision"] == "BLOCKED"
+    assert summary["no_customer_apply_scaffold_rollback_decision"] == "BLOCKED"
+    assert "component" not in summary

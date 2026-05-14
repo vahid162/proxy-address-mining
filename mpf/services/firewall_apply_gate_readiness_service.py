@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf.config import MPFConfig
-from mpf.services import firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
+from mpf.services import firewall_no_customer_apply_scaffold_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -83,6 +83,7 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
     restore_readiness_report = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg, repo_root=root)
     restore_acceptance_report = firewall_restore_lock_record_acceptance_gate_service.build_restore_lock_record_acceptance_gate_report(cfg, repo_root=root)
     restore_execution_report = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg, repo_root=root)
+    no_customer_apply_scaffold_report = firewall_no_customer_apply_scaffold_service.build_no_customer_apply_scaffold_report(cfg, repo_root=root)
 
     report = {
         "component": "firewall_apply_gate_readiness",
@@ -133,6 +134,15 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
         "restore_lock_record_execution_gate_authorization_status": restore_execution_report["authorization_status"],
         "restore_lock_record_execution_gate_final_decision": restore_execution_report["final_decision"],
         "restore_lock_record_execution_gate_execution_allowed": restore_execution_report["execution_allowed"],
+        "no_customer_apply_scaffold_summary": {
+            "no_customer_apply_scaffold_present": True,
+            "no_customer_apply_scaffold_final_decision": no_customer_apply_scaffold_report["final_decision"],
+            "no_customer_apply_scaffold_authorization_status": no_customer_apply_scaffold_report["authorization_status"],
+            "no_customer_apply_scaffold_execution_allowed": no_customer_apply_scaffold_report["execution_allowed"],
+            "no_customer_apply_scaffold_apply_decision": no_customer_apply_scaffold_report["apply_decision"],
+            "no_customer_apply_scaffold_verify_decision": no_customer_apply_scaffold_report["verify_decision"],
+            "no_customer_apply_scaffold_rollback_decision": no_customer_apply_scaffold_report["rollback_decision"],
+        },
         "missing_requirements": missing_requirements,
         "blockers": blockers,
         "next_operator_action": "prepare separate explicit gate-opening proposal only after operator approval and required evidence; no runtime action is authorized now",
