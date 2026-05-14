@@ -61,6 +61,7 @@ proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
 ```"""
     assert expected in text
     assert "### Phase 6-E3" in text

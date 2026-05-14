@@ -18,6 +18,7 @@ proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
@@ -890,6 +891,123 @@ Stop conditions (gate remains blocked):
 - any code path introduces iptables-restore, firewall apply, rollback, verify, customer NAT, customer firewall rules, usage automation, or abuse automation
 
 The next implementation target after this proposal review is a separate controlled execution-gate PR that may request explicit acceptance for restore point + scoped lock + DB apply record writes only, still without firewall apply and still without customer NAT/customer firewall rules.
+
+### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Boundary — Accepted
+
+Status:
+
+- accepted boundary only
+- documentation/test-only
+- no execution performed by this PR
+- no runtime behavior enabled by this PR
+
+Accepted boundary:
+
+A future implementation PR may add guarded code paths for exactly:
+
+- creating one restore point record/artifact
+- acquiring one scoped firewall/apply lock
+- creating one DB apply record in prepared/blocked state
+- correlating restore point, lock, DB apply record, source snapshot hash, intended payload hash, operator identity, and correlation_id
+
+The future implementation must still keep:
+
+- final_decision=BLOCKED until the guarded execution is explicitly invoked
+- apply_decision=BLOCKED always
+- firewall_apply_allowed=no
+- production_traffic=none
+- abuse_automation_allowed=no
+
+The accepted boundary still forbids:
+
+- iptables-restore
+- live firewall apply
+- live rollback
+- live verify
+- customer NAT
+- customer firewall rules
+- production traffic
+- usage automation
+- abuse automation
+- UI
+- Telegram
+- public API binding
+- public v2rayA UI exposure
+- public backend exposure
+
+Required future implementation guardrails:
+
+The next implementation PR must be blocked unless all are true:
+
+- Current State contains restore_lock_record_execution_allowed: controlled_boundary_only
+- production_traffic is none
+- firewall_apply_allowed is no
+- abuse_automation_allowed is no
+- live_snapshot_read_allowed is iptables_save_read_only
+- firewall.apply_mode is plan_only
+- proxy.runtime_activation_allowed is false
+- farm5 time sync evidence exists and remains resolved
+- read-only iptables-save snapshot evidence exists
+- restore-lock-record readiness evidence exists
+- restore-lock-record gate report evidence exists
+- restore-lock-record acceptance gate evidence exists
+- restore-lock-record execution-gate scaffold evidence exists
+- controlled execution proposal review exists
+- controlled execution boundary acceptance exists
+- operator approval is supplied at invocation time
+- explicit command flag is supplied at invocation time
+- dry-run/default mode does not write anything
+
+The future implementation must default to dry-run/report-only.
+
+The future implementation must require an explicit flag such as:
+
+- --execute-controlled-boundary
+
+The future implementation must refuse execution without operator identity and reason fields.
+
+The future implementation must write only the minimum controlled artifacts/records:
+
+- one restore point record/artifact
+- one scoped lock
+- one DB apply record in prepared/blocked state
+
+The future implementation must not perform:
+
+- iptables-restore
+- firewall apply
+- firewall rollback
+- firewall verify
+- customer NAT
+- customer firewall rules
+- production traffic changes
+- usage automation
+- abuse automation
+
+Stop conditions for the future implementation:
+
+- Current State does not contain restore_lock_record_execution_allowed: controlled_boundary_only
+- Current State changes unexpectedly
+- tests fail
+- operator approval is missing
+- explicit execution flag is missing
+- operator identity is missing
+- reason is missing
+- farm5 time synchronization is unresolved
+- firewall.apply_mode is not plan_only
+- proxy.runtime_activation_allowed is true
+- production_traffic is not none
+- firewall_apply_allowed is not no
+- abuse_automation_allowed is not no
+- live_snapshot_read_allowed is not iptables_save_read_only
+- MPF/customer firewall references appear unexpectedly
+- customer NAT redirects appear
+- customer firewall rules appear
+- backend external exposure appears
+- backend internal reachability fails
+
+The next implementation target is a separate guarded code PR for `mpf firewall restore-lock-record-execution-gate` that may add a dry-run default and an explicit `--execute-controlled-boundary` path for the accepted controlled boundary only: one restore point record/artifact, one scoped lock, and one DB apply record in prepared/blocked state, still without firewall apply and still without customer NAT/customer firewall rules.
+
 
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
