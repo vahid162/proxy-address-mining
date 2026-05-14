@@ -31,7 +31,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - farm5 sync evidence for 0.1.88 was recorded.
 - apply-gate-readiness was implemented as read-only/report-only.
 - gate-review now includes apply_gate_readiness_summary.
-- Gate-review now includes the fail-closed live snapshot scaffold summary; final_decision remains BLOCKED, and actual live read still requires separate docs/PHASE_STATUS.md acceptance plus farm5 evidence.
+- Gate-review includes live snapshot scaffold/read summaries. The explicitly gated read-only iptables-save snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.
 - farm5 was synced to 0.1.90 successfully.
 - No-customer apply/verify/rollback scaffold exists as report-only/non-authorizing surface and remains BLOCKED / NOT_AUTHORIZED_FOR_APPLY.
 - No-customer apply/verify/rollback explicit acceptance-gate report exists as report-only/non-executing surface and remains BLOCKED for execution until separate server evidence is collected.
@@ -112,3 +112,7 @@ Purpose: staged Telegram integration (notification-first).
 Purpose: implement worker-policy enforcement boundary.
 
 The explicitly gated read-only iptables-save live snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.
+
+- No-customer apply/verify/rollback acceptance-gate server evidence was recorded on farm5 as report-only/non-executing; apply/verify/rollback decisions remained BLOCKED and no firewall/NAT/customer rule runtime behavior was authorized.
+
+- No-customer apply/verify/rollback execution-gate report exists as report-only/non-executing surface and remains BLOCKED / NOT_ACCEPTED_FOR_EXECUTION.

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf.config import MPFConfig
-from mpf.services import firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_scaffold_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
+from mpf.services import firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_scaffold_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -85,6 +85,7 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
     restore_execution_report = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg, repo_root=root)
     no_customer_apply_scaffold_report = firewall_no_customer_apply_scaffold_service.build_no_customer_apply_scaffold_report(cfg, repo_root=root)
     no_customer_apply_acceptance_gate_report = firewall_no_customer_apply_acceptance_gate_service.build_no_customer_apply_acceptance_gate_report(cfg, repo_root=root)
+    no_customer_apply_execution_gate_report = firewall_no_customer_apply_execution_gate_service.build_no_customer_apply_execution_gate_report(cfg, repo_root=root)
 
     report = {
         "component": "firewall_apply_gate_readiness",
@@ -152,6 +153,15 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
             "no_customer_apply_acceptance_gate_apply_decision": no_customer_apply_acceptance_gate_report["apply_decision"],
             "no_customer_apply_acceptance_gate_verify_decision": no_customer_apply_acceptance_gate_report["verify_decision"],
             "no_customer_apply_acceptance_gate_rollback_decision": no_customer_apply_acceptance_gate_report["rollback_decision"],
+        },
+        "no_customer_apply_execution_gate_summary": {
+            "no_customer_apply_execution_gate_present": True,
+            "no_customer_apply_execution_gate_final_decision": no_customer_apply_execution_gate_report["final_decision"],
+            "no_customer_apply_execution_gate_authorization_status": no_customer_apply_execution_gate_report["authorization_status"],
+            "no_customer_apply_execution_gate_execution_allowed": no_customer_apply_execution_gate_report["execution_allowed"],
+            "no_customer_apply_execution_gate_apply_decision": no_customer_apply_execution_gate_report["apply_decision"],
+            "no_customer_apply_execution_gate_verify_decision": no_customer_apply_execution_gate_report["verify_decision"],
+            "no_customer_apply_execution_gate_rollback_decision": no_customer_apply_execution_gate_report["rollback_decision"],
         },
         "missing_requirements": missing_requirements,
         "blockers": blockers,
