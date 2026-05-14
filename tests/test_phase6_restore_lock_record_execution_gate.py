@@ -4,6 +4,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from mpf.config import load_config
+from mpf.db import write_controlled_execution_records_local_peer_as_mpf
 from mpf.interfaces.cli import app
 from mpf.services import firewall_apply_gate_readiness_service, firewall_restore_lock_record_execution_gate_service
 from mpf.services.firewall_gate_review_service import build_gate_review_report
@@ -457,3 +458,46 @@ def test_local_peer_root_default_writer_failure_is_reported(monkeypatch) -> None
     assert r["lock_acquisition_allowed"] is False
     assert r["db_apply_record_write_allowed"] is False
     assert r["db_mutation"] is False
+
+
+def test_local_peer_psql_command_and_sql_shape(monkeypatch) -> None:
+    captured = {}
+
+    class _R:
+        returncode = 0
+        stdout = "false,11,22,2026-01-01 00:00:00+00\n"
+        stderr = ""
+
+    def fake_run(cmd, text, input, capture_output):
+        captured["cmd"] = cmd
+        captured["sql"] = input
+        return _R()
+
+    monkeypatch.setattr("mpf.db.subprocess.run", fake_run)
+    out = write_controlled_execution_records_local_peer_as_mpf(dbname="mpf", payload_json='{"lock_name":"x"}')
+    assert out.restore_point_id == 11
+    assert out.firewall_apply_id == 22
+    assert out.lock_expires_at == "2026-01-01 00:00:00+00"
+    assert "-v" in captured["cmd"]
+    assert "ON_ERROR_STOP=1" in captured["cmd"]
+    sql = captured["sql"]
+    assert "do $$" not in sql.lower()
+    assert "with payload as" in sql.lower()
+    assert "lock_conflict as" in sql.lower()
+    assert ":'payload_json'" in sql
+
+
+def test_local_peer_psql_lock_conflict_raises(monkeypatch) -> None:
+    class _R:
+        returncode = 0
+        stdout = "true,,,\n"
+        stderr = ""
+
+    def fake_run(*args, **kwargs):
+        return _R()
+
+    monkeypatch.setattr("mpf.db.subprocess.run", fake_run)
+    import pytest
+
+    with pytest.raises(RuntimeError, match="scoped controlled execution lock already exists"):
+        write_controlled_execution_records_local_peer_as_mpf(dbname="mpf", payload_json='{"lock_name":"x"}')

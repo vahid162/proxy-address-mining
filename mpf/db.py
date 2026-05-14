@@ -87,20 +87,20 @@ def _query_local_peer_as_mpf(dbname: str, sql: str) -> DBQueryResult:
 def write_controlled_execution_records_local_peer_as_mpf(*, dbname: str, payload_json: str) -> ControlledExecutionWriteResult:
     cmd = [
         "sudo", "-u", "mpf", "psql", "-d", dbname, "--csv", "-X", "-q", "-t",
+        "-v", "ON_ERROR_STOP=1",
         "-v", f"payload_json={payload_json}",
         "-f", "-",
     ]
     sql = """
 begin;
-do $$
-declare p jsonb := (:'payload_json')::jsonb;
-begin
-  if exists(select 1 from scheduler_locks where lock_name = p->>'lock_name' and expires_at > now()) then
-    raise exception 'scoped controlled execution lock already exists';
-  end if;
-end $$;
 with payload as (
   select (:'payload_json')::jsonb as j
+), lock_conflict as (
+  select exists(
+    select 1 from scheduler_locks
+    where lock_name = (select j->>'lock_name' from payload)
+      and expires_at > now()
+  ) as exists_lock
 ), rp as (
   insert into restore_points (restore_type, subject_type, subject_id, snapshot_id, backup_id, metadata_json, created_by, reason, checksum)
   select 'firewall','phase6_controlled_execution',null,null,null,
@@ -109,6 +109,7 @@ with payload as (
          (select j->>'reason' from payload),
          (select j->>'checksum' from payload)
   from payload
+  where not (select exists_lock from lock_conflict)
   returning id
 ), lk as (
   insert into scheduler_locks (lock_name, owner, acquired_at, expires_at, metadata_json)
@@ -133,7 +134,11 @@ with payload as (
   from lk
   returning id
 )
-select (select id from rp) as restore_point_id, (select id from fa) as firewall_apply_id, (select expires_at from lk) as lock_expires_at;
+select
+  (select exists_lock from lock_conflict) as lock_conflict,
+  (select id from rp) as restore_point_id,
+  (select id from fa) as firewall_apply_id,
+  (select expires_at from lk) as lock_expires_at;
 commit;
 """
     result = subprocess.run(cmd, text=True, input=sql, capture_output=True)
@@ -146,9 +151,13 @@ commit;
     if not output:
         raise RuntimeError("db controlled write returned no rows")
     row = next(csv.reader([output]))
-    if len(row) != 3:
+    if len(row) != 4:
         raise RuntimeError(f"db controlled write returned unexpected columns: {output!r}")
-    return ControlledExecutionWriteResult(restore_point_id=int(row[0]), firewall_apply_id=int(row[1]), lock_expires_at=row[2])
+    if row[0].strip().lower() == "true":
+        raise RuntimeError("scoped controlled execution lock already exists")
+    if not row[1] or not row[2] or not row[3]:
+        raise RuntimeError(f"db controlled write returned incomplete row: {output!r}")
+    return ControlledExecutionWriteResult(restore_point_id=int(row[1]), firewall_apply_id=int(row[2]), lock_expires_at=row[3])
 
 
 def write_local_peer_root_guard_message(url: str, *, command_hint: str) -> str | None:
