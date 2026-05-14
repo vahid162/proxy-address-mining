@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main and farm5 are aligned at 0.1.90.
+- GitHub main repository version is 0.1.92; last recorded farm5 sync evidence remains 0.1.90 until next server sync.
 - Phase 5 remains the accepted phase.
 - Phase 6 remains the working phase.
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
@@ -37,6 +37,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - No-customer apply/verify/rollback explicit acceptance-gate report exists as report-only/non-executing surface and remains BLOCKED for execution until separate server evidence is collected.
 - No-customer apply/verify/rollback acceptance-gate server evidence was recorded on farm5 as report-only/non-executing; apply/verify/rollback decisions remained BLOCKED and no firewall/NAT/customer rule runtime behavior was authorized.
 - No-customer apply/verify/rollback execution-gate report exists as report-only/non-executing surface and remains BLOCKED / NOT_ACCEPTED_FOR_EXECUTION.
+- No-customer apply/verify/rollback execution acceptance package exists as artifact-only/report-only/non-executing surface and remains BLOCKED / EXECUTION_ACCEPTANCE_DEFINED_NOT_EXECUTABLE.
 - Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
 - Host production firewall mutation remains forbidden; must not mutate the host production firewall.
 - Compatibility anchors: `Phase 6-E0 accepted on farm5`, `Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.`, and `host production firewall mutation is forbidden`.
@@ -47,7 +48,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 1. Dedicated Apply Gate Proposal/Review — done
 2. No-customer apply/verify/rollback scaffold — done
 3. No-customer apply/verify/rollback explicit acceptance — report-only gate done and server evidence recorded
-4. No-customer apply/verify/rollback controlled execution evidence — next target after separate explicit execution acceptance
+4. No-customer apply/verify/rollback controlled execution package — report-only/non-executing package done; runtime execution evidence remains next target after separate explicit runtime approval
 5. Manual canary customer NAT/customer firewall rules proposal
 6. Manual canary customer NAT/customer firewall rules explicit acceptance
 7. Phase 6 final acceptance
@@ -112,3 +113,4 @@ Purpose: staged Telegram integration (notification-first).
 
 ### Phase 14 — Worker Policy Enforcement
 Purpose: implement worker-policy enforcement boundary.
+

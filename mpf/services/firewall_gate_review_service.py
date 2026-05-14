@@ -92,7 +92,7 @@ def _compact_no_customer_apply_execution_gate_summary(report: dict[str, object] 
     }
 
 
-def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None, no_customer_apply_scaffold: dict[str, object] | None = None, no_customer_apply_acceptance_gate: dict[str, object] | None = None, no_customer_apply_execution_gate: dict[str, object] | None = None, live_snapshot_scaffold: dict[str, object] | None = None, live_snapshot_read: dict[str, object] | None = None, restore_lock_record_gate: dict[str, object] | None = None, restore_lock_record_readiness: dict[str, object] | None = None, restore_lock_record_acceptance_gate: dict[str, object] | None = None, restore_lock_record_execution_gate: dict[str, object] | None = None) -> FirewallGateReviewReport:
+def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: FirewallEvidenceBundleReport | None = None, *, apply_gate_readiness: dict[str, object] | None = None, no_customer_apply_scaffold: dict[str, object] | None = None, no_customer_apply_acceptance_gate: dict[str, object] | None = None, no_customer_apply_execution_gate: dict[str, object] | None = None, no_customer_apply_package: dict[str, object] | None = None, no_customer_apply_execution_acceptance: dict[str, object] | None = None, live_snapshot_scaffold: dict[str, object] | None = None, live_snapshot_read: dict[str, object] | None = None, restore_lock_record_gate: dict[str, object] | None = None, restore_lock_record_readiness: dict[str, object] | None = None, restore_lock_record_acceptance_gate: dict[str, object] | None = None, restore_lock_record_execution_gate: dict[str, object] | None = None) -> FirewallGateReviewReport:
     if evidence is None:
         if plan is None:
             raise ValueError("plan or evidence is required")
@@ -175,6 +175,21 @@ def build_gate_review_report(plan: FirewallPlanResult | None = None, evidence: F
     apply_gate_readiness_summary["no_customer_apply_scaffold_summary"] = no_customer_apply_scaffold_summary
     apply_gate_readiness_summary["no_customer_apply_acceptance_gate_summary"] = _compact_no_customer_apply_acceptance_gate_summary(no_customer_apply_acceptance_gate)
     apply_gate_readiness_summary["no_customer_apply_execution_gate_summary"] = _compact_no_customer_apply_execution_gate_summary(no_customer_apply_execution_gate)
+
+    apply_gate_readiness_summary["no_customer_apply_package_summary"] = {
+        "no_customer_apply_package_present": bool(no_customer_apply_package) if no_customer_apply_package is not None else False,
+        "no_customer_apply_package_final_decision": (no_customer_apply_package or {}).get("final_decision", "BLOCKED"),
+        "no_customer_apply_package_authorization_status": (no_customer_apply_package or {}).get("authorization_status", "NOT_PROVIDED"),
+        "no_customer_apply_package_execution_allowed": bool((no_customer_apply_package or {}).get("execution_allowed", False)),
+        "no_customer_apply_package_customer_safe": not any((no_customer_apply_package or {}).get(k, False) for k in ("payload_contains_customer_nat","payload_contains_customer_firewall_rules","payload_contains_production_traffic","payload_contains_iptables_restore")),
+    }
+    apply_gate_readiness_summary["no_customer_apply_execution_acceptance_summary"] = {
+        "no_customer_apply_execution_acceptance_present": bool(no_customer_apply_execution_acceptance) if no_customer_apply_execution_acceptance is not None else False,
+        "no_customer_apply_execution_acceptance_final_decision": (no_customer_apply_execution_acceptance or {}).get("final_decision", "BLOCKED"),
+        "no_customer_apply_execution_acceptance_authorization_status": (no_customer_apply_execution_acceptance or {}).get("authorization_status", "NOT_PROVIDED"),
+        "no_customer_apply_execution_acceptance_execution_allowed": bool((no_customer_apply_execution_acceptance or {}).get("execution_allowed", False)),
+    }
+
 
 
 

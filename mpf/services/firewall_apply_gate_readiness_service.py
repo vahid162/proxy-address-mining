@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf.config import MPFConfig
-from mpf.services import firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_scaffold_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
+from mpf.services import firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -86,6 +86,8 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
     no_customer_apply_scaffold_report = firewall_no_customer_apply_scaffold_service.build_no_customer_apply_scaffold_report(cfg, repo_root=root)
     no_customer_apply_acceptance_gate_report = firewall_no_customer_apply_acceptance_gate_service.build_no_customer_apply_acceptance_gate_report(cfg, repo_root=root)
     no_customer_apply_execution_gate_report = firewall_no_customer_apply_execution_gate_service.build_no_customer_apply_execution_gate_report(cfg, repo_root=root)
+    no_customer_apply_package_report = firewall_no_customer_apply_package_service.build_no_customer_apply_package_report(cfg, repo_root=root)
+    no_customer_apply_execution_acceptance_report = firewall_no_customer_apply_execution_acceptance_service.build_no_customer_apply_execution_acceptance_report(cfg, repo_root=root)
 
     report = {
         "component": "firewall_apply_gate_readiness",
@@ -153,6 +155,22 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
             "no_customer_apply_acceptance_gate_apply_decision": no_customer_apply_acceptance_gate_report["apply_decision"],
             "no_customer_apply_acceptance_gate_verify_decision": no_customer_apply_acceptance_gate_report["verify_decision"],
             "no_customer_apply_acceptance_gate_rollback_decision": no_customer_apply_acceptance_gate_report["rollback_decision"],
+        },
+        "no_customer_apply_package_summary": {
+            "no_customer_apply_package_present": True,
+            "no_customer_apply_package_final_decision": no_customer_apply_package_report["final_decision"],
+            "no_customer_apply_package_authorization_status": no_customer_apply_package_report["authorization_status"],
+            "no_customer_apply_package_execution_allowed": no_customer_apply_package_report["execution_allowed"],
+            "no_customer_apply_package_customer_safe": True,
+        },
+        "no_customer_apply_execution_acceptance_summary": {
+            "no_customer_apply_execution_acceptance_present": True,
+            "no_customer_apply_execution_acceptance_final_decision": no_customer_apply_execution_acceptance_report["final_decision"],
+            "no_customer_apply_execution_acceptance_authorization_status": no_customer_apply_execution_acceptance_report["authorization_status"],
+            "no_customer_apply_execution_acceptance_execution_allowed": no_customer_apply_execution_acceptance_report["execution_allowed"],
+            "no_customer_apply_execution_acceptance_apply_decision": no_customer_apply_execution_acceptance_report["apply_decision"],
+            "no_customer_apply_execution_acceptance_verify_decision": no_customer_apply_execution_acceptance_report["verify_decision"],
+            "no_customer_apply_execution_acceptance_rollback_decision": no_customer_apply_execution_acceptance_report["rollback_decision"],
         },
         "no_customer_apply_execution_gate_summary": {
             "no_customer_apply_execution_gate_present": True,

@@ -15,7 +15,9 @@ from mpf.domain.health import HealthReport
 from mpf.services import (
     firewall_apply_gate_readiness_service,
     firewall_no_customer_apply_acceptance_gate_service,
+    firewall_no_customer_apply_execution_acceptance_service,
     firewall_no_customer_apply_execution_gate_service,
+    firewall_no_customer_apply_package_service,
     firewall_no_customer_apply_scaffold_service,
     firewall_live_snapshot_scaffold_service,
     firewall_live_snapshot_read_service,
@@ -707,6 +709,29 @@ def firewall_no_customer_apply_execution_gate(config: Path | None = typer.Option
         values = report[key]
         typer.echo(f"{key}: {', '.join(values) if values else '-'}")
 
+
+@firewall_app.command("no-customer-apply-package")
+def firewall_no_customer_apply_package(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    cfg = _load(config)
+    report = firewall_no_customer_apply_package_service.build_no_customer_apply_package_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    for key in ("component","final_decision","authorization_status","package_status","execution_allowed","apply_decision","verify_decision","rollback_decision","payload_kind","payload_contains_customer_nat","payload_contains_customer_firewall_rules","payload_contains_production_traffic","payload_contains_iptables_restore","payload_contains_subprocess_call","payload_contains_db_write","payload_contains_file_write"):
+        v=report[key]; typer.echo(f"{key}: {str(v).lower() if isinstance(v,bool) else v}")
+    for key in ("blockers","errors"):
+        vals=report[key]; typer.echo(f"{key}: {', '.join(vals) if vals else '-'}")
+
+@firewall_app.command("no-customer-apply-execution-acceptance")
+def firewall_no_customer_apply_execution_acceptance(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    cfg = _load(config)
+    report = firewall_no_customer_apply_execution_acceptance_service.build_no_customer_apply_execution_acceptance_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    for key in ("component","final_decision","authorization_status","gate_status","execution_allowed","apply_decision","verify_decision","rollback_decision","no_customer_apply_execution_gate_report_present","no_customer_apply_execution_gate_blocked","no_customer_apply_execution_gate_execution_disallowed","no_customer_apply_execution_gate_mutation_flags_false","no_customer_apply_package_report_present","no_customer_apply_package_blocked","no_customer_apply_package_execution_disallowed","no_customer_apply_package_mutation_flags_false","no_customer_apply_package_customer_safe","customer_nat_allowed","customer_firewall_rules_allowed","iptables_restore_allowed"):
+        v=report[key]; typer.echo(f"{key}: {str(v).lower() if isinstance(v,bool) else v}")
+    for key in ("blockers","errors"):
+        vals=report[key]; typer.echo(f"{key}: {', '.join(vals) if vals else '-'}")
+
 @firewall_app.command("restore-lock-record-acceptance-gate")
 def firewall_restore_lock_record_acceptance_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     """Render report-only acceptance gate for controlled restore/lock/db-apply behavior."""
@@ -1166,6 +1191,19 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"  runtime_activation_allowed: {str(agr.get('runtime_activation_allowed', False)).lower()}")
     typer.echo(f"  blockers: {len(agr.get('blockers', []))}")
     typer.echo(f"  missing_requirements: {len(agr.get('missing_requirements', []))}")
+    ncap = report.apply_gate_readiness_summary.get("no_customer_apply_package_summary", {})
+    typer.echo("no_customer_apply_package: summary")
+    typer.echo(f"  present: {str(ncap.get('no_customer_apply_package_present', False)).lower()}")
+    typer.echo(f"  final_decision: {ncap.get('no_customer_apply_package_final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {ncap.get('no_customer_apply_package_authorization_status', 'PACKAGE_DEFINED_NOT_EXECUTABLE')}")
+    typer.echo(f"  execution_allowed: {str(ncap.get('no_customer_apply_package_execution_allowed', False)).lower()}")
+    typer.echo(f"  customer_safe: {str(ncap.get('no_customer_apply_package_customer_safe', True)).lower()}")
+    ncaea = report.apply_gate_readiness_summary.get("no_customer_apply_execution_acceptance_summary", {})
+    typer.echo("no_customer_apply_execution_acceptance: summary")
+    typer.echo(f"  present: {str(ncaea.get('no_customer_apply_execution_acceptance_present', False)).lower()}")
+    typer.echo(f"  final_decision: {ncaea.get('no_customer_apply_execution_acceptance_final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {ncaea.get('no_customer_apply_execution_acceptance_authorization_status', 'EXECUTION_ACCEPTANCE_DEFINED_NOT_EXECUTABLE')}")
+    typer.echo(f"  execution_allowed: {str(ncaea.get('no_customer_apply_execution_acceptance_execution_allowed', False)).lower()}")
     ncae = report.apply_gate_readiness_summary.get("no_customer_apply_execution_gate_summary", {})
     typer.echo("no_customer_apply_execution_gate: summary")
     typer.echo(f"  present: {str(ncae.get('no_customer_apply_execution_gate_present', False)).lower()}")
