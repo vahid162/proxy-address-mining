@@ -592,6 +592,12 @@ def test_firewall_gate_review_human_default_db(monkeypatch) -> None:
     assert "  final_decision: BLOCKED" in res.output
     assert "live_snapshot_scaffold: summary" in res.output
     assert "  authorization_status: NOT_AUTHORIZED" in res.output
+    assert "restore_lock_record_execution_gate: summary" in res.output
+    assert "  authorization_status: NOT_AUTHORIZED_FOR_EXECUTION" in res.output
+    assert "  execution_allowed: false" in res.output
+    assert "final_decision: BLOCKED" in res.output
+    assert "applyable: false" in res.output
+    assert "live_apply_allowed: false" in res.output
 
 
 def test_firewall_gate_review_json_flags(monkeypatch) -> None:

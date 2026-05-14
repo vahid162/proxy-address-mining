@@ -1090,6 +1090,14 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo("restore_lock_record_acceptance_gate: summary")
     typer.echo(f"  final_decision: {rlra.get('final_decision', 'BLOCKED')}")
     typer.echo(f"  authorization_status: {rlra.get('authorization_status', 'NOT_ACCEPTED_FOR_EXECUTION')}")
+    rlex = report.restore_lock_record_execution_gate_summary
+    typer.echo("restore_lock_record_execution_gate: summary")
+    typer.echo(f"  final_decision: {rlex.get('final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {rlex.get('authorization_status', 'NOT_AUTHORIZED_FOR_EXECUTION')}")
+    typer.echo(f"  execution_allowed: {str(rlex.get('execution_allowed', False)).lower()}")
+    typer.echo(f"  report_only: {str(rlex.get('report_only', True)).lower()}")
+    typer.echo(f"  preflight_only: {str(rlex.get('preflight_only', True)).lower()}")
+    typer.echo(f"  apply_decision: {rlex.get('apply_decision', 'BLOCKED')}")
     typer.echo(f"  report_only: {str(rlr.get('report_only', True)).lower()}")
     typer.echo(f"  apply_decision: {rlr.get('apply_decision', 'BLOCKED')}")
     rlr_ready = report.restore_lock_record_readiness_summary
