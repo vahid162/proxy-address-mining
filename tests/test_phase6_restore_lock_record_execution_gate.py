@@ -132,7 +132,9 @@ def test_cli_requires_operator_reason_yes_for_execution() -> None:
     miss_op = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--reason", "r", "--yes"])
     assert miss_op.exit_code != 0
     miss_reason = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--yes"])
+    assert miss_reason.exit_code != 0
     miss_yes = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--reason", "r"])
+    assert miss_yes.exit_code != 0
 
 def test_controlled_execution_real_db_writer_creates_three_records(monkeypatch) -> None:
     db = _FakeDB()
@@ -317,3 +319,71 @@ def test_phase6_controlled_execution_boundary_accepted_still_forbidden_tokens() 
     ]
     for token in forbidden_listed:
         assert token in text
+
+
+def test_db_failure_sets_execution_failed_status() -> None:
+    cfg = _cfg()
+    def boom(_payload):
+        raise RuntimeError("db down")
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True, record_writer=boom
+    )
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTION_FAILED"
+    assert r["execution_allowed"] is False
+    assert r["restore_point_write_allowed"] is False
+    assert r["lock_acquisition_allowed"] is False
+    assert r["db_apply_record_write_allowed"] is False
+    assert r["restore_point_written"] is False
+    assert r["lock_acquired"] is False
+    assert r["db_apply_record_written"] is False
+    assert r["db_mutation"] is False
+    assert r["errors"]
+
+
+def test_lock_conflict_blocks_without_partial_records() -> None:
+    cfg = _cfg()
+    class ConflictCursor:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def execute(self, sql, params=None):
+            self._sql = sql
+        def fetchone(self):
+            if "select 1 from scheduler_locks" in " ".join(self._sql.lower().split()):
+                return (1,)
+            return None
+
+    class ConflictConn:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def cursor(self): return ConflictCursor()
+        def transaction(self): return self
+
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        cfg, execute_controlled_boundary=True, operator="alice", reason="test", yes=True, connection_factory=lambda: ConflictConn()
+    )
+    assert r["authorization_status"] == "CONTROLLED_BOUNDARY_EXECUTION_FAILED"
+    assert r["restore_point_written"] is False
+    assert r["lock_acquired"] is False
+    assert r["db_apply_record_written"] is False
+    assert r["db_mutation"] is False
+    assert any("scoped controlled execution lock already exists" in e for e in r["errors"])
+
+
+def test_writer_uses_connection_factory_not_direct_cfg_url(monkeypatch) -> None:
+    called = {"factory": 0}
+
+    class _C:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def transaction(self): return self
+        def cursor(self): return _FakeCursor(_FakeDB())
+
+    def factory():
+        called["factory"] += 1
+        return _C()
+
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        _cfg(), execute_controlled_boundary=True, operator="alice", reason="test", yes=True, connection_factory=factory
+    )
+    assert called["factory"] == 1
+    assert r["restore_point_written"] is True
