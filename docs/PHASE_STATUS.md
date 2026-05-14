@@ -1093,6 +1093,34 @@ Evidence anchor references for this proposal/review context: `CONTROLLED_BOUNDAR
 The next implementation target after this proposal review is a separate guarded no-customer apply/verify/rollback scaffold PR that must remain dry-run/report-only by default and must not include customer NAT/customer firewall rules.
 
 
+### Phase 6 No-Customer Apply/Verify/Rollback Scaffold — Report-Only
+
+```text
+scaffold/report-only and non-authorizing surface only
+no runtime behavior enabled
+no firewall apply
+no firewall verify
+no firewall rollback
+no iptables-restore
+no subprocess firewall calls
+no real adapter execution
+no customer NAT
+no customer firewall rules
+no production traffic
+no DB writes
+no restore point writes
+no lock acquisition
+final_decision remains BLOCKED
+apply_decision remains BLOCKED
+verify_decision remains BLOCKED
+rollback_decision remains BLOCKED
+```
+
+Purpose: Prepare an inspectable report-only surface for the future no-customer apply/verify/rollback lifecycle.
+
+Next step after this scaffold: a separate explicit acceptance gate with fresh farm5 evidence before any real no-customer apply execution.
+
+
 ### Phase 6 farm5 Time Synchronization — Server Evidence
 
 ```text

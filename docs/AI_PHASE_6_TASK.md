@@ -92,7 +92,7 @@ Required boundary statements:
 - read-only iptables-save live snapshot is authorized and evidenced.
 - unauthorized iptables-save execution remains forbidden.
 - iptables-save remains forbidden now (for unauthorized execution paths).
-- live firewall reads remain forbidden now.
+- unauthorized live firewall reads remain forbidden; the explicitly gated read-only iptables-save snapshot path is authorized and evidenced.
 - live firewall writes remain forbidden now.
 - live firewall write/apply/rollback/verify remains forbidden now.
 - read-only iptables-save live snapshot path is authorized and evidenced.
@@ -104,6 +104,8 @@ Required boundary statements:
 - no usage automation.
 - no abuse automation before Phase 8.
 - abuse 1h invariant is preserved (normal -> over_tracking -> over_grace -> hard).
+- farms-over alone must not harden
+- worker-over alone must not harden
 
 ## Allowed Work Now
 
@@ -121,6 +123,7 @@ offline preflight reporting
 planner, contract, package, rollback, and preflight tests
 safety regression tests proving no live firewall side effects
 proxy/backend safety checks that preserve internal reachability + external non-exposure contracts
+mpf firewall no-customer-apply-scaffold (report-only, scaffold-only, non-authorizing, default dry-run, final_decision=BLOCKED, no apply/verify/rollback execution, no iptables-restore, no customer NAT/customer firewall rules)
 ```
 
 ## Forbidden Work Now

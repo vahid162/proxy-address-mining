@@ -47,7 +47,7 @@ def test_ai_phase6_task_explicit_d1_boundary_language() -> None:
         "docs/phase_6_d1_live_apply_boundary.md",
         "documentation/test-only",
         "does not authorize live apply",
-        "live firewall reads remain forbidden now",
+        "unauthorized live firewall reads remain forbidden; the explicitly gated read-only iptables-save snapshot path is authorized and evidenced.",
         "live firewall writes remain forbidden now",
         "iptables-save remains forbidden now",
         "iptables-restore remains forbidden now",
