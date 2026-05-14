@@ -34,6 +34,7 @@ from mpf.services import (
     firewall_preflight_service,
     firewall_evidence_service,
     firewall_gate_review_service,
+    firewall_restore_lock_record_acceptance_gate_service,
     firewall_restore_lock_record_gate_service,
     firewall_restore_lock_record_readiness_service,
     proxy_doctor_service,
@@ -589,6 +590,29 @@ def firewall_restore_lock_record_readiness(config: Path | None = typer.Option(No
         values = report[key]
         typer.echo(f"{key}: {', '.join(values) if values else '-'}")
 
+
+@firewall_app.command("restore-lock-record-acceptance-gate")
+def firewall_restore_lock_record_acceptance_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render report-only acceptance gate for controlled restore/lock/db-apply behavior."""
+    cfg = _load(config)
+    report = firewall_restore_lock_record_acceptance_gate_service.build_restore_lock_record_acceptance_gate_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    for key in (
+        "component", "final_decision", "gate_status", "authorization_status", "inspection_only", "report_only", "preflight_only", "execution_allowed",
+        "farm5_time_sync_evidence_present", "farm5_time_sync_resolved",
+        "restore_point_write_allowed", "lock_acquisition_allowed", "db_apply_record_write_allowed", "iptables_restore_allowed",
+        "customer_nat_allowed", "customer_firewall_rules_allowed", "apply_decision", "next_required_gate",
+    ):
+        value = report[key]
+        if isinstance(value, bool):
+            value = str(value).lower()
+        typer.echo(f"{key}: {value}")
+    for key in ("blockers", "errors"):
+        values = report[key]
+        typer.echo(f"{key}: {', '.join(values) if values else '-'}")
+
 @firewall_app.command("live-snapshot-readiness")
 def firewall_live_snapshot_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     """Render fail-closed, non-authorizing report for future live snapshot read gate."""
@@ -983,6 +1007,7 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     live_snapshot_read = firewall_live_snapshot_read_service.build_live_snapshot_read_report(cfg)
     restore_lock_record_gate = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(cfg)
     restore_lock_record_readiness = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg)
+    restore_lock_record_acceptance_gate = firewall_restore_lock_record_acceptance_gate_service.build_restore_lock_record_acceptance_gate_report(cfg)
     report = firewall_gate_review_service.build_gate_review_report(
         evidence=evidence,
         apply_gate_readiness=apply_gate_readiness,
@@ -990,6 +1015,7 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
         live_snapshot_read=live_snapshot_read,
         restore_lock_record_gate=restore_lock_record_gate,
         restore_lock_record_readiness=restore_lock_record_readiness,
+        restore_lock_record_acceptance_gate=restore_lock_record_acceptance_gate,
     )
     if output == "json":
         typer.echo(json.dumps(report.to_dict(), indent=2, sort_keys=True))
@@ -1034,6 +1060,10 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo("restore_lock_record_gate: summary")
     typer.echo(f"  final_decision: {rlr.get('final_decision', 'BLOCKED')}")
     typer.echo(f"  authorization_status: {rlr.get('authorization_status', 'NOT_ACCEPTED')}")
+    rlra = report.restore_lock_record_acceptance_gate_summary
+    typer.echo("restore_lock_record_acceptance_gate: summary")
+    typer.echo(f"  final_decision: {rlra.get('final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {rlra.get('authorization_status', 'NOT_ACCEPTED_FOR_EXECUTION')}")
     typer.echo(f"  report_only: {str(rlr.get('report_only', True)).lower()}")
     typer.echo(f"  apply_decision: {rlr.get('apply_decision', 'BLOCKED')}")
     rlr_ready = report.restore_lock_record_readiness_summary
