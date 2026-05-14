@@ -17,7 +17,6 @@ Current repository/server gate:
 ```text
 accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
 working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated Phase 6 apply gate remains not accepted and not authorized
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -26,6 +25,8 @@ customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
 The accepted Phase 4 runtime remains intentionally limited and local-only:
@@ -39,7 +40,13 @@ Do not use this repository for production customer traffic yet.
 
 ## Current Phase 6 Accepted State and Next Planned Step
 
-Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review. Future dedicated Phase 6 apply gate remains not accepted and not authorized.
+`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 5 / working Phase 6 with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+
+Read-only iptables-save snapshot has been authorized and evidenced. Controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Next planning target is Phase 6 Dedicated Apply Gate Proposal/Review.
+
+No firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+
+Compatibility note: Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
 Allowed under the current Phase 6 gate, with Apply Slice 3 and Apply Slice 4 server-synced and accepted only as documentation/test-only boundaries:
 
