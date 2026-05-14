@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version is 0.1.91; last recorded farm5 sync evidence remains 0.1.90 until next server sync.
+- GitHub main repository version is 0.1.92; last recorded farm5 sync evidence remains 0.1.90 until next server sync.
 - Phase 5 remains the accepted phase.
 - Phase 6 remains the working phase.
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.

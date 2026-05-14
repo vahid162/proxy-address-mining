@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness with repository version 0.1.91; latest farm5 sync evidence is 0.1.90 (next farm5 sync pending); live gates remain not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness with repository version 0.1.92; latest farm5 sync evidence is 0.1.90 (next farm5 sync pending); live gates remain not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
