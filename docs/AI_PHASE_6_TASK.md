@@ -1,10 +1,10 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness after 0.1.90 sync; live gates remain not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness with repository version 0.1.91; latest farm5 sync evidence is 0.1.90 (next farm5 sync pending); live gates remain not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
-Current note: After PR #94, read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized. The current planning target is Phase 6 Dedicated Apply Gate Proposal/Review for a future no-customer apply/verify/rollback lifecycle. This document is not authoritative; docs/PHASE_STATUS.md is authoritative.
+Current note: read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized. This document is not authoritative; docs/PHASE_STATUS.md is authoritative.
 Compatibility note: Future Dedicated Phase 6 Apply Gate Proposal/Review remains the cross-doc planning label.
 Current implementation note: read-only live snapshot scaffolding report exists as fail-closed/non-authorizing output only (`mpf firewall live-snapshot-scaffold`). It does not execute live read, does not run `iptables-save`, and remains BLOCKED until explicit `docs/PHASE_STATUS.md` acceptance plus farm5 evidence in a future gate.
 Gate-review remains BLOCKED and non-authorizing.
@@ -19,7 +19,7 @@ docs/PHASE_STATUS.md
 
 Current state:
 
-Next planning target is Phase 6 Dedicated Apply Gate Proposal/Review. `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` remains historical/reference context only and is non-authorizing.
+Current active gating language is controlled by docs/PHASE_STATUS.md; historical dedicated-apply-gate proposal docs remain reference-only and non-authorizing.
 
 ```text
 current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
@@ -125,6 +125,8 @@ safety regression tests proving no live firewall side effects
 proxy/backend safety checks that preserve internal reachability + external non-exposure contracts
 mpf firewall no-customer-apply-scaffold (report-only, scaffold-only, non-authorizing, default dry-run, final_decision=BLOCKED, no apply/verify/rollback execution, no iptables-restore, no customer NAT/customer firewall rules)
 mpf firewall no-customer-apply-acceptance-gate (report-only, acceptance-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules)
+mpf firewall no-customer-apply-package (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
+mpf firewall no-customer-apply-execution-acceptance (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
 ```
 
 ## Forbidden Work Now

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.92 - 2026-05-14
+
+- refined Phase 6 docs wording in-place (no duplicate finite path) and clarified repo 0.1.92 vs last farm5 sync 0.1.90
+- tightened execution-acceptance current-state validation (including server_state) and renamed still-required future evidence fields
+
 ## 0.1.91 - 2026-05-14
 
 - added report-only no-customer apply package and execution acceptance services plus CLI surfaces

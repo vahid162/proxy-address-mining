@@ -24,3 +24,23 @@ def test_static_safety_patterns_absent():
         t=Path(p).read_text().lower()
         for bad in ['subprocess.run','os.system','open(..., "w")','write_text','psycopg.connect','insert into','update','delete from','alembic','migration']:
             assert bad not in t
+
+
+def test_remaining_plan_has_single_finite_path():
+    txt=Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    assert txt.count("## Finite Remaining Path")==1
+
+def test_ai_phase6_task_mentions_new_commands_and_no_stale_target():
+    txt=Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
+    assert "mpf firewall no-customer-apply-package" in txt
+    assert "mpf firewall no-customer-apply-execution-acceptance" in txt
+    assert "After PR #94" not in txt
+    assert "Next planning target is Phase 6 Dedicated Apply Gate Proposal/Review." not in txt
+
+def test_execution_acceptance_current_state_checks_server_state():
+    from mpf.services import firewall_no_customer_apply_execution_acceptance_service as s
+    txt=Path("mpf/services/firewall_no_customer_apply_execution_acceptance_service.py").read_text(encoding="utf-8")
+    assert "server_state" in txt
+    r=s.build_no_customer_apply_execution_acceptance_report(load_config(example_config_path()))
+    items={x["item"] for x in r["execution_acceptance_checklist"]}
+    assert "separate_operator_runtime_execution_approval_still_required" in items
