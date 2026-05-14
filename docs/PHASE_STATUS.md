@@ -27,6 +27,59 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 ## Accepted Server Results
 
+### Phase 6 farm5 0.1.93 Sync + Gate-Review JSON Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.93 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+Backup path: /var/backups/mpf/source-before-zip-sync-20260514T192415Z
+mpf --version: 0.1.93
+pytest during sync: 625 passed in 16.69s
+mpf config validate / doctor / db status / proxy doctor / current phase safety gate: OK
+source aligned with GitHub zip: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+accepted runtime listeners are local-only
+v2rayA UI listener: 127.0.0.1:2015
+BTC backend listener: 127.0.0.1:60010
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational in accepted limited runtime only and do not authorize MPF/customer NAT redirects
+PR #100 gate-review JSON serialization fix validated on farm5
+mpf firewall gate-review --source config-only --output json completed without traceback
+JSON output validated with python3 -m json.tool
+final_decision: BLOCKED
+applyable: false
+live_apply_allowed: false
+errors: []
+warnings serialized as dictionaries with code/message/severity
+safety_flags.database_write: false
+safety_flags.filesystem_write: false
+safety_flags.iptables_restore_executed: false
+safety_flags.iptables_save_executed: false
+safety_flags.live_firewall_read: false
+safety_flags.live_firewall_write: false
+safety_flags.lock_acquired: false
+safety_flags.restore_point_written: false
+safety_flags.rollback_written: false
+safety_flags.runtime_change: no
+abuse_requirement_summary.preserved: true
+abuse state flow remains normal -> over_tracking -> over_grace -> hard
+sustained_hardening_seconds: 3600
+No runtime gate opened; this evidence is non-authorizing and runtime restrictions remain unchanged
+```
+
 ### Phase 1 — Bootstrap Without Traffic Changes
 
 ```text

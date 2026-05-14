@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version is 0.1.92; last recorded farm5 sync evidence remains 0.1.90 until next server sync.
+- GitHub main repository version is 0.1.93; last recorded farm5 sync evidence is 0.1.93.
 - Phase 5 remains the accepted phase.
 - Phase 6 remains the working phase.
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
@@ -31,6 +31,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - farm5 sync evidence for 0.1.88 was recorded.
 - apply-gate-readiness was implemented as read-only/report-only.
 - gate-review now includes apply_gate_readiness_summary.
+- gate-review JSON serialization fix (PR #100) is evidenced on farm5; config-only gate-review JSON output is valid, non-crashing, and remains BLOCKED/non-applyable/non-authorizing.
 - Gate-review includes live snapshot scaffold/read summaries. The explicitly gated read-only iptables-save snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.
 - farm5 was synced to 0.1.90 successfully.
 - No-customer apply/verify/rollback scaffold exists as report-only/non-authorizing surface and remains BLOCKED / NOT_AUTHORIZED_FOR_APPLY.
