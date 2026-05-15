@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.96
+- Add report-only manual canary customer proposal + acceptance-readiness services/CLI and Phase 6 docs sync to farm5 0.1.95 evidence.
+
 ## 0.1.95
 
 - added controlled no-customer runtime execution evidence service/CLI and integrated summaries; recorded farm5 0.1.94 sync evidence docs updates.

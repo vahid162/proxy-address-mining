@@ -83,7 +83,7 @@ def build_no_customer_runtime_execution_evidence_report(cfg: MPFConfig, repo_roo
     runtime_approval_report_blocked = runtime_approval.get("final_decision") == "BLOCKED"
     runtime_approval_execution_disallowed = not bool(runtime_approval.get("execution_allowed", False))
 
-    readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg, repo_root=root, include_runtime_approval_summary=False, include_runtime_evidence_summary=False)
+    readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg, repo_root=root, include_runtime_approval_summary=False, include_runtime_evidence_summary=False, include_manual_canary_summary=False)
     apply_gate_readiness_present = bool(readiness)
     apply_gate_readiness_blocked = readiness.get("final_decision") == "BLOCKED"
 
