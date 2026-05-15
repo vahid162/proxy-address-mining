@@ -29,6 +29,53 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+### Phase 7 farm5 0.1.102 Sync + Planning Readiness Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.102 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260515T112408Z
+mpf --version: 0.1.102
+pytest during sync: 665 passed
+mpf config validate: OK
+mpf doctor: OK
+db status: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+current customer list: no non-deleted customers
+proxy doctor/status: OK
+proxy runtime remains limited local-only
+v2rayA UI listener local-only: 127.0.0.1:2015
+BTC backend listener local-only: 127.0.0.1:60010
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+current Phase 6 accepted / Phase 7 working safety gate passed
+no runtime gate opened
+runtime restrictions remain unchanged
+```
+
+### Phase 7 Usage + Policy/Reject Accounting — Planning/Readiness Boundary
+
+- Phase 7 is the current working phase.
+- Phase 7 starts as read-only/reporting/service-contract only.
+- This PR does not enable usage automation, usage collectors, or policy/reject collectors.
+- This PR does not enable production traffic, firewall apply, customer NAT/customer firewall rules, iptables-restore, abuse automation, or block/pause automation.
+- Phase 8 remains the future Abuse 1h Core phase.
+- Abuse invariant remains mandatory: `normal -> over_tracking -> over_grace -> hard`; farms-over alone must not harden; worker-over alone must not harden; sustained miner-abuse hardens after about 3600 seconds; all active customers in enabled lanes must be covered; no silent skip.
+
+
 ### Phase 6 farm5 0.1.100 Sync + Operator Acceptance Evidence
 
 ```text

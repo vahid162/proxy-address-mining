@@ -6,8 +6,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version is 0.1.102.
-- latest recorded farm5 sync evidence is 0.1.100 until the operator syncs the current main version to farm5.
+- GitHub main repository version after this PR is 0.1.103.
+- latest recorded farm5 sync evidence is 0.1.102 until the operator syncs version 0.1.103 to farm5.
 - Phase 6 is the accepted phase: Firewall Planner accepted on farm5 as planner/reporting/gate-readiness only.
 - Phase 7 is the working phase: Usage + Policy/Reject Accounting planning/readiness only.
 - Current work is Phase 7 planning/readiness.
@@ -63,20 +63,19 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Finite Remaining Path
 
-1. Dedicated Apply Gate Proposal/Review — done
-2. No-customer apply/verify/rollback scaffold — done
-3. No-customer explicit acceptance — done and evidenced
-4. No-customer execution package — done as report-only/non-executing
-5. No-customer runtime execution approval readiness — done and farm5 synced at 0.1.94
-6. Controlled no-customer runtime execution evidence package — done and farm5 synced at 0.1.95
-7. Manual canary proposal + acceptance readiness — done and farm5 synced at 0.1.96
-8. Manual canary server evidence / final gate review — done and farm5 synced at 0.1.98
-9. Phase 6 final acceptance review — done and farm5 synced at 0.1.99
-10. Phase 6 operator acceptance decision — accepted after farm5 0.1.100 sync evidence
-11. Phase 7 Usage + Policy/Reject Accounting — current working phase / next implementation target
-12. Phase 8 Abuse 1h Core — future mandatory phase
-
-Phase 7 is planning/readiness only and must not enable production traffic, firewall apply, customer NAT/customer firewall rules, or abuse automation. Phase 8 remains the abuse automation phase.
+1. Phase 6 Firewall Planner — accepted on farm5
+2. Phase 7 Usage + Policy/Reject Accounting readiness — current target
+3. Phase 7 usage accounting service contracts — next
+4. Phase 7 policy/reject accounting service contracts — next
+5. Phase 7 read-only reports/doctor — next
+6. Phase 7 final acceptance
+7. Phase 8 Abuse 1h Core
+8. Phase 9 Check / Report / Diagnostics
+9. Phase 10 Session / Worker / Policy / Share Timeline
+10. Phase 11 Local UI + Buyer Read-only
+11. Phase 12 Operator UI Actions
+12. Phase 13 Telegram
+13. Phase 14 Worker Policy Enforcement
 
 ## Non-Negotiable Current Prohibitions
 
@@ -138,7 +137,7 @@ Purpose: implement worker-policy enforcement boundary.
 These anchors are intentionally historical and do not override the Current Position above.
 
 - Repository version before this PR: 0.1.100
-- Repository version after this PR: 0.1.101
+- Repository version after this PR: 0.1.103
 - GitHub main repository version (before this cleanup PR) is 0.1.101
 - latest recorded farm5 sync evidence is 0.1.94
 - latest recorded farm5 sync evidence is 0.1.99
@@ -156,3 +155,9 @@ These anchors are intentionally historical and do not override the Current Posit
 - no UI or Telegram
 - farms-over alone must not harden
 - worker-over alone must not harden
+
+
+## Historical Compatibility Anchors
+
+- 1. Dedicated Apply Gate Proposal/Review
+- latest recorded farm5 sync evidence is 0.1.100 (historical; superseded by 0.1.102 in current active state)
