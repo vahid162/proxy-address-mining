@@ -1,16 +1,17 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and current repository version before this PR is 0.1.96; repository version after this PR is 0.1.97; latest recorded farm5 sync evidence is 0.1.96 until next operator sync; live gates remain not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; GitHub main repository version is 0.1.98; latest recorded farm5 sync evidence is 0.1.96 until the next operator sync; live gates remain not accepted and not authorized.
 
-This document defines the safe Phase 6 boundary for AI coding agents.
+This document defines the safe Phase 6 boundary for AI coding agents. It is a working guide only; `docs/PHASE_STATUS.md` is authoritative.
 
-Current note: read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized. This document is not authoritative; docs/PHASE_STATUS.md is authoritative.
+Current note: read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized.
+
+Current implementation note: manual canary customer server evidence / final gate review and Phase 6 final acceptance readiness are implemented in GitHub main at 0.1.98 as report-only, non-executing, non-authorizing, BLOCKED surfaces. They still require farm5 0.1.98 sync evidence before the next planning step.
+
 Compatibility note: "Future Dedicated Phase 6 Apply Gate Proposal/Review" is historical compatibility wording only and non-authorizing.
-Current implementation note: read-only live snapshot scaffolding report exists as fail-closed/non-authorizing output only (`mpf firewall live-snapshot-scaffold`). It does not execute live read, does not run `iptables-save`, and remains BLOCKED until explicit `docs/PHASE_STATUS.md` acceptance plus farm5 evidence in a future gate.
-Gate-review remains BLOCKED and non-authorizing.
-
 Compatibility anchor: latest recorded farm5 sync evidence is 0.1.94 (historical).
-Compatibility anchor: repository version after this PR becomes 0.1.97.
+Compatibility anchor: repository version after this PR becomes 0.1.97 (historical).
+Compatibility anchor: repository version after this PR becomes 0.1.95 (historical).
 
 ## Current Gate
 
@@ -55,6 +56,8 @@ offline file-backed diff
 planner-only firewall doctor
 ```
 
+Phase 6-B and Phase 6-C are historical accepted references and are not the current advancement target.
+
 Phase 6-C accepted work (historical reference) included:
 
 ```text
@@ -66,19 +69,15 @@ offline preflight inspection/failure matrix
 safety regression tests
 ```
 
-Phase 6-B and Phase 6-C are historical accepted references and are not the current advancement target.
-
-
 ## Phase 6-D1 — Live-Apply Boundary Contract
 
+Phase 6-E0 does not authorize apply/rollback/verify, iptables-save/iptables-restore, or live firewall read/write.
 Phase 6-E1 isolated harness contract hardening is accepted on farm5.
 Phase 6-E2 isolated harness evidence package / boundary planning is accepted on farm5.
-
 Phase 6-E2 is accepted on farm5 as isolated/non-production evidence package / boundary planning only.
-
 Phase 6-E3 is accepted on farm5 as isolated/non-production evidence review / non-authorizing gate checklist only.
-
 Phase 6-G is accepted as documentation/test-only and non-authorizing. Future dedicated apply gate remains not accepted and not authorized.
+Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
 
 Reference documents:
 
@@ -109,6 +108,9 @@ Required boundary statements:
 - abuse 1h invariant is preserved (normal -> over_tracking -> over_grace -> hard).
 - farms-over alone must not harden
 - worker-over alone must not harden
+- sustained miner-abuse hardens after about 3600 seconds.
+- all active customers in enabled lanes must be covered.
+- no silent skip.
 
 ## Allowed Work Now
 
@@ -130,8 +132,13 @@ mpf firewall no-customer-apply-scaffold (report-only, scaffold-only, non-authori
 mpf firewall no-customer-apply-acceptance-gate (report-only, acceptance-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules)
 mpf firewall no-customer-apply-package (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
 mpf firewall no-customer-apply-execution-acceptance (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
+mpf firewall no-customer-apply-execution-gate (report-only, execution-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
 mpf firewall no-customer-runtime-execution-approval (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, operator approval still required, fresh farm5 runtime execution evidence still required, separate runtime execution PR still required)
 mpf firewall no-customer-runtime-execution-evidence (report-only, non-executing evidence package, final_decision=BLOCKED, execution_allowed=false, controlled evidence defined only)
+mpf firewall manual-canary-customer-proposal (report-only, non-executing, non-authorizing, final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false)
+mpf firewall manual-canary-customer-acceptance-readiness (report-only, non-executing, non-authorizing, final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false)
+mpf firewall manual-canary-customer-server-evidence (report-only, non-executing, non-authorizing, final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false)
+mpf phase6 final-acceptance-readiness (report-only, non-executing, non-authorizing, final_decision=BLOCKED, execution_allowed=false, phase6_acceptance_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false)
 ```
 
 ## Forbidden Work Now
@@ -342,24 +349,16 @@ server time synchronization fixed before production-dependent jobs
 
 Do not combine planner/offline contract work with live apply behavior.
 
-
 Phase 6-C closure is documentation/test-only and live apply remains forbidden.
-
-
 Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 No `mpf firewall apply`, `mpf firewall rollback`, or live `verify` may be enabled in this step.
 No `iptables-save` or `iptables-restore` execution is authorized in this step.
-
-
-Phase 6-E0 does not authorize apply/rollback/verify, iptables-save/iptables-restore, or live firewall read/write.
-
 
 ## Phase 6-E0 — Isolated Apply Harness Planning/Contracts
 
 Reference: `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
 
 Phase 6-E0 allows isolated fake/no-op harness contracts and tests only. It does not authorize live firewall read/write, iptables-save execution, iptables-restore execution, or live apply/rollback/verify. No `mpf firewall apply`, `mpf firewall rollback`, or live verify command may be enabled.
-
 
 ## Phase 6-E1 Acceptance Note
 
@@ -368,15 +367,8 @@ Reference: `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (historical accepted 
 Current active sub-step is Phase 6-H accepted scope only (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing).
 Phase 6-E1 remains non-authorizing and does not authorize apply/rollback/verify, iptables-save, iptables-restore, live firewall read/write, real iptables adapters, DB apply writes, lock acquisition, or restore point writes.
 
-
 Historical compatibility note: Phase 6-F acceptance preceded Phase 6-G acceptance; this is historical context only and does not define pending work.
-
-
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
-
-
-Phase 6-H is accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing. No live apply/read/write, iptables-save, iptables-restore, real adapters, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram are allowed.
-
 
 ## Master Roadmap Alignment Guard
 
@@ -384,7 +376,6 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 - They are not top-level phases and must not displace Phase 7/Phase 8 from the master roadmap.
 - AI agents must not create endless new Phase 6 sub-steps; each new sub-step must close a concrete blocker toward Phase 6 final acceptance.
 - Abuse 1h remains Phase 8 and must not be implemented early.
-
 
 ## Apply Slice 1-3 Planning Boundary
 
@@ -395,30 +386,18 @@ Phase 6-H is accepted as dedicated apply gate entry criteria / authorization bou
 - AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 - Future dedicated apply gate remains not accepted and not authorized.
 
-
 Batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries.
-
 Slice 4 is documentation/test-only and non-authorizing.
 Slice 4 does not authorize manual canary apply.
-Future dedicated apply gate remains not accepted and not authorized.
-AI agents must not implement real adapters, subprocess calls, runtime apply, live firewall reads/writes, iptables-save, iptables-restore, restore point writes, locks, DB writes, migrations, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
 
 The explicitly gated read-only iptables-save live snapshot path is authorized and evidenced. Unauthorized live firewall reads and unauthorized iptables-save execution remain forbidden. Live firewall write/apply/rollback/verify and iptables-restore remain forbidden until their dedicated gates are explicitly accepted.
 
-
-Current report-only command: `mpf firewall no-customer-apply-execution-gate` (report-only, execution-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic).
-
+## Version history compatibility anchors
 
 Repository version after this PR becomes 0.1.95, while latest farm5 sync evidence remains 0.1.94 until next operator sync.
-
-
 Current repository version before this PR is 0.1.95.
 Repository version after this PR becomes 0.1.96.
 Latest recorded farm5 sync evidence is 0.1.95 until next operator sync.
 New report-only commands: mpf firewall manual-canary-customer-proposal; mpf firewall manual-canary-customer-acceptance-readiness.
 Both remain non-executing/non-authorizing with final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false.
-
-Compatibility anchor: repository version after this PR becomes 0.1.95 (historical).
-
-
 Current report-only commands include: mpf firewall manual-canary-customer-proposal, mpf firewall manual-canary-customer-acceptance-readiness, mpf firewall manual-canary-customer-server-evidence, mpf phase6 final-acceptance-readiness. All are report-only, non-executing, non-authorizing, final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false.
