@@ -13,8 +13,8 @@ def test_slice3_doc_exists_and_status() -> None:
 
 def test_phase_status_current_state_unchanged_and_slice3_not_accepted() -> None:
     phase_status = _read("docs/PHASE_STATUS.md")
-    expected = """current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
-current_working_phase: Phase 6 — Firewall Planner
+    expected = """current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5
+current_working_phase: Phase 7 — Usage + Policy/Reject Accounting
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no

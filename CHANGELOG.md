@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.101 - 2026-05-15
+
+- Accept Phase 6 as planner/reporting-only on farm5, record 0.1.100 sync evidence, and open Phase 7 planning/readiness gate while keeping all runtime/customer/production gates closed.
+
 ## 0.1.100
 
 - Add Phase 6 operator acceptance decision report/CLI, integrate gate summaries, and record farm5 0.1.99 sync evidence while keeping all runtime/customer/production gates closed.

@@ -15,7 +15,7 @@ def build_phase6_operator_acceptance_decision_report(cfg: MPFConfig, repo_root: 
     rem_text = rem.read_text(encoding="utf-8") if rem.exists() else ""
 
     accepted = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status
-    sync = "farm5 synced to 0.1.99" in phase_status and "pytest during sync: 657 passed" in phase_status
+    sync = "farm5 synced to 0.1.100" in phase_status and "pytest during sync: 661 passed" in phase_status
     gates_closed = all(x in phase_status for x in ["production_traffic: none", "firewall_apply_allowed: no", "abuse_automation_allowed: no"])
     no_nat = "no customer NAT redirects" in phase_status
     no_ipv4 = "no MPF/customer IPv4 firewall references detected" in phase_status
@@ -28,7 +28,11 @@ def build_phase6_operator_acceptance_decision_report(cfg: MPFConfig, repo_root: 
     if not phase_status:
         blockers.append("docs/PHASE_STATUS.md missing")
     if not sync:
-        blockers.append("farm5 0.1.99 sync evidence missing")
+        blockers.append("farm5 0.1.100 sync evidence missing")
+    if not accepted:
+        blockers.append("Phase 6 accepted in Current State missing")
+    if "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" not in phase_status:
+        blockers.append("Phase 7 working phase not set in Current State")
     if not gates_closed:
         blockers.append("production/apply/abuse gates are not closed")
     if not abuse_ok:
@@ -51,7 +55,7 @@ def build_phase6_operator_acceptance_decision_report(cfg: MPFConfig, repo_root: 
         "authorization_status": "PHASE6_ACCEPTED_WITH_RUNTIME_GATES_CLOSED" if final_decision == "ACCEPTED" else "FINAL_OPERATOR_ACCEPTANCE_NOT_GRANTED",
         "phase6_acceptance_allowed": phase7_allowed, "phase6_accepted": phase7_allowed,
         "next_phase": "Phase 7 — Usage + Policy/Reject Accounting" if phase7_allowed else "Phase 6 — Final Operator Acceptance Decision",
-        "farm5_0_1_99_sync_evidence_present": sync,
+        "farm5_0_1_100_sync_evidence_present": sync,
         "phase5_or_phase6_accepted_state_valid": ("current_accepted_phase: Phase 5" in phase_status) or accepted,
         "phase6_accepted_as_planner_only": accepted,
         "phase6_runtime_gates_closed": gates_closed,
@@ -75,6 +79,7 @@ def build_phase6_operator_acceptance_decision_report(cfg: MPFConfig, repo_root: 
         "no_mpf_customer_ipv4_firewall_references_evidenced": no_ipv4,
         "no_mpf_customer_ipv6_firewall_references_evidenced": no_ipv6,
         "abuse_invariant_preserved": abuse_ok,
+        "phase7_started_as_planning_only": "planning/readiness" in rem_text.lower() or "planning/readiness" in phase_status.lower(),
         "phase7_not_implemented_in_this_pr": True,
         "phase8_not_implemented_in_this_pr": True,
         "blockers": blockers,

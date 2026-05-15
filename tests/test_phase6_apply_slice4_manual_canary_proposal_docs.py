@@ -12,8 +12,8 @@ def test_slice4_doc_exists_and_status() -> None:
 
 def test_phase_status_current_state_unchanged_and_slice4_not_accepted() -> None:
     phase = _read("docs/PHASE_STATUS.md")
-    assert "current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5" in phase
-    assert "current_working_phase: Phase 6 — Firewall Planner" in phase
+    assert "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase
+    assert "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase
     assert "### Phase 6 Apply Slice 4" not in phase
     assert "Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review." in phase
 

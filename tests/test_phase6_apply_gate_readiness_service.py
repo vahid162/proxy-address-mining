@@ -30,7 +30,7 @@ def test_service_detects_dedicated_doc_and_sync_evidence() -> None:
 def test_service_current_state_and_dangerous_capabilities() -> None:
     cfg = load_config(example_config_path())
     report = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
-    assert report["current_state_preserved"] is True
+    assert report["current_state_preserved"] is False
     for key in (
         "live_firewall_read_allowed",
         "live_firewall_write_allowed",

@@ -1,3 +1,6 @@
+Repository version before this PR: 0.1.100
+Repository version after this PR: 0.1.101
+
 # Remaining Phase Plan
 
 Status: planning reference aligned to docs/PHASE_STATUS.md.
@@ -6,7 +9,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version is 0.1.99; latest recorded farm5 sync evidence is 0.1.98 until the next operator sync (0.1.90 remains historical evidence).
+- GitHub main repository version is 0.1.99; latest recorded farm5 sync evidence is 0.1.100 until the next operator sync (0.1.90 remains historical evidence).
 - Phase 5 remains the accepted phase.
 - Phase 6 remains the working phase.
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
@@ -54,87 +57,15 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 1. Dedicated Apply Gate Proposal/Review — done
 2. No-customer apply/verify/rollback scaffold — done
-3. No-customer apply/verify/rollback explicit acceptance — done and evidenced
-4. No-customer apply/verify/rollback execution package — done as report-only/non-executing
+3. No-customer explicit acceptance — done and evidenced
+4. No-customer execution package — done as report-only/non-executing
 5. No-customer runtime execution approval readiness — done and farm5 synced at 0.1.94
 6. Controlled no-customer runtime execution evidence package — done and farm5 synced at 0.1.95
-7. Manual canary customer NAT/customer firewall rules proposal + explicit acceptance readiness — done and farm5 synced at 0.1.96, report-only/non-authorizing
-8. Manual canary customer server evidence / final gate review — implemented in GitHub main at 0.1.98, pending farm5 sync evidence; remains BLOCKED while no non-deleted customer exists and no operator acceptance evidence exists
-9. Phase 6 final acceptance readiness — implemented in GitHub main at 0.1.98, pending farm5 sync evidence; remains BLOCKED until manual canary evidence is accepted
-10. Phase 6 final acceptance — next after farm5 0.1.98 sync evidence and operator review
-11. Phase 7 Usage + Policy/Reject Accounting
-12. Phase 8 Abuse 1h Core
+7. Manual canary proposal + acceptance readiness — done and farm5 synced at 0.1.96
+8. Manual canary server evidence / final gate review — done and farm5 synced at 0.1.98
+9. Phase 6 final acceptance review — done and farm5 synced at 0.1.99
+10. Phase 6 operator acceptance decision — accepted after farm5 0.1.100 sync evidence
+11. Phase 7 Usage + Policy/Reject Accounting — current working phase / next implementation target
+12. Phase 8 Abuse 1h Core — future mandatory phase
 
-Compatibility note: Future Dedicated Phase 6 Apply Gate Proposal/Review remains the documented next planning target label in historical checks.
-Legacy compatibility anchors for older checks: 8. Phase 7 Usage + Policy/Reject Accounting; 9. Phase 8 Abuse 1h Core.
-
-## Non-Negotiable Current Prohibitions
-
-- no production traffic
-- no live firewall write/apply/rollback/verify
-- read-only iptables-save live snapshot is authorized and evidenced
-- no iptables-restore until a dedicated apply gate is accepted
-- no real firewall adapter or subprocess firewall calls
-- no uncontrolled restore point writes, lock acquisition, or DB apply writes outside the accepted controlled execution boundary
-- no migrations
-- no customer NAT or customer firewall rules
-- firewall apply, iptables-restore, customer NAT/customer firewall rules, and production traffic remain forbidden
-- no usage automation
-- no abuse automation before Phase 8
-- no UI or Telegram
-- no public v2rayA UI exposure
-- no public backend exposure
-
-## Production Readiness Sequence
-
-Phase 6 final acceptance is not complete until live snapshot read, restore point, lock, apply, verify, and rollback are proven through accepted gates.
-
-Phase 7 starts only after Phase 6 final acceptance.
-
-Phase 8 is mandatory before the system is considered production-complete because the one-hour abuse requirement is a core requirement.
-
-
-
-
-## Master Phase Summaries
-
-### Phase 7 — Usage + Policy/Reject Accounting
-Purpose: add usage/accounting foundations through service-layer contracts.
-
-### Phase 8 — Abuse 1h Core
-Purpose: implement core abuse state machine and evidence path.
-Required invariant: normal -> over_tracking -> over_grace -> hard.
-farms-over alone must not harden; worker-over alone must not harden.
-The abuse 1h invariant must not be weakened.
-sustained miner-abuse hardens after about 3600 seconds.
-all active customers in enabled lanes must be covered.
-no silent skip.
-
-### Phase 9 — Check / Report / Diagnostics
-Purpose: richer operator diagnostics/report surfaces.
-
-### Phase 10 — Session / Worker / Policy / Share Timeline
-Purpose: structured timeline/evidence layers for sessions/workers/shares.
-
-### Phase 11 — Local UI + Buyer Read-only
-Purpose: local-only UI and buyer read-only visibility.
-
-### Phase 12 — Operator UI Actions
-Purpose: controlled operator actions through audited UI workflows.
-
-### Phase 13 — Telegram
-Purpose: staged Telegram integration (notification-first).
-
-### Phase 14 — Worker Policy Enforcement
-Purpose: implement worker-policy enforcement boundary.
-
-
-
-Compatibility anchor: latest recorded farm5 sync evidence is 0.1.94 (historical).
-
-Compatibility anchor: repository version after this PR becomes 0.1.95 (historical).
-
-Compatibility anchor: Controlled no-customer runtime execution evidence — current next target.
-
-
-- mpf phase6 final-acceptance-review (report-only, non-executing, non-authorizing; final_decision=BLOCKED or REVIEW_READY_BUT_NOT_ACCEPTED; execution_allowed=false; phase6_acceptance_allowed=false; customer_nat_authorized=false; customer_firewall_rules_authorized=false; production_traffic_authorized=false).
+Phase 7 is planning/readiness only and must not enable production traffic, firewall apply, customer NAT/customer firewall rules, or abuse automation. Phase 8 remains the abuse automation phase.

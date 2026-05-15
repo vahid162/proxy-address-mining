@@ -3,8 +3,8 @@ from pathlib import Path
 
 def test_phase_status_and_next_step_e1() -> None:
     t = Path('docs/PHASE_STATUS.md').read_text(encoding='utf-8')
-    assert 'current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5' in t
-    assert 'current_working_phase: Phase 6 — Firewall Planner' in t
+    assert 'current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5' in t
+    assert 'current_working_phase: Phase 7 — Usage + Policy/Reject Accounting' in t
     assert 'Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing' in t
 
 
