@@ -13,7 +13,7 @@ def test_remaining_plan_runtime_approval_and_versions():
 
 def test_ai_phase6_task_has_runtime_approval_command_and_abuse_invariant():
     text = _read("docs/AI_PHASE_6_TASK.md")
-    assert "repository version after this pr becomes 0.1.96" in text.lower()
+    assert "repository version after this pr becomes 0.1.97" in text.lower()
     assert "mpf firewall no-customer-runtime-execution-approval" in text
     assert "report-only" in text and "non-executing" in text and "non-authorizing" in text
     assert "normal -> over_tracking -> over_grace -> hard" in text

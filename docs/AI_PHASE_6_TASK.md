@@ -1,13 +1,16 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and current repository version before this PR is 0.1.95; latest recorded farm5 sync evidence is 0.1.94; live gates remain not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and current repository version before this PR is 0.1.96; repository version after this PR is 0.1.97; latest recorded farm5 sync evidence is 0.1.96 until next operator sync; live gates remain not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
 Current note: read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized. This document is not authoritative; docs/PHASE_STATUS.md is authoritative.
-Compatibility note: Future Dedicated Phase 6 Apply Gate Proposal/Review remains the cross-doc planning label.
+Compatibility note: "Future Dedicated Phase 6 Apply Gate Proposal/Review" is historical compatibility wording only and non-authorizing.
 Current implementation note: read-only live snapshot scaffolding report exists as fail-closed/non-authorizing output only (`mpf firewall live-snapshot-scaffold`). It does not execute live read, does not run `iptables-save`, and remains BLOCKED until explicit `docs/PHASE_STATUS.md` acceptance plus farm5 evidence in a future gate.
 Gate-review remains BLOCKED and non-authorizing.
+
+Compatibility anchor: latest recorded farm5 sync evidence is 0.1.94 (historical).
+Compatibility anchor: repository version after this PR becomes 0.1.97.
 
 ## Current Gate
 
@@ -416,3 +419,6 @@ New report-only commands: mpf firewall manual-canary-customer-proposal; mpf fire
 Both remain non-executing/non-authorizing with final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false.
 
 Compatibility anchor: repository version after this PR becomes 0.1.95 (historical).
+
+
+Current report-only commands include: mpf firewall manual-canary-customer-proposal, mpf firewall manual-canary-customer-acceptance-readiness, mpf firewall manual-canary-customer-server-evidence, mpf phase6 final-acceptance-readiness. All are report-only, non-executing, non-authorizing, final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false.
