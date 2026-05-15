@@ -92,7 +92,7 @@ def build_no_customer_runtime_execution_approval_report(cfg: MPFConfig, repo_roo
     package = firewall_no_customer_apply_package_service.build_no_customer_apply_package_report(cfg, repo_root=root)
     acceptance = firewall_no_customer_apply_execution_acceptance_service.build_no_customer_apply_execution_acceptance_report(cfg, repo_root=root)
     execution_gate = firewall_no_customer_apply_execution_gate_service.build_no_customer_apply_execution_gate_report(cfg, repo_root=root)
-    readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg, repo_root=root, include_runtime_approval_summary=False, include_runtime_evidence_summary=False)
+    readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg, repo_root=root, include_runtime_approval_summary=False, include_runtime_evidence_summary=False, include_manual_canary_summary=False)
 
     no_customer_apply_package_present = bool(package)
     no_customer_apply_package_blocked = package.get("final_decision") == "BLOCKED"

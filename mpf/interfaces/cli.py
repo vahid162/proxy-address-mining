@@ -23,6 +23,8 @@ from mpf.services import (
     firewall_no_customer_runtime_execution_evidence_service,
     firewall_live_snapshot_scaffold_service,
     firewall_live_snapshot_read_service,
+    firewall_manual_canary_customer_acceptance_readiness_service,
+    firewall_manual_canary_customer_proposal_service,
     config_service,
     customer_mutation_service,
     customer_read_service,
@@ -1160,6 +1162,30 @@ def firewall_no_customer_runtime_execution_evidence(config: Path | None = typer.
     for e in report.get("errors", []):
         typer.echo(f"ERROR: {e}")
 
+@firewall_app.command("manual-canary-customer-proposal")
+def firewall_manual_canary_customer_proposal(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    cfg = _load(config)
+    report = firewall_manual_canary_customer_proposal_service.build_manual_canary_customer_proposal_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    for key in ("component","final_decision","authorization_status","proposal_status","execution_allowed","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","operator_approval_required","separate_canary_acceptance_pr_required","fresh_farm5_canary_evidence_required","apply_decision","verify_decision","rollback_decision","farm5_0_1_95_sync_evidence_present","controlled_no_customer_runtime_evidence_present","controlled_no_customer_runtime_evidence_blocked","controlled_no_customer_runtime_evidence_execution_disallowed","apply_gate_readiness_blocked","customer_nat_allowed","customer_firewall_rules_allowed","iptables_restore_allowed"):
+        v = report.get(key); typer.echo(f"{key}: {str(v).lower() if isinstance(v, bool) else v}")
+    typer.echo(f"blockers: {', '.join(report.get('blockers', [])) if report.get('blockers') else '-'}")
+    typer.echo(f"errors: {', '.join(report.get('errors', [])) if report.get('errors') else '-'}")
+
+
+@firewall_app.command("manual-canary-customer-acceptance-readiness")
+def firewall_manual_canary_customer_acceptance_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    cfg = _load(config)
+    report = firewall_manual_canary_customer_acceptance_readiness_service.build_manual_canary_customer_acceptance_readiness_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    for key in ("component","final_decision","authorization_status","acceptance_status","execution_allowed","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","operator_approval_required","separate_canary_server_evidence_pr_required","fresh_farm5_canary_evidence_required","apply_decision","verify_decision","rollback_decision","manual_canary_proposal_present","manual_canary_proposal_blocked","manual_canary_proposal_execution_disallowed","apply_gate_readiness_blocked","customer_nat_allowed","customer_firewall_rules_allowed","iptables_restore_allowed"):
+        v = report.get(key); typer.echo(f"{key}: {str(v).lower() if isinstance(v, bool) else v}")
+    typer.echo(f"blockers: {', '.join(report.get('blockers', [])) if report.get('blockers') else '-'}")
+    typer.echo(f"errors: {', '.join(report.get('errors', [])) if report.get('errors') else '-'}")
+
+
 @firewall_app.command("gate-review")
 def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
     """Render offline Phase 6-C2 apply gate review report (inspection-only)."""
@@ -1223,6 +1249,8 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     cs = report.checklist_summary
     typer.echo(f"checklist_summary: total={cs['total']} pass={cs['pass']} warn={cs['warn']} blocked={cs['blocked']}")
     typer.echo(f"rollback_readiness: {report.rollback_readiness_summary['status']}")
+    typer.echo(f"manual_canary_proposal: {report.apply_gate_readiness_summary.get('manual_canary_customer_proposal_summary',{}).get('manual_canary_customer_proposal_final_decision','-')}")
+    typer.echo(f"manual_canary_acceptance: {report.apply_gate_readiness_summary.get('manual_canary_customer_acceptance_readiness_summary',{}).get('manual_canary_customer_acceptance_readiness_final_decision','-')}")
     typer.echo(f"canary_readiness: {report.canary_readiness_summary['status']}")
     agr = report.apply_gate_readiness_summary
     typer.echo("apply_gate_readiness: summary")
