@@ -52,6 +52,7 @@ from mpf.services import (
     firewall_restore_lock_record_gate_service,
     firewall_restore_lock_record_readiness_service,
     proxy_doctor_service,
+    phase7_usage_accounting_contract_service,
     phase7_usage_policy_readiness_service,
 )
 
@@ -1503,6 +1504,21 @@ def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), li
     typer.echo("runtime_change: no")
 
 
+
+
+
+@phase7_app.command("usage-accounting-contract")
+def phase7_usage_accounting_contract(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render Phase 7 usage accounting contract report (report-only, non-authorizing)."""
+    report = phase7_usage_accounting_contract_service.build_phase7_usage_accounting_contract_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = ("component","final_decision","contract_status","authorization_status","execution_allowed","phase7_acceptance_allowed","usage_accounting_contract_defined","usage_samples_contract_defined","usage_delta_contract_defined","usage_report_windows_defined","usage_doctor_contract_defined","usage_collector_runtime_authorized","usage_timer_authorized","usage_db_writes_authorized","usage_counter_live_read_authorized","firewall_counter_live_read_authorized","production_traffic_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","abuse_automation_authorized","phase8_start_allowed","farm5_0_1_104_sync_evidence_present","phase7_readiness_present","remaining_plan_usage_contract_target_aligned","abuse_invariant_preserved")
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
 
 @phase7_app.command("usage-policy-readiness")
 def phase7_usage_policy_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:

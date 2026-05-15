@@ -29,6 +29,53 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+### Phase 7 farm5 0.1.104 Sync + Readiness Detector Fix Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.104 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260515T155057Z
+mpf --version: 0.1.104
+pytest during sync: 673 passed
+mpf config validate: OK
+mpf doctor: OK
+db status: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+current customer list: no non-deleted customers
+proxy doctor/status: OK
+proxy runtime remains limited local-only
+v2rayA UI listener local-only: 127.0.0.1:2015
+BTC backend listener local-only: 127.0.0.1:60010
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+current Phase 6 accepted / Phase 7 working safety gate passed
+ai_phase7_task_present: true
+blockers: []
+no runtime gate opened
+runtime restrictions remain unchanged
+mpf phase7 usage-policy-readiness --output json final_decision: BLOCKED
+mpf phase7 usage-policy-readiness --output json execution_allowed: false
+mpf phase7 usage-policy-readiness --output json usage_automation_authorized: false
+mpf phase7 usage-policy-readiness --output json usage_collectors_authorized: false
+mpf phase7 usage-policy-readiness --output json policy_reject_collectors_authorized: false
+mpf phase7 usage-policy-readiness --output json abuse_automation_authorized: false
+mpf phase7 usage-policy-readiness --output json customer_nat_authorized: false
+mpf phase7 usage-policy-readiness --output json production_traffic_authorized: false
+```
+
 ### Phase 7 farm5 0.1.102 Sync + Planning Readiness Evidence
 
 ```text

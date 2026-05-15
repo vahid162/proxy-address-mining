@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.105 - 2026-05-15
+
+- Add Phase 7 usage accounting report-only contract service + CLI and align sync evidence/runbook docs.
+
 ## 0.1.104 - 2026-05-15
 
 - fix(phase7): align AI Phase 7 readiness detector with current `docs/AI_PHASE_7_TASK.md` semantics (no stale markdown formatting dependency), keep report BLOCKED/non-authorizing, add readiness/CLI assertions for `ai_phase7_task_present=true` with empty blockers.

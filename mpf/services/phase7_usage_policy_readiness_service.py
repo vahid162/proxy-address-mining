@@ -42,7 +42,7 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
         "no silent skip",
     ]
     ai_present = all(phrase in ai_lower for phrase in ai_required_phrases)
-    rem_aligned = "latest recorded farm5 sync evidence is 0.1.102" in remaining and "Phase 7 Usage + Policy/Reject Accounting readiness" in remaining
+    rem_aligned = ("latest recorded farm5 sync evidence is 0.1.104" in remaining and "Phase 7 current target is Usage Accounting service-contract package" in remaining)
     apply_mode = cfg.firewall.apply_mode == "plan_only"
     runtime_disabled = not bool(cfg.proxy.runtime_activation_allowed)
     production_none = "production_traffic: none" in phase_status
