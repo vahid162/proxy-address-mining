@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.106
+
+- Add Phase 7 policy/reject accounting report-only service-contract package and CLI; keep all runtime gates closed.
+
 ## 0.1.105 - 2026-05-15
 
 - Add Phase 7 usage accounting report-only contract service + CLI and align sync evidence/runbook docs.

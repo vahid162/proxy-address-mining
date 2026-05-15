@@ -48,11 +48,11 @@ def build_phase7_usage_accounting_contract_report(
         ]
     )
     remaining_plan_usage_contract_target_aligned = (
-        "version before this pr is 0.1.104" in remaining.lower()
-        and "version after this pr is 0.1.105" in remaining.lower()
+        "version before this pr is 0.1.105" in remaining.lower()
+        and "version after this pr is 0.1.106" in remaining.lower()
         and "latest recorded farm5 sync evidence is 0.1.104" in remaining.lower()
-        and "current target is usage accounting service-contract package" in remaining.lower()
-        and "next target after this pr is policy/reject accounting service contracts" in remaining.lower()
+        and "phase 7 current target is policy/reject accounting service-contract package" in remaining.lower()
+        and "next target after this pr is phase 7 read-only reports/doctor package" in remaining.lower()
     )
     apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
     runtime_activation_disabled = not bool(cfg.proxy.runtime_activation_allowed)

@@ -29,3 +29,13 @@ def test_phase7_ai_task_doc_passes_readiness_detector() -> None:
     r = build_phase7_usage_policy_readiness_report(cfg)
     assert r["ai_phase7_task_present"] is True
     assert "ai_phase7_task_present" not in r["blockers"]
+
+
+def test_phase7_sync_evidence_generic_and_compatibility_aliases_present() -> None:
+    cfg = load_config(example_config_path())
+    r = build_phase7_usage_policy_readiness_report(cfg)
+    assert "latest_recorded_farm5_sync_evidence_present" in r
+    assert "fresh_farm5_sync_evidence_required_before_acceptance" in r
+    assert "farm5_0_1_102_sync_evidence_present" in r
+    assert "fresh_farm5_0_1_103_sync_evidence_required" in r
+    assert r["execution_allowed"] is False

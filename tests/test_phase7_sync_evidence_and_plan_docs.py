@@ -14,11 +14,12 @@ def test_phase_status_records_farm5_0_1_104_sync_evidence() -> None:
 
 def test_remaining_phase_plan_active_wording() -> None:
     text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
-    assert "GitHub main repository version before this PR is 0.1.104" in text
-    assert "Repository version after this PR is 0.1.105" in text
+    assert "GitHub main repository version before this PR is 0.1.105" in text
+    assert "Repository version after this PR is 0.1.106" in text
     assert "latest recorded farm5 sync evidence is 0.1.104" in text
-    assert "Phase 7 current target is Usage Accounting service-contract package" in text
-    assert "Next target after this PR is Policy/Reject Accounting service contracts" in text
+    assert "Phase 7 current target is Policy/Reject Accounting service-contract package" in text
+    assert "Next target after this PR is Phase 7 read-only reports/doctor package" in text
+    assert "no offline sync is required after this PR if it remains report-only" in text
     assert "Historical compatibility anchor" in text
 
 
