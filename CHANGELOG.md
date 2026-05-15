@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.99
+
+- Add report-only Phase 6 final acceptance review service/CLI, integrate summaries into apply-gate-readiness and gate-review, and align docs with farm5 0.1.98 sync evidence.
+
 ## 0.1.98
 
 - Fix Phase 6 documentation compatibility anchors in `docs/AI_PHASE_6_TASK.md` and keep test suite green after 0.1.97 rollout.

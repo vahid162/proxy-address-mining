@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf.config import MPFConfig
-from mpf.services import firewall_manual_canary_customer_acceptance_readiness_service, firewall_manual_canary_customer_proposal_service, firewall_manual_canary_customer_server_evidence_service, firewall_no_customer_apply_acceptance_gate_service, phase6_final_acceptance_readiness_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_no_customer_runtime_execution_approval_service, firewall_no_customer_runtime_execution_evidence_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
+from mpf.services import firewall_manual_canary_customer_acceptance_readiness_service, firewall_manual_canary_customer_proposal_service, firewall_manual_canary_customer_server_evidence_service, firewall_no_customer_apply_acceptance_gate_service, phase6_final_acceptance_readiness_service, phase6_final_acceptance_review_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_no_customer_runtime_execution_approval_service, firewall_no_customer_runtime_execution_evidence_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -40,7 +40,7 @@ def _parse_current_state_block(text: str) -> dict[str, str] | None:
     return parsed if parsed else None
 
 
-def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = None, include_runtime_approval_summary: bool = True, include_runtime_evidence_summary: bool = True, include_manual_canary_summary: bool = True, include_manual_canary_server_evidence_summary: bool = False, include_phase6_final_acceptance_summary: bool = False) -> dict[str, object]:
+def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = None, include_runtime_approval_summary: bool = True, include_runtime_evidence_summary: bool = True, include_manual_canary_summary: bool = True, include_manual_canary_server_evidence_summary: bool = False, include_phase6_final_acceptance_summary: bool = False, include_phase6_final_acceptance_review_summary: bool = False) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = root / "docs" / "PHASE_STATUS.md"
     dedicated_doc = root / "docs" / "PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md"
@@ -251,4 +251,19 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
             "phase6_final_acceptance_readiness_execution_allowed": bool(phase6.get("execution_allowed", False)),
             "phase6_final_acceptance_readiness_fresh_farm5_final_acceptance_evidence_required": bool(phase6.get("fresh_farm5_final_acceptance_evidence_required", True)),
         }
+
+    if include_phase6_final_acceptance_review_summary:
+        phase6r = phase6_final_acceptance_review_service.build_phase6_final_acceptance_review_report(cfg, repo_root=root)
+        report["phase6_final_acceptance_review_summary"] = {
+            "phase6_final_acceptance_review_present": True,
+            "phase6_final_acceptance_review_final_decision": phase6r.get("final_decision", "BLOCKED"),
+            "phase6_final_acceptance_review_review_status": phase6r.get("review_status", "READY_FOR_OPERATOR_REVIEW_BUT_NOT_ACCEPTED"),
+            "phase6_final_acceptance_review_acceptance_status": phase6r.get("acceptance_status", "PHASE6_NOT_ACCEPTED"),
+            "phase6_final_acceptance_review_phase6_acceptance_allowed": bool(phase6r.get("phase6_acceptance_allowed", False)),
+            "phase6_final_acceptance_review_execution_allowed": bool(phase6r.get("execution_allowed", False)),
+            "phase6_final_acceptance_review_phase7_start_allowed": bool(phase6r.get("phase7_start_allowed", False)),
+            "phase6_final_acceptance_review_phase8_start_allowed": bool(phase6r.get("phase8_start_allowed", False)),
+            "phase6_final_acceptance_review_fresh_farm5_0_1_99_sync_evidence_required": bool(phase6r.get("fresh_farm5_0_1_99_sync_evidence_required", True)),
+        }
+
     return report
