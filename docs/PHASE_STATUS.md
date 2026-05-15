@@ -23,9 +23,51 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Current advancement target is manual canary customer server evidence / final gate review (report-only, non-authorizing unless a future dedicated operator-approved gate changes it). Current farm5 has no non-deleted customers, so customer canary apply is not possible/authorized in this PR. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path is authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Current advancement target is Phase 6 final acceptance review / operator decision after fresh farm5 0.1.99 sync evidence (report-only, non-authorizing unless a future dedicated operator-approved acceptance PR changes it). Current farm5 has no non-deleted customers, so customer canary apply is not possible/authorized in this PR. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path is authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 
 ## Accepted Server Results
+
+
+### Phase 6 farm5 0.1.98 Sync + Final Review Readiness Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.98 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260515T090826Z
+mpf --version: 0.1.98
+pytest during sync: 652 passed
+mpf config validate: OK
+mpf doctor: OK
+db status: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+current customer list: no non-deleted customers
+proxy doctor/status: OK
+proxy runtime remains limited local-only
+v2rayA UI listener local-only: 127.0.0.1:2015
+BTC backend listener local-only: 127.0.0.1:60010
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+current Phase 5 accepted / Phase 6 working safety gate passed
+no runtime gate opened
+runtime restrictions remain unchanged
+```
+
+### Phase 6 Final Acceptance Review Package — Report-only
+
+Report-only, non-executing, non-authorizing, BLOCKED. This package does not accept Phase 6 by itself, does not change Current State, does not permit customer NAT/customer firewall rules/production traffic/iptables-restore/live apply/live verify/live rollback, and does not permit usage automation or abuse automation. Phase 7 and Phase 8 remain future-only. Phase 6 final acceptance still requires operator review after this PR and fresh farm5 0.1.99 sync evidence.
 
 
 ### Phase 6 farm5 0.1.96 Sync + Manual Canary Proposal Readiness Evidence

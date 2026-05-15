@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; GitHub main repository version is 0.1.98; latest recorded farm5 sync evidence is 0.1.96 until the next operator sync; live gates remain not accepted and not authorized.
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version after this PR becomes 0.1.99; GitHub main repository version is 0.1.98; latest recorded farm5 sync evidence is 0.1.98 until the next operator sync; live gates remain not accepted and not authorized.
 
 This document defines the safe Phase 6 boundary for AI coding agents. It is a working guide only; `docs/PHASE_STATUS.md` is authoritative.
 
@@ -10,7 +10,7 @@ Current implementation note: manual canary customer server evidence / final gate
 
 Compatibility note: "Future Dedicated Phase 6 Apply Gate Proposal/Review" is historical compatibility wording only and non-authorizing.
 Compatibility anchor: latest recorded farm5 sync evidence is 0.1.94 (historical).
-Compatibility anchor: repository version after this PR becomes 0.1.97 (historical).
+Compatibility anchor: 
 Compatibility anchor: repository version after this PR becomes 0.1.95 (historical).
 
 ## Current Gate
@@ -401,3 +401,6 @@ Latest recorded farm5 sync evidence is 0.1.95 until next operator sync.
 New report-only commands: mpf firewall manual-canary-customer-proposal; mpf firewall manual-canary-customer-acceptance-readiness.
 Both remain non-executing/non-authorizing with final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false.
 Current report-only commands include: mpf firewall manual-canary-customer-proposal, mpf firewall manual-canary-customer-acceptance-readiness, mpf firewall manual-canary-customer-server-evidence, mpf phase6 final-acceptance-readiness. All are report-only, non-executing, non-authorizing, final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false.
+
+
+- mpf phase6 final-acceptance-review (report-only, non-executing, non-authorizing; final_decision=BLOCKED or REVIEW_READY_BUT_NOT_ACCEPTED; execution_allowed=false; phase6_acceptance_allowed=false; customer_nat_authorized=false; customer_firewall_rules_authorized=false; production_traffic_authorized=false).
