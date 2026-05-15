@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.108
+
+- Record farm5 0.1.107 batched sync evidence and add Phase 7 final acceptance readiness/operator decision report-only services + CLI.
+
 ## 0.1.107
 - Add Phase 7 read-only reports summary/doctor service and CLI commands; keep all runtime gates closed.
 

@@ -31,7 +31,7 @@ def build_phase7_usage_accounting_contract_report(
     phase6_accepted = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status
     phase7_working = "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase_status
     phase7_readiness_present = "phase7_usage_policy_readiness" in phase_status or "Usage + Policy/Reject Accounting" in phase_status
-    farm5 = "synced to 0.1.104" in phase_status and "673 passed" in phase_status
+    farm5 = "synced to 0.1.107" in phase_status.lower() and "690 passed" in phase_status
     readme_phase7_aligned = "accepted_phase: Phase 6" in readme and "working_phase: Phase 7" in readme
     ai_lower = ai_phase7.lower()
     ai_phase7_task_present = all(
@@ -49,9 +49,9 @@ def build_phase7_usage_accounting_contract_report(
     )
     remaining_l = remaining.lower()
     remaining_plan_usage_contract_target_aligned = (
-        "latest recorded farm5 sync evidence is 0.1.104" in remaining_l
-        and ("phase 7 current target is policy/reject accounting service-contract package" in remaining_l or "phase 7 current target is phase 7 read-only reports/doctor package" in remaining_l)
-        and ("next target after this pr is phase 7 read-only reports/doctor package" in remaining_l or "next target after this pr is farm5 batched sync evidence for 0.1.107" in remaining_l)
+        "latest recorded farm5 sync evidence is 0.1.107" in remaining_l
+        and "phase 7 current target is phase 7 final acceptance readiness package" in remaining_l
+        and "next target after this pr is phase 7 operator acceptance / phase 8 planning boundary" in remaining_l
     )
     apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
     runtime_activation_disabled = not bool(cfg.proxy.runtime_activation_allowed)
@@ -64,7 +64,7 @@ def build_phase7_usage_accounting_contract_report(
         ("current_state_preserved", current_state_preserved),
         ("phase6_accepted", phase6_accepted),
         ("phase7_working", phase7_working),
-        ("farm5_0_1_104_sync_evidence_present", farm5),
+        ("farm5_0_1_107_sync_evidence_present", farm5),
         ("phase7_readiness_present", phase7_readiness_present),
         ("usage_accounting_contract_defined", True),
         ("usage_samples_contract_defined", True),
@@ -168,7 +168,7 @@ def build_phase7_usage_accounting_contract_report(
         "phase6_accepted": phase6_accepted,
         "phase7_working": phase7_working,
         "phase7_readiness_present": phase7_readiness_present,
-        "farm5_0_1_104_sync_evidence_present": farm5,
+        "farm5_0_1_107_sync_evidence_present": farm5,
         "readme_phase7_aligned": readme_phase7_aligned,
         "ai_phase7_task_present": ai_phase7_task_present,
         "remaining_plan_usage_contract_target_aligned": remaining_plan_usage_contract_target_aligned,

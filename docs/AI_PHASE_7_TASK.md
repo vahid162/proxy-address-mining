@@ -2,9 +2,9 @@
 
 Status: planning/readiness only; report-only and non-authorizing. `docs/PHASE_STATUS.md` remains authoritative.
 
-- Current repository before this PR: 0.1.106
-- Repository after this PR: 0.1.107
-- Latest recorded farm5 sync evidence: 0.1.104
+- Current repository before this PR: 0.1.107
+- Repository after this PR: 0.1.108
+- Latest recorded farm5 sync evidence: 0.1.107
 - Phase 7 starts only after Phase 6 is accepted.
 - Phase 7 begins with read-only/reporting/service-contract work.
 
@@ -86,3 +86,23 @@ Phase 8 remains the future abuse 1h core phase.
 - It does not start Phase 8.
 - It prepares for a batched farm5 sync after merge.
 - Phase 8 remains future-only.
+
+
+## Current Phase 7 Step — Final Acceptance Readiness
+
+- This step is report-only.
+- It records farm5 0.1.107 sync evidence.
+- It aggregates all Phase 7 readiness/contract/report/doctor surfaces.
+- It prepares operator acceptance of Phase 7 as report-only/service-contract/readiness.
+- It does not accept Phase 7 automatically.
+- It does not update the phase gate automatically.
+- It does not start Phase 8.
+- It does not enable collectors.
+- It does not enable timers.
+- It does not write usage_samples.
+- It does not write policy_events.
+- It does not write abuse_states.
+- It does not enable firewall apply.
+- It does not enable customer NAT/customer firewall rules.
+- It does not enable abuse automation.
+- Phase 8 remains future-only until a separate explicit phase gate PR.

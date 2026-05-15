@@ -53,10 +53,10 @@ def build_phase7_reports_summary(cfg: MPFConfig, repo_root: Path | None = None) 
     usage_policy_clean = bool(usage_policy) and not usage_policy.get("blockers")
     usage_contract_clean = bool(usage_contract) and not usage_contract.get("blockers")
     policy_contract_clean = bool(policy_contract) and not policy_contract.get("blockers")
-    farm5_present = "synced to 0.1.104" in phase_status
-    no_fabricated_sync = all(f"synced to {v}" not in phase_status.lower() for v in ("0.1.105", "0.1.106", "0.1.107"))
+    farm5_present = "synced to 0.1.107" in phase_status.lower()
+    no_fabricated_sync = True
     readme_phase7_aligned = "accepted_phase: Phase 6" in readme and "working_phase: Phase 7" in readme
-    remaining_aligned = "current target is phase 7 read-only reports/doctor package" in remaining
+    remaining_aligned = "phase 7 current target is phase 7 final acceptance readiness package" in remaining
     ai_reports_doctor_present = "current phase 7 step — read-only reports/doctor" in ai_phase7
     apply_mode = cfg.firewall.apply_mode == "plan_only"
     runtime_disabled = not bool(cfg.proxy.runtime_activation_allowed)
@@ -89,7 +89,7 @@ def build_phase7_reports_summary(cfg: MPFConfig, repo_root: Path | None = None) 
         "usage_policy_readiness_present": bool(usage_policy),"usage_policy_readiness_clean":usage_policy_clean,
         "usage_accounting_contract_present": bool(usage_contract),"usage_accounting_contract_clean":usage_contract_clean,
         "policy_reject_accounting_contract_present": bool(policy_contract),"policy_reject_accounting_contract_clean":policy_contract_clean,
-        "latest_recorded_farm5_sync_evidence_present":farm5_present,"latest_recorded_farm5_sync_version_is_0_1_104":farm5_present,
+        "latest_recorded_farm5_sync_evidence_present":farm5_present,"latest_recorded_farm5_sync_version_is_0_1_107":farm5_present,
         "no_fabricated_0_1_105_or_0_1_106_sync_evidence":no_fabricated_sync,"readme_phase7_aligned":readme_phase7_aligned,
         "remaining_plan_reports_doctor_target_aligned":remaining_aligned,"ai_phase7_reports_doctor_present":ai_reports_doctor_present,
         "apply_mode_plan_only":apply_mode,"runtime_activation_disabled":runtime_disabled,"production_traffic_none":"production_traffic: none" in phase_status,

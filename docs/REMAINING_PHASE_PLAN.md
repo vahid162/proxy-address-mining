@@ -6,13 +6,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.106.
-- Repository version after this PR is 0.1.107.
-- latest recorded farm5 sync evidence is 0.1.104.
+- GitHub main repository version before this PR is 0.1.107.
+- Repository version after this PR is 0.1.108.
+- latest recorded farm5 sync evidence is 0.1.107.
 - Phase 6 is the accepted phase: Firewall Planner accepted on farm5 as planner/reporting/gate-readiness only.
 - Phase 7 is the working phase: Usage + Policy/Reject Accounting planning/readiness only.
-- Phase 7 current target is Phase 7 read-only reports/doctor package.
-- Next target after this PR is farm5 batched sync evidence for 0.1.107.
+- Phase 7 current target is Phase 7 final acceptance readiness package.
+- Next target after this PR is Phase 7 operator acceptance / Phase 8 planning boundary.
 - Current work is Phase 7 planning/readiness.
 - Phase 7 must begin with read-only/reporting/service-contract work.
 - Phase 7 must not enable production traffic.
@@ -22,8 +22,11 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 7 must not enable usage automation that changes runtime behavior.
 - Phase 7 must not enable abuse automation.
 - Phase 8 remains the future mandatory Abuse 1h Core phase.
-- after this PR is merged, operator should perform one batched offline sync for PR #113 + #114 + #115 together.
-- no server evidence for 0.1.105/0.1.106/0.1.107 is recorded until the operator actually syncs.
+- no Phase 8 runtime automation is enabled by this PR.
+- farm5 batched offline sync for PR #113 + #114 + #115 is completed and evidenced at 0.1.107.
+- after this PR is merged, operator should perform a separate farm5 offline sync for 0.1.108 to verify the Phase 7 final acceptance readiness package.
+- Phase 7 remains report-only/service-contract/readiness only.
+- 0.1.105 and 0.1.106 were batched and superseded by 0.1.107 farm5 sync evidence.
 - mpf firewall apply-gate-readiness is read-only/report-only and remains BLOCKED for runtime apply gates.
 - mpf firewall gate-review includes apply_gate_readiness_summary and remains non-applyable for live apply.
 - Read-only iptables-save live snapshot path is explicitly authorized and evidenced.

@@ -19,7 +19,7 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
     current_state_preserved = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status and "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase_status
     phase6_accepted = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status
     phase7_working = "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase_status
-    farm5 = "synced to 0.1.104" in phase_status
+    farm5 = "synced to 0.1.107" in phase_status.lower()
     readme_phase7_aligned = "accepted_phase: Phase 6" in readme and "working_phase: Phase 7" in readme
     ai_lower = ai_phase7.lower()
     ai_required_phrases = [
@@ -42,7 +42,11 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
         "no silent skip",
     ]
     ai_present = all(phrase in ai_lower for phrase in ai_required_phrases)
-    rem_aligned = "latest recorded farm5 sync evidence is 0.1.104" in remaining and ("Phase 7 current target is Policy/Reject Accounting service-contract package" in remaining or "Phase 7 current target is Phase 7 read-only reports/doctor package" in remaining)
+    rem_aligned = (
+        "latest recorded farm5 sync evidence is 0.1.107" in remaining
+        and "Phase 7 current target is Phase 7 final acceptance readiness package" in remaining
+        and "Next target after this PR is Phase 7 operator acceptance / Phase 8 planning boundary" in remaining
+    )
     apply_mode = cfg.firewall.apply_mode == "plan_only"
     runtime_disabled = not bool(cfg.proxy.runtime_activation_allowed)
     production_none = "production_traffic: none" in phase_status
