@@ -3,8 +3,8 @@ from pathlib import Path
 
 def test_docs_regression_phase6_operator_acceptance() -> None:
     ps = Path('docs/PHASE_STATUS.md').read_text(encoding='utf-8')
-    assert 'current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5' in ps
-    assert 'current_working_phase: Phase 7 — Usage + Policy/Reject Accounting' in ps
+    assert 'current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5' in ps
+    assert 'current_working_phase: Phase 8 — Abuse 1h Core planning/readiness' in ps
     assert 'production_traffic: none' in ps
     assert 'firewall_apply_allowed: no' in ps
     assert 'abuse_automation_allowed: no' in ps

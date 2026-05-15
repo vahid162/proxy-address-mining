@@ -40,8 +40,8 @@ def test_e2_doc_preserves_abuse_invariant():
 
 def test_phase_status_stays_non_accepting_for_e3():
     t = _read("docs/PHASE_STATUS.md")
-    assert "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in t
-    assert "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in t
+    assert "current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in t
+    assert "current_working_phase: Phase 8 — Abuse 1h Core planning/readiness" in t
     assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing" in t
     assert "Phase 6-E2 accepted" not in t
 

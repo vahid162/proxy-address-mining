@@ -34,8 +34,8 @@ def test_phase_status_gate_alignment_and_safety_lines() -> None:
     result = runner.invoke(app, ["phase-status"])
 
     assert result.exit_code == 0
-    assert "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in result.stdout
-    assert "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in result.stdout
+    assert "current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in result.stdout
+    assert "current_working_phase: Phase 8 — Abuse 1h Core planning/readiness" in result.stdout
 
     assert "current_accepted_phase: Phase 4 Runtime Activation" not in result.stdout
     assert "current_working_phase: Phase 5 — Customer CRUD in DB Only" not in result.stdout

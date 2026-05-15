@@ -32,8 +32,8 @@ def test_phase5_final_acceptance_doc_exists_and_contains_required_evidence() -> 
 def test_phase_status_reflects_phase5_acceptance_and_phase6_working_gate() -> None:
     status_text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
 
-    assert "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in status_text
-    assert "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in status_text
+    assert "current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in status_text
+    assert "current_working_phase: Phase 8 — Abuse 1h Core planning/readiness" in status_text
 
     for gate in [
         "production_traffic: none",

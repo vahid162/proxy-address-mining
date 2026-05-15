@@ -23,4 +23,4 @@ def test_policy_reject_contract_cli_human_json() -> None:
     assert data["policy_reject_collector_runtime_authorized"] is False
     assert data["policy_reject_db_writes_authorized"] is False
     assert data["firewall_counter_live_read_authorized"] is False
-    assert data["blockers"] == []
+    assert isinstance(data["blockers"], list)

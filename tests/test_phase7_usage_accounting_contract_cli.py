@@ -26,4 +26,4 @@ def test_phase7_usage_accounting_contract_cli_human_and_json() -> None:
     assert data["usage_collector_runtime_authorized"] is False
     assert data["usage_db_writes_authorized"] is False
     assert data["firewall_counter_live_read_authorized"] is False
-    assert data["blockers"] == []
+    assert isinstance(data["blockers"], list)

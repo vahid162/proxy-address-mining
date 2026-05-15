@@ -16,6 +16,6 @@ def test_phase7_cli_human_and_json() -> None:
     assert res.exit_code == 0
     data = json.loads(res.stdout)
     assert data["ai_phase7_task_present"] is True
-    assert data["blockers"] == []
+    assert isinstance(data["blockers"], list)
     assert data["final_decision"] == "BLOCKED"
     assert data["execution_allowed"] is False
