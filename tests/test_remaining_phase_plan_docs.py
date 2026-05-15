@@ -47,8 +47,8 @@ def test_phase6_task_alignment():
 
 def test_phase_status_unchanged_gate_values():
     t = _read("docs/PHASE_STATUS.md")
-    assert "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in t
-    assert "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in t
+    assert "current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in t
+    assert "current_working_phase: Phase 8 — Abuse 1h Core planning/readiness" in t
     assert "production_traffic: none" in t
     assert "firewall_apply_allowed: no" in t
     assert "abuse_automation_allowed: no" in t

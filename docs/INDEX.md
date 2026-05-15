@@ -479,3 +479,5 @@ Documentation Summary: docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS
 
 
 Phase 7 planning/readiness document: `docs/AI_PHASE_7_TASK.md`.
+
+- docs/AI_PHASE_8_TASK.md

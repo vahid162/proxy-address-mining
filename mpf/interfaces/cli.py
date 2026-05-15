@@ -58,6 +58,7 @@ from mpf.services import (
     phase7_reports_doctor_service,
     phase7_final_acceptance_readiness_service,
     phase7_operator_acceptance_decision_service,
+    phase8_planning_readiness_service,
 )
 
 app = typer.Typer(
@@ -76,6 +77,7 @@ firewall_app = typer.Typer(help="Firewall dry-run planner commands only.")
 events_app = typer.Typer(help="Global event read-only commands.")
 phase6_app = typer.Typer(help="Phase 6 report-only gate commands.")
 phase7_app = typer.Typer(help="Phase 7 report-only readiness commands.")
+phase8_app = typer.Typer(help="Phase 8 report-only readiness commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
@@ -86,6 +88,7 @@ app.add_typer(firewall_app, name="firewall")
 app.add_typer(events_app, name="events")
 app.add_typer(phase6_app, name="phase6")
 app.add_typer(phase7_app, name="phase7")
+app.add_typer(phase8_app, name="phase8")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -1511,6 +1514,31 @@ def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), li
 
 
 
+
+
+@phase8_app.command("planning-readiness")
+def phase8_planning_readiness(
+    config: Path = typer.Option(Path("/etc/mpf/mpf.yaml"), "--config", help="Path to mpf.yaml."),
+    output: str = typer.Option("human", "--output", help="human | json"),
+) -> None:
+    cfg = load_config(config)
+    report = phase8_planning_readiness_service.build_phase8_planning_readiness_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2))
+        return
+    keys = [
+        "component","final_decision","readiness_status","authorization_status","execution_allowed",
+        "phase8_acceptance_allowed","abuse_automation_authorized","abuse_runner_authorized",
+        "abuse_state_db_writes_authorized","abuse_event_db_writes_authorized","hard_block_authorized",
+        "soft_block_authorized","pause_automation_authorized","production_traffic_authorized",
+        "firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized",
+        "customer_firewall_rules_authorized","phase7_accepted","phase8_working",
+        "farm5_0_1_108_sync_evidence_present","ai_phase8_task_present","remaining_plan_phase8_aligned",
+        "abuse_invariant_preserved","all_active_customers_coverage_required","no_silent_skip_required",
+        "blockers","errors"
+    ]
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
 
 @phase7_app.command("summary")
 def phase7_summary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:

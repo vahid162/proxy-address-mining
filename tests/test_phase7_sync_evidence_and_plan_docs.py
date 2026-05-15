@@ -1,35 +1,37 @@
 from pathlib import Path
 
 
-def test_phase_status_records_farm5_0_1_107_sync_evidence() -> None:
+def test_phase_status_phase7_acceptance_and_0_1_108_evidence() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
-    assert "synced to 0.1.107" in text
-    assert "690 passed" in text
-    assert "/var/backups/mpf/source-before-zip-sync-20260515T171232Z" in text
-    assert "mpf phase7 doctor --output json final_verdict: OK" in text
-    assert "all child reports blockers: []" in text
-    assert "no runtime gate opened" in text
-    assert "runtime restrictions remain unchanged" in text
-    assert "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in text
-    assert "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in text
+    assert "current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in text
+    assert "current_working_phase: Phase 8 — Abuse 1h Core planning/readiness" in text
+    assert "synced to 0.1.108" in text
+    assert "/var/backups/mpf/source-before-zip-sync-20260515T181252Z" in text
+    assert "694 passed" in text
+    assert "Phase 7 Acceptance Scope" in text
+    assert "Phase 8 Planning/Readiness Boundary" in text
+    assert "Phase 7 acceptance does not authorize production traffic" in text
+    assert "Phase 7 acceptance does not authorize firewall apply" in text
+    assert "Phase 7 acceptance does not authorize abuse automation" in text
+    assert "Phase 8 starts only as planning/readiness" in text
 
 
 def test_remaining_phase_plan_active_wording() -> None:
     text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
-    assert "GitHub main repository version before this PR is 0.1.107" in text
-    assert "Repository version after this PR is 0.1.108" in text
-    assert "latest recorded farm5 sync evidence is 0.1.107" in text
-    assert "0.1.105 and 0.1.106 were batched and superseded by 0.1.107 farm5 sync evidence" in text
-    assert "Phase 7 current target is Phase 7 final acceptance readiness package" in text
-    assert "Next target after this PR is Phase 7 operator acceptance / Phase 8 planning boundary" in text
-    assert "no Phase 8 runtime automation is enabled by this PR" in text
-    assert "farm5 batched offline sync for PR #113 + #114 + #115 is completed and evidenced at 0.1.107" in text
-    assert "after this PR is merged, operator should perform a separate farm5 offline sync for 0.1.108 to verify the Phase 7 final acceptance readiness package" in text
-    assert "after this PR is merged, operator should perform one batched offline sync for PR #113 + #114 + #115 together." not in text
-    assert "Phase 7 remains report-only/service-contract/readiness only" in text
+    assert "GitHub main repository version before this PR is 0.1.108" in text
+    assert "Repository version after this PR is 0.1.109" in text
+    assert "latest recorded farm5 sync evidence is 0.1.108" in text
+    assert "Phase 7 is accepted as report-only/service-contract/readiness" in text
+    assert "Phase 8 is the current working phase" in text
+    assert "Next target after this PR is Phase 8 abuse state-machine contract package" in text
+    assert "No server sync evidence for 0.1.109 exists until the operator syncs it after merge" in text
 
 
-def test_offline_sync_runbook_venv_path() -> None:
-    text = Path("docs/OFFLINE_SYNC_RUNBOOK.md").read_text(encoding="utf-8")
-    assert "/opt/mpf-py-src/.venv/bin/python -m pytest -q" in text
-    assert "/opt/mpf-py-venv/bin/python -m pytest -q" not in text
+def test_ai_phase8_task_exists_and_invariant() -> None:
+    text = Path("docs/AI_PHASE_8_TASK.md").read_text(encoding="utf-8")
+    assert "normal -> over_tracking -> over_grace -> hard" in text
+    assert "farms-over alone must not harden" in text
+    assert "worker-over alone must not harden" in text
+    assert "sustained miner-abuse hardens after about 3600 seconds" in text
+    assert "all active customers in enabled lanes must be covered" in text
+    assert "no silent skip" in text

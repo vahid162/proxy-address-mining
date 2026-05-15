@@ -7,8 +7,8 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 ## Current State
 
 ```text
-current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5
-current_working_phase: Phase 7 — Usage + Policy/Reject Accounting
+current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
+current_working_phase: Phase 8 — Abuse 1h Core planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -24,9 +24,85 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Phase 6 operator acceptance decision is completed and accepted after farm5 0.1.100 sync evidence. Current working phase is Phase 7 planning/readiness only; runtime gates remain closed and non-authorizing. Current farm5 has no non-deleted customers, so customer canary apply is not possible/authorized in this PR. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path is authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Phase 6 operator acceptance decision is completed and accepted after farm5 0.1.100 sync evidence. Phase 7 is now accepted only as report-only/service-contract/readiness after farm5 0.1.108 evidence. Current working phase is Phase 8 Abuse 1h Core planning/readiness only; runtime gates remain closed and non-authorizing. Current farm5 has no non-deleted customers. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path remains authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, Phase 8 abuse runner, hard/soft blocks, pause automation, UI, or Telegram is authorized.
 
 ## Accepted Server Results
+
+
+### Phase 7 farm5 0.1.108 Final Acceptance Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.108 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260515T181252Z
+mpf --version: 0.1.108
+pytest during sync: 694 passed
+manual pytest after sync: 694 passed in 64.23s
+mpf config validate: OK
+mpf doctor: OK
+db status: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+current customer list: no non-deleted customers
+proxy doctor/status: OK
+proxy runtime remains limited local-only
+v2rayA UI listener local-only: 127.0.0.1:2015
+BTC backend listener local-only: 127.0.0.1:60010
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+current Phase 6 accepted / Phase 7 working safety gate passed
+no runtime gate opened
+runtime restrictions remain unchanged
+```
+
+### Phase 7 Acceptance Scope
+
+- Phase 7 is accepted only as report-only/service-contract/readiness.
+- Phase 7 acceptance does not authorize production traffic.
+- Phase 7 acceptance does not authorize firewall apply.
+- Phase 7 acceptance does not authorize iptables-restore.
+- Phase 7 acceptance does not authorize customer NAT/customer firewall rules.
+- Phase 7 acceptance does not authorize usage collectors.
+- Phase 7 acceptance does not authorize policy/reject collectors.
+- Phase 7 acceptance does not authorize usage_samples writes.
+- Phase 7 acceptance does not authorize policy_events writes.
+- Phase 7 acceptance does not authorize abuse automation.
+- Phase 7 acceptance does not start Phase 8 runtime automation.
+- Phase 8 starts only as planning/readiness.
+- Phase 8 Abuse 1h Core remains mandatory before production completeness.
+
+### Phase 8 Planning/Readiness Boundary
+
+- Phase 8 is now the current working phase.
+- Phase 8 starts as planning/readiness only.
+- Phase 8 must implement the abuse 1h invariant before production completeness.
+- This PR does not implement the abuse runner.
+- This PR does not write abuse_states.
+- This PR does not write abuse_events.
+- This PR does not enable hard/soft blocks.
+- This PR does not enable pause automation.
+- This PR does not enable firewall apply.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- The abuse invariant remains mandatory:
+  normal -> over_tracking -> over_grace -> hard
+  farms-over alone must not harden
+  worker-over alone must not harden
+  sustained miner-abuse hardens after about 3600 seconds
+  all active customers in enabled lanes must be covered
+  no silent skip
 
 
 ### Phase 7 farm5 0.1.107 Batched Sync + Reports/Doctor Evidence

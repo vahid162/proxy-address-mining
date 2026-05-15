@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.109
+- Accept Phase 7 as report-only/service-contract/readiness after farm5 0.1.108 sync evidence; start Phase 8 planning/readiness with report-only service/CLI and keep all runtime gates closed.
+
 ## 0.1.108
 
 - Record farm5 0.1.107 batched sync evidence and add Phase 7 final acceptance readiness/operator decision report-only services + CLI.

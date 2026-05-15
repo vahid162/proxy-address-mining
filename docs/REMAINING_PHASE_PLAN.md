@@ -6,25 +6,25 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.107.
-- Repository version after this PR is 0.1.108.
-- latest recorded farm5 sync evidence is 0.1.107.
-- Phase 6 is the accepted phase: Firewall Planner accepted on farm5 as planner/reporting/gate-readiness only.
-- Phase 7 is the working phase: Usage + Policy/Reject Accounting planning/readiness only.
-- Phase 7 current target is Phase 7 final acceptance readiness package.
-- Next target after this PR is Phase 7 operator acceptance / Phase 8 planning boundary.
-- Current work is Phase 7 planning/readiness.
-- Phase 7 must begin with read-only/reporting/service-contract work.
-- Phase 7 must not enable production traffic.
-- Phase 7 must not enable firewall apply.
-- Phase 7 must not enable iptables-restore.
-- Phase 7 must not enable customer NAT/customer firewall rules.
-- Phase 7 must not enable usage automation that changes runtime behavior.
-- Phase 7 must not enable abuse automation.
-- Phase 8 remains the future mandatory Abuse 1h Core phase.
-- no Phase 8 runtime automation is enabled by this PR.
+- GitHub main repository version before this PR is 0.1.108.
+- Repository version after this PR is 0.1.109.
+- latest recorded farm5 sync evidence is 0.1.108.
+- Phase 7 is the accepted phase: Usage + Policy/Reject Accounting accepted on farm5 as report-only/service-contract/readiness only.
+- Phase 7 is accepted as report-only/service-contract/readiness after farm5 0.1.108 evidence.
+- Phase 8 is the current working phase: Abuse 1h Core planning/readiness only.
+- Current target is Phase 8 Abuse 1h Core planning/readiness package.
+- Next target after this PR is Phase 8 abuse state-machine contract package.
+- No Phase 8 runtime automation is enabled by this PR.
+- No abuse runner is enabled.
+- No hard/soft block is enabled.
+- No pause automation is enabled.
+- No abuse DB writes are enabled.
+- No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
+- No server sync evidence for 0.1.109 exists until the operator syncs it after merge.
+
+## Historical/Compatibility Notes
+
 - farm5 batched offline sync for PR #113 + #114 + #115 is completed and evidenced at 0.1.107.
-- after this PR is merged, operator should perform a separate farm5 offline sync for 0.1.108 to verify the Phase 7 final acceptance readiness package.
 - Phase 7 remains report-only/service-contract/readiness only.
 - 0.1.105 and 0.1.106 were batched and superseded by 0.1.107 farm5 sync evidence.
 - mpf firewall apply-gate-readiness is read-only/report-only and remains BLOCKED for runtime apply gates.
@@ -72,18 +72,21 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Finite Remaining Path
 
 1. Phase 6 Firewall Planner — accepted on farm5
-2. Phase 7 Usage + Policy/Reject Accounting readiness — current target
-3. Phase 7 usage accounting service contracts — next
-4. Phase 7 policy/reject accounting service contracts — next
-5. Phase 7 read-only reports/doctor — next
-6. Phase 7 final acceptance
-7. Phase 8 Abuse 1h Core
-8. Phase 9 Check / Report / Diagnostics
-9. Phase 10 Session / Worker / Policy / Share Timeline
-10. Phase 11 Local UI + Buyer Read-only
-11. Phase 12 Operator UI Actions
-12. Phase 13 Telegram
-13. Phase 14 Worker Policy Enforcement
+2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
+3. Phase 8 Abuse 1h Core planning/readiness — current target
+4. Phase 8 abuse state-machine contract
+5. Phase 8 abuse evidence/reporting contract
+6. Phase 8 abuse dry-run evaluator
+7. Phase 8 DB-only controlled transition readiness
+8. Phase 8 runtime/worker integration readiness
+9. Phase 8 final Abuse 1h acceptance
+10. Phase 9 Check / Report / Diagnostics
+11. Phase 10 Session / Worker / Policy / Share Timeline
+12. Phase 11 Local UI + Buyer Read-only
+13. Phase 12 Operator UI Actions
+14. Phase 13 Telegram
+15. Phase 14 Worker Policy Enforcement
+
 
 ## Non-Negotiable Current Prohibitions
 
