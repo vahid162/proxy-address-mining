@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.96; latest recorded farm5 sync evidence is 0.1.96 (0.1.90 remains historical evidence).
+- GitHub main repository version is 0.1.98; latest recorded farm5 sync evidence remains 0.1.96 until the next operator sync (0.1.90 remains historical evidence).
 - Phase 5 remains the accepted phase.
 - Phase 6 remains the working phase.
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
@@ -41,7 +41,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - No-customer apply/verify/rollback execution acceptance package exists as artifact-only/report-only/non-executing surface and remains BLOCKED / EXECUTION_ACCEPTANCE_DEFINED_NOT_EXECUTABLE.
 - No-customer runtime execution approval readiness exists as report-only/non-executing/non-authorizing surface and remains BLOCKED / RUNTIME_EXECUTION_APPROVAL_READY_BUT_NOT_GRANTED; this step is done and synced on farm5 at 0.1.94.
 - Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95.
-- Repository version after this PR will be 0.1.97; latest farm5 sync evidence remains 0.1.96 until next operator sync. Runtime execution still requires separate operator approval, separate runtime execution PR, and fresh farm5 runtime execution evidence.
+- Manual canary customer NAT/customer firewall rules proposal + explicit acceptance readiness is done and farm5 synced at 0.1.96, report-only/non-authorizing.
+- Manual canary customer server evidence / final gate review and Phase 6 final acceptance readiness are implemented in GitHub main at 0.1.98; latest farm5 sync evidence remains 0.1.96 until next operator sync. Both remain report-only, non-authorizing, and BLOCKED.
+- Runtime execution still requires separate operator approval, separate runtime execution PR, and fresh farm5 runtime execution evidence.
 - farm5 0.1.94 sync evidence is recorded as completed.
 - Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
 - Host production firewall mutation remains forbidden; must not mutate the host production firewall.
@@ -57,9 +59,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 5. No-customer runtime execution approval readiness — done and farm5 synced at 0.1.94
 6. Controlled no-customer runtime execution evidence package — done and farm5 synced at 0.1.95
 7. Manual canary customer NAT/customer firewall rules proposal + explicit acceptance readiness — done and farm5 synced at 0.1.96, report-only/non-authorizing
-8. Manual canary customer server evidence / final gate review — current next target, must remain BLOCKED while no non-deleted customer exists and no operator acceptance evidence exists
-9. Phase 6 final acceptance readiness — added by this PR, must remain BLOCKED until manual canary evidence is accepted
-10. Phase 6 final acceptance
+8. Manual canary customer server evidence / final gate review — implemented in GitHub main at 0.1.98, pending farm5 sync evidence; remains BLOCKED while no non-deleted customer exists and no operator acceptance evidence exists
+9. Phase 6 final acceptance readiness — implemented in GitHub main at 0.1.98, pending farm5 sync evidence; remains BLOCKED until manual canary evidence is accepted
+10. Phase 6 final acceptance — next after farm5 0.1.98 sync evidence and operator review
 11. Phase 7 Usage + Policy/Reject Accounting
 12. Phase 8 Abuse 1h Core
 
