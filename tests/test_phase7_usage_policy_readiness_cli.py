@@ -15,5 +15,7 @@ def test_phase7_cli_human_and_json() -> None:
     res = r.invoke(app,["phase7","usage-policy-readiness","--config",str(example_config_path()),"--output","json"])
     assert res.exit_code == 0
     data = json.loads(res.stdout)
+    assert data["ai_phase7_task_present"] is True
+    assert data["blockers"] == []
     assert data["final_decision"] == "BLOCKED"
     assert data["execution_allowed"] is False

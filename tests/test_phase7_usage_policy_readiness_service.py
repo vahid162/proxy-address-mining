@@ -22,3 +22,10 @@ def test_phase7_safety_flags_all_false() -> None:
         if k.endswith("_allowed") or k.endswith("_executed") or k.endswith("_written") or k.endswith("_changed"):
             if isinstance(v, bool):
                 assert v is False
+
+
+def test_phase7_ai_task_doc_passes_readiness_detector() -> None:
+    cfg = load_config(example_config_path())
+    r = build_phase7_usage_policy_readiness_report(cfg)
+    assert r["ai_phase7_task_present"] is True
+    assert "ai_phase7_task_present" not in r["blockers"]
