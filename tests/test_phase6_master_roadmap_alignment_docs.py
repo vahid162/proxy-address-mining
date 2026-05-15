@@ -27,8 +27,8 @@ def test_remaining_plan_marks_phase6g_h_as_substeps_and_finite_slices() -> None:
 
 def test_phase_status_current_state_unchanged() -> None:
     t = _read("docs/PHASE_STATUS.md")
-    assert "current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5" in t
-    assert "current_working_phase: Phase 6 — Firewall Planner" in t
+    assert "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in t
+    assert "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in t
     assert "production_traffic: none" in t
     assert "firewall_apply_allowed: no" in t
     assert "abuse_automation_allowed: no" in t

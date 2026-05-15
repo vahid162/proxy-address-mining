@@ -14,8 +14,8 @@ def test_current_gate_verifier_contains_phase5_accepted_phase6_working_checks() 
 
     required_fragments = [
         "docs/PHASE_STATUS.md",
-        "current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5",
-        "current_working_phase: Phase 6 — Firewall Planner",
+        "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5",
+        "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting",
     ]
 
     for fragment in required_fragments:

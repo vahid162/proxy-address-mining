@@ -217,3 +217,6 @@ Future authorization must include gate verification, version alignment, doctor/c
 - next planned wording points to Apply Slice 2 readiness boundary
 - no runtime/firewall/db mutation behavior is introduced
 - abuse invariant remains explicit and unchanged
+
+
+Compatibility note: no migrations, no restore point writes, no lock acquisition, no DB apply writes.

@@ -476,3 +476,6 @@ Documentation Summary: docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_R
 
 
 Documentation Summary: docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md defines the planned controlled no-customer harness contract only (documentation/test-only, non-authorizing). It does not authorize no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB apply writes/records, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+
+
+Phase 7 planning/readiness document: `docs/AI_PHASE_7_TASK.md`.

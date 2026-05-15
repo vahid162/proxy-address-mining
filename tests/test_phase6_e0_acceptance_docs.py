@@ -36,8 +36,8 @@ def test_phase6_e0_acceptance_doc_exists_and_contains_required_evidence() -> Non
 def test_phase_status_has_required_current_state_and_e0_e1_wording() -> None:
     t = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     for needle in [
-        "current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5",
-        "current_working_phase: Phase 6 — Firewall Planner",
+        "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5",
+        "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting",
         "production_traffic: none",
         "firewall_apply_allowed: no",
         "abuse_automation_allowed: no",

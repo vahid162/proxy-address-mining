@@ -6,7 +6,7 @@ def test_docs_updated_for_096_and_new_commands():
     assert '652 passed' in ps
     assert '/var/backups/mpf/source-before-zip-sync-20260515T083309Z' in ps
     rp=Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')
-    assert 'latest recorded farm5 sync evidence is 0.1.98' in rp
+    assert 'latest recorded farm5 sync evidence is 0.1.100' in rp
     ai=Path('docs/AI_PHASE_6_TASK.md').read_text(encoding='utf-8')
     assert 'manual-canary-customer-server-evidence' in ai
     assert 'phase6 final-acceptance-readiness' in ai

@@ -1,10 +1,10 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version after this PR becomes 0.1.100; GitHub main repository version is 0.1.99; latest recorded farm5 sync evidence is 0.1.99; live gates remain not accepted and not authorized.
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version after this PR becomes 0.1.101; Phase 6 is accepted on farm5 as planner/reporting/gate-readiness only; current repository version before this PR is 0.1.100; repository version after this PR is 0.1.101; latest recorded farm5 sync evidence is 0.1.100; runtime gates remain closed and non-authorizing.
 
 This document defines the safe Phase 6 boundary for AI coding agents. It is a working guide only; `docs/PHASE_STATUS.md` is authoritative.
 
-Current note: read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized.
+Current note: read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State is Phase 6 accepted / Phase 7 working (planning/readiness only). Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized.
 
 Current implementation note: manual canary customer server evidence / final gate review and Phase 6 final acceptance readiness are implemented in GitHub main at 0.1.98 as report-only, non-executing, non-authorizing, BLOCKED surfaces. That sync evidence is now recorded and operator decision packaging is required for final acceptance.
 
@@ -23,11 +23,11 @@ docs/PHASE_STATUS.md
 
 Current state:
 
-Current active gating language is controlled by docs/PHASE_STATUS.md; historical dedicated-apply-gate proposal docs remain reference-only and non-authorizing.
+Current active gating language is controlled by docs/PHASE_STATUS.md; any older Phase 5/Phase 6 wording below is historical compatibility-only and non-authorizing.
 
 ```text
-current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
-current_working_phase: Phase 6 — Firewall Planner
+current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5
+current_working_phase: Phase 7 — Usage + Policy/Reject Accounting
 current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 and Slice 4 are server-synced documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated apply gate remains not accepted and not authorized
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
@@ -404,3 +404,5 @@ Current report-only commands include: mpf firewall manual-canary-customer-propos
 
 
 - mpf phase6 final-acceptance-review (report-only, non-executing, non-authorizing; final_decision=BLOCKED or REVIEW_READY_BUT_NOT_ACCEPTED; execution_allowed=false; phase6_acceptance_allowed=false; customer_nat_authorized=false; customer_firewall_rules_authorized=false; production_traffic_authorized=false).
+
+latest recorded farm5 sync evidence is 0.1.99 (historical compatibility anchor).
