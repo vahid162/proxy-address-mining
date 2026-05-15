@@ -56,6 +56,8 @@ from mpf.services import (
     phase7_usage_accounting_contract_service,
     phase7_usage_policy_readiness_service,
     phase7_reports_doctor_service,
+    phase7_final_acceptance_readiness_service,
+    phase7_operator_acceptance_decision_service,
 )
 
 app = typer.Typer(
@@ -1561,6 +1563,30 @@ def phase7_usage_policy_readiness(config: Path | None = typer.Option(None, "--co
     typer.echo(f"errors: {report.get('errors', [])}")
 
 
+
+
+@phase7_app.command("final-acceptance-readiness")
+def phase7_final_acceptance_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase7_final_acceptance_readiness_service.build_phase7_final_acceptance_readiness_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = ("component","final_decision","readiness_status","authorization_status","execution_allowed","phase7_acceptance_allowed","phase8_start_allowed","operator_review_required","operator_acceptance_pr_required","farm5_sync_version","farm5_0_1_107_sync_evidence_present","phase7_usage_policy_readiness_clean","phase7_usage_accounting_contract_clean","phase7_policy_reject_accounting_contract_clean","phase7_reports_summary_clean","phase7_doctor_ok","phase7_contract_stack_complete","production_traffic_none","firewall_apply_disallowed","customer_nat_disallowed","customer_firewall_rules_disallowed","usage_collectors_disallowed","policy_reject_collectors_disallowed","abuse_automation_disallowed","abuse_invariant_preserved")
+    for k in keys: typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
+
+
+@phase7_app.command("operator-acceptance-decision")
+def phase7_operator_acceptance_decision(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase7_operator_acceptance_decision_service.build_phase7_operator_acceptance_decision_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = ("component","operator_decision","final_decision","acceptance_scope","recommended_next_phase_after_operator_acceptance","authorization_status","execution_allowed","phase7_acceptance_allowed","phase8_start_allowed","operator_review_required","operator_must_explicitly_accept_phase7","separate_phase_gate_update_pr_required","phase7_final_acceptance_readiness_clean","farm5_0_1_107_sync_evidence_present","phase7_doctor_ok","all_phase7_child_reports_clean","runtime_gates_closed","abuse_invariant_preserved","phase8_not_started")
+    for k in keys: typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
 @phase7_app.command("policy-reject-accounting-contract")
 def phase7_policy_reject_accounting_contract(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     """Render Phase 7 policy/reject accounting contract report (report-only, non-authorizing)."""

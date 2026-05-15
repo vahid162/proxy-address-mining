@@ -29,6 +29,66 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+### Phase 7 farm5 0.1.107 Batched Sync + Reports/Doctor Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.107 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260515T171232Z
+mpf --version: 0.1.107
+pytest during sync: 690 passed
+manual pytest after sync: 690 passed in 64.72s
+mpf config validate: OK
+mpf doctor: OK
+db status: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+current customer list: no non-deleted customers
+proxy doctor/status: OK
+proxy runtime remains limited local-only
+v2rayA UI listener local-only: 127.0.0.1:2015
+BTC backend listener local-only: 127.0.0.1:60010
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+current Phase 6 accepted / Phase 7 working safety gate passed
+no runtime gate opened
+runtime restrictions remain unchanged
+mpf phase7 usage-policy-readiness --output json final_decision: BLOCKED
+mpf phase7 usage-policy-readiness --output json execution_allowed: false
+mpf phase7 usage-policy-readiness --output json phase8_start_allowed: false
+mpf phase7 usage-accounting-contract --output json final_decision: BLOCKED
+mpf phase7 usage-accounting-contract --output json firewall_counter_live_read_authorized: false
+mpf phase7 policy-reject-accounting-contract --output json final_decision: BLOCKED
+mpf phase7 summary --output json final_decision: BLOCKED
+mpf phase7 doctor --output json final_verdict: OK
+all child reports blockers: []
+```
+
+### Phase 7 Final Acceptance Readiness Boundary
+
+- Phase 7 has the following report-only components present: usage-policy readiness, usage accounting contract, policy/reject accounting contract, read-only summary, and read-only doctor.
+- farm5 0.1.107 batched sync is evidenced.
+- phase7 doctor final_verdict is OK while final_decision remains BLOCKED.
+- blockers are empty across Phase 7 child reports.
+- Phase 7 can now be reviewed for acceptance as a report-only/service-contract/readiness phase.
+- This PR does not enable production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, usage collectors, policy/reject collectors, usage_samples writes, policy_events writes, abuse automation, or Phase 8 start.
+- Phase 8 Abuse 1h Core remains future-only until explicitly accepted in a later PR.
+- Abuse invariant remains mandatory: normal -> over_tracking -> over_grace -> hard; farms-over alone must not harden; worker-over alone must not harden; sustained miner-abuse hardens after about 3600 seconds; all active customers in enabled lanes must be covered; no silent skip.
+
+
+
 ### Phase 7 farm5 0.1.104 Sync + Readiness Detector Fix Evidence
 
 ```text
