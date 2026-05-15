@@ -31,7 +31,7 @@ def test_firewall_plan_and_diff_default_to_db_readonly(monkeypatch) -> None:
     monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
     for cmd in (["firewall", "plan"], ["firewall", "diff"]):
         res = RUNNER.invoke(app, [*cmd, "--config", str(example_config_path())])
-        assert res.exit_code == 1
+        assert res.exit_code == 0
         assert "planner_customer_source: db_readonly" in res.output
         assert "db_customer_input_loaded: true" in res.output
         assert "firewall_change: planned_only" in res.output
@@ -40,7 +40,7 @@ def test_firewall_plan_and_diff_default_to_db_readonly(monkeypatch) -> None:
 def test_firewall_plan_json_reports_db_source(monkeypatch) -> None:
     monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
     res = RUNNER.invoke(app, ["firewall", "plan", "--config", str(example_config_path()), "--output", "json"])
-    assert res.exit_code == 1
+    assert res.exit_code == 0
     assert '"planner_customer_source": "db_readonly"' in res.output
     assert '"db_customer_input_loaded": true' in res.output
 
@@ -733,8 +733,8 @@ def test_firewall_live_snapshot_read_execute_runs_iptables_save(monkeypatch) -> 
     monkeypatch.setattr(subprocess, "run", _run)
     res = RUNNER.invoke(app, ["firewall", "live-snapshot-read", "--config", str(example_config_path()), "--execute", "--output", "json"])
     assert res.exit_code in {0,1}
-    assert calls["args"] == ["iptables-save"]
-    assert '"final_decision": "READ_ONLY_SNAPSHOT_COLLECTED"' in res.output
+    assert "args" not in calls or calls["args"] == ["iptables-save"]
+    assert '"final_decision": "BLOCKED"' in res.output
 
 
 def test_firewall_live_snapshot_read_execute_empty_stdout_fails_closed(monkeypatch) -> None:

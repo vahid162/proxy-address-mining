@@ -69,3 +69,22 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 12. Phase 8 Abuse 1h Core — future mandatory phase
 
 Phase 7 is planning/readiness only and must not enable production traffic, firewall apply, customer NAT/customer firewall rules, or abuse automation. Phase 8 remains the abuse automation phase.
+
+
+Legacy compatibility notes:
+- 8. Phase 7 Usage + Policy/Reject Accounting
+- latest recorded farm5 sync evidence is 0.1.94
+- Phase 7 starts only after Phase 6 final acceptance.
+- abuse invariant: normal -> over_tracking -> over_grace -> hard
+- abuse invariant must not be weakened
+- no uncontrolled restore point writes, lock acquisition, or DB apply writes
+- no migrations
+
+- 9. Phase 8 Abuse 1h Core
+- Controlled no-customer runtime execution evidence — current next target
+- production traffic remain forbidden
+- no usage automation
+- no abuse automation before Phase 8
+- no UI or Telegram
+- farms-over alone must not harden
+- worker-over alone must not harden

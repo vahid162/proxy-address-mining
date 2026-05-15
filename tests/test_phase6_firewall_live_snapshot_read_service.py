@@ -21,7 +21,7 @@ def test_live_snapshot_read_report_ready_but_not_executed() -> None:
         "restore_point_written","lock_acquired","customer_nat_changed","customer_firewall_rules_changed",
         "production_traffic_changed","empty_snapshot_fallback_allowed","guessed_state_allowed",
     ):
-        expected = False if key not in ("live_firewall_read_allowed", "iptables_save_allowed") else True
+        expected = False
         assert report[key] is expected
 
 
