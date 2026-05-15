@@ -7,7 +7,7 @@ from tests.test_smoke import example_config_path
 def test_phase6_operator_acceptance_final_integration() -> None:
     runner = CliRunner()
     h = runner.invoke(app, ["phase6", "operator-acceptance-decision", "--config", str(example_config_path())])
-    assert h.exit_code >= 0
+    assert h.exit_code == 0
     j = runner.invoke(app, ["phase6", "operator-acceptance-decision", "--config", str(example_config_path()), "--output", "json"])
     d = json.loads(j.stdout)
     assert d["final_decision"] == "BLOCKED"

@@ -19,13 +19,13 @@ def test_phase7_final_acceptance_readiness_service_defaults() -> None:
     assert r["phase7_acceptance_allowed"] is False
     assert r["phase8_start_allowed"] is False
     assert r["farm5_sync_version"] == "0.1.107"
-    assert r["farm5_0_1_107_sync_evidence_present"] in {True, False}
+    assert r["farm5_0_1_107_sync_evidence_present"] is True
     assert isinstance(r["phase7_usage_policy_readiness_clean"], bool)
-    assert r["phase7_usage_accounting_contract_clean"] in {True, False}
-    assert r["phase7_policy_reject_accounting_contract_clean"] in {True, False}
-    assert r["phase7_reports_summary_clean"] in {True, False}
-    assert r["phase7_doctor_ok"] in {True, False}
-    assert r["phase7_contract_stack_complete"] in {True, False}
+    assert isinstance(r["phase7_usage_accounting_contract_clean"], bool)
+    assert isinstance(r["phase7_policy_reject_accounting_contract_clean"], bool)
+    assert isinstance(r["phase7_reports_summary_clean"], bool)
+    assert isinstance(r["phase7_doctor_ok"], bool)
+    assert isinstance(r["phase7_contract_stack_complete"], bool)
     assert isinstance(r["blockers"], list)
 
 
@@ -39,5 +39,5 @@ def test_phase7_operator_acceptance_decision_service_defaults() -> None:
     assert r["execution_allowed"] is False
     assert r["phase7_acceptance_allowed"] is False
     assert r["phase8_start_allowed"] is False
-    assert r["separate_phase_gate_update_pr_required"] in {True, False}
+    assert r["separate_phase_gate_update_pr_required"] is True
     assert isinstance(r["blockers"], list)
