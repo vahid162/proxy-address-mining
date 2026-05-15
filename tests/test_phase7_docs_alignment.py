@@ -14,3 +14,8 @@ def test_ai_phase7_and_remaining_plan() -> None:
     assert 'Usage + Policy/Reject Accounting' in ai
     assert 'normal -> over_tracking -> over_grace -> hard' in ai
     assert 'latest recorded farm5 sync evidence is 0.1.104' in rem
+
+
+def test_ai_phase7_reports_doctor_section_present() -> None:
+    ai = Path('docs/AI_PHASE_7_TASK.md').read_text(encoding='utf-8')
+    assert 'Current Phase 7 Step — Read-only Reports/Doctor' in ai

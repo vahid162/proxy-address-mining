@@ -55,6 +55,7 @@ from mpf.services import (
     phase7_policy_reject_accounting_contract_service,
     phase7_usage_accounting_contract_service,
     phase7_usage_policy_readiness_service,
+    phase7_reports_doctor_service,
 )
 
 app = typer.Typer(
@@ -1506,6 +1507,31 @@ def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), li
 
 
 
+
+
+
+@phase7_app.command("summary")
+def phase7_summary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase7_reports_doctor_service.build_phase7_reports_summary(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    keys = ("component","final_decision","summary_status","authorization_status","execution_allowed","phase7_acceptance_allowed","usage_policy_readiness_clean","usage_accounting_contract_clean","policy_reject_accounting_contract_clean","latest_recorded_farm5_sync_evidence_present","no_fabricated_0_1_105_or_0_1_106_sync_evidence","remaining_plan_reports_doctor_target_aligned","ai_phase7_reports_doctor_present","production_traffic_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","usage_automation_authorized","usage_collectors_authorized","policy_reject_collectors_authorized","abuse_automation_authorized","phase8_start_allowed","batched_farm5_sync_required_after_merge")
+    for key in keys: typer.echo(f"{key}: {report.get(key)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
+
+
+@phase7_app.command("doctor")
+def phase7_doctor(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase7_reports_doctor_service.build_phase7_doctor_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    keys = ("component","final_verdict","final_decision","doctor_status","authorization_status","execution_allowed","phase7_acceptance_allowed","usage_policy_readiness_clean","usage_accounting_contract_clean","policy_reject_accounting_contract_clean","latest_recorded_farm5_sync_evidence_present","no_fabricated_0_1_105_or_0_1_106_sync_evidence","production_traffic_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","usage_automation_authorized","usage_collectors_authorized","policy_reject_collectors_authorized","abuse_automation_authorized","phase8_start_allowed","batched_farm5_sync_required_after_merge")
+    for key in keys: typer.echo(f"{key}: {report.get(key)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
 
 
 @phase7_app.command("usage-accounting-contract")
