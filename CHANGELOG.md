@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.94
+- Add report-only no-customer runtime execution approval readiness service/CLI and integrate compact summaries into readiness/review outputs.
+
+
 ## 0.1.93 - 2026-05-14
 
 - fix gate-review JSON serialization by adding `FirewallPlanMessage.to_dict()` so config-only warnings/errors render as dictionaries without crashing

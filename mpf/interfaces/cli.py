@@ -19,6 +19,7 @@ from mpf.services import (
     firewall_no_customer_apply_execution_gate_service,
     firewall_no_customer_apply_package_service,
     firewall_no_customer_apply_scaffold_service,
+    firewall_no_customer_runtime_execution_approval_service,
     firewall_live_snapshot_scaffold_service,
     firewall_live_snapshot_read_service,
     config_service,
@@ -732,6 +733,18 @@ def firewall_no_customer_apply_execution_acceptance(config: Path | None = typer.
     for key in ("blockers","errors"):
         vals=report[key]; typer.echo(f"{key}: {', '.join(vals) if vals else '-'}")
 
+
+@firewall_app.command("no-customer-runtime-execution-approval")
+def firewall_no_customer_runtime_execution_approval(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    cfg = _load(config)
+    report = firewall_no_customer_runtime_execution_approval_service.build_no_customer_runtime_execution_approval_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    for key in ("component","final_decision","authorization_status","gate_status","execution_allowed","operator_approval_required","fresh_farm5_runtime_execution_evidence_required","separate_runtime_execution_pr_required","apply_decision","verify_decision","rollback_decision","farm5_0_1_93_sync_evidence_present","gate_review_json_evidence_present","gate_review_json_blocked","gate_review_json_non_applyable","gate_review_json_live_apply_disallowed","no_customer_apply_package_present","no_customer_apply_package_customer_safe","no_customer_execution_acceptance_present","no_customer_execution_gate_present","apply_gate_readiness_blocked","customer_nat_allowed","customer_firewall_rules_allowed","iptables_restore_allowed"):
+        v=report[key]; typer.echo(f"{key}: {str(v).lower() if isinstance(v,bool) else v}")
+    for key in ("blockers","errors"):
+        vals=report[key]; typer.echo(f"{key}: {', '.join(vals) if vals else '-'}")
+
 @firewall_app.command("restore-lock-record-acceptance-gate")
 def firewall_restore_lock_record_acceptance_gate(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     """Render report-only acceptance gate for controlled restore/lock/db-apply behavior."""
@@ -1153,12 +1166,14 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     restore_lock_record_readiness = firewall_restore_lock_record_readiness_service.build_restore_lock_record_readiness_report(cfg)
     restore_lock_record_acceptance_gate = firewall_restore_lock_record_acceptance_gate_service.build_restore_lock_record_acceptance_gate_report(cfg)
     restore_lock_record_execution_gate = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(cfg)
+    no_customer_runtime_execution_approval = firewall_no_customer_runtime_execution_approval_service.build_no_customer_runtime_execution_approval_report(cfg)
     report = firewall_gate_review_service.build_gate_review_report(
         evidence=evidence,
         apply_gate_readiness=apply_gate_readiness,
         no_customer_apply_scaffold=no_customer_apply_scaffold,
         no_customer_apply_acceptance_gate=no_customer_apply_acceptance_gate,
         no_customer_apply_execution_gate=no_customer_apply_execution_gate,
+        no_customer_runtime_execution_approval=no_customer_runtime_execution_approval,
         live_snapshot_scaffold=live_snapshot_scaffold,
         live_snapshot_read=live_snapshot_read,
         restore_lock_record_gate=restore_lock_record_gate,
@@ -1222,6 +1237,15 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"  final_decision: {ncag.get('no_customer_apply_acceptance_gate_final_decision', 'BLOCKED')}")
     typer.echo(f"  authorization_status: {ncag.get('no_customer_apply_acceptance_gate_authorization_status', 'ACCEPTANCE_GATE_DEFINED_NOT_EXECUTABLE')}")
     typer.echo(f"  execution_allowed: {str(ncag.get('no_customer_apply_acceptance_gate_execution_allowed', False)).lower()}")
+    ncra = report.apply_gate_readiness_summary.get("no_customer_runtime_execution_approval_summary", {})
+    typer.echo("no_customer_runtime_execution_approval: summary")
+    typer.echo(f"  present: {str(ncra.get('no_customer_runtime_execution_approval_present', False)).lower()}")
+    typer.echo(f"  final_decision: {ncra.get('no_customer_runtime_execution_approval_final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {ncra.get('no_customer_runtime_execution_approval_authorization_status', 'RUNTIME_EXECUTION_APPROVAL_READY_BUT_NOT_GRANTED')}")
+    typer.echo(f"  execution_allowed: {str(ncra.get('no_customer_runtime_execution_approval_execution_allowed', False)).lower()}")
+    typer.echo(f"  operator_approval_required: {str(ncra.get('no_customer_runtime_execution_approval_operator_approval_required', True)).lower()}")
+    typer.echo(f"  fresh_farm5_runtime_execution_evidence_required: {str(ncra.get('no_customer_runtime_execution_approval_fresh_farm5_runtime_execution_evidence_required', True)).lower()}")
+    typer.echo(f"  separate_runtime_execution_pr_required: {str(ncra.get('no_customer_runtime_execution_approval_separate_runtime_execution_pr_required', True)).lower()}")
     lss = report.live_snapshot_scaffold_summary
     typer.echo("live_snapshot_scaffold: summary")
     typer.echo(f"  component: {lss.get('component', '-')}")
