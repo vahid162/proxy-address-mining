@@ -64,6 +64,7 @@ jobs_app = typer.Typer(help="Job read-only commands.")
 proxy_app = typer.Typer(help="Proxy read-only planning and doctor commands.")
 firewall_app = typer.Typer(help="Firewall dry-run planner commands only.")
 events_app = typer.Typer(help="Global event read-only commands.")
+phase6_app = typer.Typer(help="Phase 6 report-only gate commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
@@ -72,6 +73,7 @@ app.add_typer(jobs_app, name="jobs")
 app.add_typer(proxy_app, name="proxy")
 app.add_typer(firewall_app, name="firewall")
 app.add_typer(events_app, name="events")
+app.add_typer(phase6_app, name="phase6")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -529,7 +531,7 @@ def proxy_config_check(config: Path | None = typer.Option(None, "--config", "-c"
 def firewall_apply_gate_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: str = typer.Option("human", "--output")) -> None:
     """Render non-authorizing Phase 6 apply gate readiness report (read-only)."""
     cfg = _load(config)
-    report = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
+    report = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg, include_manual_canary_server_evidence_summary=True, include_phase6_final_acceptance_summary=True)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
         return
@@ -1186,6 +1188,31 @@ def firewall_manual_canary_customer_acceptance_readiness(config: Path | None = t
     typer.echo(f"errors: {', '.join(report.get('errors', [])) if report.get('errors') else '-'}")
 
 
+
+
+@firewall_app.command("manual-canary-customer-server-evidence")
+def firewall_manual_canary_customer_server_evidence(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    cfg = _load(config)
+    report = firewall_manual_canary_customer_server_evidence_service.build_manual_canary_customer_server_evidence_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    for key in ("component","final_decision","authorization_status","server_evidence_status","execution_allowed","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","operator_approval_required","fresh_farm5_canary_execution_evidence_required","separate_phase6_final_acceptance_pr_required","apply_decision","verify_decision","rollback_decision","farm5_0_1_96_sync_evidence_present","manual_canary_proposal_blocked","manual_canary_acceptance_readiness_blocked","no_non_deleted_customer_evidence_present","no_customer_nat_redirects_evidenced","no_mpf_customer_ipv4_firewall_references_evidenced","no_mpf_customer_ipv6_firewall_references_evidenced","customer_nat_allowed","customer_firewall_rules_allowed","iptables_restore_allowed"):
+        v = report.get(key); typer.echo(f"{key}: {str(v).lower() if isinstance(v, bool) else v}")
+    typer.echo(f"blockers: {', '.join(report.get('blockers', [])) if report.get('blockers') else '-'}")
+    typer.echo(f"errors: {', '.join(report.get('errors', [])) if report.get('errors') else '-'}")
+
+
+@phase6_app.command("final-acceptance-readiness")
+def phase6_final_acceptance_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    cfg = _load(config)
+    report = phase6_final_acceptance_readiness_service.build_phase6_final_acceptance_readiness_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    for key in ("component","final_decision","acceptance_status","authorization_status","phase6_acceptance_allowed","execution_allowed","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","operator_approval_required","fresh_farm5_final_acceptance_evidence_required","separate_phase6_acceptance_pr_required","farm5_0_1_96_sync_evidence_present","manual_canary_server_evidence_present","manual_canary_server_evidence_blocked","manual_canary_actual_execution_missing","manual_canary_final_gate_not_accepted","abuse_invariant_preserved","phase7_not_started","phase8_not_started"):
+        v = report.get(key); typer.echo(f"{key}: {str(v).lower() if isinstance(v, bool) else v}")
+    typer.echo(f"blockers: {', '.join(report.get('blockers', [])) if report.get('blockers') else '-'}")
+    typer.echo(f"errors: {', '.join(report.get('errors', [])) if report.get('errors') else '-'}")
+
 @firewall_app.command("gate-review")
 def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
     """Render offline Phase 6-C2 apply gate review report (inspection-only)."""
@@ -1210,7 +1237,7 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
         typer.echo(f"ERROR: {exc}")
         raise typer.Exit(code=1)
     evidence = firewall_evidence_service.build_evidence_bundle_report(result, rollback_artifact=rollback_artifact)
-    apply_gate_readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg)
+    apply_gate_readiness = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg, include_manual_canary_server_evidence_summary=True, include_phase6_final_acceptance_summary=True)
     no_customer_apply_scaffold = firewall_no_customer_apply_scaffold_service.build_no_customer_apply_scaffold_report(cfg)
     no_customer_apply_acceptance_gate = firewall_no_customer_apply_acceptance_gate_service.build_no_customer_apply_acceptance_gate_report(cfg)
     no_customer_apply_execution_gate = firewall_no_customer_apply_execution_gate_service.build_no_customer_apply_execution_gate_report(cfg)
@@ -1252,6 +1279,8 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"manual_canary_proposal: {report.apply_gate_readiness_summary.get('manual_canary_customer_proposal_summary',{}).get('manual_canary_customer_proposal_final_decision','-')}")
     typer.echo(f"manual_canary_acceptance: {report.apply_gate_readiness_summary.get('manual_canary_customer_acceptance_readiness_summary',{}).get('manual_canary_customer_acceptance_readiness_final_decision','-')}")
     typer.echo(f"canary_readiness: {report.canary_readiness_summary['status']}")
+    typer.echo(f"manual_canary_server_evidence: {report.apply_gate_readiness_summary.get('manual_canary_customer_server_evidence_summary',{}).get('manual_canary_customer_server_evidence_final_decision','-')}")
+    typer.echo(f"phase6_final_acceptance_readiness: {report.apply_gate_readiness_summary.get('phase6_final_acceptance_readiness_summary',{}).get('phase6_final_acceptance_readiness_final_decision','-')}")
     agr = report.apply_gate_readiness_summary
     typer.echo("apply_gate_readiness: summary")
     typer.echo(f"  final_decision: {agr.get('final_decision', 'BLOCKED')}")

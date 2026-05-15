@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.97
+
+- Add report-only manual canary server evidence and Phase 6 final acceptance readiness services/CLI, integrate summaries into apply-gate-readiness and gate-review, and align Phase 6 docs with farm5 0.1.96 sync evidence.
+
 ## 0.1.96
 - Add report-only manual canary customer proposal + acceptance-readiness services/CLI and Phase 6 docs sync to farm5 0.1.95 evidence.
 
