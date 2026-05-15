@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.100
+
+- Add Phase 6 operator acceptance decision report/CLI, integrate gate summaries, and record farm5 0.1.99 sync evidence while keeping all runtime/customer/production gates closed.
+
 ## 0.1.99
 
 - Add report-only Phase 6 final acceptance review service/CLI, integrate summaries into apply-gate-readiness and gate-review, and align docs with farm5 0.1.98 sync evidence.
