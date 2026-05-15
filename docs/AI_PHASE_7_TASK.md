@@ -2,9 +2,9 @@
 
 Status: planning/readiness only; report-only and non-authorizing. `docs/PHASE_STATUS.md` remains authoritative.
 
-- Current repository before this PR: 0.1.102
-- Repository after this PR: 0.1.103
-- Latest recorded farm5 sync evidence: 0.1.102
+- Current repository before this PR: 0.1.104
+- Repository after this PR: 0.1.105
+- Latest recorded farm5 sync evidence: 0.1.104
 - Phase 7 starts only after Phase 6 is accepted.
 - Phase 7 begins with read-only/reporting/service-contract work.
 
@@ -39,3 +39,17 @@ Phase 8 remains the future abuse 1h core phase.
 - sustained miner-abuse hardens after about 3600 seconds
 - all active customers in enabled lanes must be covered
 - no silent skip
+
+
+## Current Phase 7 Step — Usage Accounting Contract
+
+- This step is report-only/service-contract only.
+- It defines usage sample, delta, windows, and doctor contracts.
+- It does not enable collectors.
+- It does not enable timers.
+- It does not read live firewall counters.
+- It does not write usage_samples.
+- It does not write policy_events.
+- It does not enable production traffic.
+- It does not enable abuse automation.
+- Phase 8 remains future-only.

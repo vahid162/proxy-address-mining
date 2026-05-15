@@ -103,7 +103,7 @@ After sync, collect and send back:
 
 ```bash
 cd /opt/mpf-py-src
-.venv/bin/python -m pytest -q
+/opt/mpf-py-src/.venv/bin/python -m pytest -q
 mpf phase-status
 mpf config validate
 mpf doctor

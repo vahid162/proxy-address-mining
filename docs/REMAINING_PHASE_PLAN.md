@@ -6,10 +6,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version after this PR is 0.1.103.
-- latest recorded farm5 sync evidence is 0.1.102 until the operator syncs version 0.1.103 to farm5.
+- GitHub main repository version before this PR is 0.1.104.
+- Repository version after this PR is 0.1.105.
+- latest recorded farm5 sync evidence is 0.1.104.
 - Phase 6 is the accepted phase: Firewall Planner accepted on farm5 as planner/reporting/gate-readiness only.
 - Phase 7 is the working phase: Usage + Policy/Reject Accounting planning/readiness only.
+- Phase 7 current target is Usage Accounting service-contract package.
+- Next target after this PR is Policy/Reject Accounting service contracts.
 - Current work is Phase 7 planning/readiness.
 - Phase 7 must begin with read-only/reporting/service-contract work.
 - Phase 7 must not enable production traffic.
@@ -137,7 +140,8 @@ Purpose: implement worker-policy enforcement boundary.
 These anchors are intentionally historical and do not override the Current Position above.
 
 - Repository version before this PR: 0.1.100
-- Repository version after this PR: 0.1.103
+- Repository version after this PR: 0.1.105
+- Historical compatibility anchor: previous planning text referenced 0.1.103 (historical).
 - GitHub main repository version (before this cleanup PR) is 0.1.101
 - latest recorded farm5 sync evidence is 0.1.94
 - latest recorded farm5 sync evidence is 0.1.99
