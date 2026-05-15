@@ -9,25 +9,22 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - GitHub main repository version before this PR is 0.1.108.
 - Repository version after this PR is 0.1.109.
 - latest recorded farm5 sync evidence is 0.1.108.
-- Phase 6 is the accepted phase: Firewall Planner accepted on farm5 as planner/reporting/gate-readiness only.
-- Phase 7 is the working phase: Usage + Policy/Reject Accounting planning/readiness only.
+- Phase 7 is the accepted phase: Usage + Policy/Reject Accounting accepted on farm5 as report-only/service-contract/readiness only.
 - Phase 7 is accepted as report-only/service-contract/readiness after farm5 0.1.108 evidence.
-- Phase 8 is the current working phase, but planning/readiness only.
+- Phase 8 is the current working phase: Abuse 1h Core planning/readiness only.
 - Current target is Phase 8 Abuse 1h Core planning/readiness package.
 - Next target after this PR is Phase 8 abuse state-machine contract package.
-- Current work is Phase 7 planning/readiness.
-- Phase 7 must begin with read-only/reporting/service-contract work.
-- Phase 7 must not enable production traffic.
-- Phase 7 must not enable firewall apply.
-- Phase 7 must not enable iptables-restore.
-- Phase 7 must not enable customer NAT/customer firewall rules.
-- Phase 7 must not enable usage automation that changes runtime behavior.
-- Phase 7 must not enable abuse automation.
-- Phase 8 remains the future mandatory Abuse 1h Core phase.
-- no Phase 8 runtime automation is enabled by this PR.
-- farm5 batched offline sync for PR #113 + #114 + #115 is completed and evidenced at 0.1.107.
 - No Phase 8 runtime automation is enabled by this PR.
+- No abuse runner is enabled.
+- No hard/soft block is enabled.
+- No pause automation is enabled.
+- No abuse DB writes are enabled.
+- No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
 - No server sync evidence for 0.1.109 exists until the operator syncs it after merge.
+
+## Historical/Compatibility Notes
+
+- farm5 batched offline sync for PR #113 + #114 + #115 is completed and evidenced at 0.1.107.
 - Phase 7 remains report-only/service-contract/readiness only.
 - 0.1.105 and 0.1.106 were batched and superseded by 0.1.107 farm5 sync evidence.
 - mpf firewall apply-gate-readiness is read-only/report-only and remains BLOCKED for runtime apply gates.
