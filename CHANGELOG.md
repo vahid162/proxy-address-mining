@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.103 - 2026-05-15
+
+- Add Phase 7 report-only usage/policy readiness service + CLI, align README/phase docs to Phase 6 accepted + Phase 7 working, and record farm5 0.1.102 sync evidence while keeping all runtime/customer/production gates closed.
+
 ## 0.1.102 - 2026-05-15
 
 - Targeted cleanup: normalize Phase 6/7 planning docs wording, preserve legacy compatibility anchors explicitly, and keep safety/runtime gates unchanged.

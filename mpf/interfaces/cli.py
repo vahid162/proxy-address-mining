@@ -52,6 +52,7 @@ from mpf.services import (
     firewall_restore_lock_record_gate_service,
     firewall_restore_lock_record_readiness_service,
     proxy_doctor_service,
+    phase7_usage_policy_readiness_service,
 )
 
 app = typer.Typer(
@@ -69,6 +70,7 @@ proxy_app = typer.Typer(help="Proxy read-only planning and doctor commands.")
 firewall_app = typer.Typer(help="Firewall dry-run planner commands only.")
 events_app = typer.Typer(help="Global event read-only commands.")
 phase6_app = typer.Typer(help="Phase 6 report-only gate commands.")
+phase7_app = typer.Typer(help="Phase 7 report-only readiness commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
@@ -78,6 +80,7 @@ app.add_typer(proxy_app, name="proxy")
 app.add_typer(firewall_app, name="firewall")
 app.add_typer(events_app, name="events")
 app.add_typer(phase6_app, name="phase6")
+app.add_typer(phase7_app, name="phase7")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -1499,6 +1502,20 @@ def events_latest(config: Path | None = typer.Option(None, "--config", "-c"), li
     typer.echo("nat_change: no")
     typer.echo("runtime_change: no")
 
+
+
+@phase7_app.command("usage-policy-readiness")
+def phase7_usage_policy_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render Phase 7 usage/policy readiness report (report-only, non-authorizing)."""
+    report = phase7_usage_policy_readiness_service.build_phase7_usage_policy_readiness_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = ("component","final_decision","readiness_status","authorization_status","phase7_acceptance_allowed","execution_allowed","usage_automation_authorized","usage_collectors_authorized","policy_reject_collectors_authorized","policy_reject_accounting_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","firewall_apply_authorized","iptables_restore_authorized","abuse_automation_authorized","phase8_start_allowed","operator_review_required","fresh_farm5_0_1_103_sync_evidence_required","separate_phase7_service_contract_pr_required","farm5_0_1_102_sync_evidence_present","phase6_accepted","phase7_working","readme_phase7_aligned","ai_phase7_task_present","remaining_plan_phase7_aligned","apply_mode_plan_only","runtime_activation_disabled","abuse_invariant_preserved")
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
 
 @app.command("phase-status")
 def phase_status() -> None:

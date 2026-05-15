@@ -15,8 +15,8 @@ docs/PHASE_STATUS.md
 Current repository/server gate:
 
 ```text
-accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
-working_phase: Phase 6 — Firewall Planner
+accepted_phase: Phase 6 — Firewall Planner accepted on farm5
+working_phase: Phase 7 — Usage + Policy/Reject Accounting
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -37,10 +37,12 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
+Phase 7 is planning/readiness only. No customer NAT/rules, firewall apply, iptables-restore, usage automation, abuse automation, UI, or Telegram is authorized.
 
-## Current Phase 6 Accepted State and Next Planned Step
 
-`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 5 / working Phase 6 with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+## Current Phase 6 Accepted State and Phase 7 Working Boundary
+
+`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 6 / working Phase 7 with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
 Read-only iptables-save snapshot has been authorized and evidenced. Controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current advancement target is no-customer runtime execution approval readiness (report-only/non-authorizing). Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context.
 
