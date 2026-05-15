@@ -23,6 +23,10 @@ def test_remaining_phase_plan_active_wording() -> None:
     assert "Phase 7 current target is Phase 7 final acceptance readiness package" in text
     assert "Next target after this PR is Phase 7 operator acceptance / Phase 8 planning boundary" in text
     assert "no Phase 8 runtime automation is enabled by this PR" in text
+    assert "farm5 batched offline sync for PR #113 + #114 + #115 is completed and evidenced at 0.1.107" in text
+    assert "after this PR is merged, operator should perform a separate farm5 offline sync for 0.1.108 to verify the Phase 7 final acceptance readiness package" in text
+    assert "after this PR is merged, operator should perform one batched offline sync for PR #113 + #114 + #115 together." not in text
+    assert "Phase 7 remains report-only/service-contract/readiness only" in text
 
 
 def test_offline_sync_runbook_venv_path() -> None:
