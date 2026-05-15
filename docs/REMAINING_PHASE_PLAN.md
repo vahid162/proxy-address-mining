@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version is 0.1.98; latest recorded farm5 sync evidence remains 0.1.96 until the next operator sync (0.1.90 remains historical evidence).
+- GitHub main repository version is 0.1.98; latest recorded farm5 sync evidence is 0.1.96 until the next operator sync (0.1.90 remains historical evidence).
 - Phase 5 remains the accepted phase.
 - Phase 6 remains the working phase.
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
@@ -42,7 +42,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - No-customer runtime execution approval readiness exists as report-only/non-executing/non-authorizing surface and remains BLOCKED / RUNTIME_EXECUTION_APPROVAL_READY_BUT_NOT_GRANTED; this step is done and synced on farm5 at 0.1.94.
 - Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95.
 - Manual canary customer NAT/customer firewall rules proposal + explicit acceptance readiness is done and farm5 synced at 0.1.96, report-only/non-authorizing.
-- Manual canary customer server evidence / final gate review and Phase 6 final acceptance readiness are implemented in GitHub main at 0.1.98; latest farm5 sync evidence remains 0.1.96 until next operator sync. Both remain report-only, non-authorizing, and BLOCKED.
+- Manual canary customer server evidence / final gate review and Phase 6 final acceptance readiness are implemented in GitHub main at 0.1.98; latest recorded farm5 sync evidence is 0.1.96 until next operator sync. Both remain report-only, non-authorizing, and BLOCKED.
 - Runtime execution still requires separate operator approval, separate runtime execution PR, and fresh farm5 runtime execution evidence.
 - farm5 0.1.94 sync evidence is recorded as completed.
 - Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
