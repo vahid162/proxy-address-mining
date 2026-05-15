@@ -23,11 +23,11 @@ docs/PHASE_STATUS.md
 
 Current state:
 
-Current active gating language is controlled by docs/PHASE_STATUS.md; historical dedicated-apply-gate proposal docs remain reference-only and non-authorizing.
+Current active gating language is controlled by docs/PHASE_STATUS.md; any older Phase 5/Phase 6 wording below is historical compatibility-only and non-authorizing.
 
 ```text
-current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
-current_working_phase: Phase 6 — Firewall Planner
+current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5
+current_working_phase: Phase 7 — Usage + Policy/Reject Accounting
 current sub-step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing); Slice 3 and Slice 4 are server-synced documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated apply gate remains not accepted and not authorized
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none

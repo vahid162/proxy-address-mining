@@ -9,9 +9,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version is 0.1.99; latest recorded farm5 sync evidence is 0.1.100 until the next operator sync (0.1.90 remains historical evidence).
-- Phase 5 remains the accepted phase.
-- Phase 6 remains the working phase.
+- GitHub main repository version (before this cleanup PR) is 0.1.101; latest recorded farm5 sync evidence is 0.1.100 (0.1.90 and 0.1.94 are historical compatibility anchors).
+- Phase 6 is the accepted phase (planner/reporting/gate-readiness only).
+- Phase 7 is the working phase (planning/readiness only).
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
 - mpf firewall apply-gate-readiness is read-only/report-only and remains BLOCKED.
 - mpf firewall gate-review includes apply_gate_readiness_summary and remains BLOCKED.
@@ -71,7 +71,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 Phase 7 is planning/readiness only and must not enable production traffic, firewall apply, customer NAT/customer firewall rules, or abuse automation. Phase 8 remains the abuse automation phase.
 
 
-Legacy compatibility notes:
+## Legacy Compatibility Anchors (tests + historical references)
 - 8. Phase 7 Usage + Policy/Reject Accounting
 - latest recorded farm5 sync evidence is 0.1.94
 - Phase 7 starts only after Phase 6 final acceptance.
