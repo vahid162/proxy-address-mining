@@ -27,6 +27,43 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 ## Accepted Server Results
 
+### Phase 6 farm5 0.1.94 Sync + Runtime Approval Readiness Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.94 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260515T070627Z
+mpf --version: 0.1.94
+pytest during sync: 631 passed
+mpf config validate: OK
+mpf doctor: OK
+db status: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+proxy doctor/status: OK
+proxy runtime remains limited local-only
+v2rayA UI listener local-only: 127.0.0.1:2015
+BTC backend listener local-only: 127.0.0.1:60010
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+current Phase 5 accepted / Phase 6 working safety gate passed
+no runtime gate opened
+runtime restrictions remain unchanged
+```
+
+
 ### Phase 6 farm5 0.1.93 Sync + Gate-Review JSON Evidence
 
 ```text

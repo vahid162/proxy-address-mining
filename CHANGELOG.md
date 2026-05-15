@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.95
+
+- added controlled no-customer runtime execution evidence service/CLI and integrated summaries; recorded farm5 0.1.94 sync evidence docs updates.
+
 ## 0.1.94
 - Add report-only no-customer runtime execution approval readiness service/CLI and integrate compact summaries into readiness/review outputs.
 

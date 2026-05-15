@@ -20,6 +20,7 @@ from mpf.services import (
     firewall_no_customer_apply_package_service,
     firewall_no_customer_apply_scaffold_service,
     firewall_no_customer_runtime_execution_approval_service,
+    firewall_no_customer_runtime_execution_evidence_service,
     firewall_live_snapshot_scaffold_service,
     firewall_live_snapshot_read_service,
     config_service,
@@ -1132,6 +1133,33 @@ def firewall_package(config: Path | None = typer.Option(None, "--config", "-c"),
         typer.echo(f"ERROR [{e.code}] {e.message}")
 
 
+
+
+@firewall_app.command("no-customer-runtime-execution-evidence")
+def firewall_no_customer_runtime_execution_evidence(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render controlled no-customer runtime execution evidence package (report-only, non-executing)."""
+    cfg = _load(config)
+    report = firewall_no_customer_runtime_execution_evidence_service.build_no_customer_runtime_execution_evidence_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    for key in (
+        "component", "final_decision", "authorization_status", "evidence_status", "execution_allowed",
+        "operator_approval_required", "fresh_farm5_runtime_execution_evidence_required", "separate_runtime_execution_pr_required",
+        "apply_decision", "verify_decision", "rollback_decision", "farm5_0_1_94_sync_evidence_present",
+        "runtime_approval_report_present", "runtime_approval_report_blocked", "runtime_approval_execution_disallowed",
+        "apply_gate_readiness_blocked", "gate_review_json_blocked", "gate_review_json_non_applyable",
+        "gate_review_json_live_apply_disallowed", "customer_nat_allowed", "customer_firewall_rules_allowed", "iptables_restore_allowed",
+    ):
+        v = report.get(key)
+        typer.echo(f"{key}: {str(v).lower() if isinstance(v, bool) else v}")
+    typer.echo(f"blockers: {len(report.get('blockers', []))}")
+    for b in report.get("blockers", []):
+        typer.echo(f"BLOCKER: {b}")
+    typer.echo(f"errors: {len(report.get('errors', []))}")
+    for e in report.get("errors", []):
+        typer.echo(f"ERROR: {e}")
+
 @firewall_app.command("gate-review")
 def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output"), source: Literal["db-readonly", "config-only"] = typer.Option("db-readonly", "--source"), rollback_snapshot_file: Path | None = typer.Option(None, "--rollback-snapshot-file", help="Explicit offline iptables-save snapshot file for rollback artifact status.")) -> None:
     """Render offline Phase 6-C2 apply gate review report (inspection-only)."""
@@ -1246,6 +1274,13 @@ def firewall_gate_review(config: Path | None = typer.Option(None, "--config", "-
     typer.echo(f"  operator_approval_required: {str(ncra.get('no_customer_runtime_execution_approval_operator_approval_required', True)).lower()}")
     typer.echo(f"  fresh_farm5_runtime_execution_evidence_required: {str(ncra.get('no_customer_runtime_execution_approval_fresh_farm5_runtime_execution_evidence_required', True)).lower()}")
     typer.echo(f"  separate_runtime_execution_pr_required: {str(ncra.get('no_customer_runtime_execution_approval_separate_runtime_execution_pr_required', True)).lower()}")
+    ncree = report.apply_gate_readiness_summary.get("no_customer_runtime_execution_evidence_summary", {})
+    typer.echo("no_customer_runtime_execution_evidence: summary")
+    typer.echo(f"  present: {str(ncree.get('no_customer_runtime_execution_evidence_present', False)).lower()}")
+    typer.echo(f"  final_decision: {ncree.get('no_customer_runtime_execution_evidence_final_decision', 'BLOCKED')}")
+    typer.echo(f"  authorization_status: {ncree.get('no_customer_runtime_execution_evidence_authorization_status', 'CONTROLLED_NO_CUSTOMER_RUNTIME_EVIDENCE_DEFINED_NOT_EXECUTED')}")
+    typer.echo(f"  execution_allowed: {str(ncree.get('no_customer_runtime_execution_evidence_execution_allowed', False)).lower()}")
+
     lss = report.live_snapshot_scaffold_summary
     typer.echo("live_snapshot_scaffold: summary")
     typer.echo(f"  component: {lss.get('component', '-')}")
