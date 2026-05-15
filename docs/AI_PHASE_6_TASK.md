@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and repository version after PR #102 is 0.1.94; latest recorded farm5 sync evidence is 0.1.94; live gates remain not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and current repository version before this PR is 0.1.95; latest recorded farm5 sync evidence is 0.1.94; live gates remain not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
@@ -407,3 +407,12 @@ Current report-only command: `mpf firewall no-customer-apply-execution-gate` (re
 
 
 Repository version after this PR becomes 0.1.95, while latest farm5 sync evidence remains 0.1.94 until next operator sync.
+
+
+Current repository version before this PR is 0.1.95.
+Repository version after this PR becomes 0.1.96.
+Latest recorded farm5 sync evidence is 0.1.95 until next operator sync.
+New report-only commands: mpf firewall manual-canary-customer-proposal; mpf firewall manual-canary-customer-acceptance-readiness.
+Both remain non-executing/non-authorizing with final_decision=BLOCKED, execution_allowed=false, customer_nat_authorized=false, customer_firewall_rules_authorized=false, production_traffic_authorized=false.
+
+Compatibility anchor: repository version after this PR becomes 0.1.95 (historical).
