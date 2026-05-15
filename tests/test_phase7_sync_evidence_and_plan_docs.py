@@ -19,12 +19,12 @@ def test_phase_status_phase7_acceptance_and_0_1_108_evidence() -> None:
 def test_remaining_phase_plan_active_wording() -> None:
     text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     assert "GitHub main repository version before this PR is 0.1.108" in text
-    assert "Repository version after this PR is 0.1.109" in text
+    assert "Repository version after this PR is 0.1.110" in text
     assert "latest recorded farm5 sync evidence is 0.1.108" in text
     assert "Phase 7 is accepted as report-only/service-contract/readiness" in text
     assert "Phase 8 is the current working phase" in text
     assert "Next target after this PR is Phase 8 abuse state-machine contract package" in text
-    assert "No server sync evidence for 0.1.109 exists until the operator syncs it after merge" in text
+    assert "No server sync evidence for 0.1.110 exists until the operator syncs it after merge" in text
 
 
 def test_ai_phase8_task_exists_and_invariant() -> None:

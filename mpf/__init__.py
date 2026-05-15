@@ -1,7 +1,7 @@
 """MPF Python control plane package.
 
-Current repository state: Phase 5 accepted (DB-only customer CRUD), Phase 6 Firewall Planner in progress.
+Current repository state: Phase 7 accepted as report-only/service-contract/readiness; Phase 8 Abuse 1h Core planning/readiness.
 No production traffic mutation is implemented here.
 """
 
-__version__ = "0.1.109"
+__version__ = "0.1.110"

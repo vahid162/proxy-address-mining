@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.110
+- Fix offline zip sync gate validation after Phase 7 acceptance so the server can sync Phase 7 accepted / Phase 8 planning-readiness zips without opening runtime gates.
+
 ## 0.1.109
 - Accept Phase 7 as report-only/service-contract/readiness after farm5 0.1.108 sync evidence; start Phase 8 planning/readiness with report-only service/CLI and keep all runtime gates closed.
 

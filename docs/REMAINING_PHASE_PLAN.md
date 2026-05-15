@@ -7,7 +7,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Current Position
 
 - GitHub main repository version before this PR is 0.1.108.
-- Repository version after this PR is 0.1.109.
+- Repository version after this PR is 0.1.110.
 - latest recorded farm5 sync evidence is 0.1.108.
 - Phase 7 is the accepted phase: Usage + Policy/Reject Accounting accepted on farm5 as report-only/service-contract/readiness only.
 - Phase 7 is accepted as report-only/service-contract/readiness after farm5 0.1.108 evidence.
@@ -20,7 +20,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - No pause automation is enabled.
 - No abuse DB writes are enabled.
 - No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
-- No server sync evidence for 0.1.109 exists until the operator syncs it after merge.
+- No server sync evidence for 0.1.110 exists until the operator syncs it after merge.
 
 ## Historical/Compatibility Notes
 
