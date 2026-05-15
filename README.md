@@ -42,7 +42,7 @@ Do not use this repository for production customer traffic yet.
 
 `docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 5 / working Phase 6 with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Read-only iptables-save snapshot has been authorized and evidenced. Controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Next planning target is Phase 6 Dedicated Apply Gate Proposal/Review.
+Read-only iptables-save snapshot has been authorized and evidenced. Controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current advancement target is no-customer runtime execution approval readiness (report-only/non-authorizing). Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context.
 
 No firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 

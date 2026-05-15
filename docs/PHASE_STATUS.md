@@ -23,7 +23,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Current planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path is authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Current advancement target: no-customer runtime execution approval readiness (report-only, non-authorizing). Next target after merge/sync/review is controlled no-customer runtime execution evidence. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path is authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 
 ## Accepted Server Results
 
@@ -1454,3 +1454,25 @@ docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md
 - guessed firewall state is forbidden
 - result may feed parser/planner/diff only
 - apply/gate-review final decision must remain BLOCKED
+
+
+### Phase 6 No-Customer Runtime Execution Approval Readiness — Report-Only
+
+```text
+Readiness/approval surface exists as report-only, non-executing, and non-authorizing
+final_decision: BLOCKED
+execution_allowed: false
+operator approval still required
+fresh farm5 runtime execution evidence still required
+separate runtime execution PR still required
+no firewall apply/verify/rollback
+no iptables-save execution added by this PR
+no iptables-restore
+no subprocess firewall calls
+no customer NAT
+no customer firewall rules
+no production traffic
+no usage automation
+no abuse automation
+Current State block unchanged
+```

@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness with repository version 0.1.92; latest farm5 sync evidence is 0.1.90 (next farm5 sync pending); live gates remain not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and repository version after PR #102 is 0.1.94; latest recorded farm5 sync evidence remains 0.1.93 until operator server sync; live gates remain not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
@@ -127,6 +127,7 @@ mpf firewall no-customer-apply-scaffold (report-only, scaffold-only, non-authori
 mpf firewall no-customer-apply-acceptance-gate (report-only, acceptance-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules)
 mpf firewall no-customer-apply-package (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
 mpf firewall no-customer-apply-execution-acceptance (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
+mpf firewall no-customer-runtime-execution-approval (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, operator approval still required, fresh farm5 runtime execution evidence still required, separate runtime execution PR still required)
 ```
 
 ## Forbidden Work Now

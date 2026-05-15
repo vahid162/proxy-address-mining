@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf.config import MPFConfig
-from mpf.services import firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
+from mpf.services import firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_no_customer_runtime_execution_approval_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -40,7 +40,7 @@ def _parse_current_state_block(text: str) -> dict[str, str] | None:
     return parsed if parsed else None
 
 
-def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
+def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = None, include_runtime_approval_summary: bool = True) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = root / "docs" / "PHASE_STATUS.md"
     dedicated_doc = root / "docs" / "PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md"
@@ -185,4 +185,15 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
         "blockers": blockers,
         "next_operator_action": "prepare separate explicit gate-opening proposal only after operator approval and required evidence; no runtime action is authorized now",
     }
+    if include_runtime_approval_summary:
+        runtime = firewall_no_customer_runtime_execution_approval_service.build_no_customer_runtime_execution_approval_report(cfg, repo_root=root)
+        report["no_customer_runtime_execution_approval_summary"] = {
+            "no_customer_runtime_execution_approval_present": True,
+            "no_customer_runtime_execution_approval_final_decision": runtime["final_decision"],
+            "no_customer_runtime_execution_approval_authorization_status": runtime["authorization_status"],
+            "no_customer_runtime_execution_approval_execution_allowed": runtime["execution_allowed"],
+            "no_customer_runtime_execution_approval_operator_approval_required": runtime["operator_approval_required"],
+            "no_customer_runtime_execution_approval_fresh_farm5_runtime_execution_evidence_required": runtime["fresh_farm5_runtime_execution_evidence_required"],
+            "no_customer_runtime_execution_approval_separate_runtime_execution_pr_required": runtime["separate_runtime_execution_pr_required"],
+        }
     return report
