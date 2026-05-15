@@ -5,22 +5,21 @@ Status: planning/readiness only; report-only and non-authorizing. `docs/PHASE_ST
 - Current repository before this PR: 0.1.102
 - Repository after this PR: 0.1.103
 - Latest recorded farm5 sync evidence: 0.1.102
-- Phase 7 starts only after Phase 6 acceptance.
 - Phase 7 starts only after Phase 6 is accepted.
 - Phase 7 begins with read-only/reporting/service-contract work.
 
 ## Mandatory Runtime Prohibitions (Phase 7)
 
-Phase 7 must **not** enable:
-- production traffic
-- firewall apply
-- iptables-restore
-- customer NAT/customer firewall rules
-- usage automation or usage collectors
-- policy/reject collectors
-- abuse automation
-- hard/soft blocks
-- pause automation
+- Phase 7 must not enable production traffic.
+- Phase 7 must not enable firewall apply.
+- Phase 7 must not enable iptables-restore.
+- Phase 7 must not enable customer NAT/customer firewall rules.
+- Phase 7 must not enable usage automation.
+- Phase 7 must not enable usage collectors.
+- Phase 7 must not enable policy/reject collectors.
+- Phase 7 must not enable abuse automation.
+- Phase 7 must not implement hard/soft blocks.
+- Phase 7 must not enable pause automation.
 
 Phase 8 remains the future abuse 1h core phase.
 
@@ -40,11 +39,3 @@ Phase 8 remains the future abuse 1h core phase.
 - sustained miner-abuse hardens after about 3600 seconds
 - all active customers in enabled lanes must be covered
 - no silent skip
-
-- Phase 7 must not enable production traffic.
-
-- Phase 7 must not enable firewall apply.
-
-- Phase 7 must not enable customer NAT/customer firewall rules.
-
-- Phase 7 must not enable abuse automation.

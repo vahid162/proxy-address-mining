@@ -6,8 +6,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version is 0.1.102.
-- latest recorded farm5 sync evidence is 0.1.102 until the operator syncs the current main version to farm5.
+- GitHub main repository version after this PR is 0.1.103.
+- latest recorded farm5 sync evidence is 0.1.102 until the operator syncs version 0.1.103 to farm5.
 - Phase 6 is the accepted phase: Firewall Planner accepted on farm5 as planner/reporting/gate-readiness only.
 - Phase 7 is the working phase: Usage + Policy/Reject Accounting planning/readiness only.
 - Current work is Phase 7 planning/readiness.
