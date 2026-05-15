@@ -21,7 +21,27 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
     phase7_working = "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase_status
     farm5 = "synced to 0.1.102" in phase_status and "665 passed" in phase_status
     readme_phase7_aligned = "accepted_phase: Phase 6" in readme and "working_phase: Phase 7" in readme
-    ai_present = "Usage + Policy/Reject Accounting" in ai_phase7 and "must **not** enable" in ai_phase7
+    ai_lower = ai_phase7.lower()
+    ai_required_phrases = [
+        "usage + policy/reject accounting",
+        "planning/readiness",
+        "phase 7 starts only after phase 6 is accepted",
+        "read-only/reporting/service-contract",
+        "phase 7 must not enable production traffic",
+        "phase 7 must not enable firewall apply",
+        "phase 7 must not enable iptables-restore",
+        "phase 7 must not enable customer nat/customer firewall rules",
+        "phase 7 must not enable usage automation",
+        "phase 7 must not enable usage collectors",
+        "phase 7 must not enable policy/reject collectors",
+        "phase 7 must not enable abuse automation",
+        "phase 8 remains",
+        "normal -> over_tracking -> over_grace -> hard",
+        "farms-over alone must not harden",
+        "worker-over alone must not harden",
+        "no silent skip",
+    ]
+    ai_present = all(phrase in ai_lower for phrase in ai_required_phrases)
     rem_aligned = "latest recorded farm5 sync evidence is 0.1.102" in remaining and "Phase 7 Usage + Policy/Reject Accounting readiness" in remaining
     apply_mode = cfg.firewall.apply_mode == "plan_only"
     runtime_disabled = not bool(cfg.proxy.runtime_activation_allowed)
