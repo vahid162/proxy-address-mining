@@ -1,12 +1,12 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version after this PR becomes 0.1.99; GitHub main repository version is 0.1.98; latest recorded farm5 sync evidence is 0.1.98 until the next operator sync; live gates remain not accepted and not authorized.
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version after this PR becomes 0.1.100; GitHub main repository version is 0.1.99; latest recorded farm5 sync evidence is 0.1.99; live gates remain not accepted and not authorized.
 
 This document defines the safe Phase 6 boundary for AI coding agents. It is a working guide only; `docs/PHASE_STATUS.md` is authoritative.
 
 Current note: read-only iptables-save live snapshot is authorized and evidenced, and the controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current State remains Phase 5 accepted / Phase 6 working. Firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized.
 
-Current implementation note: manual canary customer server evidence / final gate review and Phase 6 final acceptance readiness are implemented in GitHub main at 0.1.98 as report-only, non-executing, non-authorizing, BLOCKED surfaces. They still require farm5 0.1.98 sync evidence before the next planning step.
+Current implementation note: manual canary customer server evidence / final gate review and Phase 6 final acceptance readiness are implemented in GitHub main at 0.1.98 as report-only, non-executing, non-authorizing, BLOCKED surfaces. That sync evidence is now recorded and operator decision packaging is required for final acceptance.
 
 Compatibility note: "Future Dedicated Phase 6 Apply Gate Proposal/Review" is historical compatibility wording only and non-authorizing.
 Compatibility anchor: latest recorded farm5 sync evidence is 0.1.94 (historical).

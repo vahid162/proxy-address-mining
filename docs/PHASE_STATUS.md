@@ -28,6 +28,48 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+### Phase 6 farm5 0.1.99 Sync + Final Acceptance Review Evidence
+
+```text
+Evidence-only update: farm5 synced to 0.1.99 via sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260515T092830Z
+mpf --version: 0.1.99
+pytest during sync: 657 passed
+mpf config validate: OK
+mpf doctor: OK
+db status: OK
+database: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+current customer list: no non-deleted customers
+proxy doctor/status: OK
+proxy runtime remains limited local-only
+v2rayA UI listener local-only: 127.0.0.1:2015
+BTC backend listener local-only: 127.0.0.1:60010
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+no customer NAT redirects
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+firewall.apply_mode: plan_only
+proxy.runtime_activation_allowed: false
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+current Phase 5 accepted / Phase 6 working safety gate passed
+no runtime gate opened
+runtime restrictions remain unchanged
+```
+
+### Phase 6 Operator Acceptance Decision — Report-only / Gate Decision
+
+Phase 6 remains not accepted. Final operator acceptance is still BLOCKED because this repository change set has not yet completed a full regression pass that proves all legacy gate checks remain aligned. Current State stays unchanged and next target remains final operator acceptance decision.
+
+
 ### Phase 6 farm5 0.1.98 Sync + Final Review Readiness Evidence
 
 ```text
