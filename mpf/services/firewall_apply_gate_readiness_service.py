@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf.config import MPFConfig
-from mpf.services import firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_no_customer_runtime_execution_approval_service, firewall_no_customer_runtime_execution_evidence_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
+from mpf.services import firewall_manual_canary_customer_acceptance_readiness_service, firewall_manual_canary_customer_proposal_service, firewall_no_customer_apply_acceptance_gate_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_no_customer_runtime_execution_approval_service, firewall_no_customer_runtime_execution_evidence_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 
 _EXPECTED_CURRENT_STATE = {
     "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
@@ -40,7 +40,7 @@ def _parse_current_state_block(text: str) -> dict[str, str] | None:
     return parsed if parsed else None
 
 
-def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = None, include_runtime_approval_summary: bool = True, include_runtime_evidence_summary: bool = True) -> dict[str, object]:
+def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = None, include_runtime_approval_summary: bool = True, include_runtime_evidence_summary: bool = True, include_manual_canary_summary: bool = True) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = root / "docs" / "PHASE_STATUS.md"
     dedicated_doc = root / "docs" / "PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md"
@@ -185,6 +185,29 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
         "blockers": blockers,
         "next_operator_action": "prepare separate explicit gate-opening proposal only after operator approval and required evidence; no runtime action is authorized now",
     }
+
+
+    if include_manual_canary_summary:
+        proposal = firewall_manual_canary_customer_proposal_service.build_manual_canary_customer_proposal_report(cfg, repo_root=root)
+        acceptance = firewall_manual_canary_customer_acceptance_readiness_service.build_manual_canary_customer_acceptance_readiness_report(cfg, repo_root=root)
+        report["manual_canary_customer_proposal_summary"] = {
+            "manual_canary_customer_proposal_present": True,
+            "manual_canary_customer_proposal_final_decision": proposal["final_decision"],
+            "manual_canary_customer_proposal_authorization_status": proposal["authorization_status"],
+            "manual_canary_customer_proposal_execution_allowed": proposal["execution_allowed"],
+            "manual_canary_customer_proposal_customer_nat_authorized": proposal["customer_nat_authorized"],
+            "manual_canary_customer_proposal_customer_firewall_rules_authorized": proposal["customer_firewall_rules_authorized"],
+            "manual_canary_customer_proposal_fresh_farm5_canary_evidence_required": proposal["fresh_farm5_canary_evidence_required"],
+        }
+        report["manual_canary_customer_acceptance_readiness_summary"] = {
+            "manual_canary_customer_acceptance_readiness_present": True,
+            "manual_canary_customer_acceptance_readiness_final_decision": acceptance["final_decision"],
+            "manual_canary_customer_acceptance_readiness_authorization_status": acceptance["authorization_status"],
+            "manual_canary_customer_acceptance_readiness_execution_allowed": acceptance["execution_allowed"],
+            "manual_canary_customer_acceptance_readiness_customer_nat_authorized": acceptance["customer_nat_authorized"],
+            "manual_canary_customer_acceptance_readiness_customer_firewall_rules_authorized": acceptance["customer_firewall_rules_authorized"],
+            "manual_canary_customer_acceptance_readiness_fresh_farm5_canary_evidence_required": acceptance["fresh_farm5_canary_evidence_required"],
+        }
 
     if include_runtime_evidence_summary:
         evidence = firewall_no_customer_runtime_execution_evidence_service.build_no_customer_runtime_execution_evidence_report(cfg, repo_root=root)
