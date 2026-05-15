@@ -2,8 +2,8 @@
 
 Status: planning/readiness only; report-only and non-authorizing. `docs/PHASE_STATUS.md` remains authoritative.
 
-- Current repository before this PR: 0.1.105
-- Repository after this PR: 0.1.106
+- Current repository before this PR: 0.1.106
+- Repository after this PR: 0.1.107
 - Latest recorded farm5 sync evidence: 0.1.104
 - Phase 7 starts only after Phase 6 is accepted.
 - Phase 7 begins with read-only/reporting/service-contract work.
@@ -68,4 +68,21 @@ Phase 8 remains the future abuse 1h core phase.
 - It does not enable firewall apply.
 - It does not enable customer NAT/customer firewall rules.
 - It does not enable abuse automation.
+- Phase 8 remains future-only.
+
+
+## Current Phase 7 Step — Read-only Reports/Doctor
+
+- This step is report-only.
+- It aggregates Phase 7 readiness, usage accounting contract, and policy/reject accounting contract.
+- It does not enable collectors.
+- It does not enable timers.
+- It does not read live firewall counters.
+- It does not write usage_samples.
+- It does not write policy_events.
+- It does not enable firewall apply.
+- It does not enable customer NAT/customer firewall rules.
+- It does not enable abuse automation.
+- It does not start Phase 8.
+- It prepares for a batched farm5 sync after merge.
 - Phase 8 remains future-only.

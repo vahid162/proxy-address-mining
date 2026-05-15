@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.107
+- Add Phase 7 read-only reports summary/doctor service and CLI commands; keep all runtime gates closed.
+
 ## 0.1.106
 
 - Add Phase 7 policy/reject accounting report-only service-contract package and CLI; keep all runtime gates closed.

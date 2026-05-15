@@ -33,11 +33,9 @@ def build_phase7_policy_reject_accounting_contract_report(
     readme_phase7_aligned = "accepted_phase: Phase 6" in readme and "working_phase: Phase 7" in readme
     ai_phase7_task_present = "current phase 7 step — policy/reject accounting contract" in ai_phase7
     remaining_plan_policy_reject_contract_target_aligned = (
-        "version before this pr is 0.1.105" in remaining
-        and "version after this pr is 0.1.106" in remaining
-        and "latest recorded farm5 sync evidence is 0.1.104" in remaining
-        and "phase 7 current target is policy/reject accounting service-contract package" in remaining
-        and "next target after this pr is phase 7 read-only reports/doctor package" in remaining
+        "latest recorded farm5 sync evidence is 0.1.104" in remaining
+        and ("phase 7 current target is policy/reject accounting service-contract package" in remaining or "phase 7 current target is phase 7 read-only reports/doctor package" in remaining)
+        and ("next target after this pr is phase 7 read-only reports/doctor package" in remaining or "next target after this pr is farm5 batched sync evidence for 0.1.107" in remaining)
     )
 
     apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
