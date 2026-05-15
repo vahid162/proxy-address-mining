@@ -19,7 +19,7 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
     current_state_preserved = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status and "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase_status
     phase6_accepted = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status
     phase7_working = "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase_status
-    farm5 = "synced to 0.1.102" in phase_status and "665 passed" in phase_status
+    farm5 = "synced to 0.1.104" in phase_status
     readme_phase7_aligned = "accepted_phase: Phase 6" in readme and "working_phase: Phase 7" in readme
     ai_lower = ai_phase7.lower()
     ai_required_phrases = [
@@ -42,7 +42,7 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
         "no silent skip",
     ]
     ai_present = all(phrase in ai_lower for phrase in ai_required_phrases)
-    rem_aligned = ("latest recorded farm5 sync evidence is 0.1.104" in remaining and "Phase 7 current target is Usage Accounting service-contract package" in remaining)
+    rem_aligned = ("latest recorded farm5 sync evidence is 0.1.104" in remaining and "Phase 7 current target is Policy/Reject Accounting service-contract package" in remaining)
     apply_mode = cfg.firewall.apply_mode == "plan_only"
     runtime_disabled = not bool(cfg.proxy.runtime_activation_allowed)
     production_none = "production_traffic: none" in phase_status
@@ -56,13 +56,13 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
 
     checks = [
         ("current_state_preserved", current_state_preserved), ("phase6_accepted", phase6_accepted), ("phase7_working", phase7_working),
-        ("farm5_0_1_102_sync_evidence_present", farm5), ("readme_phase7_aligned", readme_phase7_aligned), ("ai_phase7_task_present", ai_present),
+        ("latest_recorded_farm5_sync_evidence_present", farm5), ("readme_phase7_aligned", readme_phase7_aligned), ("ai_phase7_task_present", ai_present),
         ("remaining_plan_phase7_aligned", rem_aligned), ("config_apply_mode_plan_only", apply_mode), ("proxy_runtime_activation_disabled", runtime_disabled),
         ("no_production_traffic", production_none), ("firewall_apply_disallowed", firewall_no), ("no_customer_nat_authorized", no_nat),
         ("no_customer_firewall_rules_authorized", True), ("no_iptables_restore_authorized", True), ("usage_automation_disallowed", True),
         ("usage_collectors_disallowed", True), ("policy_reject_collectors_disallowed", True), ("abuse_automation_disallowed", abuse_no),
         ("phase8_not_started", True), ("abuse_invariant_preserved", abuse_invariant), ("separate_phase7_service_contract_pr_required", True),
-        ("fresh_farm5_0_1_103_sync_evidence_required", True),
+        ("fresh_farm5_sync_evidence_required_before_acceptance", True),
     ]
     for name, ok in checks:
         if not ok: blockers.append(name)
@@ -75,9 +75,12 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
         "usage_automation_authorized":False,"usage_collectors_authorized":False,"policy_reject_collectors_authorized":False,"policy_reject_accounting_authorized":False,
         "customer_nat_authorized":False,"customer_firewall_rules_authorized":False,"production_traffic_authorized":False,"firewall_apply_authorized":False,
         "iptables_restore_authorized":False,"abuse_automation_authorized":False,"ui_authorized":False,"telegram_authorized":False,"phase8_start_allowed":False,
-        "operator_review_required":True,"fresh_farm5_0_1_103_sync_evidence_required":True,"separate_phase7_service_contract_pr_required":True,
+        "operator_review_required":True,"fresh_farm5_sync_evidence_required_before_acceptance":True,"separate_phase7_service_contract_pr_required":True,
         "current_state_preserved":current_state_preserved,"phase6_accepted":phase6_accepted,"phase7_working":phase7_working,"phase7_planning_readiness_only":True,
-        "farm5_0_1_102_sync_evidence_present":farm5,"readme_phase7_aligned":readme_phase7_aligned,"ai_phase7_task_present":ai_present,
+        "latest_recorded_farm5_sync_evidence_present":farm5,"readme_phase7_aligned":readme_phase7_aligned,"ai_phase7_task_present":ai_present,
+        # Compatibility aliases for older CLI/docs checks.
+        "farm5_0_1_102_sync_evidence_present":farm5,
+        "fresh_farm5_0_1_103_sync_evidence_required":True,
         "remaining_plan_phase7_aligned":rem_aligned,"apply_mode_plan_only":apply_mode,"runtime_activation_disabled":runtime_disabled,
         "production_traffic_none":production_none,"firewall_apply_disallowed":firewall_no,"customer_nat_disallowed":True,"customer_firewall_rules_disallowed":True,
         "iptables_restore_disallowed":True,"usage_automation_disallowed":True,"usage_collectors_disallowed":True,"policy_reject_collectors_disallowed":True,

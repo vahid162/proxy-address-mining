@@ -52,6 +52,7 @@ from mpf.services import (
     firewall_restore_lock_record_gate_service,
     firewall_restore_lock_record_readiness_service,
     proxy_doctor_service,
+    phase7_policy_reject_accounting_contract_service,
     phase7_usage_accounting_contract_service,
     phase7_usage_policy_readiness_service,
 )
@@ -1527,7 +1528,21 @@ def phase7_usage_policy_readiness(config: Path | None = typer.Option(None, "--co
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
         return
-    keys = ("component","final_decision","readiness_status","authorization_status","phase7_acceptance_allowed","execution_allowed","usage_automation_authorized","usage_collectors_authorized","policy_reject_collectors_authorized","policy_reject_accounting_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","firewall_apply_authorized","iptables_restore_authorized","abuse_automation_authorized","phase8_start_allowed","operator_review_required","fresh_farm5_0_1_103_sync_evidence_required","separate_phase7_service_contract_pr_required","farm5_0_1_102_sync_evidence_present","phase6_accepted","phase7_working","readme_phase7_aligned","ai_phase7_task_present","remaining_plan_phase7_aligned","apply_mode_plan_only","runtime_activation_disabled","abuse_invariant_preserved")
+    keys = ("component","final_decision","readiness_status","authorization_status","phase7_acceptance_allowed","execution_allowed","usage_automation_authorized","usage_collectors_authorized","policy_reject_collectors_authorized","policy_reject_accounting_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","firewall_apply_authorized","iptables_restore_authorized","abuse_automation_authorized","phase8_start_allowed","operator_review_required","fresh_farm5_sync_evidence_required_before_acceptance","separate_phase7_service_contract_pr_required","latest_recorded_farm5_sync_evidence_present","phase6_accepted","phase7_working","readme_phase7_aligned","ai_phase7_task_present","remaining_plan_phase7_aligned","apply_mode_plan_only","runtime_activation_disabled","abuse_invariant_preserved")
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
+
+
+@phase7_app.command("policy-reject-accounting-contract")
+def phase7_policy_reject_accounting_contract(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render Phase 7 policy/reject accounting contract report (report-only, non-authorizing)."""
+    report = phase7_policy_reject_accounting_contract_service.build_phase7_policy_reject_accounting_contract_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = ("component","final_decision","contract_status","authorization_status","execution_allowed","phase7_acceptance_allowed","policy_reject_accounting_contract_defined","policy_events_contract_defined","reject_categories_defined","reject_explainability_contract_defined","reject_report_windows_defined","policy_reject_doctor_contract_defined","policy_reject_collector_runtime_authorized","policy_reject_timer_authorized","policy_reject_db_writes_authorized","policy_reject_live_counter_read_authorized","firewall_counter_live_read_authorized","production_traffic_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","abuse_automation_authorized","phase8_start_allowed","latest_recorded_farm5_sync_evidence_present","phase7_readiness_present","usage_accounting_contract_present","remaining_plan_policy_reject_contract_target_aligned","abuse_invariant_preserved")
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")
     typer.echo(f"blockers: {report.get('blockers', [])}")

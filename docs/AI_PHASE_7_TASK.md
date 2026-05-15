@@ -2,8 +2,8 @@
 
 Status: planning/readiness only; report-only and non-authorizing. `docs/PHASE_STATUS.md` remains authoritative.
 
-- Current repository before this PR: 0.1.104
-- Repository after this PR: 0.1.105
+- Current repository before this PR: 0.1.105
+- Repository after this PR: 0.1.106
 - Latest recorded farm5 sync evidence: 0.1.104
 - Phase 7 starts only after Phase 6 is accepted.
 - Phase 7 begins with read-only/reporting/service-contract work.
@@ -51,5 +51,21 @@ Phase 8 remains the future abuse 1h core phase.
 - It does not write usage_samples.
 - It does not write policy_events.
 - It does not enable production traffic.
+- It does not enable abuse automation.
+- Phase 8 remains future-only.
+
+
+## Current Phase 7 Step — Policy/Reject Accounting Contract
+
+- This step is report-only/service-contract only.
+- It defines policy/reject event semantics.
+- It defines connlimit/hashlimit/pause/block reject categories.
+- It defines explainability rules for rejects.
+- It does not enable collectors.
+- It does not read live firewall counters.
+- It does not write policy_events.
+- It does not write usage_samples.
+- It does not enable firewall apply.
+- It does not enable customer NAT/customer firewall rules.
 - It does not enable abuse automation.
 - Phase 8 remains future-only.

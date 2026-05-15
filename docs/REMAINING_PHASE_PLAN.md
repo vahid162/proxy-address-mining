@@ -6,13 +6,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.104.
-- Repository version after this PR is 0.1.105.
+- GitHub main repository version before this PR is 0.1.105.
+- Repository version after this PR is 0.1.106.
 - latest recorded farm5 sync evidence is 0.1.104.
 - Phase 6 is the accepted phase: Firewall Planner accepted on farm5 as planner/reporting/gate-readiness only.
 - Phase 7 is the working phase: Usage + Policy/Reject Accounting planning/readiness only.
-- Phase 7 current target is Usage Accounting service-contract package.
-- Next target after this PR is Policy/Reject Accounting service contracts.
+- Phase 7 current target is Policy/Reject Accounting service-contract package.
+- Next target after this PR is Phase 7 read-only reports/doctor package.
 - Current work is Phase 7 planning/readiness.
 - Phase 7 must begin with read-only/reporting/service-contract work.
 - Phase 7 must not enable production traffic.
@@ -22,6 +22,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 7 must not enable usage automation that changes runtime behavior.
 - Phase 7 must not enable abuse automation.
 - Phase 8 remains the future mandatory Abuse 1h Core phase.
+- no offline sync is required after this PR if it remains report-only; batch sync after the next Phase 7 reports/doctor PR unless runtime/deploy/config/migration behavior changes.
 - mpf firewall apply-gate-readiness is read-only/report-only and remains BLOCKED for runtime apply gates.
 - mpf firewall gate-review includes apply_gate_readiness_summary and remains non-applyable for live apply.
 - Read-only iptables-save live snapshot path is explicitly authorized and evidenced.
