@@ -9,6 +9,9 @@ Compatibility note: "Future Dedicated Phase 6 Apply Gate Proposal/Review" is his
 Current implementation note: read-only live snapshot scaffolding report exists as fail-closed/non-authorizing output only (`mpf firewall live-snapshot-scaffold`). It does not execute live read, does not run `iptables-save`, and remains BLOCKED until explicit `docs/PHASE_STATUS.md` acceptance plus farm5 evidence in a future gate.
 Gate-review remains BLOCKED and non-authorizing.
 
+Compatibility anchor: latest recorded farm5 sync evidence is 0.1.94 (historical).
+Compatibility anchor: repository version after this PR becomes 0.1.97.
+
 ## Current Gate
 
 Authoritative source:

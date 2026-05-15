@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.98
+
+- Fix Phase 6 documentation compatibility anchors in `docs/AI_PHASE_6_TASK.md` and keep test suite green after 0.1.97 rollout.
+
 ## 0.1.97
 
 - Add report-only manual canary server evidence and Phase 6 final acceptance readiness services/CLI, integrate summaries into apply-gate-readiness and gate-review, and align Phase 6 docs with farm5 0.1.96 sync evidence.
