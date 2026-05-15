@@ -63,6 +63,7 @@ required_files=(
   docs/AI_PHASE_4_TASK.md
   docs/AI_PHASE_4_2_TASK.md
   docs/AI_PHASE_5_TASK.md
+  docs/AI_PHASE_7_TASK.md
   docs/PHASE_4_SERVER_RUNBOOK.md
   docs/PHASE_4_1_SERVER_RESULT.md
   docs/PHASE_4_2_SERVER_SYNC_RESULT.md
@@ -75,6 +76,7 @@ required_files=(
   scripts/verify_phase4_planning_gate.sh
   scripts/sync_main_zip_on_server.sh
   scripts/phase4_runtime_activation_execute.sh
+  scripts/verify_current_phase_gate.sh
   mpf/config.py
   mpf/interfaces/cli.py
   mpf/services/proxy_doctor_service.py
@@ -91,15 +93,15 @@ for file in "${required_files[@]}"; do
   echo "OK: $file"
 done
 
-grep -q 'current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show accepted Phase 5 DB-only customer CRUD gate"
-grep -q 'current_working_phase: Phase 6 — Firewall Planner' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 6 Firewall Planner working phase"
+grep -q 'current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show accepted Phase 6 Firewall Planner gate"
+grep -q 'current_working_phase: Phase 7 — Usage + Policy/Reject Accounting' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 7 Usage + Policy/Reject Accounting working phase"
 grep -q 'production_traffic: none' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep production_traffic=none"
 grep -q 'firewall_apply_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep firewall apply disabled"
 grep -q 'abuse_automation_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep abuse automation disabled"
 grep -q 'ui_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep UI disabled"
 grep -q 'telegram_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep Telegram disabled"
 grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep proxy data-plane limited local-only"
-grep -q 'customer_onboarding_allowed: db_only' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep Phase 5 DB-only customer boundary"
+grep -q 'customer_onboarding_allowed: db_only' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep customer onboarding DB-only"
 grep -q 'runtime_activation_allowed: false' "$NEW_SRC/configs/mpf.example.yaml" || fail "example config does not keep proxy runtime activation disabled"
 grep -q 'phase4_runtime_activation_execute.sh' "$NEW_SRC/docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_TASK.md" || fail "runtime execution task does not reference approved script"
 grep -q -- '--pull never' "$NEW_SRC/scripts/phase4_runtime_activation_execute.sh" || fail "runtime execution script must use --pull never"
@@ -125,8 +127,8 @@ section "VERIFY PHASE STATUS"
 cd "$APP_DIR"
 mpf --version
 mpf phase-status
-mpf phase-status | grep -q 'current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5' || fail "mpf phase-status is not aligned with accepted Phase 5 gate"
-mpf phase-status | grep -q 'current_working_phase: Phase 6 — Firewall Planner' || fail "mpf phase-status is not aligned with Phase 6"
+mpf phase-status | grep -q 'current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5' || fail "mpf phase-status is not aligned with accepted Phase 6 gate"
+mpf phase-status | grep -q 'current_working_phase: Phase 7 — Usage + Policy/Reject Accounting' || fail "mpf phase-status is not aligned with Phase 7"
 mpf phase-status | grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' || fail "mpf phase-status does not show limited_runtime_local_only"
 mpf phase-status | grep -q 'production_traffic: none' || fail "mpf phase-status does not keep production_traffic=none"
 mpf phase-status | grep -q 'firewall_apply_allowed: no' || fail "mpf phase-status does not keep firewall apply disabled"
@@ -155,6 +157,6 @@ bash "$APP_DIR/scripts/verify_current_phase_gate.sh"
 section "FINAL VERDICT"
 echo "OK: GitHub main zip synced successfully."
 echo "OK: server source is aligned with GitHub zip."
-echo "OK: accepted Phase 5 / Phase 6 planner gate is installed and verified."
+echo "OK: accepted Phase 6 / Phase 7 planning gate is installed and verified."
 echo "OK: Runtime remains limited local-only; production customer traffic is still disabled."
 echo "Backup: $BACKUP_DIR"
