@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version after PR #102 is 0.1.94; latest recorded farm5 sync evidence remains 0.1.93 until operator server sync is performed (0.1.90 remains historical evidence).
+- GitHub main repository version after PR #102 is 0.1.94; latest recorded farm5 sync evidence is 0.1.94 (0.1.90 remains historical evidence).
 - Phase 5 remains the accepted phase.
 - Phase 6 remains the working phase.
 - Current work is Phase 6 Firewall Planner / Apply Gate Readiness.
@@ -39,7 +39,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - No-customer apply/verify/rollback acceptance-gate server evidence was recorded on farm5 as report-only/non-executing; apply/verify/rollback decisions remained BLOCKED and no firewall/NAT/customer rule runtime behavior was authorized.
 - No-customer apply/verify/rollback execution-gate report exists as report-only/non-executing surface and remains BLOCKED / NOT_ACCEPTED_FOR_EXECUTION.
 - No-customer apply/verify/rollback execution acceptance package exists as artifact-only/report-only/non-executing surface and remains BLOCKED / EXECUTION_ACCEPTANCE_DEFINED_NOT_EXECUTABLE.
-- No-customer runtime execution approval readiness exists as report-only/non-executing/non-authorizing surface and remains BLOCKED / RUNTIME_EXECUTION_APPROVAL_READY_BUT_NOT_GRANTED. Runtime execution still requires separate operator approval, separate runtime execution PR, and fresh farm5 runtime execution evidence.
+- No-customer runtime execution approval readiness exists as report-only/non-executing/non-authorizing surface and remains BLOCKED / RUNTIME_EXECUTION_APPROVAL_READY_BUT_NOT_GRANTED; this step is done and synced on farm5 at 0.1.94. Runtime execution still requires separate operator approval, separate runtime execution PR, and fresh farm5 runtime execution evidence.
+- farm5 0.1.94 sync evidence is recorded as completed.
 - Historical labels retained for compatibility with existing docs checks: `## Phase 6-E — Isolated Apply Harness`, `Remaining Phase 6 Alignment With Master Roadmap`, and `Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review`.
 - Host production firewall mutation remains forbidden; must not mutate the host production firewall.
 - Compatibility anchors: `Phase 6-E0 accepted on farm5`, `Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases.`, and `host production firewall mutation is forbidden`.
@@ -51,8 +52,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 2. No-customer apply/verify/rollback scaffold — done
 3. No-customer apply/verify/rollback explicit acceptance — done and evidenced
 4. No-customer apply/verify/rollback execution package — done as report-only/non-executing
-5. No-customer runtime execution approval readiness — done after PR #102, but runtime execution still requires separate operator-approved execution PR and fresh farm5 evidence
-6. Controlled no-customer runtime execution evidence
+5. No-customer runtime execution approval readiness — done and farm5 synced at 0.1.94
+6. Controlled no-customer runtime execution evidence — current next target
 7. Manual canary customer NAT/customer firewall rules proposal
 8. Manual canary customer NAT/customer firewall rules explicit acceptance/evidence
 9. Phase 6 final acceptance

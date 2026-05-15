@@ -1,6 +1,6 @@
 # AI Phase 6 Task — Firewall Planner + Offline Apply Contracts
 
-Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and repository version after PR #102 is 0.1.94; latest recorded farm5 sync evidence remains 0.1.93 until operator server sync; live gates remain not accepted and not authorized
+Status: active task for Phase 6 Firewall Planner / Apply Gate Readiness; repository version before PR #102 was 0.1.93 and repository version after PR #102 is 0.1.94; latest recorded farm5 sync evidence is 0.1.94; live gates remain not accepted and not authorized
 
 This document defines the safe Phase 6 boundary for AI coding agents.
 
@@ -128,6 +128,7 @@ mpf firewall no-customer-apply-acceptance-gate (report-only, acceptance-gate onl
 mpf firewall no-customer-apply-package (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
 mpf firewall no-customer-apply-execution-acceptance (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic)
 mpf firewall no-customer-runtime-execution-approval (report-only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, operator approval still required, fresh farm5 runtime execution evidence still required, separate runtime execution PR still required)
+mpf firewall no-customer-runtime-execution-evidence (report-only, non-executing evidence package, final_decision=BLOCKED, execution_allowed=false, controlled evidence defined only)
 ```
 
 ## Forbidden Work Now
@@ -403,3 +404,6 @@ The explicitly gated read-only iptables-save live snapshot path is authorized an
 
 
 Current report-only command: `mpf firewall no-customer-apply-execution-gate` (report-only, execution-gate only, non-executing, non-authorizing for runtime, final_decision=BLOCKED, execution_allowed=false, no iptables-restore, no customer NAT/customer firewall rules, no production traffic).
+
+
+Repository version after this PR becomes 0.1.95, while latest farm5 sync evidence remains 0.1.94 until next operator sync.
