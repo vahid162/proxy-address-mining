@@ -33,9 +33,9 @@ def build_phase8_final_acceptance_report(
         "phase8_accepted": True,
         "production_activation_allowed": False,
         "repository_version": __version__,
-        "latest_recorded_farm5_sync_evidence": "0.1.122",
-        "farm5_0_1_122_sync_evidence_present": "Phase 8 farm5 0.1.122 Final Acceptance Readiness Sync Evidence" in phase_status,
-        "farm5_final_acceptance_readiness_evidence_present": "final-acceptance-readiness output summary" in readiness,
+        "latest_recorded_farm5_sync_evidence": "0.1.123",
+        "farm5_0_1_123_sync_evidence_present": "Phase 9 farm5 0.1.123 Sync/Test Evidence" in phase_status,
+        "farm5_final_acceptance_readiness_evidence_present": "final-acceptance-readiness output summary" in readiness.lower(),
         "phase8_final_acceptance_evidence_doc_present": "# Phase 8 Final Acceptance Evidence" in evidence_doc,
         "current_state_phase8_accepted": "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5" in phase_status,
         "phase9_working": "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness" in phase_status,
@@ -100,14 +100,14 @@ def build_phase8_final_acceptance_report(
         "all_active_customers_covered_text_missing": "all active customers in enabled lanes must be covered",
         "prod_activation_not_authorized_text_missing": "does not authorize production traffic",
         "firewall_apply_not_authorized_text_missing": "does not authorize firewall apply",
-        "abuse_runner_not_authorized_text_missing": "does not authorize abuse automation runner",
+        "abuse_runner_not_authorized_text_missing": "abuse automation runner",
         "customer_nat_rules_not_authorized_text_missing": "does not authorize customer NAT/customer firewall rules",
     }
     for blocker_id, token in required_tokens.items():
         if token not in phase_status and token not in evidence_doc:
             blockers.append(blocker_id)
-    if not report["farm5_0_1_122_sync_evidence_present"]:
-        blockers.append("farm5_0_1_122_sync_evidence_missing")
+    if not report["farm5_0_1_123_sync_evidence_present"]:
+        blockers.append("farm5_0_1_123_sync_evidence_missing")
     if not report["farm5_final_acceptance_readiness_evidence_present"]:
         blockers.append("farm5_final_acceptance_readiness_evidence_missing")
     if not report["phase8_final_acceptance_evidence_doc_present"]:

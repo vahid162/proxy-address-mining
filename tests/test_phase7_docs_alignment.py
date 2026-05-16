@@ -5,7 +5,7 @@ def test_readme_phase_alignment() -> None:
     t = Path('README.md').read_text(encoding='utf-8')
     assert 'accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5' in t
     assert 'working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness' in t
-    assert '0.1.122' in t and 'sync evidence' in t
+    assert '0.1.123' in t and 'sync evidence' in t
     assert 'not production activation' in t
     assert 'Phase 9 report-only readiness after 0.1.123 sync/test' in t
     assert 'production traffic' in t and 'firewall apply' in t and 'Telegram remain disabled' in t

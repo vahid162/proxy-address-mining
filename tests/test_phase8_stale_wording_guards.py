@@ -4,7 +4,7 @@ from pathlib import Path
 def test_phase_status_has_no_stale_active_phase7_working_sentence() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     assert "Current working phase is Phase 7 planning/readiness only" not in text
-    assert "Current working phase is Phase 8 Abuse 1h Core planning/readiness only" in text
+    assert "Historical note: at that time, current working phase was Phase 8 Abuse 1h Core planning/readiness only" in text
 
 
 def test_remaining_plan_current_position_not_stale() -> None:

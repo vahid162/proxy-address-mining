@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.122. Phase 8 Abuse 1h Core is accepted as evidence/readiness only on farm5 and is not production activation. Current target is Phase 9 report-only readiness after 0.1.123 sync/test. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Latest recorded farm5 sync evidence is 0.1.123. Phase 8 Abuse 1h Core is accepted as evidence/readiness only on farm5 and is not production activation. Current target is Phase 9 report-only readiness package after 0.1.123 sync/test. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
 ## Current Accepted/Working Boundary (Phase 8 accepted / Phase 9 planning)

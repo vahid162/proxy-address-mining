@@ -6,9 +6,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.122.
-- Repository version after this PR is 0.1.123.
-- latest recorded farm5 sync evidence is 0.1.122.
+- GitHub main repository version before this PR is 0.1.123.
+- Repository version after this PR is 0.1.124.
+- latest recorded farm5 sync evidence is 0.1.123.
 - Phase 8 final Abuse 1h acceptance readiness/review is done in 0.1.122 and synced/tested on farm5.
 - Phase 8 Abuse 1h Core is accepted on farm5 in this PR.
 - Current target is Phase 9 Check / Report / Diagnostics planning/readiness.
