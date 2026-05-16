@@ -29,6 +29,73 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+
+### Phase 8 farm5 0.1.114 Batched Readiness Sync Evidence
+
+```text
+command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260516T081446Z
+server version after sync: 0.1.114
+synced to 0.1.114
+pytest on farm5: 720 passed in 67.58s
+mpf doctor: OK
+config: OK
+database: OK
+apply_mode: plan_only
+traffic_changes: none
+firewall_mutation: disabled
+abuse_automation: disabled
+db status: OK
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+lane status: btc enabled=True backend_port=60010 chain_prefix=MPFBTC protocol=stratum source=db
+lane status: ltc enabled=False backend_port=60020 chain_prefix=MPFLTC protocol=stratum source=db
+lane status: zec enabled=False backend_port=60015 chain_prefix=MPFZEC protocol=stratum source=db
+customer list: no non-deleted customers
+proxy config/status/doctor: OK
+proxy.runtime_activation_allowed: disabled for general app/API mutation
+v2rayA UI: 127.0.0.1:2015 local-only
+BTC backend: 127.0.0.1:60010 local-only
+no_customer_nat_redirects: OK
+firewall_apply_mode_plan_only: OK
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+final sync verdict: OK
+```
+
+Phase 8 report commands executed on farm5 after 0.1.114 sync:
+- `mpf phase8 abuse-state-machine-contract --output json` => BLOCKED, execution_allowed=false, phase8_acceptance_allowed=false, blockers=[], errors=[]
+- `mpf phase8 abuse-evidence-reporting-contract --output json` => BLOCKED, execution_allowed=false, phase8_acceptance_allowed=false, blockers=[], errors=[]
+- `mpf phase8 abuse-dry-run-evaluator --output json` => BLOCKED, execution_allowed=false, phase8_acceptance_allowed=false, blockers=[], errors=[], synthetic_scenarios_passed=true
+- `mpf phase8 db-transition-readiness --output json` => BLOCKED, readiness_status=DB_ONLY_CONTROLLED_TRANSITION_READINESS_DEFINED_NOT_ACCEPTED, execution_allowed=false, phase8_acceptance_allowed=false, blockers=[], errors=[]
+
+0.1.114 sync is accepted as readiness/report-only baseline evidence.
+It does not accept Phase 8, does not authorize abuse runner, does not authorize DB execution on real customers, does not authorize firewall apply, does not authorize production customer traffic, does not authorize hard/soft blocks, and does not authorize pause automation.
+It confirms all previous Phase 8 reports remain fail-closed on farm5.
+
+### Phase 8 DB-Only Controlled Transition Execution Boundary
+
+- This PR defines controlled DB-only transition execution code.
+- This PR does not enable runtime automation.
+- This PR does not enable abuse runner.
+- This PR does not enable firewall apply.
+- This PR does not enable production traffic.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable hard/soft firewall blocks.
+- This PR does not enable pause automation.
+- CLI defaults to dry-run.
+- Production DB execution is not run by this PR.
+- Any real DB execution must be manual, explicit, idempotent, and operator-confirmed.
+- Hard transitions require operator approval fields.
+- Missing/stale evidence blocks execution.
+- Manual unhard remains future-gated.
+- Any acceptance of DB execution on farm5 requires a future sync/test result for 0.1.115 or later.
+
 ### Phase 7 farm5 0.1.108 Final Acceptance Evidence
 
 ```text

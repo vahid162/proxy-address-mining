@@ -6,26 +6,22 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.113.
-- Repository version after this PR is 0.1.114.
-- latest recorded farm5 sync evidence is 0.1.110.
+- GitHub main repository version before this PR is 0.1.114.
+- Repository version after this PR is 0.1.115.
+- latest recorded farm5 sync evidence is 0.1.114.
 - Phase 8 state-machine contract package is done in 0.1.111.
 - Phase 8 evidence/reporting contract package is done in 0.1.112.
 - Phase 8 abuse dry-run evaluator package is done in 0.1.113.
-- Current target is Phase 8 DB-only controlled transition readiness package.
-- Next target after this PR is Phase 8 DB-only controlled transition execution package, requiring fresh farm5 sync evidence before acceptance.
-- No server sync evidence for 0.1.111, 0.1.112, 0.1.113, or 0.1.114 exists until operator syncs after merge.
+- Phase 8 DB-only controlled transition readiness package is done and synced on farm5 in 0.1.114.
+- Current target is Phase 8 DB-only controlled transition execution package.
+- Next target after this PR is Phase 8 runtime/worker integration readiness package.
+- No server sync evidence for 0.1.115 exists until operator syncs after merge.
 - Do not fabricate server evidence.
-- If this PR remains report-only/non-mutating, offline sync may be batched with PR #119, PR #120, and PR #121.
-- This is probably the last PR that should be batched before a server sync.
-- The next PR after this should likely require server sync/evidence before acceptance because it may move from readiness to DB-only execution.
+- This PR should NOT be accepted on farm5 until 0.1.115 is synced and tested.
 - No Phase 8 runtime automation is enabled by this PR.
 - No abuse runner is enabled.
-- No hard/soft block is enabled.
+- No hard/soft firewall block is enabled.
 - No pause automation is enabled.
-- No DB reads/writes are enabled.
-- No usage/policy/customer DB reads/writes are enabled.
-- No live conntrack/firewall reads are enabled.
 - No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
 
 ## Finite Remaining Path
@@ -86,3 +82,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - offline sync may be batched with PR #119 and the next Phase 8 dry-run evaluator PR. (historical)
 - No server sync evidence for 0.1.111 or 0.1.112 exists until operator syncs after merge. (historical)
 - No Phase 8 runtime automation is enabled by this PR. (historical)
+
+- latest recorded farm5 sync evidence is 0.1.110. (historical compatibility anchor)
+
+- Current target is Phase 8 DB-only controlled transition readiness package. (historical compatibility anchor)

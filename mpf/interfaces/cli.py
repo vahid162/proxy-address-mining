@@ -63,6 +63,7 @@ from mpf.services import (
     phase8_abuse_evidence_reporting_contract_service,
     phase8_abuse_dry_run_evaluator_service,
     phase8_db_transition_readiness_service,
+    phase8_db_transition_execution_service,
 )
 
 app = typer.Typer(
@@ -1659,6 +1660,30 @@ def phase8_db_transition_readiness(
         "all_active_customers_coverage_required","no_silent_skip_required","blockers","errors"
     ]
     for k in keys: typer.echo(f"{k}: {report.get(k)}")
+
+
+@phase8_app.command("db-transition-execution")
+def phase8_db_transition_execution(
+    config: Path = typer.Option(Path("/etc/mpf/mpf.yaml"), "--config", help="Path to mpf.yaml."),
+    output: str = typer.Option("human", "--output", help="human | json"),
+    dry_run: bool = typer.Option(True, "--dry-run/--no-dry-run"),
+    operator_confirmation: str | None = typer.Option(None, "--operator-confirmation"),
+    request_source: str = typer.Option("explicit_manual_cli", "--request-source"),
+    demo_scenario: str = typer.Option("synthetic_tracking", "--demo-scenario"),
+) -> None:
+    cfg = load_config(config)
+    report = phase8_db_transition_execution_service.build_phase8_db_transition_execution_report(cfg)
+    report["cli_dry_run"] = dry_run
+    report["operator_confirmation_provided"] = bool(operator_confirmation)
+    report["request_source"] = request_source
+    report["demo_scenario"] = demo_scenario
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys=["component","final_decision","execution_status","authorization_status","execution_allowed","phase8_acceptance_allowed","farm5_0_1_114_sync_evidence_present","farm5_0_1_114_phase8_reports_evidence_present","no_farm5_0_1_115_sync_evidence_claimed","db_transition_execution_contract_defined","db_execution_request_contract_defined","db_execution_validation_defined","db_execution_result_contract_defined","repo_interface_defined","in_memory_repo_defined","idempotency_guard_defined","operator_confirmation_guard_defined","operator_approval_guard_defined","manual_unhard_future_gated","synthetic_execution_scenarios_passed","db_execution_authorized","db_writes_authorized","runtime_automation_authorized","abuse_runner_authorized","abuse_automation_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","future_farm5_sync_required_after_merge","future_operator_acceptance_required"]
+    for k in keys: typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
 @phase7_app.command("summary")
 def phase7_summary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     report = phase7_reports_doctor_service.build_phase7_reports_summary(_load(config))

@@ -37,14 +37,14 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 8 is planning/readiness only. Current target is the Phase 8 DB-only controlled transition readiness package (report-only/non-mutating/non-authorizing). No customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
+Phase 8 is planning/readiness only. Current target is the Phase 8 DB-only controlled transition execution package (manual, explicitly gated, dry-run default, non-runtime/non-automation). No customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
 
 
 ## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)
 
 `docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 7 / working Phase 8 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Current advancement target is the Phase 8 DB-only controlled transition readiness package, report-only/non-mutating/non-authorizing.
+Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing.
 
 Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
@@ -449,3 +449,7 @@ License is not defined yet.
 Choose and add a license before public or multi-person use.
 
 Phase 8 current target is the Phase 8 abuse evidence/reporting contract package (report-only/non-authorizing).
+
+DB-only controlled transition readiness package
+
+Current advancement target is the Phase 8 DB-only controlled transition execution package, report-only/non-mutating/non-authorizing.

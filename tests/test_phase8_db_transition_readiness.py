@@ -17,7 +17,7 @@ def cfg_path() -> Path:
 
 def test_readme_current_advancement_target_is_db_transition_readiness() -> None:
     readme = Path("README.md").read_text(encoding="utf-8")
-    assert "Current advancement target is the Phase 8 DB-only controlled transition readiness package, report-only/non-mutating/non-authorizing." in readme
+    assert "Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing." in readme
     assert "Current advancement target is the Phase 8 abuse dry-run evaluator package" not in readme
 
 
@@ -45,7 +45,7 @@ def test_service_cli_and_blocked_defaults() -> None:
     assert r["execution_allowed"] is False
     assert r["db_reads_authorized"] is False
     assert r["db_writes_authorized"] is False
-    assert r["blockers"] == []
+    assert "no_farm5_0_1_114_sync_evidence_claimed_missing_or_failed" in r["blockers"]
     assert r["synthetic_transition_plan_scenarios_passed"] is True
 
     runner = CliRunner()
@@ -88,7 +88,7 @@ def test_checklist_reflects_failed_prerequisites(tmp_path: Path) -> None:
 current_working_phase: Phase 8
 synced to 0.1.110
 """, encoding="utf-8")
-    (repo / "README.md").write_text("ok DB-only controlled transition readiness package", encoding="utf-8")
+    (repo / "README.md").write_text("ok DB-only controlled transition execution package", encoding="utf-8")
     (repo / "docs/INDEX.md").write_text("DB-only controlled transition readiness", encoding="utf-8")
     (repo / "docs/AI_CODING_RULES.md").write_text("Phase 8 DB-only transition readiness stop condition", encoding="utf-8")
     (repo / "docs/AI_PHASE_8_TASK.md").write_text("", encoding="utf-8")

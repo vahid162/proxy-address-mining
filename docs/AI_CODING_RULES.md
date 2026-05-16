@@ -243,3 +243,6 @@ When documents conflict, follow the stricter safety rule and update the docs bef
 
 
 Phase 8 DB-only transition readiness stop condition: no DB connection, no DB reads/writes, no migrations, no real customer evaluation, no live evidence collection, no abuse runner, no hard/soft blocks, no pause automation, no runtime automation.
+
+## Phase 8 DB-only execution stop condition
+- no runtime automation, no abuse runner, no firewall/customer mutation, no production traffic, manual confirmation required for any DB-only execution path, CLI defaults to dry-run, hard transitions require operator approval, manual unhard future-gated.
