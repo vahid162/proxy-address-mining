@@ -6,22 +6,20 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.116.
+- GitHub main repository version before this PR is 0.1.117.
 - Repository version after this PR is 0.1.118.
 - latest recorded farm5 sync evidence is 0.1.115.
-- Phase 8 state-machine contract package is done in 0.1.111.
-- Phase 8 evidence/reporting contract package is done in 0.1.112.
-- Phase 8 abuse dry-run evaluator package is done in 0.1.113.
-- Phase 8 DB-only controlled transition readiness package is done and synced on farm5 in 0.1.114.
-- Phase 8 DB-only controlled transition execution package is done and synced on farm5 in 0.1.115.
+- Phase 8 runtime/worker integration readiness package is done in 0.1.116, pending batch sync.
+- Phase 8 runtime worker dry-run harness package is done in 0.1.117, pending batch sync.
 - Current target is Phase 8 controlled worker pre-acceptance package.
-- Next target after this PR is Phase 8 controlled worker pre-acceptance package.
+- Next target after this PR is Phase 8 farm5 batched sync/evidence package for 0.1.116/0.1.117/0.1.118.
 - No server sync evidence for 0.1.116, 0.1.117, or 0.1.118 exists until operator syncs after merge.
 - Do not fabricate server evidence.
-- If this PR remains report-only/readiness-only and does not add real runtime workers/scheduler jobs, offline sync may be batched with the next readiness-only PR.
-- If the next PR starts a worker, adds a scheduler/timer, evaluates real customers, or executes DB transitions, fresh farm5 sync/test is required before acceptance.
+- If this PR remains report-only/pre-acceptance-only, offline sync may be batched with PR #124 and PR #125.
+- Before any controlled worker dry-run on farm5, fresh farm5 sync/test evidence is required.
 - No Phase 8 runtime automation is enabled by this PR.
 - No abuse runner is enabled.
+- No worker/scheduler/timer is enabled.
 - No real customer evaluation is enabled.
 - No production DB execution is enabled.
 - No hard/soft firewall block is enabled.
@@ -38,13 +36,12 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 6. Phase 8 abuse dry-run evaluator — done in 0.1.113
 7. Phase 8 DB-only controlled transition readiness — done and synced on farm5 in 0.1.114
 8. Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115
-9. Phase 8 runtime/worker integration readiness — done in 0.1.116
-10. Phase 8 runtime/worker integration readiness — done in 0.1.116, pending batch sync
-11. Phase 8 runtime worker dry-run harness — done in 0.1.117, pending batch sync
-12. Phase 8 controlled worker pre-acceptance — current target in 0.1.118
-13. Phase 8 farm5 batched sync/evidence — next
-14. Phase 8 controlled worker dry-run on farm5 — future
-15. Phase 8 final Abuse 1h acceptance — future
+9. Phase 8 runtime/worker integration readiness — done in 0.1.116, pending batch sync
+10. Phase 8 runtime worker dry-run harness — done in 0.1.117, pending batch sync
+11. Phase 8 controlled worker pre-acceptance — current target in 0.1.118
+12. Phase 8 farm5 batched sync/evidence — next
+13. Phase 8 controlled worker dry-run on farm5 — future
+14. Phase 8 final Abuse 1h acceptance — future
 
 ## Historical/Compatibility Notes
 

@@ -252,8 +252,12 @@ Phase 8 DB-only transition readiness stop condition: no DB connection, no DB rea
 
 ## Phase PR Body Format (Required)
 - Phase PR bodies must use Why / What / How to test / Version / Risk + Rollback.
-- Do not use Motivation / Description / Testing for Phase PRs. Phase PR bodies must use Why / What / How to test / Version / Risk + Rollback. AI agents use PR bodies as operational context, so stale PR body structure is a process defect.
-- This is required because AI agents use PR bodies as operational context.
+- Do not use Motivation / Description / Testing for Phase PRs.
+- AI agents use PR bodies as operational context; stale PR body structure is a process defect.
 
 ## Phase 8 Runtime Worker Dry-Run Harness Stop Condition
 - no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic.
+
+
+## Phase 8 Controlled Worker Pre-Acceptance Stop Condition
+- no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic.
