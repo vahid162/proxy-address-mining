@@ -91,9 +91,13 @@ def test_remaining_plan_abuse_invariants_and_phase6e():
 def test_remaining_plan_finite_path_includes_execution_and_next_steps():
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115" in t
-    assert "- GitHub main repository version before this PR is 0.1.117." in t
-    assert "- Next target after this PR is Phase 8 farm5 batched sync/evidence package for 0.1.116/0.1.117/0.1.118." in t
-    assert "11. Phase 8 controlled worker pre-acceptance — current target in 0.1.118" in t
+    assert "- GitHub main repository version before this PR is 0.1.118." in t
+    assert "- Repository version after this PR is 0.1.119." in t
+    assert "- latest recorded farm5 sync evidence is 0.1.118." in t
+    assert "- Current target is Phase 8 controlled worker dry-run gate preparation package." in t
+    assert "- Next target after this PR is Phase 8 controlled worker dry-run on farm5, but only after this PR is merged and 0.1.119 is synced/tested on farm5." in t
+    assert "12. Phase 8 controlled worker dry-run gate preparation — current target in 0.1.119" in t
+    assert "13. Phase 8 controlled worker dry-run on farm5 — next after 0.1.119 sync/test evidence" in t
     assert "Phase 8 final Abuse 1h acceptance — future" in t
 
 
@@ -107,4 +111,4 @@ def test_remaining_plan_finite_path_numbering_and_order():
     assert finite.count("13. ") == 1
     assert finite.count("14. ") == 1
     assert finite.count("Phase 8 final Abuse 1h acceptance — future") == 1
-    assert finite.index("11. Phase 8 controlled worker pre-acceptance — current target in 0.1.118") < finite.index("12. Phase 8 farm5 batched sync/evidence — next")
+    assert finite.index("12. Phase 8 controlled worker dry-run gate preparation — current target in 0.1.119") < finite.index("13. Phase 8 controlled worker dry-run on farm5 — next after 0.1.119 sync/test evidence")
