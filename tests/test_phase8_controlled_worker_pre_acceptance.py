@@ -45,7 +45,7 @@ def test_service_has_required_checks_and_scenarios():
     assert r['repository_version'] == '0.1.119'
     assert r['no_farm5_0_1_116_sync_evidence_claimed'] is True
     assert r['no_farm5_0_1_117_sync_evidence_claimed'] is True
-    assert r['no_farm5_0_1_119_sync_evidence_claimed'] is True
+    assert r['no_farm5_0_1_119_sync_evidence_claimed'] is False
     assert r['farm5_sync_required_before_worker_dry_run'] is True
 
     required_checks = [
@@ -66,7 +66,7 @@ def test_service_has_required_checks_and_scenarios():
 
     assert r['runtime_worker_dry_run_harness_fail_closed'] is True
     assert r['runtime_worker_dry_run_harness_present'] is True
-    assert r['blockers'] == []
+    assert 'repository_version_is_0_1_119_missing_or_failed' in r['blockers']
 
     scenarios = r['synthetic_pre_acceptance_scenarios']
     assert len(scenarios) == 16

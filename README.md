@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 8 is planning/readiness only. Current target is the Phase 8 controlled worker dry-run gate preparation package (report-only/readiness-only, non-runtime, non-authorizing). Latest recorded farm5 sync evidence is 0.1.118. Future controlled worker dry-run requires 0.1.119 sync/test evidence after this PR is merged. No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
+Phase 8 is planning/readiness only. Current target is the Phase 8 operator-invoked controlled worker dry-run package (report-only/readiness-only, non-runtime, non-authorizing). Latest recorded farm5 sync evidence is 0.1.119. Current target is operator-invoked controlled worker dry-run package. Future controlled worker dry-run evidence collection requires 0.1.120 sync/test evidence after this PR is merged. No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
 
 
 ## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)

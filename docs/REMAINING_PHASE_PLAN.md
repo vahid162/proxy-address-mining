@@ -6,14 +6,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.118.
-- Repository version after this PR is 0.1.119.
-- latest recorded farm5 sync evidence is 0.1.118.
+- GitHub main repository version before this PR is 0.1.119.
+- Repository version after this PR is 0.1.120.
+- latest recorded farm5 sync evidence is 0.1.119.
 - Phase 8 runtime/worker integration readiness package is done in 0.1.116 and synced on farm5 in the 0.1.118 batch.
 - Phase 8 runtime worker dry-run harness package is done in 0.1.117 and synced on farm5 in the 0.1.118 batch.
 - Phase 8 controlled worker pre-acceptance package is done in 0.1.118 and synced on farm5.
-- Current target is Phase 8 controlled worker dry-run gate preparation package.
-- Next target after this PR is Phase 8 controlled worker dry-run on farm5, but only after this PR is merged and 0.1.119 is synced/tested on farm5.
+- Current target is Phase 8 operator-invoked controlled worker dry-run package.
+- Next target after this PR is Phase 8 controlled worker dry-run on farm5, but only after this PR is merged and 0.1.120 is synced/tested on farm5.
 - Do not fabricate server evidence.
 - No Phase 8 runtime automation is enabled by this PR.
 - No abuse runner is enabled.
@@ -37,9 +37,11 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 9. Phase 8 runtime/worker integration readiness — done in 0.1.116 and synced in the 0.1.118 farm5 batch
 10. Phase 8 runtime worker dry-run harness — done in 0.1.117 and synced in the 0.1.118 farm5 batch
 11. Phase 8 controlled worker pre-acceptance — done in 0.1.118 and synced on farm5
-12. Phase 8 controlled worker dry-run gate preparation — current target in 0.1.119
-13. Phase 8 controlled worker dry-run on farm5 — next after 0.1.119 sync/test evidence
-14. Phase 8 final Abuse 1h acceptance — future
+12. Phase 8 controlled worker dry-run gate preparation — done in 0.1.119 and synced/tested on farm5
+13. Phase 8 operator-invoked controlled worker dry-run package — current target in 0.1.120
+14. Phase 8 farm5 controlled worker dry-run evidence collection — next after 0.1.120 sync/test
+15. Phase 8 final Abuse 1h acceptance — future
+
 
 ## Historical/Compatibility Notes
 

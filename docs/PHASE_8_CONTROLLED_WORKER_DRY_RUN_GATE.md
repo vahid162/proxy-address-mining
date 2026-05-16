@@ -75,3 +75,15 @@ Future controlled worker dry-run evidence must show:
 - explicit no-work/skip/lock/failure/idempotency reporting
 - no silent skip
 - no runtime side effects
+
+## Operator-Invoked Synthetic Dry-Run Package
+
+- This PR adds an operator-invoked synthetic dry-run package.
+- It does not run background workers.
+- It does not schedule anything.
+- It does not evaluate real production customers.
+- It does not read or write production DB data.
+- It does not mutate firewall/customer state.
+- It does not accept Phase 8.
+- It prepares the command surface and report contract for future farm5 evidence collection.
+- A future 0.1.120 farm5 sync/test is required before collecting farm5 controlled dry-run evidence.

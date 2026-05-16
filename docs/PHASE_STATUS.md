@@ -29,6 +29,60 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+### Phase 8 farm5 0.1.119 Controlled Worker Gate Sync Evidence
+
+```text
+command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260516T130517Z
+server version after sync: 0.1.119
+synced to 0.1.119
+pytest: 741 passed in 85.21s
+mpf doctor: OK
+config: OK
+database: OK
+apply_mode: plan_only
+traffic_changes: none
+firewall_mutation: disabled
+abuse_automation: disabled
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+customer list: no non-deleted customers
+phase status: Phase 7 accepted / Phase 8 working
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+runtime remains limited local-only
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+Docker local publish DNAT for 127.0.0.1:2015 and 127.0.0.1:60010 is accepted limited-runtime informational only
+accepted limited runtime listeners are local-only
+current phase safety gate: OK
+final sync verdict: OK
+```
+
+This 0.1.119 farm5 sync evidence confirms the controlled worker dry-run gate preparation package is synced and tested on farm5.
+
+This evidence does not accept Phase 8.
+It does not authorize background worker start.
+It does not authorize scheduler/timer.
+It does not authorize abuse runner.
+It does not authorize real production customer evaluation.
+It does not authorize production DB execution.
+It does not authorize DB writes for abuse runtime.
+It does not authorize firewall apply.
+It does not authorize iptables-restore.
+It does not authorize customer NAT/customer firewall rules.
+It does not authorize hard/soft blocks.
+It does not authorize pause automation.
+It does not authorize UI or Telegram.
+It does not authorize production traffic.
+
+
 ### Phase 8 farm5 0.1.118 Batched Sync Evidence
 
 ```text
