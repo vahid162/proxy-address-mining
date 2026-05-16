@@ -37,12 +37,12 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 8 is planning/readiness only. Latest recorded farm5 sync evidence is 0.1.122. Current target is farm5 controlled worker dry-run evidence collection preparation. Future farm5 controlled worker dry-run evidence collection requires 0.1.121 sync/test evidence after this PR is merged. No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
+Latest recorded farm5 sync evidence is 0.1.122. Phase 8 Abuse 1h Core is accepted as evidence/readiness only on farm5 and is not production activation. Current target is Phase 9 report-only readiness after 0.1.123 sync/test. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
-## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)
+## Current Accepted/Working Boundary (Phase 8 accepted / Phase 9 planning)
 
-`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 7 / working Phase 8 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 8 / working Phase 9 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
 Current advancement target is the Phase 8 runtime/worker integration readiness package, report-only/readiness-only/non-runtime/non-authorizing. Historical anchor: Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing.
 

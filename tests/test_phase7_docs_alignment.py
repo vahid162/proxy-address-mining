@@ -1,20 +1,28 @@
 from pathlib import Path
 
+
 def test_readme_phase_alignment() -> None:
     t = Path('README.md').read_text(encoding='utf-8')
-    assert 'accepted_phase: Phase 7' in t
-    assert 'working_phase: Phase 8' in t
-    assert 'production_traffic: none' in t
-    assert 'firewall_apply_allowed: no' in t
-    assert 'abuse_automation_allowed: no' in t
+    assert 'accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5' in t
+    assert 'working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness' in t
+    assert '0.1.122' in t and 'sync evidence' in t
+    assert 'not production activation' in t
+    assert 'Phase 9 report-only readiness after 0.1.123 sync/test' in t
+    assert 'production traffic' in t and 'firewall apply' in t and 'Telegram remain disabled' in t
 
-def test_ai_phase7_and_remaining_plan() -> None:
-    ai = Path('docs/AI_PHASE_7_TASK.md').read_text(encoding='utf-8')
-    rem = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')
-    assert 'Usage + Policy/Reject Accounting' in ai
-    assert 'normal -> over_tracking -> over_grace -> hard' in ai
-    assert 'latest recorded farm5 sync evidence is 0.1.110' in rem
 
-def test_ai_phase7_reports_doctor_section_present() -> None:
-    ai = Path('docs/AI_PHASE_7_TASK.md').read_text(encoding='utf-8')
-    assert 'Current Phase 7 Step — Read-only Reports/Doctor' in ai
+def test_readme_stale_wording_removed() -> None:
+    t = Path('README.md').read_text(encoding='utf-8')
+    assert 'Phase 8 is planning/readiness only' not in t
+    assert 'Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)' not in t
+    assert 'Current target is farm5 controlled worker dry-run evidence collection preparation' not in t
+    assert 'Future farm5 controlled worker dry-run evidence collection requires 0.1.121 sync/test' not in t
+
+
+def test_ai_coding_rules_current_gate_and_stale_sections() -> None:
+    t = Path('docs/AI_CODING_RULES.md').read_text(encoding='utf-8')
+    assert 'accepted: Phase 8 — Abuse 1h Core accepted on farm5' in t
+    assert 'working: Phase 9 — Check / Report / Diagnostics planning/readiness' in t
+    assert 'accepted: Phase 7' not in t
+    assert 'Forbidden in current Phase 8 work:' not in t
+    assert 'Phase PR bodies must use Why / What / How to test / Version / Risk + Rollback.' in t

@@ -17,7 +17,7 @@ def build_phase8_final_acceptance_report(
     _ = cfg
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = _r(root / "docs/PHASE_STATUS.md")
-    readiness = _r(root / "docs/PHASE_STATUS.md")
+    readiness = phase_status
     evidence_doc = _r(root / "docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md")
 
     report: dict[str, object] = {
@@ -83,6 +83,29 @@ def build_phase8_final_acceptance_report(
         "future_phase9_readiness_pr_required": True,
     }
     blockers: list[str] = []
+    required_tokens = {
+        "current_accepted_phase_phase8_missing": "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5",
+        "current_working_phase_phase9_missing": "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness",
+        "production_traffic_none_missing": "production_traffic: none",
+        "firewall_apply_allowed_no_missing": "firewall_apply_allowed: no",
+        "abuse_automation_allowed_no_missing": "abuse_automation_allowed: no",
+        "customer_onboarding_db_only_missing": "customer_onboarding_allowed: db_only",
+        "proxy_data_plane_limited_runtime_missing": "proxy_data_plane_allowed: limited_runtime_local_only",
+        "ui_allowed_no_missing": "ui_allowed: no",
+        "telegram_allowed_no_missing": "telegram_allowed: no",
+        "live_snapshot_read_allowed_missing": "live_snapshot_read_allowed: iptables_save_read_only",
+        "restore_lock_record_execution_allowed_missing": "restore_lock_record_execution_allowed: controlled_boundary_only",
+        "abuse_invariant_text_missing": "normal -> over_tracking -> over_grace -> hard",
+        "no_silent_skip_text_missing": "no silent skip",
+        "all_active_customers_covered_text_missing": "all active customers in enabled lanes must be covered",
+        "prod_activation_not_authorized_text_missing": "does not authorize production traffic",
+        "firewall_apply_not_authorized_text_missing": "does not authorize firewall apply",
+        "abuse_runner_not_authorized_text_missing": "does not authorize abuse automation runner",
+        "customer_nat_rules_not_authorized_text_missing": "does not authorize customer NAT/customer firewall rules",
+    }
+    for blocker_id, token in required_tokens.items():
+        if token not in phase_status and token not in evidence_doc:
+            blockers.append(blocker_id)
     if not report["farm5_0_1_122_sync_evidence_present"]:
         blockers.append("farm5_0_1_122_sync_evidence_missing")
     if not report["farm5_final_acceptance_readiness_evidence_present"]:

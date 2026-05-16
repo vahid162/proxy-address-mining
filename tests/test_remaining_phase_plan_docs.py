@@ -1,17 +1,43 @@
 from pathlib import Path
 
-def _read(p:str)->str:return Path(p).read_text(encoding="utf-8")
 
-def test_remaining_phase_plan_exists():
-    assert Path("docs/REMAINING_PHASE_PLAN.md").exists()
+def _read(p: str) -> str:
+    return Path(p).read_text(encoding='utf-8')
 
-def test_current_position_updated():
-    t=_read("docs/REMAINING_PHASE_PLAN.md")
-    assert "Repository version after this PR is 0.1.123." in t
-    assert "Current target is Phase 9 Check / Report / Diagnostics planning/readiness." in t
 
-def test_finite_path_updated():
-    t=_read("docs/REMAINING_PHASE_PLAN.md")
-    assert "3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123" in t
-    assert "4. Phase 9 Check / Report / Diagnostics planning/readiness — current target" in t
-    assert "11. Production / Customer Activation Gate" in t
+def test_remaining_phase_plan_exists() -> None:
+    assert Path('docs/REMAINING_PHASE_PLAN.md').exists()
+
+
+def test_current_position_single_and_targets() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    assert t.count('## Current Position') == 1
+    assert '- GitHub main repository version before this PR is 0.1.122.' in t
+    assert '- Repository version after this PR is 0.1.123.' in t
+    assert '- latest recorded farm5 sync evidence is 0.1.122.' in t
+    assert '- Current target is Phase 9 Check / Report / Diagnostics planning/readiness.' in t
+    assert '- Next target after this PR is Phase 9 readiness/report-only package, but only after this PR is merged and 0.1.123 is synced/tested on farm5.' in t
+
+
+def test_current_position_safety_and_non_activation() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    assert '- No production traffic is enabled.' in t
+    assert '- No firewall apply is enabled.' in t
+    assert '- No abuse automation runner is enabled.' in t
+    assert '- No customer NAT/customer firewall rules, UI, or Telegram is authorized.' in t
+    assert 'Phase 8 Abuse 1h Core is accepted on farm5 in this PR.' in t
+    assert 'No production activation is enabled by this PR.' in t
+    assert 'Production / Customer Activation Gate — future, separate, explicit, and not authorized by Phase 8 acceptance' in t
+
+
+def test_finite_path_phase8_and_phase9() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    assert '3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123' in t
+    assert '4. Phase 9 Check / Report / Diagnostics planning/readiness — current target' in t
+
+
+def test_no_stale_active_phase7_phase8_wording_in_current_position() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    current = t.split('## Current Position', 1)[1].split('## Finite Remaining Path', 1)[0]
+    assert 'accepted Phase 7 / working Phase 8' not in current
+    assert 'Phase 8 is planning/readiness only' not in current
