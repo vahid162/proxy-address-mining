@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.118
+- Add the Phase 8 controlled worker pre-acceptance package with fail-closed worker preflight, operator approval, sync boundary, kill-switch, evidence, lock, no-silent-skip, and acceptance contracts while keeping all runtime, scheduler, abuse runner, real-customer, production DB, firewall, customer, and production traffic gates closed.
+
 ## 0.1.117
 - Add the Phase 8 runtime worker dry-run harness package with synthetic worker-cycle simulation, in-memory lock/idempotency behavior, kill-switch and failure-mode reporting, and a report-only CLI while keeping all runtime, scheduler, abuse runner, real customer, production DB, firewall, customer, and production traffic gates closed.
 

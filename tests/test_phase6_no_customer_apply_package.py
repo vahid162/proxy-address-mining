@@ -14,11 +14,11 @@ def example_config_path() -> Path:
 def _cfg(): return load_config(example_config_path())
 
 def test_version_consistency():
-    assert Path('VERSION').read_text().strip()=='0.1.117'
-    assert tomllib.loads(Path('pyproject.toml').read_text())['project']['version']=='0.1.117'
-    assert __version__=='0.1.117'
+    assert Path('VERSION').read_text().strip()=='0.1.118'
+    assert tomllib.loads(Path('pyproject.toml').read_text())['project']['version']=='0.1.118'
+    assert __version__=='0.1.118'
     r=CliRunner().invoke(app,['--version'])
-    assert '0.1.117' in r.output
+    assert '0.1.118' in r.output
 
 def test_package_default_report():
     r=build_no_customer_apply_package_report(_cfg())

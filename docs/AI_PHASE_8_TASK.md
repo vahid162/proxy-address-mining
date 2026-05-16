@@ -234,3 +234,37 @@ future path:
 7. runtime worker dry-run harness — current
 8. controlled worker pre-acceptance package — future
 9. final Abuse 1h acceptance — future
+
+
+## Current Phase 8 Step — Controlled Worker Pre-Acceptance
+
+- pre-acceptance only
+- no worker start
+- no scheduler/timer
+- no abuse runner
+- no real customer evaluation
+- no production DB execution
+- no DB reads/writes for worker execution
+- no firewall/customer mutation
+- no hard/soft blocks
+- no pause automation
+- fresh farm5 sync required before controlled worker dry-run
+- batch sync recommendation for 0.1.116/0.1.117/0.1.118 if report-only
+- operator approval required before future controlled worker dry-run
+- kill switch required
+- lock required
+- explicit skip required
+- no silent skip required
+
+Future path:
+1. abuse state-machine contract — done
+2. abuse evidence/reporting contract — done
+3. abuse dry-run evaluator — done
+4. DB-only controlled transition readiness — done and synced at 0.1.114
+5. DB-only controlled transition execution — done and synced at 0.1.115
+6. runtime/worker integration readiness — done in 0.1.116, pending batch sync
+7. runtime worker dry-run harness — done in 0.1.117, pending batch sync
+8. controlled worker pre-acceptance — current
+9. farm5 batched sync/evidence package — next
+10. controlled worker dry-run on farm5 — future
+11. final Abuse 1h acceptance — future

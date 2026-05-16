@@ -66,6 +66,7 @@ from mpf.services import (
     phase8_runtime_worker_integration_readiness_service,
     phase8_db_transition_execution_service,
     phase8_runtime_worker_dry_run_harness_service,
+    phase8_controlled_worker_pre_acceptance_service,
 )
 
 app = typer.Typer(
@@ -1831,5 +1832,19 @@ def phase8_runtime_worker_dry_run_harness(
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
         return
     keys=["component","final_decision","harness_status","authorization_status","execution_allowed","phase8_acceptance_allowed","latest_recorded_farm5_sync_evidence","no_farm5_0_1_116_sync_evidence_claimed","no_farm5_0_1_117_sync_evidence_claimed","runtime_worker_readiness_present","runtime_worker_readiness_fail_closed","worker_dry_run_harness_defined","worker_cycle_contract_defined","worker_item_contract_defined","worker_result_contract_defined","synthetic_worker_cycles_passed","explicit_skip_reporting_defined","no_work_reporting_defined","kill_switch_behavior_defined","lock_contention_behavior_defined","idempotency_duplicate_behavior_defined","batch_limit_behavior_defined","failure_mode_behavior_defined","runtime_worker_authorized","scheduler_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","future_controlled_worker_pre_acceptance_pr_required","future_farm5_sync_required_before_runtime_acceptance","blockers","errors"]
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
+
+
+@phase8_app.command("controlled-worker-pre-acceptance")
+def phase8_controlled_worker_pre_acceptance(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    report = phase8_controlled_worker_pre_acceptance_service.build_phase8_controlled_worker_pre_acceptance_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True))
+        return
+    keys=["component","final_decision","pre_acceptance_status","authorization_status","execution_allowed","phase8_acceptance_allowed","latest_recorded_farm5_sync_evidence","repository_version","no_farm5_0_1_116_sync_evidence_claimed","no_farm5_0_1_117_sync_evidence_claimed","no_farm5_0_1_118_sync_evidence_claimed","farm5_sync_required_before_worker_dry_run","batch_sync_recommended_for_0_1_116_0_1_117_0_1_118","runtime_worker_dry_run_harness_present","runtime_worker_dry_run_harness_fail_closed","pre_acceptance_contract_defined","pre_acceptance_evaluator_defined","operator_approval_contract_defined","kill_switch_contract_required","lock_contract_required","no_silent_skip_contract_required","fresh_sync_contract_required","synthetic_pre_acceptance_scenarios_passed","controlled_worker_dry_run_allowed_now","runtime_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","future_farm5_batch_sync_required","future_controlled_worker_dry_run_pr_required","future_operator_acceptance_required","future_phase8_final_acceptance_pr_required","blockers","errors"]
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")
