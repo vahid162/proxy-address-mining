@@ -58,15 +58,51 @@ class ControlledWorkerDryRunResult:
     required_next_steps: List[str]
 
 
+def _version_tuple(version: str) -> tuple[int, ...]:
+    parts = version.strip().split(".")
+    return tuple(int(part) for part in parts if part.isdigit())
+
+
 def build_controlled_worker_dry_run_synthetic_items() -> list[ControlledWorkerDryRunItem]:
-    scenarios = ["no_work","lock_contention","normal_stays_normal","over_tracking_observed_but_no_hard","over_grace_observed_but_no_hard","hard_candidate_reported_but_not_applied","stale_evidence_skipped","missing_evidence_skipped","db_failure_reported_no_write","firewall_failure_reported_no_mutation","idempotency_duplicate_skipped"]
-    return [ControlledWorkerDryRunItem(s,"BTC",f"synthetic-{i}","before","observation","after","report_only",s,False,False,False,False) for i,s in enumerate(scenarios,1)]
+    scenarios = [
+        "no_work",
+        "lock_contention",
+        "normal_stays_normal",
+        "over_tracking_observed_but_no_hard",
+        "over_grace_observed_but_no_hard",
+        "hard_candidate_reported_but_not_applied",
+        "stale_evidence_skipped",
+        "missing_evidence_skipped",
+        "db_failure_reported_no_write",
+        "firewall_failure_reported_no_mutation",
+        "idempotency_duplicate_skipped",
+    ]
+    return [
+        ControlledWorkerDryRunItem(
+            item_id=scenario,
+            lane="BTC",
+            customer_ref=f"synthetic-{index}",
+            simulated_state_before="before",
+            simulated_observation="observation",
+            simulated_state_after="after",
+            action="report_only",
+            reason=scenario,
+            would_write_db=False,
+            would_mutate_firewall=False,
+            would_mutate_customer=False,
+            would_touch_production_traffic=False,
+        )
+        for index, scenario in enumerate(scenarios, 1)
+    ]
 
 
-def evaluate_controlled_worker_dry_run(input: ControlledWorkerDryRunInput, items: list[ControlledWorkerDryRunItem] | None = None) -> ControlledWorkerDryRunResult:
+def evaluate_controlled_worker_dry_run(
+    input: ControlledWorkerDryRunInput,
+    items: list[ControlledWorkerDryRunItem] | None = None,
+) -> ControlledWorkerDryRunResult:
     work_items = items or build_controlled_worker_dry_run_synthetic_items()
     blockers: list[str] = []
-    if input.repository_version > input.latest_recorded_farm5_sync_evidence:
+    if _version_tuple(input.repository_version) > _version_tuple(input.latest_recorded_farm5_sync_evidence):
         blockers.append("fresh_farm5_sync_test_required_before_evidence_collection")
     if not input.explicit_dry_run:
         blockers.append("explicit_dry_run_required")
@@ -91,9 +127,20 @@ def evaluate_controlled_worker_dry_run(input: ControlledWorkerDryRunInput, items
     return ControlledWorkerDryRunResult(
         final_decision="BLOCKED" if blockers else "DRY_RUN_ONLY",
         dry_run_status="CONTROLLED_WORKER_DRY_RUN_SYNTHETIC_ONLY",
-        execution_allowed=False, production_side_effects_allowed=False, phase8_acceptance_allowed=False,
-        operator_invoked_only=True, scheduler_allowed=False, timer_allowed=False, abuse_runner_allowed=False,
-        real_customer_evaluation_allowed=False, db_writes_allowed=False, firewall_mutation_allowed=False,
-        customer_mutation_allowed=False, production_traffic_allowed=False, items=work_items, blockers=blockers,
-        warnings=[], required_next_steps=["sync_test_0_1_120_on_farm5_before_future_evidence_collection"],
+        execution_allowed=False,
+        production_side_effects_allowed=False,
+        phase8_acceptance_allowed=False,
+        operator_invoked_only=True,
+        scheduler_allowed=False,
+        timer_allowed=False,
+        abuse_runner_allowed=False,
+        real_customer_evaluation_allowed=False,
+        db_writes_allowed=False,
+        firewall_mutation_allowed=False,
+        customer_mutation_allowed=False,
+        production_traffic_allowed=False,
+        items=work_items,
+        blockers=blockers,
+        warnings=[],
+        required_next_steps=["sync_test_0_1_120_on_farm5_before_future_evidence_collection"],
     )
