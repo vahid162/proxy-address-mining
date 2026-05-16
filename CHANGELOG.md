@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.119
+- Record farm5 batched sync evidence for Phase 8 versions 0.1.116, 0.1.117, and 0.1.118, and add the controlled worker dry-run gate preparation package while keeping Phase 8 not accepted and all worker, scheduler, abuse runner, DB execution, firewall, customer, hard/soft block, pause, UI, Telegram, and production traffic gates closed.
+
 ## 0.1.118
 - Add the Phase 8 controlled worker pre-acceptance package with fail-closed worker preflight, operator approval, sync boundary, kill-switch, evidence, lock, no-silent-skip, and acceptance contracts while keeping all runtime, scheduler, abuse runner, real-customer, production DB, firewall, customer, and production traffic gates closed.
 
@@ -7,6 +10,9 @@
 - Add the Phase 8 runtime worker dry-run harness package with synthetic worker-cycle simulation, in-memory lock/idempotency behavior, kill-switch and failure-mode reporting, and a report-only CLI while keeping all runtime, scheduler, abuse runner, real customer, production DB, firewall, customer, and production traffic gates closed.
 
 # Changelog
+
+## 0.1.119
+- Record farm5 batched sync evidence for Phase 8 versions 0.1.116, 0.1.117, and 0.1.118, and add the controlled worker dry-run gate preparation package while keeping Phase 8 not accepted and all worker, scheduler, abuse runner, DB execution, firewall, customer, hard/soft block, pause, UI, Telegram, and production traffic gates closed.
 
 ## 0.1.116
 - Record farm5 0.1.115 sync evidence, align Phase 8 DB transition readiness with the accepted 0.1.114/0.1.115 sync state, and add the Phase 8 runtime/worker integration readiness package while keeping all runtime, scheduler, firewall, customer, DB execution, and abuse automation gates closed.

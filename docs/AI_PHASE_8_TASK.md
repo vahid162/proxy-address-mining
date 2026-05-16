@@ -268,3 +268,37 @@ Future path:
 9. farm5 batched sync/evidence package — next
 10. controlled worker dry-run on farm5 — future
 11. final Abuse 1h acceptance — future
+
+
+## Current Phase 8 Step — Controlled Worker Dry-Run Gate Preparation
+
+- gate-preparation only
+- no worker start
+- no scheduler/timer
+- no abuse runner
+- no real customer evaluation
+- no production DB execution
+- no DB writes for abuse runtime
+- no firewall/customer mutation
+- no hard/soft blocks
+- no pause automation
+- no production traffic
+- farm5 0.1.118 batch sync evidence is recorded
+- 0.1.119 sync/test evidence is required before any future controlled worker dry-run
+- future controlled worker dry-run must be separately invoked by operator
+- future controlled worker dry-run must remain limited, explicit, fail-closed, and non-production
+- future controlled worker dry-run must report skip/no-work/lock/failure/idempotency outcomes explicitly
+- no silent skip is allowed
+
+Future path:
+1. abuse state-machine contract — done
+2. abuse evidence/reporting contract — done
+3. abuse dry-run evaluator — done
+4. DB-only controlled transition readiness — done and synced at 0.1.114
+5. DB-only controlled transition execution — done and synced at 0.1.115
+6. runtime/worker integration readiness — done in 0.1.116 and synced in 0.1.118 batch
+7. runtime worker dry-run harness — done in 0.1.117 and synced in 0.1.118 batch
+8. controlled worker pre-acceptance — done in 0.1.118 and synced on farm5
+9. controlled worker dry-run gate preparation — current
+10. controlled worker dry-run on farm5 — future, requires 0.1.119 sync/test evidence
+11. final Abuse 1h acceptance — future

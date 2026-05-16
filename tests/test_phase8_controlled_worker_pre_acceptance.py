@@ -42,10 +42,10 @@ def test_service_has_required_checks_and_scenarios():
     assert r['execution_allowed'] is False
     assert r['phase8_acceptance_allowed'] is False
     assert r['latest_recorded_farm5_sync_evidence'] == '0.1.115'
-    assert r['repository_version'] == '0.1.118'
+    assert r['repository_version'] == '0.1.119'
     assert r['no_farm5_0_1_116_sync_evidence_claimed'] is True
     assert r['no_farm5_0_1_117_sync_evidence_claimed'] is True
-    assert r['no_farm5_0_1_118_sync_evidence_claimed'] is True
+    assert r['no_farm5_0_1_119_sync_evidence_claimed'] is True
     assert r['farm5_sync_required_before_worker_dry_run'] is True
 
     required_checks = [

@@ -13,6 +13,7 @@ from mpf.domain.customer_lifecycle import CustomerLifecycleInput
 from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, CustomerDisableRequest, CustomerPolicyInput, CustomerRenewRequest, CustomerSetIpsRequest, CustomerUpdateRequest
 from mpf.domain.health import HealthReport
 from mpf.services import (
+    phase8_controlled_worker_dry_run_gate_service,
     firewall_apply_gate_readiness_service,
     firewall_no_customer_apply_acceptance_gate_service,
     firewall_no_customer_apply_execution_acceptance_service,
@@ -1835,6 +1836,18 @@ def phase8_runtime_worker_dry_run_harness(
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")
 
+
+
+@phase8_app.command("controlled-worker-dry-run-gate")
+def phase8_controlled_worker_dry_run_gate(
+    config: Path = typer.Option(DEFAULT_CONFIG_PATH, "--config", exists=True, readable=True),
+    output: str = typer.Option("human", "--output", help="human|json"),
+) -> None:
+    report = phase8_controlled_worker_dry_run_gate_service.build_phase8_controlled_worker_dry_run_gate_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    keys=["component","final_decision","gate_status","authorization_status","execution_allowed","phase8_acceptance_allowed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_118_batch_sync_evidence_present","farm5_0_1_119_sync_required_before_controlled_worker_dry_run","current_state_preserved","phase7_accepted","phase8_working","phase8_not_accepted","controlled_worker_dry_run_gate_doc_present","controlled_worker_dry_run_gate_prepared","operator_approval_required","kill_switch_required","lock_required","idempotency_required","explicit_skip_required","no_silent_skip_required","no_work_reporting_required","failure_mode_reporting_required","runtime_worker_authorized","worker_start_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","customer_policy_mutation_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","future_controlled_worker_dry_run_requires_operator","future_controlled_worker_dry_run_requires_0_1_119_sync","future_controlled_worker_dry_run_pr_required","future_phase8_final_acceptance_pr_required","blockers","errors"]
+    _print_kv(report, keys)
 
 @phase8_app.command("controlled-worker-pre-acceptance")
 def phase8_controlled_worker_pre_acceptance(
