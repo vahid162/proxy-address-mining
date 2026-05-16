@@ -40,17 +40,17 @@ Do not use this repository for production customer traffic yet.
 Phase 8 is planning/readiness only. Current target is the Phase 8 abuse state-machine contract package (report-only/non-authorizing). No customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
 
 
-## Current Phase 6 Accepted State and Phase 7 Working Boundary
+## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)
 
-`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 6 / working Phase 7 with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 7 / working Phase 8 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Read-only iptables-save snapshot has been authorized and evidenced. Controlled restore point + scoped lock + DB apply record boundary has been executed once and evidenced. Current advancement target is Phase 7 Usage + Policy/Reject Accounting readiness, report-only/non-authorizing. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context.
+Current advancement target is the Phase 8 abuse state-machine contract package, report-only/non-authorizing.
+
+Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
 No firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
 
-Compatibility note: Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
-
-Allowed under the current Phase 6 gate, with Apply Slice 3 and Apply Slice 4 server-synced and accepted only as documentation/test-only boundaries:
+Historical/reference-only notes from accepted Phase 6 boundaries:
 
 ```text
 repository/documentation cleanup that preserves phase gates

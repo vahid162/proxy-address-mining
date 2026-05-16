@@ -41,7 +41,7 @@ Read these first:
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_6_TASK.md`, `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`, and `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md` define the current Phase 6 boundary and accepted evidence.
+`docs/AI_PHASE_8_TASK.md` defines the current active Phase 8 boundary. Phase 6 documents below are historical/reference-only and non-authorizing.
 This file is the documentation map.
 
 ## Core Contracts
@@ -74,6 +74,9 @@ Current working phase:
 ```text
 Phase 8 — Abuse 1h Core planning/readiness
 ```
+
+Current active add-on read first: `docs/AI_PHASE_8_TASK.md` (active/current).
+Phase 6 documents below remain historical/reference/non-authorizing context.
 
 Current Phase 8 step:
 

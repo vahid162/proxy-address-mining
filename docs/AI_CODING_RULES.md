@@ -22,7 +22,7 @@ docs/ABUSE.md
 docs/AI_CODING_RULES.md
 ```
 
-For the current Phase 6 work, also read:
+For historical Phase 6 firewall-planner/reference context, also read:
 
 ```text
 docs/AI_PHASE_6_TASK.md
@@ -71,9 +71,9 @@ Forbidden in current Phase 8 work:
 - no live firewall apply, no customer NAT/rules, no iptables-restore, no production traffic, no UI, no Telegram
 
 
-## Phase 6-B Historical Rule + Current 6-E1 Safety Continuity
+## Phase 6 Historical Safety Continuity (reference only)
 
-Phase 6-B modeled the apply/rollback/preflight boundary and is now historical/accepted. Current next safe work is Phase 6-E1 isolated/non-production harness hardening only, with the same non-mutating safety boundary.
+Phase 6-B and adjacent Phase 6 slices modeled apply/rollback/preflight boundaries and are now historical/accepted reference context only. They do not define current active work in Phase 8.
 
 Historical Phase 6-B allowed work (accepted reference):
 

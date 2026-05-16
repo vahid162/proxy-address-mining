@@ -84,3 +84,19 @@ def test_phase8_abuse_state_machine_static_safety() -> None:
     banned = ["subprocess.run", "subprocess.popen", "os.system", "open(", "\"w\"", "write_text", "psycopg.connect", "insert into", "update", "delete from", "alembic", "migration", "create_engine", "session.add", "session.commit"]
     for b in banned:
         assert b not in text
+
+
+def test_phase8_abuse_state_machine_blockers_from_config() -> None:
+    cfg = load_config(example_config_path())
+    cfg.firewall.apply_mode = "manual_apply"
+    report = build_phase8_abuse_state_machine_contract_report(cfg)
+    assert report["apply_mode_plan_only"] is False
+    assert "apply_mode_plan_only_missing_or_failed" in report["blockers"]
+
+
+def test_phase8_abuse_state_machine_blockers_runtime_activation() -> None:
+    cfg = load_config(example_config_path())
+    cfg.proxy.runtime_activation_allowed = True
+    report = build_phase8_abuse_state_machine_contract_report(cfg)
+    assert report["runtime_activation_disabled"] is False
+    assert "runtime_activation_disabled_missing_or_failed" in report["blockers"]

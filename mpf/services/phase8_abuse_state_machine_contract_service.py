@@ -37,6 +37,9 @@ def build_phase8_abuse_state_machine_contract_report(
     index_aligned = "Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in index and "Phase 8 — Abuse 1h Core planning/readiness" in index
     rules_aligned = "accepted: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in ai_rules and "working: Phase 8 — Abuse 1h Core planning/readiness" in ai_rules
 
+    apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
+    runtime_activation_disabled = cfg.proxy.runtime_activation_allowed is False
+
     bools = {
         "current_state_preserved": current_state_preserved,
         "phase7_accepted": phase7_accepted,
@@ -49,8 +52,8 @@ def build_phase8_abuse_state_machine_contract_report(
         "readme_current_gate_aligned": readme_aligned,
         "index_current_gate_aligned": index_aligned,
         "ai_coding_rules_current_gate_aligned": rules_aligned,
-        "apply_mode_plan_only": True,
-        "runtime_activation_disabled": True,
+        "apply_mode_plan_only": apply_mode_plan_only,
+        "runtime_activation_disabled": runtime_activation_disabled,
         "production_traffic_none": True,
         "firewall_apply_disallowed": True,
         "customer_nat_disallowed": True,
