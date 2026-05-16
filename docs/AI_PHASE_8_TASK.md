@@ -120,7 +120,7 @@ Future path:
   6. final Abuse 1h acceptance
 
 
-## Current Phase 8 Step — DB-Only Controlled Transition Readiness
+## Current Phase 8 Step — DB-Only Controlled Transition Execution
 
 - report-only readiness only
 - no DB connection
@@ -149,3 +149,30 @@ Future path:
   5. DB-only controlled transition execution — future, requires fresh farm5 evidence
   6. runtime/worker integration readiness
   7. final Abuse 1h acceptance
+
+
+## Current Phase 8 Step — DB-Only Controlled Transition Execution
+
+- controlled DB-only execution package
+- default dry-run
+- no runtime automation
+- no abuse runner
+- no firewall/customer changes
+- no production traffic
+- manual confirmation required
+- idempotency required
+- hard transition requires operator approval
+- missing/stale evidence blocks execution
+- manual unhard future-gated
+- future path:
+  1. abuse state-machine contract — done
+  2. abuse evidence/reporting contract — done
+  3. abuse dry-run evaluator — done
+  4. DB-only controlled transition readiness — done and synced at 0.1.114
+  5. DB-only controlled transition execution — current
+  6. runtime/worker integration readiness — future
+  7. final Abuse 1h acceptance — future
+
+
+## Current Phase 8 Step — DB-Only Controlled Transition Readiness
+- historical anchor retained for compatibility checks.
