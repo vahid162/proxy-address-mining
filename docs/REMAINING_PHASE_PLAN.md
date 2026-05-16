@@ -32,13 +32,15 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 1. Phase 6 Firewall Planner — accepted on farm5
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
-3. Phase 8 Abuse 1h Core planning/readiness — current target
-4. Phase 8 abuse state-machine contract
-5. Phase 8 abuse evidence/reporting contract
-6. Phase 8 abuse dry-run evaluator
-7. Phase 8 DB-only controlled transition readiness
-8. Phase 8 runtime/worker integration readiness
-9. Phase 8 final Abuse 1h acceptance
+3. Phase 8 Abuse 1h Core planning/readiness — current
+4. Phase 8 abuse state-machine contract — done in 0.1.111
+5. Phase 8 abuse evidence/reporting contract — done in 0.1.112
+6. Phase 8 abuse dry-run evaluator — done in 0.1.113
+7. Phase 8 DB-only controlled transition readiness — done and synced on farm5 in 0.1.114
+8. Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115
+9. Phase 8 runtime/worker integration readiness — current target in 0.1.116
+10. Phase 8 runtime worker dry-run harness — next target
+11. Phase 8 final Abuse 1h acceptance — future
 
 ## Historical/Compatibility Notes
 
