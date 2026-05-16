@@ -66,7 +66,7 @@ def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_ro
         _scenario_result("missing_kill_switch_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.118", True, True, True, True, False, True, True, True), "kill_switch_contract_missing"),
         _scenario_result("missing_lock_contract_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.118", True, True, True, True, True, False, True, True), "lock_contract_missing"),
         _scenario_result("missing_no_silent_skip_contract_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.118", True, True, True, True, True, True, False, True), "no_silent_skip_contract_missing"),
-        _scenario_result("fabricated_0_1_118_sync_evidence_blocks", AbuseWorkerPreAcceptanceInput("0.1.118", "0.1.118", True, True, True, True, True, True, True, True)),
+        _scenario_result("equal_version_without_fresh_sync_still_blocked_fail_closed", AbuseWorkerPreAcceptanceInput("0.1.118", "0.1.118", True, True, True, True, True, True, True, True)),
         _scenario_result("worker_execution_not_authorized", base),
         _scenario_result("scheduler_not_authorized", base),
         _scenario_result("timer_not_authorized", base),
