@@ -1,3 +1,23 @@
+GitHub main repository version before this PR is 0.1.112.
+Repository version after this PR is 0.1.113.
+latest recorded farm5 sync evidence is 0.1.110.
+Phase 8 state-machine contract package is done in 0.1.111.
+Phase 8 evidence/reporting contract package is done in 0.1.112.
+Current target is Phase 8 abuse dry-run evaluator package.
+Next target after this PR is Phase 8 DB-only controlled transition readiness package.
+No server sync evidence for 0.1.111, 0.1.112, or 0.1.113 exists until operator syncs after merge.
+Do not fabricate server evidence.
+If this PR remains offline dry-run/report-only/service-contract only, offline sync may be batched with PR #119 and PR #120.
+Consider batching server sync after this PR unless the next PR requires server DB/migration/runtime evidence.
+No Phase 8 runtime automation is enabled by this PR.
+No abuse runner is enabled.
+No hard/soft block is enabled.
+No pause automation is enabled.
+No abuse DB reads/writes are enabled.
+No usage/policy DB reads/writes are enabled.
+No live conntrack/firewall reads are enabled.
+No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
+
 # Remaining Phase Plan
 
 Status: planning reference aligned to docs/PHASE_STATUS.md.

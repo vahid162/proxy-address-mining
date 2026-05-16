@@ -61,6 +61,7 @@ from mpf.services import (
     phase8_planning_readiness_service,
     phase8_abuse_state_machine_contract_service,
     phase8_abuse_evidence_reporting_contract_service,
+    phase8_abuse_dry_run_evaluator_service,
 )
 
 app = typer.Typer(
@@ -1602,6 +1603,33 @@ def phase8_abuse_evidence_reporting_contract(
     ]
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")
+
+
+
+@phase8_app.command("abuse-dry-run-evaluator")
+def phase8_abuse_dry_run_evaluator(
+    config: Path = typer.Option(Path("/etc/mpf/mpf.yaml"), "--config", help="Path to mpf.yaml."),
+    output: str = typer.Option("human", "--output", help="human | json"),
+) -> None:
+    cfg = load_config(config)
+    report = phase8_abuse_dry_run_evaluator_service.build_phase8_abuse_dry_run_evaluator_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = [
+        "component","final_decision","dry_run_status","authorization_status","execution_allowed","phase8_acceptance_allowed",
+        "state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed",
+        "dry_run_evaluator_defined","pure_domain_evaluator_defined","synthetic_scenarios_defined","synthetic_scenarios_passed","transition_logic_defined",
+        "hardening_proposal_logic_defined","missing_evidence_blocks_hardening","stale_evidence_blocks_hardening","farms_over_alone_does_not_harden",
+        "worker_over_alone_does_not_harden","manual_unhard_future_gated","abuse_runner_authorized","abuse_automation_authorized",
+        "abuse_state_db_reads_authorized","abuse_state_db_writes_authorized","usage_sample_db_reads_authorized","policy_event_db_reads_authorized",
+        "conntrack_live_read_authorized","firewall_counter_live_read_authorized","hard_block_authorized","soft_block_authorized",
+        "pause_automation_authorized","production_traffic_authorized","firewall_apply_authorized","iptables_restore_authorized",
+        "customer_nat_authorized","customer_firewall_rules_authorized","phase7_accepted","phase8_working","farm5_0_1_110_sync_evidence_present",
+        "no_farm5_0_1_111_sync_evidence_claimed","no_farm5_0_1_112_sync_evidence_claimed","no_farm5_0_1_113_sync_evidence_claimed",
+        "remaining_plan_dry_run_target_aligned","abuse_invariant_preserved","all_active_customers_coverage_required","no_silent_skip_required","blockers","errors"
+    ]
+    for k in keys: typer.echo(f"{k}: {report.get(k)}")
 
 @phase7_app.command("summary")
 def phase7_summary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
