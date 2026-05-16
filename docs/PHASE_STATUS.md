@@ -1964,3 +1964,67 @@ no usage automation
 no abuse automation
 Current State block unchanged
 ```
+
+
+## Accepted Server Sync Result — farm5 synced to 0.1.110
+
+- farm5 synced to 0.1.110 using the fixed bootstrap sync path:
+  sudo bash "/tmp/tmp.qmZaC8UsaG/proxy-address-mining-main/scripts/sync_main_zip_on_server.sh" /tmp/proxy-address-mining-main.zip
+- backup path: /var/backups/mpf/source-before-zip-sync-20260515T192056Z
+- mpf --version: 0.1.110
+- pytest during sync: 701 passed in 68.84s
+- manual pytest after sync: 701 passed in 65.21s
+- mpf config validate: OK
+- mpf doctor: OK
+- db status: OK
+- database: OK
+- alembic_version: 0002_phase5_customer_lifecycle
+- public_table_count: 64
+- lanes: 3
+- customers: 1
+- job_runs: 0
+- firewall_applies: 1
+- abuse_states: 0
+- current customer list: no non-deleted customers
+- proxy doctor/status: OK
+- proxy runtime remains limited local-only
+- v2rayA UI listener local-only: 127.0.0.1:2015
+- BTC backend listener local-only: 127.0.0.1:60010
+- no MPF/customer IPv4 firewall references detected
+- no MPF/customer IPv6 firewall references detected
+- no customer NAT redirects
+- Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational only in accepted limited runtime
+- firewall.apply_mode: plan_only
+- proxy.runtime_activation_allowed: false
+- production_traffic: none
+- firewall_apply_allowed: no
+- abuse_automation_allowed: no
+- current Phase 7 accepted / Phase 8 working safety gate passed
+- no runtime gate opened
+- runtime restrictions remain unchanged
+- sync script final verdict:
+  OK: GitHub main zip synced successfully.
+  OK: server source is aligned with GitHub zip.
+  OK: accepted current phase gate is installed and verified.
+  OK: Runtime remains limited local-only; production customer traffic is still disabled.
+
+
+### Phase 8 Abuse State-Machine Contract Boundary
+
+- This PR defines the abuse state-machine contract only.
+- This PR does not run an abuse runner.
+- This PR does not write abuse_states.
+- This PR does not write abuse_events.
+- This PR does not apply hard/soft blocks.
+- This PR does not apply pause automation.
+- This PR does not mutate firewall rules.
+- This PR does not enable iptables-restore.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- The mandatory state path is normal -> over_tracking -> over_grace -> hard.
+- farms-over alone must not harden.
+- worker-over alone must not harden.
+- sustained miner-abuse hardens after about 3600 seconds.
+- all active customers in enabled lanes must be covered.
+- no silent skip is allowed.
+- runtime implementation remains future-gated.

@@ -15,8 +15,8 @@ docs/PHASE_STATUS.md
 Current repository/server gate:
 
 ```text
-accepted_phase: Phase 6 — Firewall Planner accepted on farm5
-working_phase: Phase 7 — Usage + Policy/Reject Accounting
+accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
+working_phase: Phase 8 — Abuse 1h Core planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 7 is planning/readiness only. No customer NAT/rules, firewall apply, iptables-restore, usage automation, abuse automation, UI, or Telegram is authorized.
+Phase 8 is planning/readiness only. Current target is the Phase 8 abuse state-machine contract package (report-only/non-authorizing). No customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
 
 
 ## Current Phase 6 Accepted State and Phase 7 Working Boundary

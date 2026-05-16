@@ -13,7 +13,7 @@ Read these first:
 3. `docs/INDEX.md`
 4. `docs/PHASE_STATUS.md`
 5. `docs/AI_CODING_RULES.md`
-6. `docs/AI_PHASE_6_TASK.md`
+6. `docs/AI_PHASE_8_TASK.md`
 7. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only Phase 6-D1 boundary contract)
 8. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 9. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md` (isolated/non-production harness contracts only; non-authorizing)
@@ -66,22 +66,24 @@ Read these before implementation work:
 Current accepted phase:
 
 ```text
-Phase 5 — Customer CRUD in DB Only accepted on farm5
+Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
 ```
 
 Current working phase:
 
 ```text
-Phase 6 — Firewall Planner
+Phase 8 — Abuse 1h Core planning/readiness
 ```
 
-Current Phase 6 step:
+Current Phase 8 step:
 
 ```text
-Phase 5 remains accepted and Phase 6 remains working. docs/PHASE_STATUS.md is authoritative for active phase language.
+Phase 7 remains accepted and Phase 8 remains working. docs/PHASE_STATUS.md is authoritative for active phase language.
+Current Phase 8 step: abuse state-machine contract package (report-only/service-contract/readiness, non-authorizing).
+No abuse runner, no abuse DB writes, no hard/soft blocks, no pause automation, no firewall apply, no iptables-restore, no customer NAT/rules, no production traffic, no UI, no Telegram.
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-Read-only iptables-save snapshot is authorized/evidenced. Controlled restore/lock/DB apply record boundary executed once and evidenced. No-customer scaffold, acceptance gate, execution gate, package, and execution acceptance are report-only/non-executing. Firewall apply, iptables-restore, customer NAT/rules, production traffic, usage automation, abuse automation, UI, and Telegram remain unauthorized.
+
 ```
 
 Read:
@@ -481,3 +483,11 @@ Documentation Summary: docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS
 Phase 7 planning/readiness document: `docs/AI_PHASE_7_TASK.md`.
 
 - docs/AI_PHASE_8_TASK.md
+
+
+Current phase gate flags:
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+ui_allowed: no
+telegram_allowed: no
