@@ -32,7 +32,7 @@ def build_phase8_abuse_state_machine_contract_report(
     farm5_sync = "synced to 0.1.110" in phase_status and "/var/backups/mpf/source-before-zip-sync-20260515T192056Z" in phase_status and "701 passed" in phase_status
     planning_ready = "phase8_planning_readiness" in planning
     ai_present = "Current Phase 8 Step — Abuse State-Machine Contract" in ai_phase8
-    rem_aligned = "Current target is Phase 8 abuse state-machine contract package." in remaining
+    rem_aligned = "Current target is Phase 8 abuse state-machine contract package." in remaining or "Current target is Phase 8 abuse evidence/reporting contract package." in remaining
     readme_aligned = "accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in readme and "working_phase: Phase 8 — Abuse 1h Core planning/readiness" in readme
     index_aligned = "Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in index and "Phase 8 — Abuse 1h Core planning/readiness" in index
     rules_aligned = "accepted: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in ai_rules and "working: Phase 8 — Abuse 1h Core planning/readiness" in ai_rules

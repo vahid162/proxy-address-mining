@@ -2028,3 +2028,35 @@ Current State block unchanged
 - all active customers in enabled lanes must be covered.
 - no silent skip is allowed.
 - runtime implementation remains future-gated.
+
+
+### Phase 8 Abuse Evidence/Reporting Contract Boundary
+
+State:
+- This PR defines the abuse evidence/reporting contract only.
+- This PR does not run an abuse runner.
+- This PR does not read DB customers.
+- This PR does not read abuse_states.
+- This PR does not write abuse_states.
+- This PR does not write abuse_events.
+- This PR does not read usage_samples.
+- This PR does not write usage_samples.
+- This PR does not read policy_events.
+- This PR does not write policy_events.
+- This PR does not read live conntrack.
+- This PR does not read live firewall counters.
+- This PR does not run iptables-save.
+- This PR does not mutate firewall rules.
+- This PR does not enable iptables-restore.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- This PR does not apply hard/soft blocks.
+- This PR does not apply pause automation.
+- It defines future evidence source, evidence snapshot, customer evaluation report, coverage report, missing evidence report, operator summary, and failure-mode report contracts.
+- Missing evidence must be explicit and must not harden.
+- Stale evidence must be explicit and must not harden.
+- Farms-over alone must remain report-only and must not harden.
+- Worker-over alone must remain report-only and must not harden.
+- All active customers in enabled lanes must appear in future coverage reports.
+- No silent skip is allowed.
+- Runtime implementation remains future-gated.

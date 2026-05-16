@@ -13,6 +13,14 @@ def test_phase_status_phase8_evidence_and_boundary() -> None:
     assert "no runtime gate opened" in text
     assert "runtime restrictions remain unchanged" in text
     assert "Phase 8 Abuse State-Machine Contract Boundary" in text
+    assert "Phase 8 Abuse Evidence/Reporting Contract Boundary" in text
+    assert "Missing evidence must be explicit and must not harden" in text
+    assert "Stale evidence must be explicit and must not harden" in text
+    assert "does not read live conntrack" in text
+    assert "does not read live firewall counters" in text
+    assert "does not read DB customers" in text
+    assert "does not apply hard/soft blocks" in text
+    assert "does not apply pause automation" in text
     assert "normal -> over_tracking -> over_grace -> hard" in text
     assert "farms-over alone must not harden" in text
     assert "worker-over alone must not harden" in text
@@ -28,13 +36,13 @@ def test_phase_status_phase8_evidence_and_boundary() -> None:
 
 def test_remaining_phase_plan_and_current_gate_docs() -> None:
     remaining = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
-    assert "GitHub main repository version before this PR is 0.1.110" in remaining
-    assert "Repository version after this PR is 0.1.111" in remaining
+    assert "GitHub main repository version before this PR is 0.1.111" in remaining
+    assert "Repository version after this PR is 0.1.112" in remaining
     assert "latest recorded farm5 sync evidence is 0.1.110" in remaining
-    assert "Current target is Phase 8 abuse state-machine contract package" in remaining
-    assert "Next target after this PR is Phase 8 abuse evidence/reporting contract package" in remaining
-    assert "offline sync may be batched with the next Phase 8 evidence/reporting contract PR" in remaining
-    assert "No server sync evidence for 0.1.111 exists until the operator syncs it after merge" in remaining
+    assert "Current target is Phase 8 abuse evidence/reporting contract package" in remaining
+    assert "Next target after this PR is Phase 8 abuse dry-run evaluator package" in remaining
+    assert "offline sync may be batched with PR #119 and the next Phase 8 dry-run evaluator PR" in remaining
+    assert "No server sync evidence for 0.1.111 or 0.1.112 exists until operator syncs after merge" in remaining
     assert "No Phase 8 runtime automation is enabled by this PR" in remaining
 
     readme = Path("README.md").read_text(encoding="utf-8")
@@ -72,3 +80,12 @@ def test_ai_phase8_task_state_machine_section() -> None:
     assert "does not write abuse_states" in text
     assert "does not write abuse_events" in text
     assert "runtime implementation remains future-gated" in text
+    assert "Current Phase 8 Step — Abuse Evidence/Reporting Contract" in text
+    assert "no live evidence collection" in text
+    assert "no DB reads" in text
+    assert "no DB writes" in text
+    assert "no abuse runner" in text
+    assert "no hard/soft blocks" in text
+    assert "no pause automation" in text
+    assert "missing/stale evidence must be explicit and cannot harden" in text
+    assert "abuse dry-run evaluator" in text

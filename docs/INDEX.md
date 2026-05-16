@@ -494,3 +494,5 @@ firewall_apply_allowed: no
 abuse_automation_allowed: no
 ui_allowed: no
 telegram_allowed: no
+
+Current Phase 8 step: abuse evidence/reporting contract package (report-only/service-contract/readiness, non-authorizing).

@@ -6,22 +6,26 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.110.
-- Repository version after this PR is 0.1.111.
+- GitHub main repository version before this PR is 0.1.111.
+- Repository version after this PR is 0.1.112.
 - latest recorded farm5 sync evidence is 0.1.110.
+- Phase 8 state-machine contract package is done in 0.1.111.
 - Phase 7 is the accepted phase: Usage + Policy/Reject Accounting accepted on farm5 as report-only/service-contract/readiness only.
 - Phase 7 is accepted as report-only/service-contract/readiness after farm5 0.1.108 and later farm5 0.1.110 sync evidence.
-- If this PR remains report-only/service-contract only, offline sync may be batched with the next Phase 8 evidence/reporting contract PR.
+- If this PR remains report-only/service-contract only, offline sync may be batched with PR #119 and the next Phase 8 dry-run evaluator PR.
 - Phase 8 is the current working phase: Abuse 1h Core planning/readiness only.
-- Current target is Phase 8 abuse state-machine contract package.
-- Next target after this PR is Phase 8 abuse evidence/reporting contract package.
+- Current target is Phase 8 abuse evidence/reporting contract package.
+- Next target after this PR is Phase 8 abuse dry-run evaluator package.
 - No Phase 8 runtime automation is enabled by this PR.
 - No abuse runner is enabled.
 - No hard/soft block is enabled.
 - No pause automation is enabled.
-- No abuse DB writes are enabled.
+- No abuse DB reads/writes are enabled.
+- No usage/policy DB reads/writes are enabled.
+- No live conntrack/firewall reads are enabled.
 - No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
-- No server sync evidence for 0.1.111 exists until the operator syncs it after merge.
+- No server sync evidence for 0.1.111 or 0.1.112 exists until operator syncs after merge.
+- Do not fabricate server evidence.
 
 ## Historical/Compatibility Notes
 

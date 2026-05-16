@@ -447,3 +447,5 @@ hash-rate/share collectors need retention before activation
 License is not defined yet.
 
 Choose and add a license before public or multi-person use.
+
+Phase 8 current target is the Phase 8 abuse evidence/reporting contract package (report-only/non-authorizing).
