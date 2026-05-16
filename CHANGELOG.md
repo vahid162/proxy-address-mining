@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.124
+- Add Phase 9 report-only readiness CLI/report, record farm5 0.1.123 sync/test evidence, and fix Phase 8 final-acceptance docs-token matching without opening runtime gates.
+
 ## 0.1.123
 - Record farm5 0.1.122 sync evidence, accept Phase 8 Abuse 1h Core on farm5, and open Phase 9 Check / Report / Diagnostics planning/readiness while keeping production traffic, firewall apply, abuse automation, customer NAT/rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram gates closed.
 

@@ -72,6 +72,7 @@ from mpf.services import (
     phase8_farm5_dry_run_evidence_collection_service,
     phase8_final_acceptance_readiness_service,
     phase8_final_acceptance_service,
+    phase9_readiness_service,
 )
 
 app = typer.Typer(
@@ -91,6 +92,7 @@ events_app = typer.Typer(help="Global event read-only commands.")
 phase6_app = typer.Typer(help="Phase 6 report-only gate commands.")
 phase7_app = typer.Typer(help="Phase 7 report-only readiness commands.")
 phase8_app = typer.Typer(help="Phase 8 report-only readiness commands.")
+phase9_app = typer.Typer(help="Phase 9 report-only readiness commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
@@ -102,6 +104,7 @@ app.add_typer(events_app, name="events")
 app.add_typer(phase6_app, name="phase6")
 app.add_typer(phase7_app, name="phase7")
 app.add_typer(phase8_app, name="phase8")
+app.add_typer(phase9_app, name="phase9")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -1890,7 +1893,7 @@ def phase8_final_acceptance(
     report = phase8_final_acceptance_service.build_phase8_final_acceptance_report(_load(config))
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
-    keys=["component","final_decision","acceptance_status","authorization_status","execution_allowed","phase8_accepted","production_activation_allowed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_122_sync_evidence_present","farm5_final_acceptance_readiness_evidence_present","phase8_final_acceptance_evidence_doc_present","current_state_phase8_accepted","phase9_working","abuse_invariant_preserved","state_path_normal_over_tracking_over_grace_hard","sustained_abuse_window_3600_seconds","farms_over_alone_does_not_harden","worker_over_alone_does_not_harden","missing_evidence_does_not_harden","stale_evidence_does_not_harden","db_failure_does_not_harden","firewall_failure_does_not_harden","explicit_skip_required","no_silent_skip_required","all_active_customers_in_enabled_lanes_must_be_covered","dry_run_evidence_synthetic_only","dry_run_synthetic_item_count","dry_run_all_items_have_no_side_effects","runtime_worker_authorized","worker_start_authorized","background_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","next_phase","future_production_activation_gate_required","future_phase9_readiness_pr_required","blockers","warnings","errors"]
+    keys=["component","final_decision","acceptance_status","authorization_status","execution_allowed","phase8_accepted","production_activation_allowed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_123_sync_evidence_present","farm5_final_acceptance_readiness_evidence_present","phase8_final_acceptance_evidence_doc_present","current_state_phase8_accepted","phase9_working","abuse_invariant_preserved","state_path_normal_over_tracking_over_grace_hard","sustained_abuse_window_3600_seconds","farms_over_alone_does_not_harden","worker_over_alone_does_not_harden","missing_evidence_does_not_harden","stale_evidence_does_not_harden","db_failure_does_not_harden","firewall_failure_does_not_harden","explicit_skip_required","no_silent_skip_required","all_active_customers_in_enabled_lanes_must_be_covered","dry_run_evidence_synthetic_only","dry_run_synthetic_item_count","dry_run_all_items_have_no_side_effects","runtime_worker_authorized","worker_start_authorized","background_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","next_phase","future_production_activation_gate_required","future_phase9_readiness_pr_required","blockers","warnings","errors"]
     for k in keys: typer.echo(f"{k}: {report.get(k)}")
 
 @phase8_app.command("final-acceptance-readiness")
@@ -1904,6 +1907,18 @@ def phase8_final_acceptance_readiness(
     keys=["component","final_decision","readiness_status","authorization_status","execution_allowed","phase8_acceptance_allowed","phase8_accepted_by_this_pr","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_121_sync_evidence_present","farm5_controlled_worker_dry_run_evidence_present","current_state_preserved","phase7_accepted","phase8_working","phase8_not_accepted","abuse_invariant_preserved","state_path_normal_over_tracking_over_grace_hard","sustained_abuse_window_3600_seconds","farms_over_alone_does_not_harden","worker_over_alone_does_not_harden","missing_evidence_does_not_harden","stale_evidence_does_not_harden","db_failure_does_not_harden","firewall_failure_does_not_harden","explicit_skip_required","no_silent_skip_required","dry_run_evidence_synthetic_only","dry_run_synthetic_item_count","dry_run_all_items_have_no_side_effects","dry_run_execution_allowed","dry_run_production_side_effects_allowed","dry_run_phase8_acceptance_allowed","runtime_worker_authorized","worker_start_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_policy_mutation_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","future_phase8_final_acceptance_pr_required","future_sync_required_before_final_acceptance","blockers","warnings","errors"]
     for k in keys: typer.echo(f"{k}: {report.get(k)}")
 
+
+
+@phase9_app.command("readiness")
+def phase9_readiness(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    report = phase9_readiness_service.build_phase9_readiness_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+        return
+    _emit_key_values(report, ["component","final_decision","readiness_status","authorization_status","execution_allowed","phase_gate_status","doctor_config_database_expectations","proxy_runtime_diagnostics_expectations","customer_diagnostics_readiness","abuse_status_visibility_readiness","usage_accounting_visibility_readiness","policy_reject_visibility_readiness","evidence_pack_readiness","troubleshooting_final_verdict_readiness","runtime_worker_authorized","abuse_runner_authorized","production_db_execution_authorized","db_writes_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","ui_authorized","telegram_authorized","blockers","warnings","errors"])
 @phase8_app.command("farm5-dry-run-evidence-collection")
 def phase8_farm5_dry_run_evidence_collection(
     config: Path | None = typer.Option(None, "--config", "-c"),

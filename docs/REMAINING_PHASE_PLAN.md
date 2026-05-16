@@ -6,13 +6,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.122.
-- Repository version after this PR is 0.1.123.
-- latest recorded farm5 sync evidence is 0.1.122.
+- GitHub main repository version before this PR is 0.1.123.
+- Repository version after this PR is 0.1.124.
+- latest recorded farm5 sync evidence is 0.1.123.
 - Phase 8 final Abuse 1h acceptance readiness/review is done in 0.1.122 and synced/tested on farm5.
-- Phase 8 Abuse 1h Core is accepted on farm5 in this PR.
+- Phase 8 Abuse 1h Core is accepted on farm5 in 0.1.123.
 - Current target is Phase 9 Check / Report / Diagnostics planning/readiness.
-- Next target after this PR is Phase 9 readiness/report-only package, but only after this PR is merged and 0.1.123 is synced/tested on farm5.
+- This PR introduces the Phase 9 report-only readiness package after farm5 0.1.123 sync/test evidence.
+- Next target after this PR is farm5 0.1.124 sync/test evidence, then future Phase 9 check/report/final-verdict diagnostics contracts in separate explicitly gated PRs.
 - Do not fabricate server evidence.
 - No production activation is enabled by this PR.
 - No production traffic is enabled.
@@ -31,13 +32,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
 3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
 4. Phase 9 Check / Report / Diagnostics planning/readiness — current target
-5. Phase 9 report-only readiness package — next after 0.1.123 sync/test
-6. Phase 10 Session / Worker / Policy / Share Timeline — future
-7. Phase 11 Local UI + Buyer Read-only — future
-8. Phase 12 Operator UI Actions — future
-9. Phase 13 Telegram — future
-10. Phase 14 Worker Policy Enforcement — future
-11. Production / Customer Activation Gate — future, separate, explicit, and not authorized by Phase 8 acceptance
+5. Phase 9 report-only readiness package — current PR after 0.1.123 sync/test
+6. Phase 9 check/report/final-verdict diagnostics contracts — future after 0.1.124 sync/test
+7. Phase 10 Session / Worker / Policy / Share Timeline — future
+8. Phase 11 Local UI + Buyer Read-only — future
+9. Phase 12 Operator UI Actions — future
+10. Phase 13 Telegram — future
+11. Phase 14 Worker Policy Enforcement — future
+12. Production / Customer Activation Gate — future, separate, explicit, and not authorized by Phase 8 or Phase 9 readiness acceptance
 
 ## Historical Phase 8 Evidence Chain
 - 0.1.111 through 0.1.123 evidence chain retained; see docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md.
