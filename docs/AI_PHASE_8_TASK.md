@@ -67,3 +67,26 @@ Future path:
 4. DB-only controlled transition readiness
 5. runtime/worker integration readiness
 6. final Abuse 1h acceptance
+
+
+## Current Phase 8 Step — Abuse Evidence/Reporting Contract
+
+- report-only/service-contract only
+- no live evidence collection
+- no DB reads
+- no DB writes
+- no live conntrack/firewall reads
+- no abuse runner
+- no hard/soft blocks
+- no pause automation
+- no runtime automation
+- defines future evidence/report DTOs and operator reporting contracts
+- missing/stale evidence must be explicit and cannot harden
+
+Future path:
+1. abuse state-machine contract — done
+2. abuse evidence/reporting contract — current
+3. abuse dry-run evaluator
+4. DB-only controlled transition readiness
+5. runtime/worker integration readiness
+6. final Abuse 1h acceptance

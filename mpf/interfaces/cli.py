@@ -60,6 +60,7 @@ from mpf.services import (
     phase7_operator_acceptance_decision_service,
     phase8_planning_readiness_service,
     phase8_abuse_state_machine_contract_service,
+    phase8_abuse_evidence_reporting_contract_service,
 )
 
 app = typer.Typer(
@@ -1568,6 +1569,36 @@ def phase8_abuse_state_machine_contract(
         "state_path_normal_over_tracking_over_grace_hard","sustained_abuse_window_3600_seconds",
         "farms_over_alone_does_not_harden","worker_over_alone_does_not_harden",
         "all_active_customers_coverage_required","no_silent_skip_required","blockers","errors"
+    ]
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
+
+
+
+@phase8_app.command("abuse-evidence-reporting-contract")
+def phase8_abuse_evidence_reporting_contract(
+    config: Path = typer.Option(Path("/etc/mpf/mpf.yaml"), "--config", help="Path to mpf.yaml."),
+    output: str = typer.Option("human", "--output", help="human | json"),
+) -> None:
+    cfg = load_config(config)
+    report = phase8_abuse_evidence_reporting_contract_service.build_phase8_abuse_evidence_reporting_contract_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = [
+        "component","final_decision","contract_status","authorization_status","execution_allowed",
+        "phase8_acceptance_allowed","state_machine_contract_present","state_machine_contract_fail_closed",
+        "evidence_reporting_contract_defined","evidence_source_contract_defined","evidence_snapshot_contract_defined",
+        "customer_evaluation_report_contract_defined","coverage_report_contract_defined","missing_evidence_report_contract_defined",
+        "operator_summary_contract_defined","failure_mode_report_contract_defined","abuse_runner_authorized",
+        "abuse_automation_authorized","abuse_state_db_reads_authorized","abuse_state_db_writes_authorized",
+        "usage_sample_db_reads_authorized","policy_event_db_reads_authorized","conntrack_live_read_authorized",
+        "firewall_counter_live_read_authorized","hard_block_authorized","soft_block_authorized",
+        "pause_automation_authorized","production_traffic_authorized","firewall_apply_authorized","iptables_restore_authorized",
+        "customer_nat_authorized","customer_firewall_rules_authorized","phase7_accepted","phase8_working",
+        "farm5_0_1_110_sync_evidence_present","no_farm5_0_1_111_sync_evidence_claimed","no_farm5_0_1_112_sync_evidence_claimed",
+        "remaining_plan_evidence_reporting_target_aligned","abuse_invariant_preserved","all_active_customers_coverage_required",
+        "missing_evidence_report_required","stale_evidence_report_required","no_silent_skip_required","blockers","errors"
     ]
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")

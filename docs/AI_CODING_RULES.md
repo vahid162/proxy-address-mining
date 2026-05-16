@@ -236,3 +236,5 @@ secrets committed to the repository
 ```
 
 When documents conflict, follow the stricter safety rule and update the docs before implementing code.
+
+- Phase 8 evidence/reporting contract stop condition: no live evidence collection, no DB reads/writes, no abuse runner, no hard/soft blocks, no pause automation, no runtime automation.

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.112
+- Add the Phase 8 abuse evidence/reporting report-only contract service and CLI while keeping all runtime, DB, firewall, customer, and abuse automation gates closed.
+
 ## 0.1.111
 - Record farm5 0.1.110 sync evidence and add the Phase 8 abuse state-machine report-only contract service and CLI while keeping all runtime gates closed.
 
