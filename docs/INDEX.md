@@ -82,7 +82,7 @@ Current Phase 8 step:
 
 ```text
 Phase 7 remains accepted and Phase 8 remains working. docs/PHASE_STATUS.md is authoritative for active phase language.
-Current Phase 8 step: runtime/worker integration readiness package (report-only, readiness-only, non-runtime, non-authorizing).
+Current Phase 8 step: runtime worker dry-run harness package (report-only, readiness-only, non-runtime, non-authorizing).
 No abuse runner, no abuse DB writes, no hard/soft blocks, no pause automation, no firewall apply, no iptables-restore, no customer NAT/rules, no production traffic, no UI, no Telegram.
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
@@ -495,7 +495,7 @@ abuse_automation_allowed: no
 ui_allowed: no
 telegram_allowed: no
 
-Current Phase 8 step: runtime/worker integration readiness package (report-only, readiness-only, non-runtime, non-authorizing).
+Current Phase 8 step: runtime worker dry-run harness package (report-only, readiness-only, non-runtime, non-authorizing).
 
 Compatibility note: previous step was the Phase 8 abuse dry-run evaluator package (historical/reference-only).
 
@@ -505,3 +505,6 @@ DB-only controlled transition readiness package
 
 Historical compatibility anchor: DB-only controlled transition execution package.
 
+
+
+Historical compatibility anchor: runtime/worker integration readiness package.

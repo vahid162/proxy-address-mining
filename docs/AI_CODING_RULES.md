@@ -248,3 +248,12 @@ Phase 8 DB-only transition readiness stop condition: no DB connection, no DB rea
 
 ## Phase 8 DB-only execution stop condition
 - no runtime automation, no abuse runner, no firewall/customer mutation, no production traffic, manual confirmation required for any DB-only execution path, CLI defaults to dry-run, hard transitions require operator approval, manual unhard future-gated.
+
+
+## Phase PR Body Format (Required)
+- Phase PR bodies must use Why / What / How to test / Version / Risk + Rollback.
+- Do not use Motivation / Description / Testing for Phase PRs.
+- This is required because AI agents use PR bodies as operational context.
+
+## Phase 8 Runtime Worker Dry-Run Harness Stop Condition
+- no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic.

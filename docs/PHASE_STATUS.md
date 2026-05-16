@@ -2269,3 +2269,28 @@ State:
 - Sustained miner-abuse after about 3600 seconds may produce future hard-state DB write intent only in report output.
 - Any real DB execution must come in a later explicitly gated PR with fresh farm5 evidence.
 - Runtime implementation remains future-gated.
+
+
+### Phase 8 Runtime Worker Dry-Run Harness Boundary
+
+State:
+- This PR defines runtime worker dry-run harness only.
+- This PR does not start an abuse worker.
+- This PR does not enable scheduler jobs.
+- This PR does not enable timers.
+- This PR does not enable abuse runner.
+- This PR does not evaluate real customers.
+- This PR does not execute DB transitions on real customers.
+- This PR does not connect to production DB for worker execution.
+- This PR does not mutate firewall rules.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- This PR does not apply hard/soft blocks.
+- This PR does not apply pause automation.
+- It defines synthetic worker-cycle dry-run harness behavior only.
+- It defines explicit skip reporting, no-work reporting, kill-switch behavior, lock-contention behavior, idempotency duplicate behavior, batch-limit behavior, and failure-mode behavior.
+- Missing/stale evidence must not harden.
+- DB failure must not harden.
+- Firewall failure must not harden.
+- Lock contention must report explicit skip; no silent skip is allowed.
+- Runtime worker execution remains future-gated and requires fresh farm5 evidence.

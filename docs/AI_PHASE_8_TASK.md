@@ -203,3 +203,34 @@ future path:
 6. runtime/worker integration readiness — current
 7. runtime worker dry-run harness — future
 8. final Abuse 1h acceptance — future
+
+
+## Current Phase 8 Step — Runtime Worker Dry-Run Harness
+
+- harness only
+- synthetic/in-memory items only
+- no worker start
+- no scheduler/timer
+- no abuse runner
+- no real customer evaluation
+- no production DB execution
+- no firewall/customer mutation
+- no hard/soft blocks
+- no pause automation
+- explicit skip reporting
+- no-work reporting
+- kill switch behavior
+- lock/idempotency behavior
+- batch limit behavior
+- failure-mode behavior
+
+future path:
+1. abuse state-machine contract — done
+2. abuse evidence/reporting contract — done
+3. abuse dry-run evaluator — done
+4. DB-only controlled transition readiness — done and synced at 0.1.114
+5. DB-only controlled transition execution — done and synced at 0.1.115
+6. runtime/worker integration readiness — done in 0.1.116, pending sync if this PR is batched
+7. runtime worker dry-run harness — current
+8. controlled worker pre-acceptance package — future
+9. final Abuse 1h acceptance — future

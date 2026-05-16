@@ -6,17 +6,17 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.115.
-- Repository version after this PR is 0.1.116.
+- GitHub main repository version before this PR is 0.1.116.
+- Repository version after this PR is 0.1.117.
 - latest recorded farm5 sync evidence is 0.1.115.
 - Phase 8 state-machine contract package is done in 0.1.111.
 - Phase 8 evidence/reporting contract package is done in 0.1.112.
 - Phase 8 abuse dry-run evaluator package is done in 0.1.113.
 - Phase 8 DB-only controlled transition readiness package is done and synced on farm5 in 0.1.114.
 - Phase 8 DB-only controlled transition execution package is done and synced on farm5 in 0.1.115.
-- Current target is Phase 8 runtime/worker integration readiness package.
-- Next target after this PR is Phase 8 runtime worker dry-run harness package.
-- No server sync evidence for 0.1.116 exists until operator syncs after merge.
+- Current target is Phase 8 runtime worker dry-run harness package.
+- Next target after this PR is Phase 8 controlled worker pre-acceptance package.
+- No server sync evidence for 0.1.116 or 0.1.117 exists until operator syncs after merge.
 - Do not fabricate server evidence.
 - If this PR remains report-only/readiness-only and does not add real runtime workers/scheduler jobs, offline sync may be batched with the next readiness-only PR.
 - If the next PR starts a worker, adds a scheduler/timer, evaluates real customers, or executes DB transitions, fresh farm5 sync/test is required before acceptance.
@@ -38,8 +38,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 6. Phase 8 abuse dry-run evaluator — done in 0.1.113
 7. Phase 8 DB-only controlled transition readiness — done and synced on farm5 in 0.1.114
 8. Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115
-9. Phase 8 runtime/worker integration readiness — current target in 0.1.116
-10. Phase 8 runtime worker dry-run harness — next target
+9. Phase 8 runtime/worker integration readiness — done in 0.1.116
+10. Phase 8 runtime worker dry-run harness — current target in 0.1.117
+10. Phase 8 controlled worker pre-acceptance — future
+11. Phase 8 final Abuse 1h acceptance — future
 11. Phase 8 final Abuse 1h acceptance — future
 
 ## Historical/Compatibility Notes
@@ -95,3 +97,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current target is Phase 8 DB-only controlled transition execution package. (historical compatibility anchor)
 
+
+- Current target is Phase 8 runtime/worker integration readiness package. (historical compatibility anchor)
+
+- Phase 8 runtime worker dry-run harness — next target (historical compatibility anchor).
