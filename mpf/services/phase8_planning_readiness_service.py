@@ -24,7 +24,7 @@ def build_phase8_planning_readiness_report(cfg: MPFConfig, repo_root: Path | Non
     farm5 = "synced to 0.1.108" in phase_status and "694 passed" in phase_status
     scope_doc = "### Phase 7 Acceptance Scope" in phase_status
     ai_present = "normal -> over_tracking -> over_grace -> hard" in ai_phase8
-    rem_aligned = "latest recorded farm5 sync evidence is 0.1.108." in remaining and "Phase 8" in remaining
+    rem_aligned = "latest recorded farm5 sync evidence is 0.1.110." in remaining and "Phase 8" in remaining
 
     checks = [
         ("current_state_preserved", current_state_preserved, "PHASE_STATUS Current State"),

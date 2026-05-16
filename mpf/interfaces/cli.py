@@ -59,6 +59,7 @@ from mpf.services import (
     phase7_final_acceptance_readiness_service,
     phase7_operator_acceptance_decision_service,
     phase8_planning_readiness_service,
+    phase8_abuse_state_machine_contract_service,
 )
 
 app = typer.Typer(
@@ -1536,6 +1537,37 @@ def phase8_planning_readiness(
         "farm5_0_1_108_sync_evidence_present","ai_phase8_task_present","remaining_plan_phase8_aligned",
         "abuse_invariant_preserved","all_active_customers_coverage_required","no_silent_skip_required",
         "blockers","errors"
+    ]
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
+
+
+
+@phase8_app.command("abuse-state-machine-contract")
+def phase8_abuse_state_machine_contract(
+    config: Path = typer.Option(Path("/etc/mpf/mpf.yaml"), "--config", help="Path to mpf.yaml."),
+    output: str = typer.Option("human", "--output", help="human | json"),
+) -> None:
+    cfg = load_config(config)
+    report = phase8_abuse_state_machine_contract_service.build_phase8_abuse_state_machine_contract_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = [
+        "component","final_decision","contract_status","authorization_status","execution_allowed",
+        "phase8_acceptance_allowed","abuse_state_machine_contract_defined","abuse_state_path_defined",
+        "abuse_transition_rules_defined","abuse_timing_contract_defined","abuse_hardening_contract_defined",
+        "abuse_recovery_contract_defined","abuse_exemption_contract_defined","abuse_coverage_contract_defined",
+        "abuse_runner_authorized","abuse_automation_authorized","abuse_state_db_writes_authorized",
+        "abuse_event_db_writes_authorized","hard_block_authorized","soft_block_authorized",
+        "pause_automation_authorized","production_traffic_authorized","firewall_apply_authorized",
+        "iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","phase7_accepted",
+        "phase8_working","farm5_0_1_110_sync_evidence_present","phase8_planning_readiness_present",
+        "remaining_plan_state_machine_target_aligned","readme_current_gate_aligned","index_current_gate_aligned",
+        "ai_coding_rules_current_gate_aligned","abuse_invariant_preserved",
+        "state_path_normal_over_tracking_over_grace_hard","sustained_abuse_window_3600_seconds",
+        "farms_over_alone_does_not_harden","worker_over_alone_does_not_harden",
+        "all_active_customers_coverage_required","no_silent_skip_required","blockers","errors"
     ]
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")

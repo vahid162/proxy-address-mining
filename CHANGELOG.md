@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.111
+- Record farm5 0.1.110 sync evidence and add the Phase 8 abuse state-machine report-only contract service and CLI while keeping all runtime gates closed.
+
 ## 0.1.110
 - Fix offline zip sync gate validation after Phase 7 acceptance so the server can sync Phase 7 accepted / Phase 8 planning-readiness zips without opening runtime gates.
 

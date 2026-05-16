@@ -22,7 +22,7 @@ docs/ABUSE.md
 docs/AI_CODING_RULES.md
 ```
 
-For the current Phase 6 work, also read:
+For historical Phase 6 firewall-planner/reference context, also read:
 
 ```text
 docs/AI_PHASE_6_TASK.md
@@ -44,9 +44,10 @@ If a requested change belongs to a later phase, do not implement runtime behavio
 
 Current gate:
 
+
 ```text
-accepted: Phase 5 — Customer CRUD in DB Only accepted on farm5
-working: Phase 6 — Firewall Planner
+accepted: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
+working: Phase 8 — Abuse 1h Core planning/readiness
 current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated Phase 6 apply gate remains not accepted and not authorized
 production_traffic: none
 firewall_apply_allowed: no
@@ -57,9 +58,22 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-## Phase 6-B Historical Rule + Current 6-E1 Safety Continuity
+Phase 8 current safe work: report-only/service-contract/readiness only.
 
-Phase 6-B modeled the apply/rollback/preflight boundary and is now historical/accepted. Current next safe work is Phase 6-E1 isolated/non-production harness hardening only, with the same non-mutating safety boundary.
+Forbidden in current Phase 8 work:
+- no abuse runner
+- no abuse automation
+- no abuse_states writes
+- no abuse_events writes
+- no hard/soft blocks
+- no pause automation
+- no runtime Phase 8 implementation before explicit gate
+- no live firewall apply, no customer NAT/rules, no iptables-restore, no production traffic, no UI, no Telegram
+
+
+## Phase 6 Historical Safety Continuity (reference only)
+
+Phase 6-B and adjacent Phase 6 slices modeled apply/rollback/preflight boundaries and are now historical/accepted reference context only. They do not define current active work in Phase 8.
 
 Historical Phase 6-B allowed work (accepted reference):
 
