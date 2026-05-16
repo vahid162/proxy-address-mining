@@ -35,7 +35,7 @@ Read these first:
 25. `docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md` (planned contract, documentation/test-only, non-authorizing)
 26. `docs/PHASE_6_APPLY_SLICE_4_MANUAL_CANARY_APPLY_GATE_PROPOSAL.md` (planned contract, documentation/test-only, non-authorizing)
 27. `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` (proposal/review contract only, documentation/test-only, non-authorizing)
-28. `docs/REMAINING_PHASE_PLAN.md` (finite remaining Phase 6 slice plan aligned to master roadmap)
+28. `docs/REMAINING_PHASE_PLAN.md` (finite remaining project/Phase 8 plan aligned to PHASE_STATUS)
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
@@ -82,7 +82,7 @@ Current Phase 8 step:
 
 ```text
 Phase 7 remains accepted and Phase 8 remains working. docs/PHASE_STATUS.md is authoritative for active phase language.
-Current Phase 8 step: abuse state-machine contract package (report-only/service-contract/readiness, non-authorizing).
+Current Phase 8 step: abuse dry-run evaluator package (offline dry-run/report-only/service-contract/readiness, non-authorizing).
 No abuse runner, no abuse DB writes, no hard/soft blocks, no pause automation, no firewall apply, no iptables-restore, no customer NAT/rules, no production traffic, no UI, no Telegram.
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
