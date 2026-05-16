@@ -13,7 +13,6 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 8 runtime worker dry-run harness package is done in 0.1.117 and synced on farm5 in the 0.1.118 batch.
 - Phase 8 controlled worker pre-acceptance package is done in 0.1.118 and synced on farm5.
 - Current target is Phase 8 controlled worker dry-run gate preparation package.
-- Next target after this PR is Phase 8 farm5 batched sync/evidence package for 0.1.116/0.1.117/0.1.118.
 - Next target after this PR is Phase 8 controlled worker dry-run on farm5, but only after this PR is merged and 0.1.119 is synced/tested on farm5.
 - Do not fabricate server evidence.
 - No Phase 8 runtime automation is enabled by this PR.
@@ -37,16 +36,12 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 8. Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115
 9. Phase 8 runtime/worker integration readiness — done in 0.1.116 and synced in the 0.1.118 farm5 batch
 10. Phase 8 runtime worker dry-run harness — done in 0.1.117 and synced in the 0.1.118 farm5 batch
-11. Phase 8 controlled worker pre-acceptance — current target in 0.1.118
-12. Phase 8 farm5 batched sync/evidence — next
-13. Phase 8 controlled worker dry-run gate preparation — current target in 0.1.119
+11. Phase 8 controlled worker pre-acceptance — done in 0.1.118 and synced on farm5
+12. Phase 8 controlled worker dry-run gate preparation — current target in 0.1.119
+13. Phase 8 controlled worker dry-run on farm5 — next after 0.1.119 sync/test evidence
 14. Phase 8 final Abuse 1h acceptance — future
 
 ## Historical/Compatibility Notes
-
-- GitHub main repository version before this PR is 0.1.117.
-- 12. Phase 8 farm5 batched sync/evidence — next
-- 11. Phase 8 controlled worker pre-acceptance — current target in 0.1.118
 
 - finite remaining project/Phase 8 plan aligned to PHASE_STATUS.
 - read-only iptables-save live snapshot path is explicitly authorized and evidenced.
