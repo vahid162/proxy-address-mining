@@ -62,3 +62,13 @@ def test_validation_and_service_and_cli() -> None:
     assert out.exit_code==0
     j=json.loads(out.stdout)
     assert j['final_decision']=='BLOCKED' and j['execution_allowed'] is False and j['db_execution_authorized'] is False and j['db_writes_authorized'] is False and j['synthetic_execution_scenarios_passed'] is True and j['blockers']==[]
+
+
+
+def test_execution_checklist_uses_named_items() -> None:
+    cfg=load_config(Path('configs/mpf.example.yaml'))
+    r=build_phase8_db_transition_execution_report(cfg)
+    items=[x['item'] for x in r['phase8_db_transition_execution_checklist']]
+    assert "current_state_preserved" in items
+    assert "future_runtime_worker_integration_pr_required" in items
+    assert not any(i.isdigit() for i in items)
