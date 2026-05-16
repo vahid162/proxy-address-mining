@@ -7,8 +7,8 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 ## Current State
 
 ```text
-current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
-current_working_phase: Phase 8 — Abuse 1h Core planning/readiness
+current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5
+current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -22,6 +22,10 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
 
+
+
+Phase 8 is accepted only as Abuse 1h Core evidence/readiness on farm5. This acceptance does not authorize production traffic, firewall apply, customer NAT/customer firewall rules, abuse automation runner, scheduler/timer, production DB execution, hard/soft block automation, pause automation, UI, Telegram, or production customer onboarding.
+
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
 Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Phase 6 operator acceptance decision is completed and accepted after farm5 0.1.100 sync evidence. Phase 7 is now accepted only as report-only/service-contract/readiness after farm5 0.1.108 evidence and later farm5 0.1.110 sync evidence. Current working phase is Phase 8 Abuse 1h Core planning/readiness only; runtime gates remain closed and non-authorizing. Current farm5 has no non-deleted customers. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path remains authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, Phase 8 abuse runner, hard/soft blocks, pause automation, UI, or Telegram is authorized.
@@ -29,6 +33,89 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+
+
+### Phase 8 farm5 0.1.122 Final Acceptance Readiness Sync Evidence
+
+```text
+command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260516T165213Z
+server version after sync: 0.1.122
+synced to 0.1.122
+pytest: 745 passed in 91.57s
+OK: GitHub main zip synced successfully.
+OK: server source is aligned with GitHub zip.
+OK: accepted current phase gate is installed and verified.
+OK: Runtime remains limited local-only; production customer traffic is still disabled.
+current_accepted_phase before this PR: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
+current_working_phase before this PR: Phase 8 — Abuse 1h Core planning/readiness
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
+MPF doctor: OK
+config: OK
+database: OK
+apply_mode: plan_only
+traffic_changes: none
+firewall_mutation: disabled
+abuse_automation: disabled
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+customer list: no non-deleted customers
+btc enabled=True backend_port=60010 chain_prefix=MPFBTC protocol=stratum source=db
+ltc enabled=False backend_port=60020 chain_prefix=MPFLTC protocol=stratum source=db
+zec enabled=False backend_port=60015 chain_prefix=MPFZEC protocol=stratum source=db
+proxy_config final_verdict: OK
+proxy_status final_verdict: OK
+proxy final_verdict: OK
+proxy.runtime_activation_allowed remains disabled
+v2rayA UI listener is local-only
+BTC backend listener is local-only
+no_customer_nat_redirects: OK
+firewall_apply_mode_plan_only: OK
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational in accepted limited runtime
+accepted limited runtime listeners are local-only
+current Phase 7 accepted / Phase 8 working safety gate passed before this PR
+production customer traffic remains disabled
+final sync verdict: OK
+```
+
+Final-acceptance-readiness output summary (`mpf phase8 final-acceptance-readiness --output json`):
+- component: phase8_final_acceptance_readiness
+- phase: Phase 8 — Abuse 1h Core
+- gate_type: final_acceptance_readiness_review
+- final_decision: BLOCKED
+- readiness_status: READY_FOR_OPERATOR_REVIEW_NOT_ACCEPTED
+- authorization_status: PHASE8_FINAL_ACCEPTANCE_NOT_AUTHORIZED
+- inspection_only: true
+- report_only: true
+- execution_allowed: false
+- phase8_acceptance_allowed: false
+- phase8_accepted_by_this_pr: false
+- repository_version: 0.1.122
+- latest_recorded_farm5_sync_evidence: 0.1.121
+- farm5_0_1_121_sync_evidence_present: true
+- farm5_controlled_worker_dry_run_evidence_present: true
+- blockers: []
+- warnings: []
+- errors: []
+
+This 0.1.122 farm5 sync evidence is the final pre-acceptance evidence required for Phase 8 Abuse 1h Core acceptance.
+
+This PR accepts Phase 8, but does not authorize production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, abuse automation runner, background worker, scheduler/timer, real production customer evaluation, production DB execution, hard/soft block automation, pause automation, UI, Telegram, or production customer onboarding.
 
 
 ### Phase 8 farm5 0.1.121 Dry-Run Evidence Collection Sync Evidence

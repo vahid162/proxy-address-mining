@@ -20,7 +20,7 @@ def _cfg():
 
 
 def _good_phase_status() -> str:
-    return """## Current State\n```text\ncurrent_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5\ncurrent_working_phase: Phase 8 — Abuse 1h Core planning/readiness\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\n```\n\nPhase 6 Read-Only iptables-save Snapshot — Server Evidence\nPhase 6 Restore/Lock/DB Apply Record Readiness — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary\n"""
+    return """## Current State\n```text\ncurrent_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5\ncurrent_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\n```\n\nPhase 6 Read-Only iptables-save Snapshot — Server Evidence\nPhase 6 Restore/Lock/DB Apply Record Readiness — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary\n"""
 
 
 def test_service_returns_blocked_and_not_accepted() -> None:

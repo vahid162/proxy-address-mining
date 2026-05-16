@@ -6,42 +6,41 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.121.
-- Repository version after this PR is 0.1.122.
-- latest recorded farm5 sync evidence is 0.1.121.
-- Phase 8 farm5 controlled worker dry-run evidence collection preparation is done in 0.1.121 and synced/tested on farm5.
-- Phase 8 farm5 controlled worker dry-run evidence has been collected on farm5 and recorded in this PR.
-- Current target is Phase 8 final Abuse 1h acceptance readiness/review.
-- Next target after this PR is Phase 8 final Abuse 1h acceptance, but only after this PR is merged and 0.1.122 is synced/tested on farm5.
+- GitHub main repository version before this PR is 0.1.122.
+- Repository version after this PR is 0.1.123.
+- latest recorded farm5 sync evidence is 0.1.122.
+- Phase 8 final Abuse 1h acceptance readiness/review is done in 0.1.122 and synced/tested on farm5.
+- Phase 8 Abuse 1h Core is accepted on farm5 in this PR.
+- Current target is Phase 9 Check / Report / Diagnostics planning/readiness.
+- Next target after this PR is Phase 9 readiness/report-only package, but only after this PR is merged and 0.1.123 is synced/tested on farm5.
 - Do not fabricate server evidence.
-- No Phase 8 runtime automation is enabled by this PR.
-- No abuse runner is enabled.
+- No production activation is enabled by this PR.
+- No production traffic is enabled.
+- No firewall apply is enabled.
+- No abuse automation runner is enabled.
 - No background worker/scheduler/timer is enabled.
 - No real production customer evaluation is enabled.
 - No production DB execution is enabled.
-- No hard/soft firewall block is enabled.
+- No hard/soft firewall block automation is enabled.
 - No pause automation is enabled.
-- No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
+- No customer NAT/customer firewall rules, UI, or Telegram is authorized.
 
 ## Finite Remaining Path
 
 1. Phase 6 Firewall Planner — accepted on farm5
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
-3. Phase 8 Abuse 1h Core planning/readiness — current
-4. Phase 8 abuse state-machine contract — done in 0.1.111
-5. Phase 8 abuse evidence/reporting contract — done in 0.1.112
-6. Phase 8 abuse dry-run evaluator — done in 0.1.113
-7. Phase 8 DB-only controlled transition readiness — done and synced on farm5 in 0.1.114
-8. Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115
-9. Phase 8 runtime/worker integration readiness — done in 0.1.116 and synced in the 0.1.118 farm5 batch
-10. Phase 8 runtime worker dry-run harness — done in 0.1.117 and synced in the 0.1.118 farm5 batch
-11. Phase 8 controlled worker pre-acceptance — done in 0.1.118 and synced on farm5
-12. Phase 8 controlled worker dry-run gate preparation — done in 0.1.119 and synced/tested on farm5
-13. Phase 8 operator-invoked controlled worker dry-run package — done in 0.1.120 and synced/tested on farm5
-14. Phase 8 farm5 controlled worker dry-run evidence collection preparation — done in 0.1.121 and synced/tested on farm5
-15. Phase 8 farm5 controlled worker dry-run evidence collection — done on farm5 and recorded in 0.1.122
-16. Phase 8 final Abuse 1h acceptance readiness/review — current target in 0.1.122
-17. Phase 8 final Abuse 1h acceptance — next after 0.1.122 sync/test
+3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
+4. Phase 9 Check / Report / Diagnostics planning/readiness — current target
+5. Phase 9 report-only readiness package — next after 0.1.123 sync/test
+6. Phase 10 Session / Worker / Policy / Share Timeline — future
+7. Phase 11 Local UI + Buyer Read-only — future
+8. Phase 12 Operator UI Actions — future
+9. Phase 13 Telegram — future
+10. Phase 14 Worker Policy Enforcement — future
+11. Production / Customer Activation Gate — future, separate, explicit, and not authorized by Phase 8 acceptance
+
+## Historical Phase 8 Evidence Chain
+- 0.1.111 through 0.1.123 evidence chain retained; see docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md.
 
 ## Historical/Compatibility Notes
 
@@ -100,3 +99,5 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Current target is Phase 8 runtime/worker integration readiness package. (historical compatibility anchor)
 
 - Phase 8 runtime worker dry-run harness — next target (historical compatibility anchor).
+
+- iptables-restore remains forbidden in this boundary context.

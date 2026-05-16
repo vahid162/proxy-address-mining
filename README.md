@@ -15,8 +15,8 @@ docs/PHASE_STATUS.md
 Current repository/server gate:
 
 ```text
-accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
-working_phase: Phase 8 — Abuse 1h Core planning/readiness
+accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5
+working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 8 is planning/readiness only. Latest recorded farm5 sync evidence is 0.1.120. Current target is farm5 controlled worker dry-run evidence collection preparation. Future farm5 controlled worker dry-run evidence collection requires 0.1.121 sync/test evidence after this PR is merged. No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
+Phase 8 is planning/readiness only. Latest recorded farm5 sync evidence is 0.1.122. Current target is farm5 controlled worker dry-run evidence collection preparation. Future farm5 controlled worker dry-run evidence collection requires 0.1.121 sync/test evidence after this PR is merged. No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
 
 
 ## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)
@@ -453,3 +453,6 @@ Phase 8 current target is the Phase 8 abuse evidence/reporting contract package 
 DB-only controlled transition readiness package
 
 Current advancement target is the Phase 8 DB-only controlled transition execution package, report-only/non-mutating/non-authorizing.
+
+
+Historical gate reference: accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5 / working_phase: Phase 8 — Abuse 1h Core planning/readiness.
