@@ -91,5 +91,14 @@ def test_remaining_plan_abuse_invariants_and_phase6e():
 def test_remaining_plan_finite_path_includes_execution_and_next_steps():
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115" in t
-    assert "Phase 8 runtime worker dry-run harness — next target" in t
+    assert "10. Phase 8 runtime worker dry-run harness — current target in 0.1.117" in t
     assert "Phase 8 final Abuse 1h acceptance — future" in t
+
+
+def test_remaining_plan_finite_path_numbering_and_order():
+    t = _read("docs/REMAINING_PHASE_PLAN.md")
+    finite = t.split("## Finite Remaining Path", 1)[1].split("## Historical/Compatibility Notes", 1)[0]
+    assert finite.count("10. ") == 1
+    assert finite.count("11. ") == 1
+    assert finite.count("Phase 8 final Abuse 1h acceptance — future") == 1
+    assert finite.index("10. Phase 8 runtime worker dry-run harness — current target in 0.1.117") < finite.index("11. Phase 8 controlled worker pre-acceptance — future")

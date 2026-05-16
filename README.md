@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 8 is planning/readiness only. Current target is the Phase 8 runtime/worker integration readiness package (report-only/readiness-only, non-runtime, non-authorizing). No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
+Phase 8 is planning/readiness only. Current target is the Phase 8 runtime worker dry-run harness package (report-only/readiness-only, non-runtime, non-authorizing). No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
 
 
 ## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)
