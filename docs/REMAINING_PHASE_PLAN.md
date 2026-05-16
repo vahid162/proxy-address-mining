@@ -40,9 +40,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 8. Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115
 9. Phase 8 runtime/worker integration readiness — done in 0.1.116
 10. Phase 8 runtime worker dry-run harness — current target in 0.1.117
-10. Phase 8 controlled worker pre-acceptance — future
-11. Phase 8 final Abuse 1h acceptance — future
-11. Phase 8 final Abuse 1h acceptance — future
+11. Phase 8 controlled worker pre-acceptance — future
+12. Phase 8 final Abuse 1h acceptance — future
 
 ## Historical/Compatibility Notes
 
