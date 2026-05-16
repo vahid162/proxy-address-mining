@@ -91,14 +91,14 @@ def test_remaining_plan_abuse_invariants_and_phase6e():
 def test_remaining_plan_finite_path_includes_execution_and_next_steps():
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115" in t
-    assert "- GitHub main repository version before this PR is 0.1.120." in t
-    assert "- Repository version after this PR is 0.1.121." in t
-    assert "- latest recorded farm5 sync evidence is 0.1.120." in t
-    assert "- Current target is Phase 8 farm5 controlled worker dry-run evidence collection preparation." in t
-    assert "- Next target after this PR is farm5 controlled worker dry-run evidence collection, but only after this PR is merged and 0.1.121 is synced/tested on farm5." in t
-    assert "14. Phase 8 farm5 controlled worker dry-run evidence collection preparation — current target in 0.1.121" in t
-    assert "15. Phase 8 farm5 controlled worker dry-run evidence collection — next after 0.1.121 sync/test" in t
-    assert "Phase 8 final Abuse 1h acceptance — future" in t
+    assert "- GitHub main repository version before this PR is 0.1.121." in t
+    assert "- Repository version after this PR is 0.1.122." in t
+    assert "- latest recorded farm5 sync evidence is 0.1.121." in t
+    assert "- Current target is Phase 8 final Abuse 1h acceptance readiness/review." in t
+    assert "- Next target after this PR is Phase 8 final Abuse 1h acceptance, but only after this PR is merged and 0.1.122 is synced/tested on farm5." in t
+    assert "14. Phase 8 farm5 controlled worker dry-run evidence collection preparation — done in 0.1.121 and synced/tested on farm5" in t
+    assert "15. Phase 8 farm5 controlled worker dry-run evidence collection — done on farm5 and recorded in 0.1.122" in t
+    assert "Phase 8 final Abuse 1h acceptance — next after 0.1.122 sync/test" in t
 
 
 def test_remaining_plan_finite_path_numbering_and_order():
@@ -111,5 +111,5 @@ def test_remaining_plan_finite_path_numbering_and_order():
     assert finite.count("13. ") == 1
     assert finite.count("14. ") == 1
     assert finite.count("15. ") == 1
-    assert finite.count("Phase 8 final Abuse 1h acceptance — future") == 1
-    assert finite.index("14. Phase 8 farm5 controlled worker dry-run evidence collection preparation — current target in 0.1.121") < finite.index("15. Phase 8 farm5 controlled worker dry-run evidence collection — next after 0.1.121 sync/test")
+    assert finite.count("Phase 8 final Abuse 1h acceptance — next after 0.1.122 sync/test") == 1
+    assert finite.index("14. Phase 8 farm5 controlled worker dry-run evidence collection preparation — done in 0.1.121 and synced/tested on farm5") < finite.index("15. Phase 8 farm5 controlled worker dry-run evidence collection — done on farm5 and recorded in 0.1.122")

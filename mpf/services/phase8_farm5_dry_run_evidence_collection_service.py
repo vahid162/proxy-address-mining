@@ -22,7 +22,7 @@ def build_phase8_farm5_dry_run_evidence_collection_report(
 
     checks = {
         "farm5_0_1_120_sync_evidence_present": "Phase 8 farm5 0.1.120 Operator Dry-Run Package Sync Evidence" in phase_status and "synced to 0.1.120" in phase_status,
-        "repository_version_is_0_1_121": __version__ == "0.1.121",
+        "repository_version_is_0_1_122": __version__ == "0.1.122",
         "current_state_preserved": "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status,
         "phase8_not_accepted": "does not accept Phase 8" in phase_status,
         "dry_run_evidence_collection_runbook_present": "# Phase 8 farm5 Controlled Worker Dry-Run Evidence Collection" in runbook,

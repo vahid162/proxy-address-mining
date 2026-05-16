@@ -29,6 +29,114 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+
+
+### Phase 8 farm5 0.1.121 Dry-Run Evidence Collection Sync Evidence
+
+```text
+command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260516T155638Z
+server version after sync: 0.1.121
+synced to 0.1.121
+pytest: 743 passed in 84.63s
+OK: GitHub main zip synced successfully.
+OK: server source is aligned with GitHub zip.
+OK: accepted current phase gate is installed and verified.
+OK: Runtime remains limited local-only; production customer traffic is still disabled.
+current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
+current_working_phase: Phase 8 — Abuse 1h Core planning/readiness
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
+MPF doctor: OK
+config: OK
+database: OK
+apply_mode: plan_only
+traffic_changes: none
+firewall_mutation: disabled
+abuse_automation: disabled
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+customer list: no non-deleted customers
+btc enabled=True backend_port=60010 chain_prefix=MPFBTC protocol=stratum source=db
+ltc enabled=False backend_port=60020 chain_prefix=MPFLTC protocol=stratum source=db
+zec enabled=False backend_port=60015 chain_prefix=MPFZEC protocol=stratum source=db
+proxy_config final_verdict: OK
+proxy_status final_verdict: OK
+proxy final_verdict: OK
+proxy.runtime_activation_allowed remains disabled
+v2rayA UI listener is local-only
+BTC backend listener is local-only
+no_customer_nat_redirects: OK
+firewall_apply_mode_plan_only: OK
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+Docker-managed local publish DNAT rules for 127.0.0.1:2015 and 127.0.0.1:60010 are informational in accepted limited runtime
+accepted limited runtime listeners are local-only
+current Phase 7 accepted / Phase 8 working safety gate passed
+production customer traffic remains disabled
+final sync verdict: OK
+```
+
+This 0.1.121 farm5 sync evidence confirms the dry-run evidence collection preparation package is synced and tested on farm5.
+
+This evidence does not accept Phase 8.
+It does not authorize background worker start.
+It does not authorize scheduler/timer.
+It does not authorize abuse runner.
+It does not authorize real production customer evaluation.
+It does not authorize production DB execution.
+It does not authorize DB writes for abuse runtime.
+It does not authorize firewall apply.
+It does not authorize iptables-restore.
+It does not authorize customer NAT/customer firewall rules.
+It does not authorize hard/soft blocks.
+It does not authorize pause automation.
+It does not authorize UI or Telegram.
+It does not authorize production traffic.
+
+### Phase 8 farm5 Controlled Worker Dry-Run Evidence
+
+Commands executed:
+- mpf phase8 controlled-worker-dry-run --output json
+- mpf phase8 controlled-worker-dry-run --operator-confirmed --output json
+- mpf phase8 controlled-worker-dry-run-gate --output json
+- mpf phase8 controlled-worker-pre-acceptance --output json
+- mpf phase-status
+- mpf doctor
+
+Default controlled worker dry-run command summary includes: final_decision: BLOCKED, dry_run_status: CONTROLLED_WORKER_DRY_RUN_SYNTHETIC_ONLY, execution_allowed: false, production_side_effects_allowed: false, phase8_acceptance_allowed: false, repository_version: 0.1.121, latest_recorded_farm5_sync_evidence: 0.1.120, farm5_0_1_120_sync_evidence_present: true, farm5_0_1_121_sync_required_before_farm5_dry_run_evidence: true, operator_confirmed: false, synthetic_item_count: 11, synthetic_scenarios_passed: true, all_items_have_no_side_effects: true, blockers: [fresh_farm5_sync_test_required_before_evidence_collection, operator_confirmation_required].
+
+Operator-confirmed controlled worker dry-run command summary includes: final_decision: BLOCKED, dry_run_status: CONTROLLED_WORKER_DRY_RUN_SYNTHETIC_ONLY, execution_allowed: false, production_side_effects_allowed: false, phase8_acceptance_allowed: false, repository_version: 0.1.121, latest_recorded_farm5_sync_evidence: 0.1.120, farm5_0_1_120_sync_evidence_present: true, farm5_0_1_121_sync_required_before_farm5_dry_run_evidence: true, operator_confirmed: true, synthetic_item_count: 11, synthetic_scenarios_passed: true, all_items_have_no_side_effects: true, blockers: [fresh_farm5_sync_test_required_before_evidence_collection].
+
+The fresh_farm5_sync_test_required_before_evidence_collection blocker appears because the report surface still reads latest recorded farm5 sync evidence from docs as 0.1.120 at the time of execution. This PR records the real 0.1.121 sync evidence and must update the report expectation accordingly. This blocker is a documentation/evidence recording blocker, not a runtime side effect.
+
+Synthetic scenarios observed: no_work, lock_contention, normal_stays_normal, over_tracking_observed_but_no_hard, over_grace_observed_but_no_hard, hard_candidate_reported_but_not_applied, stale_evidence_skipped, missing_evidence_skipped, db_failure_reported_no_write, firewall_failure_reported_no_mutation, idempotency_duplicate_skipped.
+
+All synthetic items had would_write_db: false, would_mutate_firewall: false, would_mutate_customer: false, would_touch_production_traffic: false.
+
+Controlled worker dry-run gate output summary includes: component: phase8_controlled_worker_dry_run_gate, final_decision: BLOCKED, execution_allowed: false, phase8_acceptance_allowed: false, runtime_worker_authorized: false, worker_start_authorized: false, scheduler_authorized: false, timer_authorized: false, abuse_runner_authorized: false, real_customer_evaluation_authorized: false, production_db_execution_authorized: false, db_reads_authorized: false, db_writes_authorized: false, firewall_apply_authorized: false, iptables_restore_authorized: false, customer_nat_authorized: false, customer_firewall_rules_authorized: false, hard_block_authorized: false, soft_block_authorized: false, pause_automation_authorized: false, production_traffic_authorized: false, blockers: [].
+
+This controlled worker dry-run evidence does not accept Phase 8.
+It does not authorize runtime automation.
+It does not authorize production traffic.
+It does not authorize DB writes.
+It does not authorize firewall apply.
+It does not authorize customer mutation.
+It does not authorize hard/soft block.
+It does not authorize pause automation.
+It is synthetic/report-only evidence only.
 ### Phase 8 farm5 0.1.120 Operator Dry-Run Package Sync Evidence
 
 ```text

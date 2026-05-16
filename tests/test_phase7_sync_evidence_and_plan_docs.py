@@ -29,11 +29,11 @@ def test_phase_status_contains_0_1_120_sync_evidence() -> None:
 
 def test_remaining_plan_targets_updated() -> None:
     text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
-    assert "GitHub main repository version before this PR is 0.1.120" in text
-    assert "Repository version after this PR is 0.1.121" in text
-    assert "latest recorded farm5 sync evidence is 0.1.120" in text
-    assert "Current target is Phase 8 farm5 controlled worker dry-run evidence collection preparation" in text
-    assert "Next target after this PR is farm5 controlled worker dry-run evidence collection, but only after this PR is merged and 0.1.121 is synced/tested on farm5" in text
-    assert "14. Phase 8 farm5 controlled worker dry-run evidence collection preparation — current target in 0.1.121" in text
-    assert "16. Phase 8 final Abuse 1h acceptance readiness/review — future" in text
-    assert "17. Phase 8 final Abuse 1h acceptance — future" in text
+    assert "GitHub main repository version before this PR is 0.1.121" in text
+    assert "Repository version after this PR is 0.1.122" in text
+    assert "latest recorded farm5 sync evidence is 0.1.121" in text
+    assert "Current target is Phase 8 final Abuse 1h acceptance readiness/review" in text
+    assert "Next target after this PR is Phase 8 final Abuse 1h acceptance, but only after this PR is merged and 0.1.122 is synced/tested on farm5" in text
+    assert "14. Phase 8 farm5 controlled worker dry-run evidence collection preparation — done in 0.1.121 and synced/tested on farm5" in text
+    assert "16. Phase 8 final Abuse 1h acceptance readiness/review — current target in 0.1.122" in text
+    assert "17. Phase 8 final Abuse 1h acceptance — next after 0.1.122 sync/test" in text
