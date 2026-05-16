@@ -72,3 +72,45 @@ def test_execution_checklist_uses_named_items() -> None:
     assert "current_state_preserved" in items
     assert "future_runtime_worker_integration_pr_required" in items
     assert not any(i.isdigit() for i in items)
+
+
+def _mk_repo(tmp_path: Path, phase_status: str, readme: str = "DB-only controlled transition execution package", index: str = "DB-only controlled transition execution", rules: str = "Phase 8 DB-only execution stop condition", remaining: str = "Current target is Phase 8 DB-only controlled transition execution package.", ai: str = "DB-Only Controlled Transition Execution") -> Path:
+    repo = tmp_path / "repo"
+    (repo / "docs").mkdir(parents=True)
+    (repo / "README.md").write_text(readme, encoding="utf-8")
+    (repo / "docs/PHASE_STATUS.md").write_text(phase_status, encoding="utf-8")
+    (repo / "docs/INDEX.md").write_text(index, encoding="utf-8")
+    (repo / "docs/AI_CODING_RULES.md").write_text(rules, encoding="utf-8")
+    (repo / "docs/REMAINING_PHASE_PLAN.md").write_text(remaining, encoding="utf-8")
+    (repo / "docs/AI_PHASE_8_TASK.md").write_text(ai, encoding="utf-8")
+    return repo
+
+
+def test_blockers_and_checklist_fail_closed_on_missing_prerequisites(tmp_path: Path) -> None:
+    cfg = load_config(Path('configs/mpf.example.yaml'))
+    repo = _mk_repo(tmp_path, phase_status='current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\n')
+    r = build_phase8_db_transition_execution_report(cfg, repo_root=repo)
+    assert 'farm5_0_1_114_sync_evidence_present_missing_or_failed' in r['blockers']
+    assert 'farm5_0_1_114_phase8_reports_evidence_present_missing_or_failed' in r['blockers']
+    c = {i['item']: i['status'] for i in r['phase8_db_transition_execution_checklist']}
+    assert c['farm5_0_1_114_sync_evidence_present'] == 'BLOCKED'
+
+
+def test_blockers_on_fabricated_0_1_115_and_stale_docs(tmp_path: Path) -> None:
+    cfg = load_config(Path('configs/mpf.example.yaml'))
+    phase_status = 'current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\nsynced to 0.1.114\ndb-transition-readiness\nsynced to 0.1.115\n'
+    repo = _mk_repo(tmp_path, phase_status=phase_status, readme='stale', index='stale', rules='stale', remaining='stale', ai='stale')
+    r = build_phase8_db_transition_execution_report(cfg, repo_root=repo)
+    assert 'no_farm5_0_1_115_sync_evidence_claimed_missing_or_failed' in r['blockers']
+    assert 'readme_current_gate_aligned_missing_or_failed' in r['blockers']
+    assert 'index_current_gate_aligned_missing_or_failed' in r['blockers']
+    assert 'ai_coding_rules_current_gate_aligned_missing_or_failed' in r['blockers']
+    assert 'remaining_plan_db_execution_target_aligned_missing_or_failed' in r['blockers']
+
+
+def test_blocker_when_previous_phase8_report_fails(tmp_path: Path) -> None:
+    cfg = load_config(Path('configs/mpf.example.yaml'))
+    phase_status = 'current_accepted_phase: Phase 6\ncurrent_working_phase: Phase 8\nsynced to 0.1.114\ndb-transition-readiness\n'
+    repo = _mk_repo(tmp_path, phase_status=phase_status)
+    r = build_phase8_db_transition_execution_report(cfg, repo_root=repo)
+    assert 'current_state_preserved_missing_or_failed' in r['blockers']
