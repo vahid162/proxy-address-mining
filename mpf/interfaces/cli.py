@@ -69,6 +69,7 @@ from mpf.services import (
     phase8_runtime_worker_dry_run_harness_service,
     phase8_controlled_worker_pre_acceptance_service,
     phase8_controlled_worker_dry_run_service,
+    phase8_farm5_dry_run_evidence_collection_service,
 )
 
 app = typer.Typer(
@@ -1860,7 +1861,7 @@ def phase8_controlled_worker_dry_run(
 ) -> None:
     report = phase8_controlled_worker_dry_run_service.build_phase8_controlled_worker_dry_run_report(_load(config), operator_confirmed=operator_confirmed, batch_limit=batch_limit)
     if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
-    keys=["component","final_decision","dry_run_status","authorization_status","execution_allowed","production_side_effects_allowed","phase8_acceptance_allowed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_119_sync_evidence_present","farm5_0_1_120_sync_required_before_farm5_dry_run_evidence","operator_confirmed","explicit_dry_run","batch_limit","synthetic_item_count","synthetic_scenarios_passed","all_items_have_no_side_effects","runtime_worker_authorized","worker_start_authorized","background_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_policy_mutation_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","future_farm5_dry_run_evidence_requires_0_1_120_sync","future_phase8_final_acceptance_pr_required","blockers","errors"]
+    keys=["component","final_decision","dry_run_status","authorization_status","execution_allowed","production_side_effects_allowed","phase8_acceptance_allowed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_120_sync_evidence_present","farm5_0_1_121_sync_required_before_farm5_dry_run_evidence","operator_confirmed","explicit_dry_run","batch_limit","synthetic_item_count","synthetic_scenarios_passed","all_items_have_no_side_effects","runtime_worker_authorized","worker_start_authorized","background_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_policy_mutation_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","future_farm5_dry_run_evidence_requires_0_1_121_sync","future_phase8_final_acceptance_pr_required","blockers","errors"]
     for k in keys: typer.echo(f"{k}: {report[k]}")
 
 @phase8_app.command("controlled-worker-pre-acceptance")
@@ -1873,5 +1874,19 @@ def phase8_controlled_worker_pre_acceptance(
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
         return
     keys=["component","final_decision","pre_acceptance_status","authorization_status","execution_allowed","phase8_acceptance_allowed","latest_recorded_farm5_sync_evidence","repository_version","no_farm5_0_1_116_sync_evidence_claimed","no_farm5_0_1_117_sync_evidence_claimed","no_farm5_0_1_118_sync_evidence_claimed","farm5_sync_required_before_worker_dry_run","batch_sync_recommended_for_0_1_116_0_1_117_0_1_118","runtime_worker_dry_run_harness_present","runtime_worker_dry_run_harness_fail_closed","pre_acceptance_contract_defined","pre_acceptance_evaluator_defined","operator_approval_contract_defined","kill_switch_contract_required","lock_contract_required","no_silent_skip_contract_required","fresh_sync_contract_required","synthetic_pre_acceptance_scenarios_passed","controlled_worker_dry_run_allowed_now","runtime_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","future_farm5_batch_sync_required","future_controlled_worker_dry_run_pr_required","future_operator_acceptance_required","future_phase8_final_acceptance_pr_required","blockers","errors"]
+    for k in keys:
+        typer.echo(f"{k}: {report.get(k)}")
+
+
+@phase8_app.command("farm5-dry-run-evidence-collection")
+def phase8_farm5_dry_run_evidence_collection(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    report = phase8_farm5_dry_run_evidence_collection_service.build_phase8_farm5_dry_run_evidence_collection_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys = ["component","final_decision","evidence_collection_status","authorization_status","execution_allowed","phase8_acceptance_allowed","dry_run_evidence_claimed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_120_sync_evidence_present","farm5_0_1_121_sync_required_before_dry_run_evidence","current_state_preserved","phase7_accepted","phase8_working","phase8_not_accepted","dry_run_evidence_collection_runbook_present","runbook_status_not_executed","operator_invocation_required","default_command_requires_operator_confirmation","operator_confirmed_command_remains_no_side_effect","synthetic_only_required","no_silent_skip_required","no_work_reporting_required","failure_mode_reporting_required","idempotency_reporting_required","runtime_worker_authorized","worker_start_authorized","background_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","customer_policy_mutation_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","future_farm5_dry_run_evidence_pr_required","future_phase8_final_acceptance_pr_required","blockers","errors"]
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")

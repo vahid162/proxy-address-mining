@@ -217,7 +217,7 @@ customer + lane + normalized_worker_name + src_ip + session evidence
 Worker name alone must not be treated as a guaranteed physical device.
 
 ## Stop Conditions
-- Current Phase 8 controlled worker dry-run gate stop condition: no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic, and controlled dry-run remains future-gated synthetic dry-run only, and farm5 dry-run evidence remains future-gated until 0.1.120 is synced/tested after merge.
+- Current Phase 8 controlled worker dry-run gate stop condition: no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic, and controlled dry-run remains future-gated synthetic dry-run only, and farm5 dry-run evidence remains future-gated until 0.1.121 is synced/tested after merge.
 
 Stop and revise if a change introduces:
 
@@ -262,3 +262,10 @@ Phase 8 DB-only transition readiness stop condition: no DB connection, no DB rea
 
 ## Phase 8 Controlled Worker Pre-Acceptance Stop Condition
 - no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic.
+
+
+## Phase 8 farm5 Controlled Worker Dry-Run Evidence Collection Preparation Stop Condition
+
+no execution in PR, no dry-run evidence claimed before operator output exists, no background worker start, no scheduler/timer, no abuse runner, no real production customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic, and farm5 dry-run evidence collection remains future-gated until 0.1.121 is synced/tested after merge.
+
+Phase PR body format rule: Why / What / How to test / Version / Risk + Rollback.

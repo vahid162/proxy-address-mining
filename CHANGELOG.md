@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.121
+- Record farm5 0.1.120 sync evidence and prepare the Phase 8 farm5 controlled worker dry-run evidence collection package while keeping Phase 8 not accepted and all scheduler, daemon, abuse runner, real-customer, production DB, firewall, customer, hard/soft block, pause, UI, Telegram, and production traffic gates closed.
+
 ## 0.1.120
 - Record farm5 0.1.119 sync evidence and add the Phase 8 operator-invoked controlled worker dry-run package while keeping Phase 8 not accepted and all scheduler, daemon, abuse runner, real-customer, production DB, firewall, customer, hard/soft block, pause, UI, Telegram, and production traffic gates closed.
 
@@ -13,6 +16,9 @@
 - Add the Phase 8 runtime worker dry-run harness package with synthetic worker-cycle simulation, in-memory lock/idempotency behavior, kill-switch and failure-mode reporting, and a report-only CLI while keeping all runtime, scheduler, abuse runner, real customer, production DB, firewall, customer, and production traffic gates closed.
 
 # Changelog
+
+## 0.1.121
+- Record farm5 0.1.120 sync evidence and prepare the Phase 8 farm5 controlled worker dry-run evidence collection package while keeping Phase 8 not accepted and all scheduler, daemon, abuse runner, real-customer, production DB, firewall, customer, hard/soft block, pause, UI, Telegram, and production traffic gates closed.
 
 ## 0.1.120
 - Record farm5 0.1.119 sync evidence and add the Phase 8 operator-invoked controlled worker dry-run package while keeping Phase 8 not accepted and all scheduler, daemon, abuse runner, real-customer, production DB, firewall, customer, hard/soft block, pause, UI, Telegram, and production traffic gates closed.
