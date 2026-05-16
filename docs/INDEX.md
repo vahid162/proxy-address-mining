@@ -82,7 +82,7 @@ Current Phase 8 step:
 
 ```text
 Phase 7 remains accepted and Phase 8 remains working. docs/PHASE_STATUS.md is authoritative for active phase language.
-Current Phase 8 step: abuse dry-run evaluator package (offline dry-run/report-only/service-contract/readiness, non-authorizing).
+Current Phase 8 step: DB-only controlled transition readiness package (report-only/service-contract/readiness, non-authorizing).
 No abuse runner, no abuse DB writes, no hard/soft blocks, no pause automation, no firewall apply, no iptables-restore, no customer NAT/rules, no production traffic, no UI, no Telegram.
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
@@ -495,4 +495,8 @@ abuse_automation_allowed: no
 ui_allowed: no
 telegram_allowed: no
 
-Current Phase 8 step: abuse evidence/reporting contract package (report-only/service-contract/readiness, non-authorizing).
+Current Phase 8 step: DB-only controlled transition readiness package (report-only/service-contract/readiness, non-authorizing).
+
+Compatibility note: previous step was the Phase 8 abuse dry-run evaluator package (historical/reference-only).
+
+Compatibility note: previous step also included the Phase 8 abuse evidence/reporting contract package (historical/reference-only).
