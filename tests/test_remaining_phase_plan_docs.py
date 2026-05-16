@@ -16,4 +16,32 @@ def test_current_position_single_and_targets() -> None:
     assert '- Repository version after this PR is 0.1.124.' in t
     assert '- latest recorded farm5 sync evidence is 0.1.123.' in t
     assert '- Current target is Phase 9 Check / Report / Diagnostics planning/readiness.' in t
-    assert '- Next target after this PR is Phase 9 readiness/report-only package, but only after this PR is merged and 0.1.123 is synced/tested on farm5.' in t
+    assert '- This PR introduces the Phase 9 report-only readiness package after farm5 0.1.123 sync/test evidence.' in t
+    assert '- Next target after this PR is farm5 0.1.124 sync/test evidence, then future Phase 9 check/report/final-verdict diagnostics contracts in separate explicitly gated PRs.' in t
+
+
+def test_current_position_safety_and_non_activation() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    current = t.split('## Current Position', 1)[1].split('## Finite Remaining Path', 1)[0]
+    assert '- No production traffic is enabled.' in current
+    assert '- No firewall apply is enabled.' in current
+    assert '- No abuse automation runner is enabled.' in current
+    assert '- No customer NAT/customer firewall rules, UI, or Telegram is authorized.' in current
+    assert '- No production activation is enabled by this PR.' in current
+
+
+def test_finite_path_phase8_phase9_and_future_activation() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    assert '3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123' in t
+    assert '4. Phase 9 Check / Report / Diagnostics planning/readiness — current target' in t
+    assert '5. Phase 9 report-only readiness package — current PR after 0.1.123 sync/test' in t
+    assert '6. Phase 9 check/report/final-verdict diagnostics contracts — future after 0.1.124 sync/test' in t
+    assert 'Production / Customer Activation Gate — future, separate, explicit, and not authorized by Phase 8 or Phase 9 readiness acceptance' in t
+
+
+def test_no_stale_active_phase7_phase8_wording_in_current_position() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    current = t.split('## Current Position', 1)[1].split('## Finite Remaining Path', 1)[0]
+    assert 'accepted Phase 7 / working Phase 8' not in current
+    assert 'Phase 8 is planning/readiness only' not in current
+    assert 'Phase 8 Abuse 1h Core is accepted on farm5 in this PR' not in current
