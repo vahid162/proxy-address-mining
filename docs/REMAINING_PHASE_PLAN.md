@@ -6,20 +6,24 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.114.
-- Repository version after this PR is 0.1.115.
-- latest recorded farm5 sync evidence is 0.1.114.
+- GitHub main repository version before this PR is 0.1.115.
+- Repository version after this PR is 0.1.116.
+- latest recorded farm5 sync evidence is 0.1.115.
 - Phase 8 state-machine contract package is done in 0.1.111.
 - Phase 8 evidence/reporting contract package is done in 0.1.112.
 - Phase 8 abuse dry-run evaluator package is done in 0.1.113.
 - Phase 8 DB-only controlled transition readiness package is done and synced on farm5 in 0.1.114.
-- Current target is Phase 8 DB-only controlled transition execution package.
-- Next target after this PR is Phase 8 runtime/worker integration readiness package.
-- No server sync evidence for 0.1.115 exists until operator syncs after merge.
+- Phase 8 DB-only controlled transition execution package is done and synced on farm5 in 0.1.115.
+- Current target is Phase 8 runtime/worker integration readiness package.
+- Next target after this PR is Phase 8 runtime worker dry-run harness package.
+- No server sync evidence for 0.1.116 exists until operator syncs after merge.
 - Do not fabricate server evidence.
-- This PR should NOT be accepted on farm5 until 0.1.115 is synced and tested.
+- If this PR remains report-only/readiness-only and does not add real runtime workers/scheduler jobs, offline sync may be batched with the next readiness-only PR.
+- If the next PR starts a worker, adds a scheduler/timer, evaluates real customers, or executes DB transitions, fresh farm5 sync/test is required before acceptance.
 - No Phase 8 runtime automation is enabled by this PR.
 - No abuse runner is enabled.
+- No real customer evaluation is enabled.
+- No production DB execution is enabled.
 - No hard/soft firewall block is enabled.
 - No pause automation is enabled.
 - No production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, UI, or Telegram is authorized.
@@ -86,3 +90,6 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - latest recorded farm5 sync evidence is 0.1.110. (historical compatibility anchor)
 
 - Current target is Phase 8 DB-only controlled transition readiness package. (historical compatibility anchor)
+
+- Current target is Phase 8 DB-only controlled transition execution package. (historical compatibility anchor)
+

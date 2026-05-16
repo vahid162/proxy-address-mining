@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.116
+- Record farm5 0.1.115 sync evidence, align Phase 8 DB transition readiness with the accepted 0.1.114/0.1.115 sync state, and add the Phase 8 runtime/worker integration readiness package while keeping all runtime, scheduler, firewall, customer, DB execution, and abuse automation gates closed.
+
 ## 0.1.115
 - Add the Phase 8 DB-only controlled transition execution package with manual confirmation, idempotency, operator approval validation, dry-run default CLI, named safety checklist items, and farm5 0.1.114 evidence recording while keeping runtime, firewall, customer, and abuse automation gates closed.
 

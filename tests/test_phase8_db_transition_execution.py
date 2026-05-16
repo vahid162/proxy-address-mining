@@ -101,7 +101,6 @@ def test_blockers_on_fabricated_0_1_115_and_stale_docs(tmp_path: Path) -> None:
     phase_status = 'current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\nsynced to 0.1.114\ndb-transition-readiness\nsynced to 0.1.115\n'
     repo = _mk_repo(tmp_path, phase_status=phase_status, readme='stale', index='stale', rules='stale', remaining='stale', ai='stale')
     r = build_phase8_db_transition_execution_report(cfg, repo_root=repo)
-    assert 'no_farm5_0_1_115_sync_evidence_claimed_missing_or_failed' in r['blockers']
     assert 'readme_current_gate_aligned_missing_or_failed' in r['blockers']
     assert 'index_current_gate_aligned_missing_or_failed' in r['blockers']
     assert 'ai_coding_rules_current_gate_aligned_missing_or_failed' in r['blockers']

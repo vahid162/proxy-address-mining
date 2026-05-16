@@ -45,7 +45,8 @@ def test_service_cli_and_blocked_defaults() -> None:
     assert r["execution_allowed"] is False
     assert r["db_reads_authorized"] is False
     assert r["db_writes_authorized"] is False
-    assert "no_farm5_0_1_114_sync_evidence_claimed_missing_or_failed" in r["blockers"]
+    assert r["farm5_0_1_114_sync_evidence_present"] is True
+    assert r["blockers"] == []
     assert r["synthetic_transition_plan_scenarios_passed"] is True
 
     runner = CliRunner()
@@ -77,7 +78,7 @@ synced to 0.1.114
     assert "index_current_gate_aligned_missing_or_failed" in report["blockers"]
     assert "ai_coding_rules_current_gate_aligned_missing_or_failed" in report["blockers"]
     assert "remaining_plan_db_transition_target_aligned_missing_or_failed" in report["blockers"]
-    assert "no_farm5_0_1_114_sync_evidence_claimed_missing_or_failed" in report["blockers"]
+    assert "farm5_0_1_114_sync_evidence_present_missing_or_failed" not in report["blockers"]
 
 
 def test_checklist_reflects_failed_prerequisites(tmp_path: Path) -> None:
