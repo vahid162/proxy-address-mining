@@ -337,3 +337,41 @@ Future path:
 10. operator-invoked controlled worker dry-run package — current
 11. farm5 controlled worker dry-run evidence collection — future, requires 0.1.120 sync/test evidence
 12. final Abuse 1h acceptance — future
+
+
+## Current Phase 8 Step — farm5 Controlled Worker Dry-Run Evidence Collection Preparation
+
+- preparation only
+- no execution in this PR
+- no dry-run evidence claimed by this PR
+- farm5 0.1.120 sync/test evidence is recorded
+- 0.1.121 sync/test evidence is required before evidence collection
+- evidence collection commands are operator-invoked only
+- no background worker start
+- no scheduler/timer
+- no abuse runner
+- no real production customer evaluation
+- no production DB execution
+- no DB writes for abuse runtime
+- no firewall/customer mutation
+- no hard/soft blocks
+- no pause automation
+- no production traffic
+- output must report skip/no-work/lock/failure/idempotency outcomes explicitly
+- no silent skip is allowed
+
+Future path:
+1. abuse state-machine contract — done
+2. abuse evidence/reporting contract — done
+3. abuse dry-run evaluator — done
+4. DB-only controlled transition readiness — done and synced at 0.1.114
+5. DB-only controlled transition execution — done and synced at 0.1.115
+6. runtime/worker integration readiness — done in 0.1.116 and synced in 0.1.118 batch
+7. runtime worker dry-run harness — done in 0.1.117 and synced in 0.1.118 batch
+8. controlled worker pre-acceptance — done in 0.1.118 and synced on farm5
+9. controlled worker dry-run gate preparation — done in 0.1.119 and synced/tested on farm5
+10. operator-invoked controlled worker dry-run package — done in 0.1.120 and synced/tested on farm5
+11. farm5 controlled worker dry-run evidence collection preparation — current
+12. farm5 controlled worker dry-run evidence collection — future, requires 0.1.121 sync/test evidence
+13. final Abuse 1h acceptance readiness/review — future
+14. final Abuse 1h acceptance — future
