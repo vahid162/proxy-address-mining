@@ -62,6 +62,8 @@ Phase 8 current safe work: report-only/service-contract/readiness only.
 
 Phase 8 dry-run evaluator stop condition: synthetic/in-memory only, no real customer evaluation, no live evidence collection, no DB reads/writes, no abuse runner, no hard/soft blocks, no pause automation, no runtime automation.
 
+Phase 8 runtime/worker readiness stop condition: no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic.
+
 Forbidden in current Phase 8 work:
 - no abuse runner
 - no abuse automation

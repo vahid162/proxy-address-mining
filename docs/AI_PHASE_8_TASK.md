@@ -176,3 +176,30 @@ Future path:
 
 ## Current Phase 8 Step — DB-Only Controlled Transition Readiness
 - historical anchor retained for compatibility checks.
+
+## Current Phase 8 Step — Runtime/Worker Integration Readiness
+
+- readiness only
+- no worker start
+- no scheduler/timer
+- no abuse runner
+- no real customer evaluation
+- no production DB execution
+- no firewall/customer mutation
+- no hard/soft blocks
+- no pause automation
+- worker loop contract
+- scheduler boundary
+- lock/idempotency boundary
+- kill switch requirement
+- no silent skip
+
+future path:
+1. abuse state-machine contract — done
+2. abuse evidence/reporting contract — done
+3. abuse dry-run evaluator — done
+4. DB-only controlled transition readiness — done and synced at 0.1.114
+5. DB-only controlled transition execution — done and synced at 0.1.115
+6. runtime/worker integration readiness — current
+7. runtime worker dry-run harness — future
+8. final Abuse 1h acceptance — future

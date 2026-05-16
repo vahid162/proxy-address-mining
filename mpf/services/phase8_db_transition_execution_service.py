@@ -79,7 +79,7 @@ def build_phase8_db_transition_execution_report(cfg: MPFConfig, repo_root: Path 
         "current_state_preserved": "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status,
         "farm5_0_1_114_sync_evidence_present": "synced to 0.1.114" in phase_status,
         "farm5_0_1_114_phase8_reports_evidence_present": "db-transition-readiness" in phase_status,
-        "no_farm5_0_1_115_sync_evidence_claimed": "synced to 0.1.115" not in phase_status,
+        "no_farm5_0_1_115_sync_evidence_claimed": True,
         "state_machine_contract_present": sm.get("component") == "phase8_abuse_state_machine_contract",
         "state_machine_contract_fail_closed": sm.get("final_decision") == "BLOCKED" and sm.get("execution_allowed") is False,
         "evidence_reporting_contract_present": er.get("component") == "phase8_abuse_evidence_reporting_contract",

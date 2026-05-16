@@ -63,6 +63,7 @@ from mpf.services import (
     phase8_abuse_evidence_reporting_contract_service,
     phase8_abuse_dry_run_evaluator_service,
     phase8_db_transition_readiness_service,
+    phase8_runtime_worker_integration_readiness_service,
     phase8_db_transition_execution_service,
 )
 
@@ -1684,6 +1685,23 @@ def phase8_db_transition_execution(
     for k in keys: typer.echo(f"{k}: {report.get(k)}")
     typer.echo(f"blockers: {report.get('blockers', [])}")
     typer.echo(f"errors: {report.get('errors', [])}")
+
+
+@phase8_app.command("runtime-worker-readiness")
+def phase8_runtime_worker_readiness(
+    config: Path = typer.Option(Path("/etc/mpf/mpf.yaml"), "--config", help="Path to mpf.yaml."),
+    output: str = typer.Option("human", "--output", help="human | json"),
+) -> None:
+    cfg = load_config(config)
+    report = phase8_runtime_worker_integration_readiness_service.build_phase8_runtime_worker_integration_readiness_report(cfg)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    keys=["component","final_decision","readiness_status","authorization_status","execution_allowed","phase8_acceptance_allowed","farm5_0_1_115_sync_evidence_present","farm5_0_1_115_db_execution_report_evidence_present","no_farm5_0_1_116_sync_evidence_claimed","db_transition_execution_present","db_transition_execution_fail_closed","worker_readiness_contract_defined","worker_loop_contract_defined","worker_failure_modes_defined","worker_synthetic_scenarios_passed","worker_default_disabled","scheduler_default_disabled","runtime_worker_authorized","scheduler_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","production_traffic_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","future_worker_dry_run_harness_pr_required","future_farm5_sync_required_before_runtime_acceptance"]
+    for k in keys: typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"blockers: {report.get('blockers', [])}")
+    typer.echo(f"errors: {report.get('errors', [])}")
+
 @phase7_app.command("summary")
 def phase7_summary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     report = phase7_reports_doctor_service.build_phase7_reports_summary(_load(config))

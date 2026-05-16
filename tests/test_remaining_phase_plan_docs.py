@@ -86,3 +86,10 @@ def test_remaining_plan_abuse_invariants_and_phase6e():
     assert "Phase 6-E" in t
     assert "host production firewall mutation is forbidden" in t
     assert "Phase 8" in t and "farms-over alone must not harden" in t and "worker-over alone must not harden" in t
+
+
+def test_remaining_plan_finite_path_includes_execution_and_next_steps():
+    t = _read("docs/REMAINING_PHASE_PLAN.md")
+    assert "Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115" in t
+    assert "Phase 8 runtime worker dry-run harness — next target" in t
+    assert "Phase 8 final Abuse 1h acceptance — future" in t

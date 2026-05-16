@@ -30,6 +30,72 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 
 
+### Phase 8 farm5 0.1.115 DB-Only Execution Sync Evidence
+
+```text
+command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260516T093152Z
+server version after sync: 0.1.115
+synced to 0.1.115
+pytest during sync: 725 passed in 69.14s
+mpf doctor: OK
+config: OK
+database: OK
+apply_mode: plan_only
+traffic_changes: none
+firewall_mutation: disabled
+abuse_automation: disabled
+alembic_version: 0002_phase5_customer_lifecycle
+public_table_count: 64
+lanes: 3
+customers: 1
+job_runs: 0
+firewall_applies: 1
+abuse_states: 0
+customer list: no non-deleted customers
+proxy config/status/doctor: OK
+proxy.runtime_activation_allowed: disabled for general app/API mutation
+v2rayA UI listener: 127.0.0.1:2015 local-only
+BTC backend listener: 127.0.0.1:60010 local-only
+no_customer_nat_redirects: OK
+firewall_apply_mode_plan_only: OK
+no MPF/customer IPv4 firewall references detected
+no MPF/customer IPv6 firewall references detected
+accepted limited runtime listeners are local-only
+current phase safety gate: OK
+final sync verdict: OK
+```
+
+Phase 8 db-transition-execution report summary after 0.1.115 sync:
+- `mpf phase8 db-transition-execution --output json` => component=phase8_db_transition_execution, final_decision=BLOCKED, execution_allowed=false, phase8_acceptance_allowed=false, farm5_0_1_114_sync_evidence_present=true, farm5_0_1_114_phase8_reports_evidence_present=true, no_farm5_0_1_115_sync_evidence_claimed=true, synthetic_execution_scenarios_passed=true, blockers=[], errors=[].
+
+0.1.115 sync is accepted as DB-only execution package evidence.
+It does not accept Phase 8, does not authorize runtime worker, scheduler, abuse runner, real customer evaluation, production DB execution, firewall apply, production customer traffic, hard/soft blocks, or pause automation.
+It confirms DB-only execution report remains fail-closed on farm5.
+
+### Phase 8 Runtime/Worker Integration Readiness Boundary
+
+- This PR defines runtime/worker integration readiness only.
+- This PR does not start an abuse worker.
+- This PR does not enable scheduler jobs.
+- This PR does not enable timers.
+- This PR does not enable abuse runner.
+- This PR does not evaluate real customers.
+- This PR does not execute DB transitions on real customers.
+- This PR does not connect to production DB for worker execution.
+- This PR does not mutate firewall rules.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- This PR does not apply hard/soft blocks.
+- This PR does not apply pause automation.
+- It defines future worker loop, scheduler, lock, kill-switch, failure-mode, and observability contracts.
+- Missing/stale evidence must not harden.
+- DB failure must not harden.
+- Firewall failure must not harden.
+- Lock contention must report explicit skip; no silent skip is allowed.
+- Runtime worker execution remains future-gated and requires fresh farm5 evidence.
+
+
 ### Phase 8 farm5 0.1.114 Batched Readiness Sync Evidence
 
 ```text

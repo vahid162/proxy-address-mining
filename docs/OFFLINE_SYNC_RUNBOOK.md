@@ -155,3 +155,15 @@ runtime activation remains unauthorized unless a later accepted runtime task exp
 After a phase-gate PR changes `docs/PHASE_STATUS.md` Current State, the sync script must validate generic phase markers plus hard safety gates, and then delegate exact phase validation to `scripts/verify_current_phase_gate.sh`.
 
 Troubleshooting: If sync fails with stale message like "new PHASE_STATUS does not show accepted Phase 6 Firewall Planner gate", the installed sync wrapper is stale. Use the bootstrap command from the fixed zip to run `scripts/sync_main_zip_on_server.sh` directly once.
+
+
+## Manual pytest note
+
+To run tests manually after sync, use:
+
+```bash
+cd /opt/mpf-py-src
+python -m pytest -q
+```
+
+Running `python -m pytest -q` from `/root` may show `no tests ran`, which does not validate the project.
