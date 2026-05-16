@@ -451,4 +451,13 @@ Choose and add a license before public or multi-person use.
 
 Historical Phase 8 references: the Phase 8 abuse evidence/reporting contract, DB-only controlled transition readiness package, and DB-only controlled transition execution package are completed Phase 8 context only; they are not active targets.
 
+Compatibility anchors for historical Phase 8 report surfaces:
+
+```text
+DB-only controlled transition readiness package
+report-only/non-mutating/non-authorizing
+Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing.
+Current advancement target is the Phase 8 runtime/worker integration readiness package, report-only/readiness-only/non-runtime/non-authorizing.
+```
+
 Historical gate reference: accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5 / working_phase: Phase 8 — Abuse 1h Core planning/readiness.
