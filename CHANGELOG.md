@@ -1,10 +1,7 @@
 # Changelog
 
-## 0.1.116
-- Fix Phase 8 DB-only transition execution checklist to emit named safety items (not numeric placeholders) while keeping all runtime/firewall/customer gates closed.
-
 ## 0.1.115
-- Add the Phase 8 DB-only controlled transition execution package with manual confirmation, idempotency, operator approval validation, dry-run default CLI, and farm5 0.1.114 evidence recording while keeping runtime, firewall, customer, and abuse automation gates closed.
+- Add the Phase 8 DB-only controlled transition execution package with manual confirmation, idempotency, operator approval validation, dry-run default CLI, named safety checklist items, and farm5 0.1.114 evidence recording while keeping runtime, firewall, customer, and abuse automation gates closed.
 
 ## 0.1.114
 - Add the Phase 8 DB-only controlled transition readiness package with non-executing transition intent, DB mutation plan, audit, restore-reference, and operator approval contracts while keeping all runtime, DB, firewall, customer, and abuse automation gates closed.
