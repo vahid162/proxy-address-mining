@@ -217,6 +217,7 @@ customer + lane + normalized_worker_name + src_ip + session evidence
 Worker name alone must not be treated as a guaranteed physical device.
 
 ## Stop Conditions
+- Current Phase 8 controlled worker dry-run gate stop condition: no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic, and controlled dry-run remains future-gated until 0.1.119 farm5 sync/test evidence is collected after merge.
 
 Stop and revise if a change introduces:
 

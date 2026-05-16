@@ -6,17 +6,16 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.117.
-- Repository version after this PR is 0.1.118.
-- latest recorded farm5 sync evidence is 0.1.115.
-- Phase 8 runtime/worker integration readiness package is done in 0.1.116, pending batch sync.
-- Phase 8 runtime worker dry-run harness package is done in 0.1.117, pending batch sync.
-- Current target is Phase 8 controlled worker pre-acceptance package.
+- GitHub main repository version before this PR is 0.1.118.
+- Repository version after this PR is 0.1.119.
+- latest recorded farm5 sync evidence is 0.1.118.
+- Phase 8 runtime/worker integration readiness package is done in 0.1.116 and synced on farm5 in the 0.1.118 batch.
+- Phase 8 runtime worker dry-run harness package is done in 0.1.117 and synced on farm5 in the 0.1.118 batch.
+- Phase 8 controlled worker pre-acceptance package is done in 0.1.118 and synced on farm5.
+- Current target is Phase 8 controlled worker dry-run gate preparation package.
 - Next target after this PR is Phase 8 farm5 batched sync/evidence package for 0.1.116/0.1.117/0.1.118.
-- No server sync evidence for 0.1.116, 0.1.117, or 0.1.118 exists until operator syncs after merge.
+- Next target after this PR is Phase 8 controlled worker dry-run on farm5, but only after this PR is merged and 0.1.119 is synced/tested on farm5.
 - Do not fabricate server evidence.
-- If this PR remains report-only/pre-acceptance-only, offline sync may be batched with PR #124 and PR #125.
-- Before any controlled worker dry-run on farm5, fresh farm5 sync/test evidence is required.
 - No Phase 8 runtime automation is enabled by this PR.
 - No abuse runner is enabled.
 - No worker/scheduler/timer is enabled.
@@ -36,14 +35,18 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 6. Phase 8 abuse dry-run evaluator — done in 0.1.113
 7. Phase 8 DB-only controlled transition readiness — done and synced on farm5 in 0.1.114
 8. Phase 8 DB-only controlled transition execution — done and synced on farm5 in 0.1.115
-9. Phase 8 runtime/worker integration readiness — done in 0.1.116, pending batch sync
-10. Phase 8 runtime worker dry-run harness — done in 0.1.117, pending batch sync
+9. Phase 8 runtime/worker integration readiness — done in 0.1.116 and synced in the 0.1.118 farm5 batch
+10. Phase 8 runtime worker dry-run harness — done in 0.1.117 and synced in the 0.1.118 farm5 batch
 11. Phase 8 controlled worker pre-acceptance — current target in 0.1.118
 12. Phase 8 farm5 batched sync/evidence — next
-13. Phase 8 controlled worker dry-run on farm5 — future
+13. Phase 8 controlled worker dry-run gate preparation — current target in 0.1.119
 14. Phase 8 final Abuse 1h acceptance — future
 
 ## Historical/Compatibility Notes
+
+- GitHub main repository version before this PR is 0.1.117.
+- 12. Phase 8 farm5 batched sync/evidence — next
+- 11. Phase 8 controlled worker pre-acceptance — current target in 0.1.118
 
 - finite remaining project/Phase 8 plan aligned to PHASE_STATUS.
 - read-only iptables-save live snapshot path is explicitly authorized and evidenced.
