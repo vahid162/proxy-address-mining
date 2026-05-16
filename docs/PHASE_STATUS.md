@@ -24,7 +24,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
-Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Phase 6 operator acceptance decision is completed and accepted after farm5 0.1.100 sync evidence. Phase 7 is now accepted only as report-only/service-contract/readiness after farm5 0.1.108 evidence. Current working phase is Phase 8 Abuse 1h Core planning/readiness only; runtime gates remain closed and non-authorizing. Current farm5 has no non-deleted customers. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path remains authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, Phase 8 abuse runner, hard/soft blocks, pause automation, UI, or Telegram is authorized.
+Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Phase 6 operator acceptance decision is completed and accepted after farm5 0.1.100 sync evidence. Phase 7 is now accepted only as report-only/service-contract/readiness after farm5 0.1.108 evidence and later farm5 0.1.110 sync evidence. Current working phase is Phase 8 Abuse 1h Core planning/readiness only; runtime gates remain closed and non-authorizing. Current farm5 has no non-deleted customers. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path remains authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, Phase 8 abuse runner, hard/soft blocks, pause automation, UI, or Telegram is authorized.
 
 ## Accepted Server Results
 
@@ -2096,4 +2096,43 @@ State:
 - Sustained miner-abuse after about 3600 seconds may produce would_harden=true only in dry-run output.
 - All active customers in enabled lanes must remain a future coverage requirement.
 - No silent skip is allowed.
+- Runtime implementation remains future-gated.
+
+
+### Phase 8 DB-Only Controlled Transition Readiness Boundary
+
+State:
+- This PR defines DB-only controlled transition readiness only.
+- This PR does not execute DB transitions.
+- This PR does not connect to PostgreSQL.
+- This PR does not read DB customers.
+- This PR does not read abuse_states.
+- This PR does not write abuse_states.
+- This PR does not write abuse_events.
+- This PR does not read usage_samples.
+- This PR does not write usage_samples.
+- This PR does not read policy_events.
+- This PR does not write policy_events.
+- This PR does not create migrations.
+- This PR does not create scheduler jobs.
+- This PR does not evaluate real customers.
+- This PR does not run an abuse runner.
+- This PR does not read live conntrack.
+- This PR does not read live firewall counters.
+- This PR does not run iptables-save.
+- This PR does not mutate firewall rules.
+- This PR does not enable iptables-restore.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- This PR does not apply hard/soft blocks.
+- This PR does not apply pause automation.
+- It defines future transition intent, DB mutation plan, audit payload, restore-reference payload, idempotency, and operator approval contracts.
+- It may compute would_write_abuse_state and would_write_abuse_event only as future-intent in report output.
+- It must keep writes_allowed=false and execution_allowed=false.
+- Missing evidence must block DB transition planning.
+- Stale evidence must block DB transition planning.
+- Farms-over alone must remain report-only and must not harden.
+- Worker-over alone must remain report-only and must not harden.
+- Sustained miner-abuse after about 3600 seconds may produce future hard-state DB write intent only in report output.
+- Any real DB execution must come in a later explicitly gated PR with fresh farm5 evidence.
 - Runtime implementation remains future-gated.

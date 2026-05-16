@@ -98,7 +98,7 @@ def test_docs_targets_are_dry_run_evaluator_and_current_position_is_single() -> 
     assert "abuse dry-run evaluator package" in readme
     assert "offline dry-run/report-only/non-authorizing" in readme
     assert "abuse state-machine contract package" not in readme
-    assert "abuse dry-run evaluator package" in index
+    assert "DB-only controlled transition readiness package" in index
     assert "docs/AI_PHASE_8_TASK.md" in index
     assert "historical/reference-only" in index
     assert "Phase 8 dry-run evaluator stop condition" in rules

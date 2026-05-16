@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 8 is planning/readiness only. Current target is the Phase 8 abuse dry-run evaluator package (offline dry-run/report-only/non-authorizing). No customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
+Phase 8 is planning/readiness only. Current target is the Phase 8 DB-only controlled transition readiness package (report-only/non-mutating/non-authorizing). No customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
 
 
 ## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)

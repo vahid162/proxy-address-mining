@@ -93,7 +93,7 @@ def build_phase8_abuse_dry_run_evaluator_report(cfg: MPFConfig, repo_root: Path 
         "evidence_reporting_contract_present": er.get("component") == "phase8_abuse_evidence_reporting_contract",
         "evidence_reporting_contract_fail_closed": er.get("final_decision") == "BLOCKED" and not bool(er.get("execution_allowed")),
         "ai_phase8_task_present": "Current Phase 8 Step — Abuse Dry-Run Evaluator" in ai_phase8,
-        "remaining_plan_dry_run_target_aligned": "Current target is Phase 8 abuse dry-run evaluator package." in remaining,
+        "remaining_plan_dry_run_target_aligned": "Current target is Phase 8 abuse dry-run evaluator package." in remaining or "Current target is Phase 8 DB-only controlled transition readiness package." in remaining,
         "readme_current_gate_aligned": "abuse dry-run evaluator package" in readme and "offline dry-run/report-only/non-authorizing" in readme,
         "index_current_gate_aligned": "abuse dry-run evaluator package" in index,
         "ai_coding_rules_current_gate_aligned": "Phase 8 dry-run evaluator stop condition" in ai_rules,

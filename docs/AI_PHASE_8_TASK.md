@@ -65,8 +65,9 @@ Future path:
 2. abuse evidence/reporting contract
 3. abuse dry-run evaluator
 4. DB-only controlled transition readiness
-5. runtime/worker integration readiness
-6. final Abuse 1h acceptance
+5. DB-only controlled transition execution
+6. runtime/worker integration readiness
+7. final Abuse 1h acceptance
 
 
 ## Current Phase 8 Step — Abuse Evidence/Reporting Contract
@@ -88,8 +89,9 @@ Future path:
 2. abuse evidence/reporting contract — current
 3. abuse dry-run evaluator
 4. DB-only controlled transition readiness
-5. runtime/worker integration readiness
-6. final Abuse 1h acceptance
+5. DB-only controlled transition execution
+6. runtime/worker integration readiness
+7. final Abuse 1h acceptance
 
 ## Current Phase 8 Step — Abuse Dry-Run Evaluator
 - offline dry-run only
@@ -116,3 +118,34 @@ Future path:
   4. DB-only controlled transition readiness
   5. runtime/worker integration readiness
   6. final Abuse 1h acceptance
+
+
+## Current Phase 8 Step — DB-Only Controlled Transition Readiness
+
+- report-only readiness only
+- no DB connection
+- no DB reads
+- no DB writes
+- no migrations
+- no real customer evaluation
+- no live evidence collection
+- no live conntrack/firewall reads
+- no abuse runner
+- no hard/soft blocks
+- no pause automation
+- no runtime automation
+- defines transition intent and DB mutation plan contracts
+- defines operator approval, audit, restore-reference, and idempotency contracts
+- writes_allowed=false
+- execution_allowed=false
+- missing/stale evidence must block DB transition planning
+- farms-over alone must not harden
+- worker-over alone must not harden
+- future path:
+  1. abuse state-machine contract — done
+  2. abuse evidence/reporting contract — done
+  3. abuse dry-run evaluator — done
+  4. DB-only controlled transition readiness — current
+  5. DB-only controlled transition execution — future, requires fresh farm5 evidence
+  6. runtime/worker integration readiness
+  7. final Abuse 1h acceptance
