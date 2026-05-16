@@ -70,6 +70,7 @@ from mpf.services import (
     phase8_controlled_worker_pre_acceptance_service,
     phase8_controlled_worker_dry_run_service,
     phase8_farm5_dry_run_evidence_collection_service,
+    phase8_final_acceptance_readiness_service,
 )
 
 app = typer.Typer(
@@ -1877,6 +1878,18 @@ def phase8_controlled_worker_pre_acceptance(
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")
 
+
+
+@phase8_app.command("final-acceptance-readiness")
+def phase8_final_acceptance_readiness(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    report = phase8_final_acceptance_readiness_service.build_phase8_final_acceptance_readiness_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    keys=["component","final_decision","readiness_status","authorization_status","execution_allowed","phase8_acceptance_allowed","phase8_accepted_by_this_pr","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_121_sync_evidence_present","farm5_controlled_worker_dry_run_evidence_present","current_state_preserved","phase7_accepted","phase8_working","phase8_not_accepted","abuse_invariant_preserved","state_path_normal_over_tracking_over_grace_hard","sustained_abuse_window_3600_seconds","farms_over_alone_does_not_harden","worker_over_alone_does_not_harden","missing_evidence_does_not_harden","stale_evidence_does_not_harden","db_failure_does_not_harden","firewall_failure_does_not_harden","explicit_skip_required","no_silent_skip_required","dry_run_evidence_synthetic_only","dry_run_synthetic_item_count","dry_run_all_items_have_no_side_effects","dry_run_execution_allowed","dry_run_production_side_effects_allowed","dry_run_phase8_acceptance_allowed","runtime_worker_authorized","worker_start_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_policy_mutation_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","future_phase8_final_acceptance_pr_required","future_sync_required_before_final_acceptance","blockers","warnings","errors"]
+    for k in keys: typer.echo(f"{k}: {report.get(k)}")
 
 @phase8_app.command("farm5-dry-run-evidence-collection")
 def phase8_farm5_dry_run_evidence_collection(

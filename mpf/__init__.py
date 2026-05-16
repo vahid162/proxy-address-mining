@@ -4,4 +4,4 @@ Current repository state: Phase 7 accepted as report-only/service-contract/readi
 No production traffic mutation is implemented here.
 """
 
-__version__ = "0.1.121"
+__version__ = "0.1.122"

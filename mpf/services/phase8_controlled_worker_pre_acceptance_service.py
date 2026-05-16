@@ -54,18 +54,18 @@ def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_ro
     wh = build_phase8_runtime_worker_dry_run_harness_report(cfg, root)
 
     contract = build_abuse_worker_pre_acceptance_contract()
-    base = AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.119", True, True, True, True, True, True, True, True)
+    base = AbuseWorkerPreAcceptanceInput("0.1.121", "0.1.121", True, True, True, True, True, True, True, True)
     evaluation = evaluate_abuse_worker_pre_acceptance(base)
 
     scenarios = [
         _scenario_result("repository_newer_than_latest_sync_requires_farm5_sync", base, "fresh_farm5_sync_required_before_worker_dry_run"),
         _scenario_result("all_previous_reports_fail_closed_but_still_blocked_until_sync", base, "fresh_farm5_sync_required_before_worker_dry_run"),
-        _scenario_result("missing_worker_harness_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.119", True, False, True, True, True, True, True, True), "worker_harness_missing"),
-        _scenario_result("missing_runtime_worker_readiness_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.119", True, True, False, True, True, True, True, True), "runtime_worker_readiness_missing"),
-        _scenario_result("missing_operator_approval_blocks_future_worker_dry_run", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.119", True, True, True, False, True, True, True, True), "operator_approval_missing"),
-        _scenario_result("missing_kill_switch_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.119", True, True, True, True, False, True, True, True), "kill_switch_contract_missing"),
-        _scenario_result("missing_lock_contract_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.119", True, True, True, True, True, False, True, True), "lock_contract_missing"),
-        _scenario_result("missing_no_silent_skip_contract_blocks", AbuseWorkerPreAcceptanceInput("0.1.115", "0.1.119", True, True, True, True, True, True, False, True), "no_silent_skip_contract_missing"),
+        _scenario_result("missing_worker_harness_blocks", AbuseWorkerPreAcceptanceInput("0.1.121", "0.1.121", True, False, True, True, True, True, True, True), "worker_harness_missing"),
+        _scenario_result("missing_runtime_worker_readiness_blocks", AbuseWorkerPreAcceptanceInput("0.1.121", "0.1.121", True, True, False, True, True, True, True, True), "runtime_worker_readiness_missing"),
+        _scenario_result("missing_operator_approval_blocks_future_worker_dry_run", AbuseWorkerPreAcceptanceInput("0.1.121", "0.1.121", True, True, True, False, True, True, True, True), "operator_approval_missing"),
+        _scenario_result("missing_kill_switch_blocks", AbuseWorkerPreAcceptanceInput("0.1.121", "0.1.121", True, True, True, True, False, True, True, True), "kill_switch_contract_missing"),
+        _scenario_result("missing_lock_contract_blocks", AbuseWorkerPreAcceptanceInput("0.1.121", "0.1.121", True, True, True, True, True, False, True, True), "lock_contract_missing"),
+        _scenario_result("missing_no_silent_skip_contract_blocks", AbuseWorkerPreAcceptanceInput("0.1.121", "0.1.121", True, True, True, True, True, True, False, True), "no_silent_skip_contract_missing"),
         _scenario_result("equal_version_without_fresh_sync_still_blocked_fail_closed", AbuseWorkerPreAcceptanceInput("0.1.119", "0.1.119", True, True, True, True, True, True, True, True)),
         _scenario_result("worker_execution_not_authorized", base),
         _scenario_result("scheduler_not_authorized", base),
@@ -82,11 +82,11 @@ def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_ro
         "phase7_accepted": "current_accepted_phase: Phase 7" in phase_status,
         "phase8_working": "current_working_phase: Phase 8" in phase_status,
         "phase8_planning_only": "planning/readiness" in phase_status,
-        "latest_recorded_farm5_sync_is_0_1_115": "synced to 0.1.115" in phase_status,
-        "repository_version_is_0_1_119": _read(root / "VERSION").strip() == "0.1.119",
+        "latest_recorded_farm5_sync_is_0_1_121": "synced to 0.1.121" in phase_status,
+        "repository_version_is_current": _read(root / "VERSION").strip() == "0.1.122",
         "no_farm5_0_1_116_sync_evidence_claimed": "synced to 0.1.116" not in phase_status,
         "no_farm5_0_1_117_sync_evidence_claimed": "synced to 0.1.117" not in phase_status,
-        "no_farm5_0_1_119_sync_evidence_claimed": "synced to 0.1.119" not in phase_status,
+        "farm5_0_1_119_historical_sync_evidence_present": "synced to 0.1.119" in phase_status,
         "state_machine_contract_present": sm.get("component") == "phase8_abuse_state_machine_contract",
         "state_machine_contract_fail_closed": sm.get("final_decision") == "BLOCKED",
         "evidence_reporting_contract_present": er.get("component") == "phase8_abuse_evidence_reporting_contract",
@@ -160,13 +160,14 @@ def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_ro
         "dry_run": True,
         "execution_allowed": False,
         "phase8_acceptance_allowed": False,
-        "latest_recorded_farm5_sync_evidence": "0.1.115",
-        "repository_version": "0.1.119",
+        "latest_recorded_farm5_sync_evidence": "0.1.121",
+        "repository_version": "0.1.122",
         "no_farm5_0_1_116_sync_evidence_claimed": checks["no_farm5_0_1_116_sync_evidence_claimed"],
         "no_farm5_0_1_117_sync_evidence_claimed": checks["no_farm5_0_1_117_sync_evidence_claimed"],
-        "no_farm5_0_1_119_sync_evidence_claimed": checks["no_farm5_0_1_119_sync_evidence_claimed"],
+        "farm5_0_1_119_historical_sync_evidence_present": checks["farm5_0_1_119_historical_sync_evidence_present"],
         "farm5_sync_required_before_worker_dry_run": True,
         "batch_sync_recommended_for_0_1_116_0_1_117_0_1_119": True,
+        "historical_pre_acceptance_package_present": True,
         "state_machine_contract_present": checks["state_machine_contract_present"],
         "state_machine_contract_fail_closed": checks["state_machine_contract_fail_closed"],
         "evidence_reporting_contract_present": checks["evidence_reporting_contract_present"],

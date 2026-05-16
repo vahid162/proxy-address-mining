@@ -22,10 +22,10 @@ def test_service_and_cli() -> None:
     assert r["component"] == "phase8_controlled_worker_dry_run"
     assert r["final_decision"] in {"BLOCKED", "DRY_RUN_ONLY"}
     assert r["execution_allowed"] is False and r["production_side_effects_allowed"] is False and r["phase8_acceptance_allowed"] is False
-    assert r["repository_version"] == "0.1.121"
-    assert r["latest_recorded_farm5_sync_evidence"] == "0.1.120"
-    assert r["farm5_0_1_120_sync_evidence_present"] is True
-    assert r["farm5_0_1_121_sync_required_before_farm5_dry_run_evidence"] is True
+    assert r["repository_version"] == "0.1.122"
+    assert r["latest_recorded_farm5_sync_evidence"] == "0.1.121"
+    assert r["farm5_0_1_121_sync_evidence_present"] is True
+    assert r["farm5_0_1_122_sync_required_before_future_server_evidence"] is True
     assert r["controlled_worker_dry_run_gate_doc_present"] is True
     assert r["synthetic_item_count"] >= 10 and r["synthetic_scenarios_passed"] is True and r["all_items_have_no_side_effects"] is True
     for k, v in r.items():
@@ -40,8 +40,8 @@ def test_service_and_cli() -> None:
     assert data["execution_allowed"] is False
     assert data["production_side_effects_allowed"] is False
     assert data["phase8_acceptance_allowed"] is False
-    assert data["farm5_0_1_120_sync_evidence_present"] is True
-    assert data["farm5_0_1_121_sync_required_before_farm5_dry_run_evidence"] is True
+    assert data["farm5_0_1_121_sync_evidence_present"] is True
+    assert data["farm5_0_1_122_sync_required_before_future_server_evidence"] is True
     assert data["worker_start_authorized"] is False and data["scheduler_authorized"] is False and data["production_db_execution_authorized"] is False and data["firewall_apply_authorized"] is False and data["production_traffic_authorized"] is False
     assert any("operator_confirmation_required" in b for b in data["blockers"])
 
