@@ -134,16 +134,37 @@ def build_phase8_db_transition_readiness_report(cfg: MPFConfig, repo_root: Path 
         "synthetic_transition_plan_scenarios_passed": scenarios_ok,
     }
 
+
+    approval = asdict(build_operator_approval_contract())
+    existing_models = "class AbuseState" in models and "class AbuseEvent" in models
+
     blocker_keys = [k for k, v in bools.items() if k in {
         "current_state_preserved","farm5_0_1_110_sync_evidence_present","no_farm5_0_1_111_sync_evidence_claimed","no_farm5_0_1_112_sync_evidence_claimed","no_farm5_0_1_113_sync_evidence_claimed","no_farm5_0_1_114_sync_evidence_claimed","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed","dry_run_evaluator_present","dry_run_evaluator_fail_closed","ai_phase8_task_present","remaining_plan_db_transition_target_aligned","readme_current_gate_aligned","index_current_gate_aligned","ai_coding_rules_current_gate_aligned","apply_mode_plan_only","runtime_activation_disabled","synthetic_transition_plan_scenarios_passed"
     } and not v]
     blockers = [f"{k}_missing_or_failed" for k in blocker_keys]
 
-    checklist_names = ["current_state_preserved","phase7_accepted","phase8_working","farm5_0_1_110_sync_evidence_present","no_farm5_0_1_111_sync_evidence_claimed","no_farm5_0_1_112_sync_evidence_claimed","no_farm5_0_1_113_sync_evidence_claimed","no_farm5_0_1_114_sync_evidence_claimed","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed","dry_run_evaluator_present","dry_run_evaluator_fail_closed","ai_phase8_task_present","remaining_plan_db_transition_target_aligned","readme_current_gate_aligned","index_current_gate_aligned","ai_coding_rules_current_gate_aligned","transition_plan_contract_defined","db_mutation_plan_contract_defined","operator_approval_contract_defined","audit_payload_contract_defined","restore_reference_contract_defined","idempotency_contract_defined","synthetic_transition_plan_scenarios_defined","synthetic_transition_plan_scenarios_passed","existing_abuse_models_detected","config_apply_mode_plan_only","proxy_runtime_activation_disabled","no_production_traffic","firewall_apply_disallowed","customer_nat_disallowed","customer_firewall_rules_disallowed","no_iptables_restore_authorized","abuse_automation_disallowed","abuse_runner_disallowed","db_reads_disallowed","db_writes_disallowed","abuse_db_reads_disallowed","abuse_db_writes_disallowed","usage_policy_customer_db_reads_writes_disallowed","live_conntrack_firewall_reads_disallowed","hard_block_disallowed","soft_block_disallowed","pause_automation_disallowed","separate_phase8_db_execution_pr_required","future_runtime_worker_integration_pr_required","fresh_farm5_sync_evidence_required_before_acceptance"]
-    checklist = [{"item": i, "status": "PASS" if i not in blocker_keys else "BLOCKED", "evidence": i} for i in checklist_names]
 
-    approval = asdict(build_operator_approval_contract())
-    existing_models = "class AbuseState" in models and "class AbuseEvent" in models
+    checklist_names = ["current_state_preserved","phase7_accepted","phase8_working","farm5_0_1_110_sync_evidence_present","no_farm5_0_1_111_sync_evidence_claimed","no_farm5_0_1_112_sync_evidence_claimed","no_farm5_0_1_113_sync_evidence_claimed","no_farm5_0_1_114_sync_evidence_claimed","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed","dry_run_evaluator_present","dry_run_evaluator_fail_closed","ai_phase8_task_present","remaining_plan_db_transition_target_aligned","readme_current_gate_aligned","index_current_gate_aligned","ai_coding_rules_current_gate_aligned","transition_plan_contract_defined","db_mutation_plan_contract_defined","operator_approval_contract_defined","audit_payload_contract_defined","restore_reference_contract_defined","idempotency_contract_defined","synthetic_transition_plan_scenarios_defined","synthetic_transition_plan_scenarios_passed","existing_abuse_models_detected","config_apply_mode_plan_only","proxy_runtime_activation_disabled","no_production_traffic","firewall_apply_disallowed","customer_nat_disallowed","customer_firewall_rules_disallowed","no_iptables_restore_authorized","abuse_automation_disallowed","abuse_runner_disallowed","db_reads_disallowed","db_writes_disallowed","abuse_db_reads_disallowed","abuse_db_writes_disallowed","usage_policy_customer_db_reads_writes_disallowed","live_conntrack_firewall_reads_disallowed","hard_block_disallowed","soft_block_disallowed","pause_automation_disallowed","separate_phase8_db_execution_pr_required","future_runtime_worker_integration_pr_required","fresh_farm5_sync_evidence_required_before_acceptance"]
+    checklist_mapping = {
+        **bools,
+        "audit_payload_contract_defined": True,
+        "restore_reference_contract_defined": True,
+        "synthetic_transition_plan_scenarios_defined": True,
+        "existing_abuse_models_detected": existing_models,
+        "config_apply_mode_plan_only": bools["apply_mode_plan_only"],
+        "proxy_runtime_activation_disabled": bools["runtime_activation_disabled"],
+        "no_production_traffic": bools["production_traffic_none"],
+        "no_iptables_restore_authorized": bools["iptables_restore_disallowed"],
+        "abuse_db_reads_disallowed": bools["abuse_state_db_reads_disallowed"],
+        "abuse_db_writes_disallowed": bools["abuse_state_db_writes_disallowed"] and bools["abuse_event_db_writes_disallowed"],
+        "usage_policy_customer_db_reads_writes_disallowed": bools["usage_sample_db_reads_disallowed"] and bools["policy_event_db_reads_disallowed"] and bools["customer_db_reads_disallowed"],
+        "live_conntrack_firewall_reads_disallowed": bools["conntrack_live_read_disallowed"] and bools["firewall_counter_live_read_disallowed"],
+        "separate_phase8_db_execution_pr_required": True,
+        "future_runtime_worker_integration_pr_required": True,
+        "fresh_farm5_sync_evidence_required_before_acceptance": True,
+    }
+    checklist = [{"item": i, "status": "PASS" if bool(checklist_mapping.get(i, False)) else "BLOCKED", "evidence": i} for i in checklist_names]
+
     report = {
         "component": "phase8_db_transition_readiness", "phase": "Phase 8 — Abuse 1h Core", "gate_type": "phase8_db_transition_readiness", "final_decision": "BLOCKED", "readiness_status": "DB_ONLY_CONTROLLED_TRANSITION_READINESS_DEFINED_NOT_ACCEPTED", "authorization_status": "PHASE8_DB_TRANSITION_READINESS_REPORT_ONLY_NOT_AUTHORIZED", "inspection_only": True, "report_only": True, "preflight_only": True, "dry_run": True, "execution_allowed": False, "phase8_acceptance_allowed": False,
         "state_machine_contract_present": bools["state_machine_contract_present"], "state_machine_contract_fail_closed": bools["state_machine_contract_fail_closed"], "evidence_reporting_contract_present": bools["evidence_reporting_contract_present"], "evidence_reporting_contract_fail_closed": bools["evidence_reporting_contract_fail_closed"], "dry_run_evaluator_present": bools["dry_run_evaluator_present"], "dry_run_evaluator_fail_closed": bools["dry_run_evaluator_fail_closed"], "transition_plan_contract_defined": True, "db_mutation_plan_contract_defined": True, "operator_approval_contract_defined": True, "audit_payload_contract_defined": True, "restore_reference_contract_defined": True, "idempotency_contract_defined": True, "synthetic_transition_plan_scenarios_defined": True, "synthetic_transition_plan_scenarios_passed": scenarios_ok,

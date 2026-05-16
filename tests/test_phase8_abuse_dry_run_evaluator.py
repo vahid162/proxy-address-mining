@@ -95,8 +95,8 @@ def test_docs_targets_are_dry_run_evaluator_and_current_position_is_single() -> 
     rules = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
     remaining = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
 
-    assert "abuse dry-run evaluator package" in readme
-    assert "offline dry-run/report-only/non-authorizing" in readme
+    assert "DB-only controlled transition readiness package" in readme
+    assert "report-only/non-mutating/non-authorizing" in readme
     assert "abuse state-machine contract package" not in readme
     assert "DB-only controlled transition readiness package" in index
     assert "docs/AI_PHASE_8_TASK.md" in index
