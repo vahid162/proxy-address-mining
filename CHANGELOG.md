@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.113
+- Add the Phase 8 abuse dry-run evaluator package with pure offline state-transition evaluation and report-only CLI while keeping all runtime, DB, firewall, customer, and abuse automation gates closed.
+
 ## 0.1.112
 - Add the Phase 8 abuse evidence/reporting report-only contract service and CLI while keeping all runtime, DB, firewall, customer, and abuse automation gates closed.
 

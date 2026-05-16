@@ -60,6 +60,8 @@ telegram_allowed: no
 
 Phase 8 current safe work: report-only/service-contract/readiness only.
 
+Phase 8 dry-run evaluator stop condition: synthetic/in-memory only, no real customer evaluation, no live evidence collection, no DB reads/writes, no abuse runner, no hard/soft blocks, no pause automation, no runtime automation.
+
 Forbidden in current Phase 8 work:
 - no abuse runner
 - no abuse automation

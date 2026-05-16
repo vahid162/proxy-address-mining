@@ -90,3 +90,29 @@ Future path:
 4. DB-only controlled transition readiness
 5. runtime/worker integration readiness
 6. final Abuse 1h acceptance
+
+## Current Phase 8 Step — Abuse Dry-Run Evaluator
+- offline dry-run only
+- synthetic/in-memory evidence only
+- no real customer evaluation
+- no live evidence collection
+- no DB reads
+- no DB writes
+- no live conntrack/firewall reads
+- no abuse runner
+- no hard/soft blocks
+- no pause automation
+- no runtime automation
+- defines pure transition proposal logic
+- transition_allowed=false
+- hardening_allowed=false
+- missing/stale evidence must block hardening
+- farms-over alone must not harden
+- worker-over alone must not harden
+- future path:
+  1. abuse state-machine contract — done
+  2. abuse evidence/reporting contract — done
+  3. abuse dry-run evaluator — current
+  4. DB-only controlled transition readiness
+  5. runtime/worker integration readiness
+  6. final Abuse 1h acceptance

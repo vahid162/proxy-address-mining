@@ -2060,3 +2060,40 @@ State:
 - All active customers in enabled lanes must appear in future coverage reports.
 - No silent skip is allowed.
 - Runtime implementation remains future-gated.
+
+
+### Phase 8 Abuse Dry-Run Evaluator Boundary
+
+State:
+- This PR defines the abuse dry-run evaluator only.
+- This PR evaluates synthetic/in-memory examples only.
+- This PR does not evaluate real customers.
+- This PR does not run an abuse runner.
+- This PR does not read DB customers.
+- This PR does not read abuse_states.
+- This PR does not write abuse_states.
+- This PR does not write abuse_events.
+- This PR does not read usage_samples.
+- This PR does not write usage_samples.
+- This PR does not read policy_events.
+- This PR does not write policy_events.
+- This PR does not read live conntrack.
+- This PR does not read live firewall counters.
+- This PR does not run iptables-save.
+- This PR does not mutate firewall rules.
+- This PR does not enable iptables-restore.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- This PR does not apply hard/soft blocks.
+- This PR does not apply pause automation.
+- It defines pure dry-run transition proposals for normal, over_tracking, over_grace, and hard.
+- It may compute would_transition and would_harden for synthetic input only.
+- It must keep transition_allowed=false and hardening_allowed=false.
+- Missing evidence must block hardening.
+- Stale evidence must block hardening.
+- Farms-over alone must remain report-only and must not harden.
+- Worker-over alone must remain report-only and must not harden.
+- Sustained miner-abuse after about 3600 seconds may produce would_harden=true only in dry-run output.
+- All active customers in enabled lanes must remain a future coverage requirement.
+- No silent skip is allowed.
+- Runtime implementation remains future-gated.
