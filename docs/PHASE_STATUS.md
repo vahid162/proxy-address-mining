@@ -2294,3 +2294,26 @@ State:
 - Firewall failure must not harden.
 - Lock contention must report explicit skip; no silent skip is allowed.
 - Runtime worker execution remains future-gated and requires fresh farm5 evidence.
+
+
+### Phase 8 Controlled Worker Pre-Acceptance Boundary
+
+- This PR defines controlled worker pre-acceptance only.
+- This PR does not start an abuse worker.
+- This PR does not enable scheduler jobs.
+- This PR does not enable timers.
+- This PR does not enable abuse runner.
+- This PR does not evaluate real customers.
+- This PR does not execute DB transitions on real customers.
+- This PR does not connect to production DB for worker execution.
+- This PR does not mutate firewall rules.
+- This PR does not enable customer NAT/customer firewall rules.
+- This PR does not enable production traffic.
+- This PR does not apply hard/soft blocks.
+- This PR does not apply pause automation.
+- It defines the prerequisites required before any future controlled worker dry-run on farm5.
+- It requires fresh farm5 sync/test evidence before controlled worker dry-run.
+- It recommends batching sync for 0.1.116, 0.1.117, and 0.1.118 if this PR remains report-only.
+- It requires operator approval before future controlled worker dry-run.
+- It requires kill-switch, lock, explicit skip, no-silent-skip, and fail-closed behavior.
+- Runtime worker execution remains future-gated.
