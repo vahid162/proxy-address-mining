@@ -25,8 +25,8 @@ def test_phase6_e0_doc_preserves_abuse_requirements() -> None:
 def test_phase_status_current_state_unchanged_and_next_step_present() -> None:
     t = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     for needle in [
-        "current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5",
-        "current_working_phase: Phase 8 — Abuse 1h Core planning/readiness",
+        "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5",
+        "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness",
         "firewall_apply_allowed: no",
         "abuse_automation_allowed: no",
     ]:

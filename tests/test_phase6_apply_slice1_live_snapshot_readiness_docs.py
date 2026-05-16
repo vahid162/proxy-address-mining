@@ -15,7 +15,7 @@ def test_new_doc_exists_and_status():
 
 
 def test_phase_status_current_state_unchanged():
-    expected = """current_accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5\ncurrent_working_phase: Phase 8 — Abuse 1h Core planning/readiness\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no"""
+    expected = """current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5\ncurrent_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no"""
     assert expected in PHASE_STATUS
 
 

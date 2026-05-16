@@ -15,8 +15,8 @@ docs/PHASE_STATUS.md
 Current repository/server gate:
 
 ```text
-accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
-working_phase: Phase 8 — Abuse 1h Core planning/readiness
+accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5
+working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -37,14 +37,14 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Phase 8 is planning/readiness only. Latest recorded farm5 sync evidence is 0.1.120. Current target is farm5 controlled worker dry-run evidence collection preparation. Future farm5 controlled worker dry-run evidence collection requires 0.1.121 sync/test evidence after this PR is merged. No runtime worker, scheduler, abuse runner, customer NAT/rules, firewall apply, iptables-restore, abuse automation, usage/policy-reject runtime collectors, UI, or Telegram is authorized.
+Latest recorded farm5 sync evidence is 0.1.122. Phase 8 Abuse 1h Core is accepted as evidence/readiness only on farm5 and is not production activation. Current target is Phase 9 report-only readiness after 0.1.123 sync/test. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
-## Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)
+## Current Accepted/Working Boundary (Phase 8 accepted / Phase 9 planning)
 
-`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 7 / working Phase 8 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 8 / working Phase 9 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Current advancement target is the Phase 8 runtime/worker integration readiness package, report-only/readiness-only/non-runtime/non-authorizing. Historical anchor: Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing.
+Current advancement target is Phase 9 report-only readiness after 0.1.123 sync/test. Historical anchors only: Phase 8 runtime/worker integration readiness and Phase 8 DB-only controlled transition execution are completed Phase 8 context and are not active targets.
 
 Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
@@ -357,7 +357,7 @@ README.md
 docs/INDEX.md
 docs/PHASE_STATUS.md
 docs/AI_CODING_RULES.md
-docs/AI_PHASE_6_TASK.md
+docs/AI_PHASE_9_TASK.md
 ```
 
 Core contracts:
@@ -379,7 +379,8 @@ Current phase and accepted result contracts:
 
 ```text
 docs/PHASE_STATUS.md
-docs/AI_PHASE_6_TASK.md
+docs/AI_PHASE_9_TASK.md
+docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md
 docs/PHASE_5_FINAL_ACCEPTANCE.md
 docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
 docs/INTRANET_INSTALL.md
@@ -448,8 +449,15 @@ License is not defined yet.
 
 Choose and add a license before public or multi-person use.
 
-Phase 8 current target is the Phase 8 abuse evidence/reporting contract package (report-only/non-authorizing).
+Historical Phase 8 references: the Phase 8 abuse evidence/reporting contract, DB-only controlled transition readiness package, and DB-only controlled transition execution package are completed Phase 8 context only; they are not active targets.
 
+Compatibility anchors for historical Phase 8 report surfaces:
+
+```text
 DB-only controlled transition readiness package
+report-only/non-mutating/non-authorizing
+Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing.
+Current advancement target is the Phase 8 runtime/worker integration readiness package, report-only/readiness-only/non-runtime/non-authorizing.
+```
 
-Current advancement target is the Phase 8 DB-only controlled transition execution package, report-only/non-mutating/non-authorizing.
+Historical gate reference: accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5 / working_phase: Phase 8 — Abuse 1h Core planning/readiness.

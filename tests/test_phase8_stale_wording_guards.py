@@ -20,8 +20,8 @@ def test_verify_current_phase_gate_messages_are_not_stale() -> None:
     assert "accepted Phase 5 gate" not in text
     assert "Phase 6 as current working phase" not in text
     assert "accepted Phase 5" not in text
-    assert "accepted Phase 7" in text
-    assert "Phase 8 planning/readiness" in text
+    assert "accepted Phase 8" in text
+    assert "Phase 9 planning/readiness" in text
 
 
 def test_ai_coding_rules_contains_controlled_worker_pre_acceptance_stop_condition() -> None:

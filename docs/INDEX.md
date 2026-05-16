@@ -41,7 +41,7 @@ Read these first:
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_8_TASK.md` defines the current active Phase 8 boundary. Phase 6 documents below are historical/reference-only and non-authorizing.
+`docs/AI_PHASE_8_TASK.md` is historical/accepted. `docs/AI_PHASE_9_TASK.md` is active/current. Phase 6 documents below are historical/reference-only and non-authorizing.
 This file is the documentation map.
 
 ## Core Contracts

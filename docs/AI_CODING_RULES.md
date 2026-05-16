@@ -46,8 +46,8 @@ Current gate:
 
 
 ```text
-accepted: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
-working: Phase 8 — Abuse 1h Core planning/readiness
+accepted: Phase 8 — Abuse 1h Core accepted on farm5
+working: Phase 9 — Check / Report / Diagnostics planning/readiness
 current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated Phase 6 apply gate remains not accepted and not authorized
 production_traffic: none
 firewall_apply_allowed: no
@@ -58,13 +58,13 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
-Phase 8 current safe work: report-only/service-contract/readiness only.
+Phase 9 planning-readiness stop condition: no production traffic, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no abuse automation runner, no background worker/scheduler/timer, no real production customer evaluation, no production DB execution, no hard/soft block automation, no pause automation, no UI, no Telegram.
 
 Phase 8 dry-run evaluator stop condition: synthetic/in-memory only, no real customer evaluation, no live evidence collection, no DB reads/writes, no abuse runner, no hard/soft blocks, no pause automation, no runtime automation.
 
 Phase 8 runtime/worker readiness stop condition: no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic.
 
-Forbidden in current Phase 8 work:
+Historical Phase 8 forbidden runtime behaviors (still forbidden unless future explicit gate opens them):
 - no abuse runner
 - no abuse automation
 - no abuse_states writes

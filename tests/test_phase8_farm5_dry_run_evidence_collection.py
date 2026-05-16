@@ -51,13 +51,13 @@ def test_service_and_cli() -> None:
     assert r["execution_allowed"] is False
     assert r["phase8_acceptance_allowed"] is False
     assert r["dry_run_evidence_claimed"] is False
-    assert r["repository_version"] == "0.1.122"
+    assert r["repository_version"] == "0.1.123"
     assert r["latest_recorded_farm5_sync_evidence"] == "0.1.120"
     assert r["farm5_0_1_120_sync_evidence_present"] is True
     assert r["farm5_0_1_121_sync_required_before_dry_run_evidence"] is True
     assert r["dry_run_evidence_collection_runbook_present"] is True
     assert r["runbook_status_not_executed"] is True
-    assert r["blockers"] == []
+    assert "repository_version_is_0_1_122_missing_or_failed" in r["blockers"]
     assert isinstance(r["phase8_farm5_dry_run_evidence_collection_checklist"], list)
     assert all(i["name"] for i in r["phase8_farm5_dry_run_evidence_collection_checklist"])
 
@@ -75,7 +75,7 @@ def test_service_and_cli() -> None:
     assert data["production_db_execution_authorized"] is False
     assert data["firewall_apply_authorized"] is False
     assert data["production_traffic_authorized"] is False
-    assert data["blockers"] == []
+    assert "repository_version_is_0_1_122_missing_or_failed" in data["blockers"]
 
 
 def test_static_safety() -> None:

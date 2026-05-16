@@ -71,6 +71,7 @@ from mpf.services import (
     phase8_controlled_worker_dry_run_service,
     phase8_farm5_dry_run_evidence_collection_service,
     phase8_final_acceptance_readiness_service,
+    phase8_final_acceptance_service,
 )
 
 app = typer.Typer(
@@ -1879,6 +1880,18 @@ def phase8_controlled_worker_pre_acceptance(
         typer.echo(f"{k}: {report.get(k)}")
 
 
+
+
+@phase8_app.command("final-acceptance")
+def phase8_final_acceptance(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    report = phase8_final_acceptance_service.build_phase8_final_acceptance_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    keys=["component","final_decision","acceptance_status","authorization_status","execution_allowed","phase8_accepted","production_activation_allowed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_122_sync_evidence_present","farm5_final_acceptance_readiness_evidence_present","phase8_final_acceptance_evidence_doc_present","current_state_phase8_accepted","phase9_working","abuse_invariant_preserved","state_path_normal_over_tracking_over_grace_hard","sustained_abuse_window_3600_seconds","farms_over_alone_does_not_harden","worker_over_alone_does_not_harden","missing_evidence_does_not_harden","stale_evidence_does_not_harden","db_failure_does_not_harden","firewall_failure_does_not_harden","explicit_skip_required","no_silent_skip_required","all_active_customers_in_enabled_lanes_must_be_covered","dry_run_evidence_synthetic_only","dry_run_synthetic_item_count","dry_run_all_items_have_no_side_effects","runtime_worker_authorized","worker_start_authorized","background_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","customer_nat_authorized","customer_firewall_rules_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","next_phase","future_production_activation_gate_required","future_phase9_readiness_pr_required","blockers","warnings","errors"]
+    for k in keys: typer.echo(f"{k}: {report.get(k)}")
 
 @phase8_app.command("final-acceptance-readiness")
 def phase8_final_acceptance_readiness(

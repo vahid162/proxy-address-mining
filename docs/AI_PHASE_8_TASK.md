@@ -1,5 +1,21 @@
 # AI Phase 8 Task — Abuse 1h Core Planning/Readiness
 
+## Phase 8 Final Acceptance
+
+- Phase 8 Abuse 1h Core accepted on farm5 in 0.1.123.
+- Acceptance is evidence/readiness acceptance only.
+- Acceptance does not authorize production traffic.
+- Acceptance does not authorize firewall apply.
+- Acceptance does not authorize abuse automation runner.
+- Acceptance does not authorize scheduler/timer.
+- Acceptance does not authorize production DB execution.
+- Acceptance does not authorize customer NAT/customer firewall rules.
+- Acceptance does not authorize hard/soft block automation.
+- Acceptance does not authorize pause automation.
+- Acceptance does not authorize UI or Telegram.
+
+Next active work is docs/AI_PHASE_9_TASK.md.
+
 Phase 8 starts only after Phase 7 acceptance.
 
 Phase 8 is Abuse 1h Core.

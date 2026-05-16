@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.123
+- Record farm5 0.1.122 sync evidence, accept Phase 8 Abuse 1h Core on farm5, and open Phase 9 Check / Report / Diagnostics planning/readiness while keeping production traffic, firewall apply, abuse automation, customer NAT/rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram gates closed.
+
 ## 0.1.122
 - Record farm5 0.1.121 sync evidence and controlled worker dry-run evidence, refresh stale Phase 8 report surfaces, and add final Abuse 1h acceptance readiness/review while keeping Phase 8 not accepted and all runtime, scheduler, abuse runner, production DB, firewall, customer, hard/soft block, pause, UI, Telegram, and production traffic gates closed.
 
