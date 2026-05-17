@@ -1,8 +1,8 @@
 # Production / Customer Activation Gate
 
-Status: planned gate after Phase 10 final acceptance
+Status: planned Phase 11 gate after Phase 10 final acceptance
 
-This document defines the required gate for making the server operational for real customers through terminal commands before Local UI, Buyer UI, or Telegram phases.
+This document defines the required Phase 11 gate for making the server operational for real customers through terminal commands before Worker Policy Enforcement, Local UI, Operator UI Actions, or Telegram phases.
 
 This gate is not open now. It is a future explicit acceptance gate.
 
@@ -12,11 +12,14 @@ After Phase 10 is accepted, the next operational target is CLI-managed productio
 
 ```text
 Phase 10 accepted
-  -> Production / Customer Activation Gate
+  -> Phase 11 Production / Customer Activation Gate
   -> controlled CLI customer activation
   -> manual canary customer
   -> limited real customer onboarding
-  -> later UI / Telegram surfaces reuse the same services
+  -> Phase 12 Worker Policy Enforcement
+  -> Phase 13 Local UI
+  -> Phase 14 Operator UI Actions
+  -> Phase 15 Telegram
 ```
 
 The goal is to make `mpf` usable as the standard terminal operator interface for real customer operations while preserving the Python/API-first architecture.
@@ -189,7 +192,20 @@ abuse scanner covers the customer
 rollback path is tested or restore-plan is generated
 ```
 
-### 8. UI and Telegram reuse rule
+### 8. Post-activation ordering
+
+After Phase 11 activation, continue backend-first:
+
+```text
+Phase 12 Worker Policy Enforcement
+Phase 13 Local UI
+Phase 14 Operator UI Actions
+Phase 15 Telegram
+```
+
+Worker Policy Enforcement belongs after Phase 11 because it needs Phase 10 worker/session evidence plus a real controlled production path.
+
+## UI and Telegram Reuse Rule
 
 After CLI activation, Web UI and Telegram may be added only as interfaces over the same service layer.
 
@@ -236,8 +252,9 @@ production_traffic: controlled_cli_canary or controlled_cli_limited
 firewall_apply_allowed: controlled
 abuse_automation_allowed: controlled
 customer_onboarding_allowed: controlled_cli_canary or controlled_cli_limited
+worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
 ```
 
-UI, Buyer UI, Telegram, and worker enforcement remain later phases unless a future explicit gate changes the roadmap.
+Worker enforcement, UI, Operator UI Actions, and Telegram remain later phases unless a future explicit gate changes the roadmap.
