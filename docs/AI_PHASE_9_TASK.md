@@ -37,7 +37,7 @@ Phase 9 readiness must not:
 
 ## First Phase 9 PR
 
-The first Phase 9 PR after this acceptance should be:
-Phase 9 report-only readiness package.
+The next explicit Phase 9 diagnostics PR should be:
+Phase 9 final-verdict report-only diagnostics package.
 
-It should record 0.1.123 sync evidence first if available, then add read-only/report-only diagnostics readiness.
+It should record 0.1.124 sync evidence first if available, then add mpf phase9 final-verdict as read-only/report-only diagnostics.

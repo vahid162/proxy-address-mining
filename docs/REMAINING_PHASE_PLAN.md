@@ -6,14 +6,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.123.
-- Repository version after this PR is 0.1.124.
-- latest recorded farm5 sync evidence is 0.1.123.
+- GitHub main repository version before this PR is 0.1.124.
+- Repository version after this PR is 0.1.125.
+- latest recorded farm5 sync evidence is 0.1.124.
 - Phase 8 final Abuse 1h acceptance readiness/review is done in 0.1.122 and synced/tested on farm5.
 - Phase 8 Abuse 1h Core is accepted on farm5 in 0.1.123.
 - Current target is Phase 9 Check / Report / Diagnostics planning/readiness.
-- This PR introduces the Phase 9 report-only readiness package after farm5 0.1.123 sync/test evidence.
-- Next target after this PR is farm5 0.1.124 sync/test evidence, then future Phase 9 check/report/final-verdict diagnostics contracts in separate explicitly gated PRs.
+- This PR introduces the Phase 9 final-verdict report-only diagnostics package after farm5 0.1.124 sync/test evidence.
+- Next target after this PR is the next explicit Phase 9 report-only diagnostics step after 0.1.125 sync/test evidence.
 - Do not fabricate server evidence.
 - No production activation is enabled by this PR.
 - No production traffic is enabled.
@@ -32,8 +32,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
 3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
 4. Phase 9 Check / Report / Diagnostics planning/readiness — current target
-5. Phase 9 report-only readiness package — current PR after 0.1.123 sync/test
-6. Phase 9 check/report/final-verdict diagnostics contracts — future after 0.1.124 sync/test
+5. Phase 9 final-verdict report-only diagnostics package — current PR after 0.1.124 sync/test
+6. Next explicit Phase 9 report-only diagnostics step — future after 0.1.125 sync/test
 7. Phase 10 Session / Worker / Policy / Share Timeline — future
 8. Phase 11 Local UI + Buyer Read-only — future
 9. Phase 12 Operator UI Actions — future

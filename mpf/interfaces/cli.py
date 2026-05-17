@@ -72,6 +72,7 @@ from mpf.services import (
     phase8_farm5_dry_run_evidence_collection_service,
     phase8_final_acceptance_readiness_service,
     phase8_final_acceptance_service,
+    phase9_final_verdict_diagnostics_service,
     phase9_readiness_service,
 )
 
@@ -1919,6 +1920,18 @@ def phase9_readiness(
         typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
         return
     _emit_key_values(report, ["component","final_decision","readiness_status","authorization_status","execution_allowed","phase_gate_status","doctor_config_database_expectations","proxy_runtime_diagnostics_expectations","customer_diagnostics_readiness","abuse_status_visibility_readiness","usage_accounting_visibility_readiness","policy_reject_visibility_readiness","evidence_pack_readiness","troubleshooting_final_verdict_readiness","runtime_worker_authorized","abuse_runner_authorized","production_db_execution_authorized","db_writes_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","ui_authorized","telegram_authorized","blockers","warnings","errors"])
+
+@phase9_app.command("final-verdict")
+def phase9_final_verdict(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    report = phase9_final_verdict_diagnostics_service.build_phase9_final_verdict_diagnostics_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+        return
+    _emit_key_values(report, ["component","final_decision","final_verdict_readiness","authorization_status","execution_allowed","phase_gate_status","latest_recorded_farm5_sync_evidence","phase8_final_acceptance_status","phase9_readiness_status","doctor_config_database_expectations","proxy_runtime_diagnostics_expectations","customer_diagnostics_readiness","abuse_status_visibility_readiness","usage_accounting_visibility_readiness","policy_reject_visibility_readiness","evidence_pack_readiness","troubleshooting_final_verdict_readiness","operator_final_verdict_readiness","all_dangerous_authorization_flags_false","runtime_worker_authorized","abuse_runner_authorized","production_db_execution_authorized","db_writes_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","ui_authorized","telegram_authorized","blockers","warnings","errors"])
+
 @phase8_app.command("farm5-dry-run-evidence-collection")
 def phase8_farm5_dry_run_evidence_collection(
     config: Path | None = typer.Option(None, "--config", "-c"),
