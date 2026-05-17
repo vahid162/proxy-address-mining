@@ -17,6 +17,174 @@ Phase 11 controlled production/customer activation is accepted
 
 Phase 12 must not be implemented before reliable worker evidence and a controlled production path exist.
 
+## Required Sub-step Execution Model
+
+Phase 12 must be implemented like earlier phases: small PRs, clear gates, evidence-first, fail-closed, and no fabricated server evidence.
+
+Do not implement strict worker enforcement as one large PR.
+
+Required sequence:
+
+```text
+Phase 12A — Worker evidence and mapping readiness
+Phase 12B — Worker policy service in detection_only mode
+Phase 12C — Manual operator enforcement action planning
+Phase 12D — Adapter capability and failure-mode readiness
+Phase 12E — Controlled enforcement canary, if adapter support is accepted
+Phase 12F — Phase 12 final acceptance report
+```
+
+### Phase 12A — Worker evidence and mapping readiness
+
+Allowed:
+
+```text
+report-only readiness services
+worker identity normalization contract
+worker-to-session mapping confidence model
+evidence freshness/staleness checks
+```
+
+Forbidden:
+
+```text
+strict enforcement
+firewall-only worker block
+adapter mutation
+UI/Telegram enforcement
+```
+
+Acceptance evidence:
+
+```text
+worker evidence exists from Phase 10
+session evidence exists from Phase 10
+mapping confidence is reported
+missing/stale evidence fails closed
+```
+
+### Phase 12B — Worker policy service in detection_only mode
+
+Allowed:
+
+```text
+worker policy service
+repository methods
+detection-only reports
+events/audit for detection
+operator-visible violations
+```
+
+Forbidden:
+
+```text
+automatic blocking
+automatic disconnect
+automatic firewall mutation
+strict enforcement
+```
+
+Acceptance evidence:
+
+```text
+detection_only is default
+violations are visible
+audit/events are created where appropriate
+no customer traffic is interrupted by detection-only logic
+```
+
+### Phase 12C — Manual operator enforcement action planning
+
+Allowed:
+
+```text
+manual action plan generation
+operator confirmation contract
+dry-run manual enforcement report
+rollback/disable plan
+```
+
+Forbidden:
+
+```text
+automatic enforcement without operator confirmation
+UI/Telegram action paths before their own phases
+```
+
+Acceptance evidence:
+
+```text
+operator can inspect evidence before action
+manual action plan is JSON and human-readable
+manual action is audited
+safe no-op path exists
+```
+
+### Phase 12D — Adapter capability and failure-mode readiness
+
+Allowed:
+
+```text
+adapter capability report
+stratum_proxy readiness contract
+failure-mode simulation
+fallback to detection_only
+```
+
+Forbidden:
+
+```text
+strict adapter-backed enforcement without tested adapter behavior
+silent enforcement on adapter failure
+enforcement when evidence is stale or missing
+```
+
+Acceptance evidence:
+
+```text
+adapter capabilities are explicit
+adapter failures fall back to detection_only
+DB failure results in no enforcement
+firewall failure results in no enforcement
+```
+
+### Phase 12E — Controlled enforcement canary
+
+Allowed only after prior Phase 12 sub-steps are accepted:
+
+```text
+single controlled canary enforcement scenario
+operator-approved strict mode where supported
+clear rollback/disable path
+```
+
+Forbidden:
+
+```text
+general strict enforcement
+firewall-only worker-name block
+unreviewed customer impact
+```
+
+Acceptance evidence:
+
+```text
+canary enforcement outcome is recorded
+affected customer/session/worker evidence is recorded
+rollback/disable works
+detection_only fallback works
+```
+
+### Phase 12F — Phase 12 final acceptance report
+
+Required output:
+
+```text
+mpf worker-policy final-acceptance --output json
+```
+
+Final acceptance must explicitly record selected enforcement mode, evidence quality, adapter support, fallback behavior, and which gates remain closed.
+
 ## Required Architecture
 
 Implementation must be Python-first and API-first:
@@ -138,4 +306,5 @@ missing/stale evidence fail-closed tests
 no firewall-only worker block tests
 event/audit tests
 CLI uses service-layer tests
+sub-step gate ordering tests
 ```
