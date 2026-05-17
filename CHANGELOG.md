@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.131
+- Record farm5 0.1.130 sync/test evidence, align Phase 10 readiness evidence wording, and keep all runtime, firewall, production, worker, UI, and Telegram gates closed.
+
 ## 0.1.130
 - Align the remaining roadmap to a backend-first order: Phase 11 Production / Customer Activation Gate, Phase 12 Worker Policy Enforcement, Phase 13 Local UI, Phase 14 Operator UI Actions, and Phase 15 Telegram, without opening runtime gates.
 
