@@ -74,6 +74,14 @@ from mpf.services import (
     phase8_final_acceptance_service,
     phase9_final_verdict_diagnostics_service,
     phase9_readiness_service,
+    phase9_diagnostics_bundle_service,
+    phase9_customer_diagnostics_service,
+    phase9_abuse_visibility_service,
+    phase9_usage_visibility_service,
+    phase9_policy_reject_visibility_service,
+    phase9_proxy_runtime_diagnostics_service,
+    phase9_evidence_pack_service,
+    phase9_troubleshooting_summary_service,
 )
 
 app = typer.Typer(
@@ -1932,6 +1940,49 @@ def phase9_final_verdict(
         return
     _emit_key_values(report, ["component","final_decision","final_verdict_readiness","authorization_status","execution_allowed","phase_gate_status","latest_recorded_farm5_sync_evidence","phase8_final_acceptance_status","phase9_readiness_status","doctor_config_database_expectations","proxy_runtime_diagnostics_expectations","customer_diagnostics_readiness","abuse_status_visibility_readiness","usage_accounting_visibility_readiness","policy_reject_visibility_readiness","evidence_pack_readiness","troubleshooting_final_verdict_readiness","operator_final_verdict_readiness","all_dangerous_authorization_flags_false","runtime_worker_authorized","abuse_runner_authorized","production_db_execution_authorized","db_writes_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","ui_authorized","telegram_authorized","blockers","warnings","errors"])
 
+
+
+@phase9_app.command("diagnostics")
+def phase9_diagnostics(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_diagnostics_bundle_service.build_phase9_diagnostics_bundle_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    _emit_key_values(report, ["component","final_decision","current_phase_gate","repository_version","latest_recorded_farm5_sync_evidence","next_required_operator_evidence","all_dangerous_authorization_flags_false","blockers","warnings","errors"])
+
+@phase9_app.command("customer-diagnostics")
+def phase9_customer_diagnostics(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_customer_diagnostics_service.build_phase9_customer_diagnostics_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
+
+@phase9_app.command("abuse-visibility")
+def phase9_abuse_visibility(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_abuse_visibility_service.build_phase9_abuse_visibility_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
+
+@phase9_app.command("usage-visibility")
+def phase9_usage_visibility(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_usage_visibility_service.build_phase9_usage_visibility_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
+
+@phase9_app.command("policy-reject-visibility")
+def phase9_policy_reject_visibility(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_policy_reject_visibility_service.build_phase9_policy_reject_visibility_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
+
+@phase9_app.command("proxy-runtime-diagnostics")
+def phase9_proxy_runtime_diagnostics(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_proxy_runtime_diagnostics_service.build_phase9_proxy_runtime_diagnostics_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
+
+@phase9_app.command("evidence-pack")
+def phase9_evidence_pack(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_evidence_pack_service.build_phase9_evidence_pack_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
+
+@phase9_app.command("troubleshooting-summary")
+def phase9_troubleshooting_summary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_troubleshooting_summary_service.build_phase9_troubleshooting_summary_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
 @phase8_app.command("farm5-dry-run-evidence-collection")
 def phase8_farm5_dry_run_evidence_collection(
     config: Path | None = typer.Option(None, "--config", "-c"),

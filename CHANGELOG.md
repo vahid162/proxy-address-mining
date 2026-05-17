@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.126
+- Add Phase 9 diagnostics bundle report with focused report-only subcommands/services, keep all dangerous authorization flags false/fail-closed, and update docs target to require post-merge farm5 0.1.126 sync/test evidence.
+
 ## 0.1.125
 - Add Phase 9 final-verdict report-only diagnostics CLI/report, record farm5 0.1.124 sync/test evidence, and keep all mutation/automation authorization flags false.
 

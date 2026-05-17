@@ -38,6 +38,8 @@ Phase 9 readiness must not:
 ## First Phase 9 PR
 
 The next explicit Phase 9 diagnostics PR should be:
-Phase 9 final-verdict report-only diagnostics package.
+Phase 9 diagnostics bundle report-only package.
 
-It should record 0.1.124 sync evidence first if available, then add mpf phase9 final-verdict as read-only/report-only diagnostics.
+It should add mpf phase9 diagnostics plus focused report-only diagnostics components: customer-diagnostics, abuse-visibility, usage-visibility, policy-reject-visibility, proxy-runtime-diagnostics, evidence-pack, troubleshooting-summary.
+
+It must remain fail-closed and require fresh farm5 0.1.126 sync/test evidence after merge before final acceptance readiness.
