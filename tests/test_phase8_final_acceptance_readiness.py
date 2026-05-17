@@ -14,7 +14,7 @@ def test_service_report():
     assert r['execution_allowed'] is False
     assert r['phase8_acceptance_allowed'] is False
     assert r['phase8_accepted_by_this_pr'] is False
-    assert r['repository_version']=='0.1.125'
+    assert r['repository_version']=='0.1.126'
     assert r['latest_recorded_farm5_sync_evidence']=='0.1.121'
     assert r['farm5_0_1_121_sync_evidence_present'] is True
     assert r['farm5_controlled_worker_dry_run_evidence_present'] is True

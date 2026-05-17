@@ -12,12 +12,12 @@ def test_remaining_phase_plan_exists() -> None:
 def test_current_position_single_and_targets() -> None:
     t = _read('docs/REMAINING_PHASE_PLAN.md')
     assert t.count('## Current Position') == 1
-    assert '- GitHub main repository version before this PR is 0.1.124.' in t
-    assert '- Repository version after this PR is 0.1.125.' in t
+    assert '- GitHub main repository version before this PR is 0.1.125.' in t
+    assert '- Repository version after this PR is 0.1.126.' in t
     assert '- latest recorded farm5 sync evidence is 0.1.124.' in t
     assert '- Current target is Phase 9 Check / Report / Diagnostics planning/readiness.' in t
-    assert '- This PR introduces the Phase 9 final-verdict report-only diagnostics package after farm5 0.1.124 sync/test evidence.' in t
-    assert '- Next target after this PR is the next explicit Phase 9 report-only diagnostics step after 0.1.125 sync/test evidence.' in t
+    assert '- This PR introduces the Phase 9 diagnostics bundle report-only package.' in t
+    assert '- Next target after this PR is farm5 0.1.126 sync/test evidence, then Phase 9 final acceptance readiness.' in t
 
 
 def test_current_position_safety_and_non_activation() -> None:
@@ -34,8 +34,8 @@ def test_finite_path_phase8_phase9_and_future_activation() -> None:
     t = _read('docs/REMAINING_PHASE_PLAN.md')
     assert '3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123' in t
     assert '4. Phase 9 Check / Report / Diagnostics planning/readiness — current target' in t
-    assert '5. Phase 9 final-verdict report-only diagnostics package — current PR after 0.1.124 sync/test' in t
-    assert '6. Next explicit Phase 9 report-only diagnostics step — future after 0.1.125 sync/test' in t
+    assert '5. Phase 9 diagnostics bundle report-only package — current PR' in t
+    assert '6. farm5 0.1.126 sync/test evidence, then Phase 9 final acceptance readiness — next target' in t
     assert 'Production / Customer Activation Gate — future, separate, explicit, and not authorized by Phase 8 or Phase 9 readiness acceptance' in t
 
 
@@ -45,3 +45,5 @@ def test_no_stale_active_phase7_phase8_wording_in_current_position() -> None:
     assert 'accepted Phase 7 / working Phase 8' not in current
     assert 'Phase 8 is planning/readiness only' not in current
     assert 'Phase 8 Abuse 1h Core is accepted on farm5 in this PR' not in current
+    assert 'Phase 9 final-verdict report-only diagnostics package — current PR' not in current
+    assert 'Next explicit Phase 9 report-only diagnostics step — future after 0.1.125 sync/test' not in current
