@@ -13,11 +13,11 @@ def test_current_position_single_and_targets() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
     assert t.count("## Current Position") == 1
-    assert "- GitHub main repository version before this PR is 0.1.128." in current
-    assert "- Repository version after this PR is 0.1.129." in current
+    assert "- GitHub main repository version before this PR is 0.1.129." in current
+    assert "- Repository version after this PR is 0.1.130." in current
     assert "- latest recorded farm5 sync evidence is 0.1.128." in current
     assert "- Current target is Phase 10 planning/readiness." in current
-    assert "Phase 10" in current and "report-only" in current
+    assert "Phase 10 remains Session / Worker / Policy / Share Timeline" in current
     assert "farm5 0.1.129 sync/test" in current
 
 
@@ -27,25 +27,39 @@ def test_current_position_safety_and_non_activation() -> None:
     assert "- No production traffic is enabled." in current
     assert "- No firewall apply is enabled." in current
     assert "- No abuse automation runner is enabled." in current
+    assert "- No worker policy enforcement is enabled." in current
     assert "- No customer NAT/customer firewall rules, UI, or Telegram is authorized." in current
     assert "- No production activation is enabled by this PR." in current
 
 
-def test_finite_path_phase8_phase9_and_future_activation() -> None:
+def test_finite_path_backend_first_after_phase10() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123" in t
     assert "4. Phase 9 Check / Report / Diagnostics planning/readiness — accepted" in t
-    assert "Phase 10" in t
-    assert "Production / Customer Activation Gate — future, separate, explicit" in t
+    assert "7. Phase 10 Session / Worker / Policy / Share Timeline — active backend-readiness work" in t
+    assert "8. Phase 11 Production / Customer Activation Gate" in t
+    assert "9. Phase 12 Worker Policy Enforcement" in t
+    assert "10. Phase 13 Local UI" in t
+    assert "11. Phase 14 Operator UI Actions" in t
+    assert "12. Phase 15 Telegram" in t
 
 
-def test_no_stale_active_phase7_phase8_wording_in_current_position() -> None:
+def test_backend_first_sequence_is_explicit() -> None:
+    t = _read("docs/REMAINING_PHASE_PLAN.md")
+    assert "Phase 10 accepted" in t
+    assert "-> Phase 11 Production / Customer Activation Gate" in t
+    assert "-> Phase 12 Worker Policy Enforcement after evidence/adapter support" in t
+    assert "-> Phase 13 Local UI" in t
+    assert "-> Phase 14 Operator UI Actions" in t
+    assert "-> Phase 15 Telegram" in t
+
+
+def test_no_stale_active_phase7_phase8_or_ui_first_wording_in_current_position() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
     assert "accepted Phase 7 / working Phase 8" not in current
     assert "Phase 8 is planning/readiness only" not in current
     assert "Phase 8 Abuse 1h Core is accepted on farm5 in this PR" not in current
-    assert "Phase 9 final-verdict report-only diagnostics package — current PR" not in current
-    assert "Next explicit Phase 9 report-only diagnostics step — future after 0.1.125 sync/test" not in current
-    assert "Phase 9 diagnostics bundle report-only package — current PR" not in current
     assert "Phase 9 final acceptance — current PR" not in current
+    assert "Phase 11 Local UI + Buyer Read-only" not in t
+    assert "Production / Customer Activation Gate — future, separate, explicit" not in t
