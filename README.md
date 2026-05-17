@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.128. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.128 sync/test evidence is required after merge before Phase 10 implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Latest recorded farm5 sync evidence is 0.1.128. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.129 sync/test evidence is required after merge before any Phase 10 runtime/worker/scheduler/collector implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
 ## Current Accepted/Working Boundary (Phase 9 accepted / Phase 10 planning)
@@ -58,7 +58,7 @@ firewall desired-state model refinement
 firewall planner/diff contracts
 human-readable firewall plan/report output
 machine-readable JSON firewall plan/report output
-offline snapshot parser and file-backed diff fixtures
+offline snapshot parser and file-backed offline diff fixtures
 offline restore payload artifacts
 offline apply-readiness contracts
 offline apply package reports
@@ -360,7 +360,7 @@ README.md
 docs/INDEX.md
 docs/PHASE_STATUS.md
 docs/AI_CODING_RULES.md
-docs/AI_PHASE_9_TASK.md
+docs/AI_PHASE_10_TASK.md
 ```
 
 Core contracts:
@@ -382,7 +382,7 @@ Current phase and accepted result contracts:
 
 ```text
 docs/PHASE_STATUS.md
-docs/AI_PHASE_9_TASK.md
+docs/AI_PHASE_10_TASK.md
 docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md
 docs/PHASE_5_FINAL_ACCEPTANCE.md
 docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
