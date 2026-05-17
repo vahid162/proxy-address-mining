@@ -20,7 +20,7 @@ def test_final_acceptance_report_accepts_with_closed_gates() -> None:
 def test_final_acceptance_report_fails_closed_when_gate_missing(tmp_path: Path) -> None:
     repo = tmp_path
     (repo / 'docs').mkdir(parents=True, exist_ok=True)
-    (repo / 'docs/PHASE_STATUS.md').write_text('current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5\n', encoding='utf-8')
+    (repo / 'docs/PHASE_STATUS.md').write_text('current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5\n', encoding='utf-8')
     (repo / 'docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md').write_text('# Phase 8 Final Acceptance Evidence\n', encoding='utf-8')
     r = build_phase8_final_acceptance_report(_cfg(), repo_root=repo)
     assert r['final_decision'] == 'BLOCKED'

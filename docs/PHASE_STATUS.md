@@ -7,8 +7,8 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 ## Current State
 
 ```text
-current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5
-current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness
+current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5
+current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -24,7 +24,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 
-Phase 8 is accepted only as Abuse 1h Core evidence/readiness on farm5. This acceptance does not authorize production traffic, firewall apply, customer NAT/customer firewall rules, abuse automation runner, scheduler/timer, production DB execution, hard/soft block automation, pause automation, UI, Telegram, or production customer onboarding.
+Phase 9 is accepted only as Check / Report / Diagnostics evidence/readiness on farm5. This acceptance does not authorize production traffic, firewall apply, customer NAT/customer firewall rules, abuse automation runner, scheduler/timer, production DB execution, hard/soft block automation, pause automation, UI, Telegram, or production customer onboarding.
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
 
@@ -34,6 +34,60 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 
 
+
+### Phase 9 farm5 0.1.127 Sync/Test Evidence
+
+- command:
+  sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+- backup:
+  /var/backups/mpf/source-before-zip-sync-20260517T080103Z
+- server version after sync:
+  0.1.127
+- pytest:
+  754 passed
+- mpf doctor:
+  OK
+- current phase gate:
+  OK
+- phase8 final-acceptance:
+  ACCEPTED
+- phase9 readiness:
+  ACCEPTED
+- phase9 final-verdict:
+  ACCEPTED
+- phase9 diagnostics:
+  ACCEPTED
+- phase9 final-acceptance-readiness:
+  ACCEPTED
+- production_traffic:
+  none
+- firewall_apply_allowed:
+  no
+- abuse_automation_allowed:
+  no
+- customer_onboarding_allowed:
+  db_only
+- proxy_data_plane_allowed:
+  limited_runtime_local_only
+- ui_allowed:
+  no
+- telegram_allowed:
+  no
+- apply_mode:
+  plan_only
+- proxy.runtime_activation_allowed:
+  false
+- local-only listeners:
+  127.0.0.1:2015
+  127.0.0.1:60010
+- no MPF/customer IPv4 firewall references
+- no MPF/customer IPv6 firewall references
+- no customer NAT redirects
+- Docker local publish DNAT for 127.0.0.1:2015 and 127.0.0.1:60010 is informational only
+- final sync verdict:
+  OK
+- all dangerous authorization flags:
+  false
 
 ### Phase 9 farm5 0.1.126 Sync/Test Evidence
 

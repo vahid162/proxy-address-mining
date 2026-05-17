@@ -47,8 +47,8 @@ def test_sync_script_preserves_hard_safety_checks_and_current_gate_verifier_call
 def test_verify_current_phase_gate_remains_exact_phase7_phase8_validator() -> None:
     text = Path("scripts/verify_current_phase_gate.sh").read_text(encoding="utf-8")
 
-    assert "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5" in text
-    assert "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness" in text
+    assert "current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5" in text
+    assert "current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness" in text
 
 
 def test_sync_phase_gate_regression_note_for_pr117() -> None:

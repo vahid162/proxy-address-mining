@@ -52,3 +52,9 @@ Current Phase 9 completed report surfaces:
 
 Current target:
 - final acceptance readiness
+
+
+## Final Acceptance Status
+
+Phase 9 final acceptance is the current accepted result in this PR scope (report-only, non-mutating, non-authorizing for production/runtime activation).
+No further Phase 9 report surfaces should be added unless correcting defects.

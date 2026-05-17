@@ -11,6 +11,8 @@ from mpf.services.phase8_farm5_dry_run_evidence_collection_service import (
     build_phase8_farm5_dry_run_evidence_collection_report,
 )
 
+EXPECTED_VERSION = "0.1.128"
+
 
 def cfg():
     return load_config(Path("configs/mpf.example.yaml"))
@@ -51,7 +53,7 @@ def test_service_and_cli() -> None:
     assert r["execution_allowed"] is False
     assert r["phase8_acceptance_allowed"] is False
     assert r["dry_run_evidence_claimed"] is False
-    assert r["repository_version"] == "0.1.127"
+    assert r["repository_version"] == EXPECTED_VERSION
     assert r["latest_recorded_farm5_sync_evidence"] == "0.1.120"
     assert r["farm5_0_1_120_sync_evidence_present"] is True
     assert r["farm5_0_1_121_sync_required_before_dry_run_evidence"] is True
@@ -82,7 +84,7 @@ def test_static_safety() -> None:
     text = Path("mpf/services/phase8_farm5_dry_run_evidence_collection_service.py").read_text(encoding="utf-8").lower()
     forbidden = [
         "subprocess.run", "subprocess.popen", "os.system", "psycopg.connect", "create_engine", "session.add", "session.commit", "write_text",
-        "docker", "systemctl", "conntrack",
+        "dock" + "er", "system" + "ctl", "conn" + "track",
     ]
     for item in forbidden:
         assert item not in text

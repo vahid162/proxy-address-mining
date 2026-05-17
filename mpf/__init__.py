@@ -1,7 +1,7 @@
 """MPF Python control plane package.
 
-Current repository state: Phase 7 accepted as report-only/service-contract/readiness; Phase 8 Abuse 1h Core planning/readiness.
+Current repository state: Phase 9 Check / Report / Diagnostics accepted on farm5; Phase 10 Session / Worker / Policy / Share Timeline planning/readiness.
 No production traffic mutation is implemented here.
 """
 
-__version__ = "0.1.127"
+__version__ = "0.1.128"

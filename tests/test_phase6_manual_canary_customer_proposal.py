@@ -29,7 +29,7 @@ def test_proposal_blocker_when_farm5_evidence_missing(tmp_path: Path):
     cfg = _cfg()
     docs = tmp_path / 'docs'
     docs.mkdir(parents=True)
-    docs.joinpath('PHASE_STATUS.md').write_text('## Current State\n```text\ncurrent_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5\n```\n', encoding='utf-8')
+    docs.joinpath('PHASE_STATUS.md').write_text('## Current State\n```text\ncurrent_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5\n```\n', encoding='utf-8')
     report = build_manual_canary_customer_proposal_report(cfg, repo_root=tmp_path)
     assert 'farm5 0.1.95 sync evidence missing' in report['blockers']
 

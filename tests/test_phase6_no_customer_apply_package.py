@@ -7,6 +7,9 @@ from typer.testing import CliRunner
 from mpf.interfaces.cli import app
 from pathlib import Path
 
+EXPECTED_VERSION = "0.1.128"
+
+
 def example_config_path() -> Path:
     return Path("configs/mpf.example.yaml")
 
@@ -14,11 +17,11 @@ def example_config_path() -> Path:
 def _cfg(): return load_config(example_config_path())
 
 def test_version_consistency():
-    assert Path('VERSION').read_text().strip()=='0.1.127'
-    assert tomllib.loads(Path('pyproject.toml').read_text())['project']['version']=='0.1.127'
-    assert __version__=='0.1.127'
+    assert Path('VERSION').read_text().strip()==EXPECTED_VERSION
+    assert tomllib.loads(Path('pyproject.toml').read_text())['project']['version']==EXPECTED_VERSION
+    assert __version__==EXPECTED_VERSION
     r=CliRunner().invoke(app,['--version'])
-    assert '0.1.127' in r.output
+    assert EXPECTED_VERSION in r.output
 
 def test_package_default_report():
     r=build_no_customer_apply_package_report(_cfg())
