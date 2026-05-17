@@ -107,13 +107,17 @@ The following strings intentionally preserve prior accepted evidence references 
 ```text
 Remaining Phase 6 Alignment With Master Roadmap
 ## Phase 6-E — Isolated Apply Harness
+Phase 6-E0 accepted on farm5
 Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review
 1. Dedicated Apply Gate Proposal/Review
+8. Phase 7 Usage + Policy/Reject Accounting
 No-customer runtime execution approval readiness
 executed once on farm5 under the accepted controlled boundary
+no uncontrolled restore point writes, lock acquisition, or DB apply writes
 latest recorded farm5 sync evidence is 0.1.94
 latest recorded farm5 sync evidence is 0.1.99
 latest recorded farm5 sync evidence is 0.1.100
+latest recorded farm5 sync evidence is 0.1.110.
 Current target is Phase 8 abuse dry-run evaluator package.
 Current target is Phase 8 abuse evidence/reporting contract package.
 remaining_plan_state_machine_target_aligned compatibility anchor: Current target is Phase 8 abuse state-machine contract package.
