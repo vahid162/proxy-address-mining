@@ -11,8 +11,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - latest recorded farm5 sync evidence is 0.1.128.
 - Phase 8 final Abuse 1h acceptance readiness/review is done in 0.1.122 and synced/tested on farm5.
 - Phase 8 Abuse 1h Core is accepted on farm5 in 0.1.123.
-- Current target after this PR is Phase 10 planning/readiness.
 - Current target is Phase 10 planning/readiness.
+- This PR introduces the Phase 10 report-only planning/readiness foundation.
 - Phase 9 Check / Report / Diagnostics is accepted on farm5 by this PR.
 - Next required operator evidence is farm5 0.1.129 sync/test before Phase 10 implementation PRs.
 - Do not fabricate server evidence.
@@ -33,7 +33,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
 3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
 4. Phase 9 Check / Report / Diagnostics planning/readiness — accepted
-5. Phase 9 final acceptance — current PR
+5. Phase 10 report-only planning/readiness foundation — current PR
 6. farm5 0.1.129 sync/test evidence before Phase 10 implementation PRs — next required operator evidence
 7. Phase 10 Session / Worker / Policy / Share Timeline — planning/readiness (active)
 8. Phase 11 Local UI + Buyer Read-only — future
