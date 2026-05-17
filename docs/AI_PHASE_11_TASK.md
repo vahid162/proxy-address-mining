@@ -20,6 +20,176 @@ Phase 10 accepted
   -> Phase 12 Worker Policy Enforcement
 ```
 
+## Required Sub-step Execution Model
+
+Phase 11 must be implemented like earlier phases: small PRs, clear gates, evidence-first, fail-closed, and no fabricated server evidence.
+
+Do not implement Phase 11 as one large production-enabling PR.
+
+Required sequence:
+
+```text
+Phase 11A — Production readiness inventory
+Phase 11B — CLI canary plan/report only
+Phase 11C — Controlled firewall/customer activation harness
+Phase 11D — Manual canary customer acceptance
+Phase 11E — Limited real customer onboarding
+Phase 11F — Phase 11 final acceptance report
+```
+
+### Phase 11A — Production readiness inventory
+
+Allowed:
+
+```text
+report-only services and CLI
+server preflight contract
+restart/container-order checklist
+fresh farm5 sync/test evidence requirements
+current gate verification
+```
+
+Forbidden:
+
+```text
+production traffic
+firewall apply
+customer NAT/customer firewall rules
+abuse automation runner
+real customer onboarding
+```
+
+Acceptance evidence:
+
+```text
+mpf production readiness --output json
+pytest on GitHub
+farm5 sync/test evidence after merge
+mpf doctor OK
+phase gate OK
+```
+
+### Phase 11B — CLI canary plan/report only
+
+Allowed:
+
+```text
+canary customer intent model
+canary plan renderer
+firewall desired-model preview
+rollback/restore-plan preview
+operator checklist
+```
+
+Forbidden:
+
+```text
+actual customer NAT
+actual firewall apply
+actual abuse automation
+production customer traffic
+```
+
+Acceptance evidence:
+
+```text
+mpf production canary-plan --output json
+plan is human-readable and JSON
+plan is fail-closed by default
+```
+
+### Phase 11C — Controlled firewall/customer activation harness
+
+Allowed only after prior sub-steps are accepted:
+
+```text
+controlled apply harness
+planner/lock/backup/verify/rollback path
+explicit operator confirmation
+single canary boundary
+```
+
+Forbidden:
+
+```text
+unrestricted onboarding
+UI actions
+Telegram actions
+worker enforcement
+background automation without an explicit accepted runner gate
+```
+
+Acceptance evidence:
+
+```text
+restore point exists before apply
+iptables-save backup exists before apply
+lock acquired before apply
+verify runs after apply
+rollback or rollback-plan exists
+```
+
+### Phase 11D — Manual canary customer acceptance
+
+Allowed:
+
+```text
+one explicit canary customer
+controlled CLI activation
+usage/reject/session/worker visibility checks
+abuse coverage check
+check/report final verdict
+```
+
+Acceptance evidence:
+
+```text
+canary customer connects successfully
+NAT hit is visible
+usage/reject accounting works
+abuse scanner covers the customer
+rollback or restore-plan evidence exists
+```
+
+### Phase 11E — Limited real customer onboarding
+
+Allowed only after canary acceptance:
+
+```text
+limited real customer onboarding through CLI
+controlled customer_onboarding_allowed transition
+controlled production_traffic transition
+operator-visible audit/events
+```
+
+Forbidden:
+
+```text
+unrestricted production onboarding
+UI/Telegram mutation paths
+direct DB/firewall mutation
+```
+
+Acceptance evidence:
+
+```text
+small limited customer set works
+restart safety remains OK
+abuse 1h coverage remains OK
+check/report remains clear
+rollback/restore-plan remains available
+```
+
+### Phase 11F — Phase 11 final acceptance report
+
+Required output:
+
+```text
+mpf production final-activation --output json
+```
+
+Final acceptance must explicitly record which controlled gates are open and which remain closed.
+
 ## Required Architecture
 
 Implementation must be Python-first and API-first:
@@ -184,4 +354,5 @@ firewall apply gate still fail-closed without explicit approval
 abuse 1h coverage invariant tests
 restart/container-order docs tests
 legacy shell backend forbidden tests
+sub-step gate ordering tests
 ```
