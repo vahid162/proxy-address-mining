@@ -4,7 +4,10 @@ from typer.testing import CliRunner
 
 from mpf.config import load_config
 from mpf.interfaces.cli import app
-from mpf.services.phase9_final_verdict_diagnostics_service import build_phase9_final_verdict_diagnostics_report
+from mpf.services.phase9_final_verdict_diagnostics_service import (
+    DANGEROUS_AUTHORIZATION_FLAGS,
+    build_phase9_final_verdict_diagnostics_report,
+)
 
 
 def test_phase9_final_verdict_service_report_only_and_safe_flags() -> None:
@@ -14,21 +17,25 @@ def test_phase9_final_verdict_service_report_only_and_safe_flags() -> None:
     assert r["execution_allowed"] is False
     assert r["report_only"] is True
     assert r["all_dangerous_authorization_flags_false"] is True
-    for key in [
-        "firewall_apply_authorized",
-        "iptables_restore_authorized",
-        "customer_nat_authorized",
-        "customer_firewall_rules_authorized",
-        "abuse_runner_authorized",
-        "production_db_execution_authorized",
-        "hard_block_authorized",
-        "soft_block_authorized",
-        "pause_automation_authorized",
-        "production_traffic_authorized",
-        "ui_authorized",
-        "telegram_authorized",
-    ]:
+    for key in DANGEROUS_AUTHORIZATION_FLAGS:
         assert r[key] is False
+
+
+def test_phase9_final_verdict_fails_closed_without_evidence(tmp_path: Path) -> None:
+    docs = tmp_path / "docs"
+    docs.mkdir()
+    (docs / "PHASE_STATUS.md").write_text(
+        "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5\n"
+        "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness\n",
+        encoding="utf-8",
+    )
+    cfg = load_config(Path("configs/mpf.example.yaml"))
+    r = build_phase9_final_verdict_diagnostics_report(cfg, repo_root=tmp_path)
+    assert r["final_decision"] == "BLOCKED"
+    assert "farm5_0_1_124_sync_evidence_missing" in r["blockers"]
+    assert "phase8_final_acceptance_not_accepted" in r["blockers"]
+    assert "phase9_readiness_not_accepted_report_only" in r["blockers"]
+    assert r["all_dangerous_authorization_flags_false"] is True
 
 
 def test_phase9_final_verdict_cli_json() -> None:
