@@ -37,3 +37,13 @@ def test_finite_path_phase8_phase9_and_future_activation() -> None:
     assert '5. Phase 9 diagnostics bundle report-only package — current PR' in t
     assert '6. farm5 0.1.126 sync/test evidence, then Phase 9 final acceptance readiness — next target' in t
     assert 'Production / Customer Activation Gate — future, separate, explicit, and not authorized by Phase 8 or Phase 9 readiness acceptance' in t
+
+
+def test_no_stale_active_phase7_phase8_wording_in_current_position() -> None:
+    t = _read('docs/REMAINING_PHASE_PLAN.md')
+    current = t.split('## Current Position', 1)[1].split('## Finite Remaining Path', 1)[0]
+    assert 'accepted Phase 7 / working Phase 8' not in current
+    assert 'Phase 8 is planning/readiness only' not in current
+    assert 'Phase 8 Abuse 1h Core is accepted on farm5 in this PR' not in current
+    assert 'Phase 9 final-verdict report-only diagnostics package — current PR' not in current
+    assert 'Next explicit Phase 9 report-only diagnostics step — future after 0.1.125 sync/test' not in current
