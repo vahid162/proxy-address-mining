@@ -46,8 +46,8 @@ Current gate:
 
 
 ```text
-accepted: Phase 8 — Abuse 1h Core accepted on farm5
-working: Phase 9 — Check / Report / Diagnostics planning/readiness
+accepted: Phase 9 — Check / Report / Diagnostics accepted on farm5
+working: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
 current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated Phase 6 apply gate remains not accepted and not authorized
 production_traffic: none
 firewall_apply_allowed: no
