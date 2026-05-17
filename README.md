@@ -40,15 +40,15 @@ Do not use this repository for production customer traffic yet.
 Latest recorded farm5 sync evidence is 0.1.127. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.128 sync/test evidence is required after merge before Phase 10 implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
-## Current Accepted/Working Boundary (Phase 8 accepted / Phase 9 planning)
+## Current Accepted/Working Boundary (Phase 9 accepted / Phase 10 planning)
 
-`docs/PHASE_STATUS.md` is authoritative. Current state remains accepted Phase 8 / working Phase 9 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 9 / working Phase 10 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Current advancement target is the Phase 9 report-only readiness package after 0.1.123 sync/test. Historical anchors only: Phase 8 runtime/worker integration readiness and Phase 8 DB-only controlled transition execution are completed Phase 8 context and are not active targets.
+Current advancement target is Phase 10 planning/readiness after post-merge farm5 0.1.128 sync/test evidence. Historical anchors only: Phase 8 Abuse 1h Core and Phase 9 Check / Report / Diagnostics are completed accepted context and are not active implementation targets.
 
 Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
-No firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram is authorized.
+No firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, worker automation, UI, or Telegram is authorized.
 
 Historical/reference-only notes from accepted Phase 6 boundaries:
 
@@ -83,6 +83,7 @@ conntrack flush
 usage timers
 hash-rate/share collectors
 abuse runner automation
+worker automation
 block or pause automation
 local UI service
 buyer UI service
@@ -135,7 +136,8 @@ Phase 5 DB-only customer CRUD accepted on farm5
 Phase 6 firewall planner accepted on farm5 as planner/reporting/gate-readiness
 Phase 7 usage + policy/reject accounting accepted on farm5 as report-only/service-contract/readiness
 Phase 8 Abuse 1h Core accepted on farm5 as evidence/readiness only
-Phase 9 report-only diagnostics readiness package in progress
+Phase 9 Check / Report / Diagnostics accepted on farm5 as report-only/final diagnostics
+Phase 10 Session / Worker / Policy / Share Timeline planning/readiness in progress
 ```
 
 ## Not Implemented Yet
