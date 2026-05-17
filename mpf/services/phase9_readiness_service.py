@@ -10,14 +10,27 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
+def _gate_ok(phase_status: str) -> bool:
+    return (
+        "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5" in phase_status
+        and "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness" in phase_status
+        and "production_traffic: none" in phase_status
+        and "firewall_apply_allowed: no" in phase_status
+        and "abuse_automation_allowed: no" in phase_status
+    )
+
+
 def build_phase9_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
+    _ = cfg
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = _read(root / "docs/PHASE_STATUS.md")
     readme = _read(root / "README.md")
+    diagnostics_doc = _read(root / "docs/PHASE_9_CHECK_REPORT_DIAGNOSTICS.md")
 
-    gate_ok = "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5" in phase_status and "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness" in phase_status
+    gate_ok = _gate_ok(phase_status)
+    diagnostics_doc_present = "# Phase 9 Check / Report / Final-Verdict Diagnostics" in diagnostics_doc
 
-    report = {
+    report: dict[str, object] = {
         "component": "phase9_readiness",
         "phase": "Phase 9 — Check / Report / Diagnostics",
         "gate_type": "phase9_report_only_readiness",
@@ -28,6 +41,7 @@ def build_phase9_readiness_report(cfg: MPFConfig, repo_root: Path | None = None)
         "report_only": True,
         "execution_allowed": False,
         "repository_version": __version__,
+        "latest_recorded_farm5_sync_evidence": "0.1.124",
         "phase_gate_status": "OK" if gate_ok else "BLOCKED",
         "doctor_config_database_expectations": "READY",
         "proxy_runtime_diagnostics_expectations": "READY",
@@ -37,7 +51,11 @@ def build_phase9_readiness_report(cfg: MPFConfig, repo_root: Path | None = None)
         "policy_reject_visibility_readiness": "READY",
         "evidence_pack_readiness": "READY",
         "troubleshooting_final_verdict_readiness": "READY",
-        "phase9_readiness_documented_in_readme": "Phase 9 report-only readiness" in readme,
+        "phase9_readiness_documented_in_readme": "Phase 9 report-only" in readme,
+        "phase9_check_report_diagnostics_doc_present": diagnostics_doc_present,
+        "check_report_diagnostics_contract_defined": diagnostics_doc_present,
+        "final_verdict_diagnostics_ready": diagnostics_doc_present and gate_ok,
+        "overall_report_verdict": "OK" if diagnostics_doc_present and gate_ok else "BLOCKED",
         "runtime_worker_authorized": False,
         "worker_start_authorized": False,
         "scheduler_authorized": False,
@@ -45,6 +63,7 @@ def build_phase9_readiness_report(cfg: MPFConfig, repo_root: Path | None = None)
         "abuse_runner_authorized": False,
         "production_db_execution_authorized": False,
         "db_writes_authorized": False,
+        "customer_policy_mutation_authorized": False,
         "firewall_apply_authorized": False,
         "iptables_restore_authorized": False,
         "customer_nat_authorized": False,
@@ -59,9 +78,12 @@ def build_phase9_readiness_report(cfg: MPFConfig, repo_root: Path | None = None)
     blockers: list[str] = []
     if not gate_ok:
         blockers.append("phase8_accepted_phase9_working_gate_missing")
+    if not diagnostics_doc_present:
+        blockers.append("phase9_check_report_diagnostics_doc_missing")
     if blockers:
         report["final_decision"] = "BLOCKED"
         report["readiness_status"] = "BLOCKED"
+        report["overall_report_verdict"] = "BLOCKED"
     report["blockers"] = blockers
     report["warnings"] = []
     report["errors"] = []
