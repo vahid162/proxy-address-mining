@@ -10,6 +10,27 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
+DANGEROUS_AUTHORIZATION_FLAGS = [
+    "runtime_worker_authorized",
+    "worker_start_authorized",
+    "scheduler_authorized",
+    "timer_authorized",
+    "abuse_runner_authorized",
+    "production_db_execution_authorized",
+    "db_writes_authorized",
+    "firewall_apply_authorized",
+    "iptables_restore_authorized",
+    "customer_nat_authorized",
+    "customer_firewall_rules_authorized",
+    "hard_block_authorized",
+    "soft_block_authorized",
+    "pause_automation_authorized",
+    "production_traffic_authorized",
+    "ui_authorized",
+    "telegram_authorized",
+]
+
+
 def build_phase9_final_verdict_diagnostics_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = _read(root / "docs/PHASE_STATUS.md")
@@ -64,8 +85,8 @@ def build_phase9_final_verdict_diagnostics_report(cfg: MPFConfig, repo_root: Pat
         "production_traffic_authorized": False,
         "ui_authorized": False,
         "telegram_authorized": False,
-        "all_dangerous_authorization_flags_false": True,
     }
+    report["all_dangerous_authorization_flags_false"] = all(report[key] is False for key in DANGEROUS_AUTHORIZATION_FLAGS)
 
     blockers: list[str] = []
     if not phase_gate_ok:
@@ -76,6 +97,8 @@ def build_phase9_final_verdict_diagnostics_report(cfg: MPFConfig, repo_root: Pat
         blockers.append("phase8_final_acceptance_not_accepted")
     if not phase9_readiness_accepted_report_only:
         blockers.append("phase9_readiness_not_accepted_report_only")
+    if report["all_dangerous_authorization_flags_false"] is not True:
+        blockers.append("dangerous_authorization_flag_enabled")
 
     if blockers:
         report["final_decision"] = "BLOCKED"
