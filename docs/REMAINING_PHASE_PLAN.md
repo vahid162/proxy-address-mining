@@ -108,12 +108,18 @@ The following strings intentionally preserve prior accepted evidence references 
 Remaining Phase 6 Alignment With Master Roadmap
 ## Phase 6-E — Isolated Apply Harness
 Phase 6-E0 accepted on farm5
+Host production firewall mutation remains forbidden
 Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review
 1. Dedicated Apply Gate Proposal/Review
 8. Phase 7 Usage + Policy/Reject Accounting
+9. Phase 8 Abuse 1h Core
 No-customer runtime execution approval readiness
 executed once on farm5 under the accepted controlled boundary
 no uncontrolled restore point writes, lock acquisition, or DB apply writes
+production traffic remain forbidden
+no usage automation
+no abuse automation before Phase 8
+no UI or Telegram
 latest recorded farm5 sync evidence is 0.1.94
 latest recorded farm5 sync evidence is 0.1.99
 latest recorded farm5 sync evidence is 0.1.100
