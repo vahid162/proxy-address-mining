@@ -41,7 +41,7 @@ Read these first:
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_8_TASK.md` is historical/accepted. `docs/AI_PHASE_9_TASK.md` is active/current. Phase 6 documents below are historical/reference-only and non-authorizing.
+`docs/AI_PHASE_8_TASK.md` and `docs/AI_PHASE_9_TASK.md` are historical/accepted. `docs/AI_PHASE_10_TASK.md` is active/current for Phase 10 planning/readiness. Phase 6 documents below are historical/reference-only and non-authorizing.
 This file is the documentation map.
 
 ## Core Contracts
@@ -66,24 +66,24 @@ Read these before implementation work:
 Current accepted phase:
 
 ```text
-Phase 7 — Usage + Policy/Reject Accounting accepted on farm5
+Phase 9 — Check / Report / Diagnostics accepted on farm5
 ```
 
 Current working phase:
 
 ```text
-Phase 8 — Abuse 1h Core planning/readiness
+Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
 ```
 
-Current active add-on read first: `docs/AI_PHASE_8_TASK.md` (active/current).
+Current active add-on read first: `docs/AI_PHASE_10_TASK.md` (active/current).
 Phase 6 documents below remain historical/reference/non-authorizing context.
 
-Current Phase 8 step:
+Current Phase 10 step:
 
 ```text
-Phase 7 remains accepted and Phase 8 remains working. docs/PHASE_STATUS.md is authoritative for active phase language.
-Current Phase 8 step: farm5 controlled worker dry-run evidence collection preparation (report-only, non-runtime, non-authorizing). farm5 0.1.120 sync evidence is recorded. Controlled worker dry-run evidence is not yet collected.
-No abuse runner, no abuse DB writes, no hard/soft blocks, no pause automation, no firewall apply, no iptables-restore, no customer NAT/rules, no production traffic, no UI, no Telegram.
+Phase 10 planning/readiness foundation is report-only, non-runtime, and non-authorizing. docs/PHASE_STATUS.md is authoritative for active phase language.
+No real worker runtime, no background worker loop, no scheduler/timer, no collector, no live share ingestion, no production DB transition, no enforcement, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no hard/soft block, no pause automation, no production traffic, no UI, no Telegram.
+Fresh farm5 0.1.129 sync/test evidence is required after merge before any Phase 10 runtime/worker/scheduler/collector implementation PRs.
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
 
@@ -170,6 +170,44 @@ Read:
 12. `docs/CONTROL_RULES.md`
 13. `docs/WORKER_POLICY.md`
 14. all phase/domain documents affected by the change
+
+### Phase 10 session, worker, policy, share timeline, or enforcement-boundary work
+
+Read:
+
+1. `../AGENTS.md`
+2. `../README.md`
+3. `docs/PHASE_STATUS.md`
+4. `docs/AI_CODING_RULES.md`
+5. `docs/AI_PHASE_10_TASK.md`
+6. `docs/SAFETY.md`
+7. `docs/DATA_MODEL.md`
+8. `docs/TAXONOMY.md`
+9. `docs/OBSERVABILITY_HASHRATE.md`
+10. `docs/WORKER_POLICY.md`
+11. `docs/ABUSE.md`
+12. relevant phase/domain document
+
+Rules:
+
+- Phase 10 starts as planning/readiness only.
+- report-only/read-only/non-mutating surfaces are allowed.
+- no real worker runtime.
+- no background worker loop.
+- no scheduler/timer.
+- no collector.
+- no live share ingestion.
+- no production DB transition.
+- no enforcement.
+- no firewall apply.
+- no iptables-restore.
+- no customer NAT/customer firewall rules.
+- no hard/soft block.
+- no pause automation.
+- no production traffic.
+- no UI.
+- no Telegram.
+- future runtime/worker/scheduler/collector implementation PRs require fresh farm5 sync/test evidence and explicit gates.
 
 ### Phase 5 Customer CRUD DB-only work
 
@@ -331,6 +369,10 @@ Rules:
 
 Defines the accepted phase, current working phase, allowed work, forbidden work, and next safe step.
 
+### `docs/AI_PHASE_10_TASK.md`
+
+Defines the active AI coding boundary for Phase 10 planning/readiness foundation work.
+
 ### `docs/AI_PHASE_6_TASK.md`
 
 Defines the active AI coding boundary for current Phase 6 planner/offline contract work and references the Phase 6-D1 boundary.
@@ -468,6 +510,7 @@ Stop and revise if any change introduces:
 22. worker/block/pause/usage/abuse runtime before accepted phase
 23. public v2rayA UI exposure
 24. public backend exposure
+25. Phase 10 runtime/worker/scheduler/collector implementation before fresh farm5 sync/test evidence and explicit gate
 
 ## Final Rule
 

@@ -6,7 +6,7 @@ from mpf.config import load_config
 from mpf.interfaces.cli import app
 from mpf.services.phase8_controlled_worker_dry_run_service import build_phase8_controlled_worker_dry_run_report
 
-EXPECTED_VERSION = "0.1.128"
+EXPECTED_VERSION = "0.1.129"
 
 
 def cfg_path() -> Path:

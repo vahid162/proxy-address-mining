@@ -37,14 +37,14 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.127. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.128 sync/test evidence is required after merge before Phase 10 implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Latest recorded farm5 sync evidence is 0.1.128. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.129 sync/test evidence is required after merge before any Phase 10 runtime/worker/scheduler/collector implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
 ## Current Accepted/Working Boundary (Phase 9 accepted / Phase 10 planning)
 
 `docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 9 / working Phase 10 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Current advancement target is Phase 10 planning/readiness after post-merge farm5 0.1.128 sync/test evidence. Historical anchors only: Phase 8 Abuse 1h Core and Phase 9 Check / Report / Diagnostics are completed accepted context and are not active implementation targets.
+Current advancement target is Phase 10 planning/readiness after post-merge farm5 0.1.129 sync/test evidence. Historical anchors only: Phase 8 Abuse 1h Core and Phase 9 Check / Report / Diagnostics are completed accepted context and are not active implementation targets.
 
 Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
@@ -58,7 +58,7 @@ firewall desired-state model refinement
 firewall planner/diff contracts
 human-readable firewall plan/report output
 machine-readable JSON firewall plan/report output
-offline snapshot parser and file-backed diff fixtures
+offline snapshot parser and file-backed offline diff fixtures
 offline restore payload artifacts
 offline apply-readiness contracts
 offline apply package reports
@@ -360,7 +360,7 @@ README.md
 docs/INDEX.md
 docs/PHASE_STATUS.md
 docs/AI_CODING_RULES.md
-docs/AI_PHASE_9_TASK.md
+docs/AI_PHASE_10_TASK.md
 ```
 
 Core contracts:
@@ -382,7 +382,7 @@ Current phase and accepted result contracts:
 
 ```text
 docs/PHASE_STATUS.md
-docs/AI_PHASE_9_TASK.md
+docs/AI_PHASE_10_TASK.md
 docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md
 docs/PHASE_5_FINAL_ACCEPTANCE.md
 docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
