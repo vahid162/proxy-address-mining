@@ -11,7 +11,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
-def build_phase9_final_acceptance_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
+def build_phase9_final_acceptance_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase = _read(root / "docs/PHASE_STATUS.md")
 
@@ -24,23 +24,25 @@ def build_phase9_final_acceptance_readiness_report(cfg: MPFConfig, repo_root: Pa
     phase9_readiness_accepted = "phase9 readiness:\n  ACCEPTED" in phase
     phase9_final_verdict_accepted = "phase9 final-verdict:\n  ACCEPTED" in phase
     phase9_diagnostics_accepted = "phase9 diagnostics:\n  ACCEPTED" in phase
+    phase9_final_acceptance_readiness_accepted = "phase9 final-acceptance-readiness:\n  ACCEPTED" in phase
 
     report = {
-        "component": "phase9_final_acceptance_readiness",
+        "component": "phase9_final_acceptance",
         "final_decision": "ACCEPTED",
-        "final_acceptance_readiness": "PHASE9_FINAL_ACCEPTANCE_READINESS_ACCEPTED",
-        "authorization_status": "PHASE9_REPORT_ONLY_NON_MUTATING",
+        "acceptance_status": "PHASE9_ACCEPTED_ON_FARM5",
+        "authorization_status": "ACCEPTED_NON_PRODUCTION_ACTIVATION",
         "report_only": True,
         "inspection_only": True,
         "execution_allowed": False,
         "repository_version": __version__,
         "current_phase_gate_status": "OK" if gate_ok else "BLOCKED",
         "latest_recorded_farm5_sync_evidence": "0.1.127" if farm5_0_1_127_present else "unknown",
-        "farm5_0_1_126_sync_test_evidence_present": farm5_0_1_127_present,
+        "farm5_0_1_127_sync_test_evidence_present": farm5_0_1_127_present,
         "phase8_final_acceptance_status": "ACCEPTED" if phase8_final_accepted else "BLOCKED",
         "phase9_readiness_status": "ACCEPTED" if phase9_readiness_accepted else "BLOCKED",
         "phase9_final_verdict_diagnostics_status": "ACCEPTED" if phase9_final_verdict_accepted else "BLOCKED",
         "phase9_diagnostics_bundle_status": "ACCEPTED" if phase9_diagnostics_accepted else "BLOCKED",
+        "phase9_final_acceptance_readiness_status": "ACCEPTED" if phase9_final_acceptance_readiness_accepted else "BLOCKED",
         "customer_diagnostics_readiness": "READY",
         "abuse_visibility_readiness": "READY",
         "usage_accounting_visibility_readiness": "READY",
@@ -48,7 +50,8 @@ def build_phase9_final_acceptance_readiness_report(cfg: MPFConfig, repo_root: Pa
         "proxy_runtime_diagnostics_readiness": "READY",
         "evidence_pack_readiness": "READY",
         "troubleshooting_summary_readiness": "READY",
-        "next_required_operator_evidence": "fresh farm5 0.1.128 sync/test evidence required before Phase 10 implementation PRs",
+        "next_phase": "Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness",
+        "post_merge_required_operator_evidence": "fresh farm5 0.1.128 sync/test evidence required before Phase 10 implementation PRs",
     }
     report.update(false_flags())
     report["all_dangerous_authorization_flags_false"] = all_flags_false(report)
@@ -66,12 +69,14 @@ def build_phase9_final_acceptance_readiness_report(cfg: MPFConfig, repo_root: Pa
         blockers.append("phase9_final_verdict_missing")
     if not phase9_diagnostics_accepted:
         blockers.append("phase9_diagnostics_bundle_missing")
+    if not phase9_final_acceptance_readiness_accepted:
+        blockers.append("phase9_final_acceptance_readiness_missing")
     if not report["all_dangerous_authorization_flags_false"]:
         blockers.append("dangerous_authorization_flag_enabled")
 
     if blockers:
         report["final_decision"] = "BLOCKED"
-        report["final_acceptance_readiness"] = "BLOCKED"
+        report["acceptance_status"] = "BLOCKED"
 
     report["blockers"] = blockers
     report["warnings"] = []

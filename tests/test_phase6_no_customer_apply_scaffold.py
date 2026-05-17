@@ -57,7 +57,7 @@ def test_static_safety_tokens() -> None:
 
 def test_docs_regression() -> None:
     phase = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
-    assert "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5" in phase
+    assert "current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5" in phase
     assert "### Phase 6 No-Customer Apply/Verify/Rollback Scaffold — Report-Only" in phase
     task = Path("docs/AI_PHASE_6_TASK.md").read_text(encoding="utf-8")
     assert "live firewall reads remain forbidden now." not in task

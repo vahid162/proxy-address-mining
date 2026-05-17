@@ -10,8 +10,8 @@ def test_phase_status_current_state_block_unchanged() -> None:
     expected = """## Current State
 
 ```text
-current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5
-current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness
+current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5
+current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no

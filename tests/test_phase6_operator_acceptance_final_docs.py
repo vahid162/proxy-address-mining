@@ -4,8 +4,8 @@ from pathlib import Path
 def test_phase_status_current_state_phase6_accepted_phase7_working() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     required = [
-        "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5",
-        "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness",
+        "current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5",
+        "current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness",
         "production_traffic: none",
         "firewall_apply_allowed: no",
         "abuse_automation_allowed: no",

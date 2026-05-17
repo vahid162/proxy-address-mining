@@ -15,8 +15,8 @@ docs/PHASE_STATUS.md
 Current repository/server gate:
 
 ```text
-accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5
-working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness
+accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5
+working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.126. Phase 8 Abuse 1h Core is accepted as evidence/readiness only on farm5 and is not production activation. Phase 9 diagnostics bundle exists in 0.1.126. Current target is the Phase 9 final acceptance readiness report-only package; fresh farm5 0.1.127 sync/test evidence is required after merge before Phase 9 final acceptance. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Latest recorded farm5 sync evidence is 0.1.127. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.128 sync/test evidence is required after merge before Phase 10 implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
 ## Current Accepted/Working Boundary (Phase 8 accepted / Phase 9 planning)

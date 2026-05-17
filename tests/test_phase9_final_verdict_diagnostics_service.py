@@ -25,8 +25,8 @@ def test_phase9_final_verdict_fails_closed_without_evidence(tmp_path: Path) -> N
     docs = tmp_path / "docs"
     docs.mkdir()
     (docs / "PHASE_STATUS.md").write_text(
-        "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5\n"
-        "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness\n",
+        "current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5\n"
+        "current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness\n",
         encoding="utf-8",
     )
     cfg = load_config(Path("configs/mpf.example.yaml"))

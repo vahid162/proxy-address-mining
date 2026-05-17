@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.128
+- Accept Phase 9 final diagnostics on farm5 with a new phase9 final-acceptance report/CLI, record farm5 0.1.127 sync/test evidence, advance active target to Phase 10 planning/readiness, and keep all dangerous authorization flags false/non-mutating.
+
 ## 0.1.127
 - Add Phase 9 final-acceptance-readiness report/CLI, record farm5 0.1.126 sync evidence, and keep all dangerous authorization flags false with report-only non-mutating gates.
 
