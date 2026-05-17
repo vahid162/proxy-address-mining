@@ -84,6 +84,11 @@ from mpf.services import (
     phase9_proxy_runtime_diagnostics_service,
     phase9_evidence_pack_service,
     phase9_troubleshooting_summary_service,
+    phase10_readiness_service,
+    phase10_session_readiness_service,
+    phase10_worker_policy_readiness_service,
+    phase10_share_timeline_readiness_service,
+    phase10_enforcement_boundary_service,
 )
 
 app = typer.Typer(
@@ -104,6 +109,7 @@ phase6_app = typer.Typer(help="Phase 6 report-only gate commands.")
 phase7_app = typer.Typer(help="Phase 7 report-only readiness commands.")
 phase8_app = typer.Typer(help="Phase 8 report-only readiness commands.")
 phase9_app = typer.Typer(help="Phase 9 report-only readiness commands.")
+phase10_app = typer.Typer(help="Phase 10 report-only planning/readiness commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
@@ -116,6 +122,7 @@ app.add_typer(phase6_app, name="phase6")
 app.add_typer(phase7_app, name="phase7")
 app.add_typer(phase8_app, name="phase8")
 app.add_typer(phase9_app, name="phase9")
+app.add_typer(phase10_app, name="phase10")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -2012,3 +2019,35 @@ def phase8_farm5_dry_run_evidence_collection(
     keys = ["component","final_decision","evidence_collection_status","authorization_status","execution_allowed","phase8_acceptance_allowed","dry_run_evidence_claimed","repository_version","latest_recorded_farm5_sync_evidence","farm5_0_1_120_sync_evidence_present","farm5_0_1_121_sync_required_before_dry_run_evidence","current_state_preserved","phase7_accepted","phase8_working","phase8_not_accepted","dry_run_evidence_collection_runbook_present","runbook_status_not_executed","operator_invocation_required","default_command_requires_operator_confirmation","operator_confirmed_command_remains_no_side_effect","synthetic_only_required","no_silent_skip_required","no_work_reporting_required","failure_mode_reporting_required","idempotency_reporting_required","runtime_worker_authorized","worker_start_authorized","background_worker_authorized","scheduler_authorized","timer_authorized","abuse_runner_authorized","real_customer_evaluation_authorized","production_db_execution_authorized","db_reads_authorized","db_writes_authorized","firewall_apply_authorized","iptables_restore_authorized","customer_nat_authorized","customer_firewall_rules_authorized","customer_policy_mutation_authorized","hard_block_authorized","soft_block_authorized","pause_automation_authorized","production_traffic_authorized","future_farm5_dry_run_evidence_pr_required","future_phase8_final_acceptance_pr_required","blockers","errors"]
     for k in keys:
         typer.echo(f"{k}: {report.get(k)}")
+
+
+@phase10_app.command("readiness")
+def phase10_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_readiness_service.build_phase10_readiness_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    _emit_key_values(report,["component","final_decision","readiness_status","authorization_status","execution_allowed","latest_recorded_farm5_sync_evidence","farm5_0_1_128_sync_test_evidence_present","phase9_final_acceptance_status","next_required_operator_evidence","all_dangerous_authorization_flags_false","aggregate_dangerous_authorization_flag","blockers","warnings","errors"])
+
+@phase10_app.command("session-readiness")
+def phase10_session_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_session_readiness_service.build_session_readiness_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    _emit_key_values(report,["component","final_decision","authorization_status","execution_allowed","session_readiness","blockers","warnings","errors"])
+
+@phase10_app.command("worker-policy-readiness")
+def phase10_worker_policy_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_worker_policy_readiness_service.build_worker_policy_readiness_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    _emit_key_values(report,["component","final_decision","authorization_status","execution_allowed","worker_policy_readiness","blockers","warnings","errors"])
+
+@phase10_app.command("share-timeline-readiness")
+def phase10_share_timeline_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_share_timeline_readiness_service.build_share_timeline_readiness_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    _emit_key_values(report,["component","final_decision","authorization_status","execution_allowed","share_timeline_readiness","blockers","warnings","errors"])
+
+@phase10_app.command("enforcement-boundary")
+def phase10_enforcement_boundary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_enforcement_boundary_service.build_enforcement_boundary_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    _emit_key_values(report,["component","final_decision","authorization_status","execution_allowed","enforcement_boundary_readiness","blockers","warnings","errors"])

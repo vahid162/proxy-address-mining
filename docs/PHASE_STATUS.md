@@ -33,6 +33,56 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 ## Accepted Server Results
 
 
+### Phase 10 farm5 0.1.128 Sync/Test Evidence
+
+- command:
+  sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+- backup:
+  /var/backups/mpf/source-before-zip-sync-20260517T091747Z
+- server version after sync:
+  0.1.128
+- pytest:
+  759 passed
+- mpf doctor:
+  OK
+- current phase gate:
+  OK
+- phase9 final-acceptance:
+  ACCEPTED
+- current_accepted_phase:
+  Phase 9 — Check / Report / Diagnostics accepted on farm5
+- current_working_phase:
+  Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
+- production_traffic:
+  none
+- firewall_apply_allowed:
+  no
+- abuse_automation_allowed:
+  no
+- customer_onboarding_allowed:
+  db_only
+- proxy_data_plane_allowed:
+  limited_runtime_local_only
+- ui_allowed:
+  no
+- telegram_allowed:
+  no
+- apply_mode:
+  plan_only
+- proxy.runtime_activation_allowed:
+  false
+- local-only listeners:
+  127.0.0.1:2015
+  127.0.0.1:60010
+- no MPF/customer IPv4 firewall references
+- no MPF/customer IPv6 firewall references
+- no customer NAT redirects
+- Docker local publish DNAT for 127.0.0.1:2015 and 127.0.0.1:60010 is informational only
+- final sync verdict:
+  OK
+- all dangerous authorization flags:
+  false
+
 
 
 ### Phase 9 farm5 0.1.127 Sync/Test Evidence
