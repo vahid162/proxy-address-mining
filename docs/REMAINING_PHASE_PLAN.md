@@ -82,6 +82,8 @@ rollback or restore-plan evidence
 
 ## Historical/Compatibility Notes
 
+These entries are historical compatibility anchors for older docs/tests/services. They are not current authorization gates and must not be read as active implementation targets.
+
 - read-only iptables-save live snapshot path is explicitly authorized and evidenced.
 - must not mutate the host production firewall until an explicit gate opens controlled apply.
 - host production firewall mutation is forbidden in the current gate.
@@ -97,3 +99,33 @@ rollback or restore-plan evidence
 - Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal
 - Phase 7 starts only after Phase 6 final acceptance.
 - iptables-restore remains forbidden in the current boundary context.
+
+## Historical Compatibility Anchors
+
+The following strings intentionally preserve prior accepted evidence references and service blocker checks:
+
+```text
+Remaining Phase 6 Alignment With Master Roadmap
+## Phase 6-E — Isolated Apply Harness
+Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review
+1. Dedicated Apply Gate Proposal/Review
+No-customer runtime execution approval readiness
+executed once on farm5 under the accepted controlled boundary
+latest recorded farm5 sync evidence is 0.1.94
+latest recorded farm5 sync evidence is 0.1.99
+latest recorded farm5 sync evidence is 0.1.100
+Current target is Phase 8 abuse dry-run evaluator package.
+Current target is Phase 8 abuse evidence/reporting contract package.
+remaining_plan_state_machine_target_aligned compatibility anchor: Current target is Phase 8 abuse state-machine contract package.
+remaining_plan_evidence_reporting_target_aligned compatibility anchor: Current target is Phase 8 abuse evidence/reporting contract package.
+Current target is Phase 8 DB-only controlled transition readiness package.
+Current target is Phase 8 DB-only controlled transition execution package.
+Current target is Phase 8 runtime/worker integration readiness package.
+Phase 8 runtime worker dry-run harness — next target
+Controlled no-customer runtime execution evidence — current next target.
+GitHub main repository version before this PR is 0.1.128. (historical)
+Repository version after this PR is 0.1.129. (historical)
+0.1.99
+```
+
+Current roadmap ordering remains the Finite Remaining Path above. These anchors do not reopen Phase 6, Phase 7, Phase 8, firewall apply, production traffic, abuse automation, worker enforcement, UI, or Telegram.
