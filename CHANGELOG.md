@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.125
+- Add Phase 9 final-verdict report-only diagnostics CLI/report, record farm5 0.1.124 sync/test evidence, and keep all mutation/automation authorization flags false.
+
 ## 0.1.124
 - Add Phase 9 report-only readiness CLI/report, record farm5 0.1.123 sync/test evidence, and fix Phase 8 final-acceptance docs-token matching without opening runtime gates.
 

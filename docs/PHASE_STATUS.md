@@ -35,6 +35,35 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 
 
+### Phase 9 farm5 0.1.124 Sync/Test Evidence
+
+```text
+command: sudo mpf-sync-main-zip /tmp/proxy-address-mining-main.zip
+backup path: /var/backups/mpf/source-before-zip-sync-20260516T183009Z
+server version after sync: 0.1.124
+synced to 0.1.124
+pytest: 743 passed
+mpf doctor: OK
+phase gate: OK
+phase8 final-acceptance: ACCEPTED
+phase9 readiness: ACCEPTED / report-only
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
+listeners local-only: 127.0.0.1:2015, 127.0.0.1:60010
+no customer NAT redirects
+no MPF/customer IPv4 firewall references
+no MPF/customer IPv6 firewall references
+all dangerous authorization flags remain false
+final sync verdict: OK
+```
+
+This 0.1.124 farm5 sync/test evidence confirms the Phase 9 report-only diagnostics boundary remains non-mutating, non-authorizing, and safety-gated.
+
 ### Phase 9 farm5 0.1.123 Sync/Test Evidence
 
 ```text
