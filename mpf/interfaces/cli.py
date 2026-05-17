@@ -75,6 +75,7 @@ from mpf.services import (
     phase9_final_verdict_diagnostics_service,
     phase9_readiness_service,
     phase9_diagnostics_bundle_service,
+    phase9_final_acceptance_readiness_service,
     phase9_customer_diagnostics_service,
     phase9_abuse_visibility_service,
     phase9_usage_visibility_service,
@@ -1948,6 +1949,14 @@ def phase9_diagnostics(config: Path | None = typer.Option(None, "--config", "-c"
     if output == "json":
         typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
     _emit_key_values(report, ["component","final_decision","current_phase_gate","repository_version","latest_recorded_farm5_sync_evidence","next_required_operator_evidence","all_dangerous_authorization_flags_false","blockers","warnings","errors"])
+
+
+@phase9_app.command("final-acceptance-readiness")
+def phase9_final_acceptance_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase9_final_acceptance_readiness_service.build_phase9_final_acceptance_readiness_report(_load(config))
+    if output == "json":
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    _emit_key_values(report, ["component","final_decision","final_acceptance_readiness","authorization_status","report_only","inspection_only","execution_allowed","repository_version","current_phase_gate_status","latest_recorded_farm5_sync_evidence","next_required_operator_evidence","all_dangerous_authorization_flags_false","blockers","warnings","errors"])
 
 @phase9_app.command("customer-diagnostics")
 def phase9_customer_diagnostics(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:

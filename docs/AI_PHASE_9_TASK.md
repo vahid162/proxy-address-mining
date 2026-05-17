@@ -42,4 +42,13 @@ Phase 9 diagnostics bundle report-only package.
 
 It should add mpf phase9 diagnostics plus focused report-only diagnostics components: customer-diagnostics, abuse-visibility, usage-visibility, policy-reject-visibility, proxy-runtime-diagnostics, evidence-pack, troubleshooting-summary.
 
-It must remain fail-closed and require fresh farm5 0.1.126 sync/test evidence after merge before final acceptance readiness.
+It must remain fail-closed and require fresh farm5 0.1.127 sync/test evidence after merge before final acceptance.
+
+
+Current Phase 9 completed report surfaces:
+- readiness
+- final-verdict
+- diagnostics bundle
+
+Current target:
+- final acceptance readiness

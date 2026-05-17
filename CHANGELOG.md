@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.127
+- Add Phase 9 final-acceptance-readiness report/CLI, record farm5 0.1.126 sync evidence, and keep all dangerous authorization flags false with report-only non-mutating gates.
+
 ## 0.1.126
 - Add Phase 9 diagnostics bundle report with focused report-only subcommands/services, keep all dangerous authorization flags false/fail-closed, and update docs target to require post-merge farm5 0.1.126 sync/test evidence.
 

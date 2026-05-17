@@ -7,13 +7,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Current Position
 
 - GitHub main repository version before this PR is 0.1.125.
-- Repository version after this PR is 0.1.126.
-- latest recorded farm5 sync evidence is 0.1.124.
+- Repository version after this PR is 0.1.127.
+- latest recorded farm5 sync evidence is 0.1.126.
 - Phase 8 final Abuse 1h acceptance readiness/review is done in 0.1.122 and synced/tested on farm5.
 - Phase 8 Abuse 1h Core is accepted on farm5 in 0.1.123.
-- Current target is Phase 9 Check / Report / Diagnostics planning/readiness.
-- This PR introduces the Phase 9 diagnostics bundle report-only package.
-- Next target after this PR is farm5 0.1.126 sync/test evidence, then Phase 9 final acceptance readiness.
+- Current target is Phase 9 final acceptance readiness.
+- This PR introduces the Phase 9 final acceptance readiness report-only package.
+- Next target after this PR is farm5 0.1.127 sync/test evidence, then Phase 9 final acceptance.
 - Do not fabricate server evidence.
 - No production activation is enabled by this PR.
 - No production traffic is enabled.
@@ -31,9 +31,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 1. Phase 6 Firewall Planner — accepted on farm5
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
 3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
-4. Phase 9 Check / Report / Diagnostics planning/readiness — current target
-5. Phase 9 diagnostics bundle report-only package — current PR
-6. farm5 0.1.126 sync/test evidence, then Phase 9 final acceptance readiness — next target
+4. Phase 9 Check / Report / Diagnostics planning/readiness — accepted
+5. Phase 9 final acceptance readiness report-only package — current PR
+6. farm5 0.1.127 sync/test evidence, then Phase 9 final acceptance — next target
 7. Phase 10 Session / Worker / Policy / Share Timeline — future
 8. Phase 11 Local UI + Buyer Read-only — future
 9. Phase 12 Operator UI Actions — future
