@@ -13,6 +13,9 @@ from mpf.services.phase10_implementation_readiness_service import build_phase10_
 from mpf.services.phase10_share_timeline_model_readiness_service import build_share_timeline_model_readiness_report
 from mpf.services.phase10_collector_dry_run_gate_service import build_collector_dry_run_gate_readiness_report
 from mpf.services.phase10_collector_dry_run_plan_service import build_collector_dry_run_plan_report
+from mpf.services.phase10_runtime_worker_dry_run_readiness_service import build_runtime_worker_dry_run_readiness_report
+from mpf.services.phase10_scheduler_dry_run_readiness_service import build_scheduler_dry_run_readiness_report
+from mpf.services.phase10_worker_cycle_dry_run_plan_service import build_worker_cycle_dry_run_plan_report
 
 
 def cfg():
@@ -60,7 +63,7 @@ def test_phase10_implementation_readiness_accepted():
     assert r["execution_allowed"] is False
     assert r["share_timeline_model_readiness"] == "ACCEPTED"
     assert r["collector_dry_run_gate_readiness"] == "ACCEPTED"
-    assert r["farm5_0_1_133_sync_test_evidence_present"] is True
+    assert r["farm5_0_1_134_sync_test_evidence_present"] is True
     assert r["production_traffic_authorized"] is False
     assert r["firewall_apply_authorized"] is False
     assert r["abuse_automation_authorized"] is False
@@ -75,13 +78,13 @@ def test_phase10_implementation_fail_closed_missing_evidence(tmp_path: Path):
     (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
     r = build_phase10_implementation_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
-    assert "farm5_0_1_133_sync_test_evidence_missing" in r["blockers"]
+    assert "farm5_0_1_134_sync_test_evidence_missing" in r["blockers"]
 
 
 def test_phase10_implementation_fail_closed_missing_gate(tmp_path: Path):
     (tmp_path / "docs").mkdir()
     (tmp_path / "docs/PHASE_STATUS.md").write_text("invalid", encoding="utf-8")
-    (tmp_path / "docs/PHASE_10_FARM5_0_1_133_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
+    (tmp_path / "docs/PHASE_10_FARM5_0_1_134_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
     r = build_phase10_implementation_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
     assert "current_phase_gate_missing_or_invalid" in r["blockers"]
@@ -109,6 +112,9 @@ def test_phase10_new_cli_commands_json():
         ["phase10", "share-timeline-model-readiness", "--config", "configs/mpf.example.yaml", "--output", "json"],
         ["phase10", "collector-dry-run-gate-readiness", "--config", "configs/mpf.example.yaml", "--output", "json"],
         ["phase10", "collector-dry-run-plan", "--config", "configs/mpf.example.yaml", "--output", "json"],
+        ["phase10", "runtime-worker-dry-run-readiness", "--config", "configs/mpf.example.yaml", "--output", "json"],
+        ["phase10", "scheduler-dry-run-readiness", "--config", "configs/mpf.example.yaml", "--output", "json"],
+        ["phase10", "worker-cycle-dry-run-plan", "--config", "configs/mpf.example.yaml", "--output", "json"],
     ]
     for cmd in cmds:
         out = runner.invoke(app, cmd)
@@ -164,3 +170,44 @@ def test_phase10_collector_dry_run_plan_accepted():
     assert r["would_touch_firewall"] is False
     assert r["would_mutate_customers"] is False
     assert len(r["sample_synthetic_events"]) >= 2
+
+
+def test_phase10_runtime_worker_dry_run_readiness_accepted():
+    r = build_runtime_worker_dry_run_readiness_report(cfg())
+    assert r["final_decision"] == "ACCEPTED"
+    assert r["dry_run_only"] is True
+    assert r["execution_allowed"] is False
+    assert r["worker_daemon_authorized"] is False
+    assert r["worker_runtime_authorized"] is False
+    assert r["scheduler_authorized"] is False
+    assert r["timer_authorized"] is False
+    assert r["background_loop_authorized"] is False
+
+
+def test_phase10_scheduler_dry_run_readiness_accepted():
+    r = build_scheduler_dry_run_readiness_report(cfg())
+    assert r["final_decision"] == "ACCEPTED"
+    assert r["dry_run_only"] is True
+    assert r["execution_allowed"] is False
+    assert r["scheduler_enabled"] is False
+    assert r["timer_enabled"] is False
+
+
+def test_phase10_worker_cycle_dry_run_plan_accepted():
+    r = build_worker_cycle_dry_run_plan_report(cfg())
+    assert r["final_decision"] == "ACCEPTED"
+    assert r["plan_only"] is True
+    assert r["dry_run_only"] is True
+    assert r["execution_allowed"] is False
+    assert r["would_write_tables"] == []
+    assert r["would_create_job_run"] is False
+    assert r["would_acquire_scheduler_lock"] is False
+    assert r["would_start_daemon"] is False
+    assert r["would_schedule_timer"] is False
+    assert r["would_touch_firewall"] is False
+    assert r["would_mutate_customers"] is False
+    assert r["would_harden_abuse_state"] is False
+    assert len(r["synthetic_cycle_steps"]) >= 5
+    assert r["sample_cycle_result"]["hardening_actions"] == 0
+    assert r["sample_cycle_result"]["firewall_actions"] == 0
+    assert r["sample_cycle_result"]["customer_mutations"] == 0

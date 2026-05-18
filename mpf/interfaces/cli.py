@@ -95,6 +95,9 @@ from mpf.services import (
     phase10_share_timeline_model_readiness_service,
     phase10_collector_dry_run_gate_service,
     phase10_collector_dry_run_plan_service,
+    phase10_runtime_worker_dry_run_readiness_service,
+    phase10_scheduler_dry_run_readiness_service,
+    phase10_worker_cycle_dry_run_plan_service,
     phase10_enforcement_boundary_service,
 )
 
@@ -2099,6 +2102,25 @@ def phase10_collector_dry_run_gate_readiness(config: Path | None = typer.Option(
 def phase10_collector_dry_run_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     report = phase10_collector_dry_run_plan_service.build_collector_dry_run_plan_report(_load(config))
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else f"component: {report['component']}\nfinal_decision: {report['final_decision']}")
+
+
+@phase10_app.command("runtime-worker-dry-run-readiness")
+def phase10_runtime_worker_dry_run_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_runtime_worker_dry_run_readiness_service.build_runtime_worker_dry_run_readiness_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else f"component: {report['component']}\nfinal_decision: {report['final_decision']}")
+
+
+@phase10_app.command("scheduler-dry-run-readiness")
+def phase10_scheduler_dry_run_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_scheduler_dry_run_readiness_service.build_scheduler_dry_run_readiness_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else f"component: {report['component']}\nfinal_decision: {report['final_decision']}")
+
+
+@phase10_app.command("worker-cycle-dry-run-plan")
+def phase10_worker_cycle_dry_run_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_worker_cycle_dry_run_plan_service.build_worker_cycle_dry_run_plan_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else f"component: {report['component']}\nfinal_decision: {report['final_decision']}")
+
 
 @phase10_app.command("enforcement-boundary")
 def phase10_enforcement_boundary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:

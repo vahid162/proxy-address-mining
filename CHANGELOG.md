@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.135
+- Add Phase 10F runtime worker and scheduler dry-run readiness contracts, record farm5 0.1.134 sync/test evidence, and keep all runtime daemon, scheduler/timer, firewall, production, abuse automation, collector daemon, UI, and Telegram gates closed.
+
 ## 0.1.134
 - Add Phase 10D share timeline and Phase 10E collector dry-run gate readiness contracts, record farm5 0.1.133 sync/test evidence, and keep all runtime, firewall, production, abuse automation, scheduler, collector daemon, UI, and Telegram gates closed.
 
