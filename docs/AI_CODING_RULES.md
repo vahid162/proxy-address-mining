@@ -22,6 +22,14 @@ docs/ABUSE.md
 docs/AI_CODING_RULES.md
 ```
 
+For current Phase 11 production/customer activation planning-readiness work, also read:
+
+```text
+docs/AI_PHASE_11_TASK.md
+docs/PRODUCTION_ACTIVATION_GATE.md
+docs/BACKEND_PORT_POLICY.md
+```
+
 For historical Phase 6 firewall-planner/reference context, also read:
 
 ```text
@@ -48,7 +56,6 @@ Current gate:
 ```text
 accepted: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
 working: Phase 11 — Production / Customer Activation Gate planning/readiness
-current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated Phase 6 apply gate remains not accepted and not authorized
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -56,9 +63,11 @@ customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
-Phase 9 planning-readiness stop condition: no production traffic, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no abuse automation runner, no background worker/scheduler/timer, no real production customer evaluation, no production DB execution, no hard/soft block automation, no pause automation, no UI, no Telegram.
+Phase 11 planning-readiness stop condition: no production traffic, no controlled CLI canary execution, no limited real customer onboarding, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no abuse automation runner, no background worker/scheduler/timer, no collector daemon, no unrestricted production DB execution, no hard/soft block automation, no pause automation, no UI, no Telegram.
 
 Phase 8 dry-run evaluator stop condition: synthetic/in-memory only, no real customer evaluation, no live evidence collection, no DB reads/writes, no abuse runner, no hard/soft blocks, no pause automation, no runtime automation.
 
@@ -77,7 +86,7 @@ Historical Phase 8 forbidden runtime behaviors (still forbidden unless future ex
 
 ## Phase 6 Historical Safety Continuity (reference only)
 
-Phase 6-B and adjacent Phase 6 slices modeled apply/rollback/preflight boundaries and are now historical/accepted reference context only. They do not define current active work in Phase 8.
+Phase 6-B and adjacent Phase 6 slices modeled apply/rollback/preflight boundaries and are now historical/accepted reference context only. They do not define current active work in Phase 11 unless `docs/PHASE_STATUS.md` explicitly reopens a gate.
 
 Historical Phase 6-B allowed work (accepted reference):
 
@@ -124,7 +133,7 @@ public v2rayA UI exposure
 public backend exposure
 ```
 
-Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
+Live firewall apply remains forbidden until the Phase 11 production/customer activation gate explicitly accepts a controlled apply path.
 
 ## Service Boundary Rule
 
@@ -161,7 +170,7 @@ Future production migrations should use explicit Alembic operations instead of r
 
 The official server command must match the accepted repository phase.
 
-For farm5, the following commands must report the current accepted/working gate before Phase 6 work can be trusted:
+For farm5, the following commands must report the current accepted/working gate before Phase 11 work can be trusted:
 
 ```bash
 mpf --version
@@ -217,18 +226,19 @@ customer + lane + normalized_worker_name + src_ip + session evidence
 Worker name alone must not be treated as a guaranteed physical device.
 
 ## Stop Conditions
-- Current Phase 8 controlled worker dry-run gate stop condition: no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic, and controlled dry-run remains future-gated synthetic dry-run only, and farm5 dry-run evidence remains future-gated until 0.1.121 is synced/tested after merge.
+- Historical Phase 8 controlled worker dry-run gate stop condition: no worker start, no scheduler/timer, no abuse runner, no real customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic, and controlled dry-run remains future-gated synthetic dry-run only, and farm5 dry-run evidence remains future-gated until 0.1.121 is synced/tested after merge.
 
 Stop and revise if a change introduces:
 
 ```text
 traffic-changing behavior before the matching phase
-live firewall apply before explicit Phase 6 apply gate acceptance
-live firewall read/write dependency before explicit apply gate acceptance
-iptables-save execution before explicit apply gate acceptance
-iptables-restore execution before explicit apply gate acceptance
+controlled CLI canary before explicit Phase 11 authorization
+limited real customer onboarding before explicit Phase 11 authorization
+live firewall apply before explicit Phase 11 production/customer activation gate acceptance
+live firewall write dependency before explicit Phase 11 production/customer activation gate acceptance
+iptables-restore execution before explicit Phase 11 production/customer activation gate acceptance
 conntrack flush before the relevant runtime gate
-abuse automation before Phase 8
+abuse automation before the relevant Phase 11 runtime gate
 backend public exposure
 backend internal reachability failure
 NAT redirect before its phase
