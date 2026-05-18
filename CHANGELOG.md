@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.136
+- Add Phase 10 final-acceptance-readiness gate, record farm5 0.1.135 sync/test evidence, and keep Phase 10 final acceptance, Phase 11 production activation, runtime, scheduler, firewall, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.135
 - Add Phase 10F runtime worker and scheduler dry-run readiness contracts, record farm5 0.1.134 sync/test evidence, and keep all runtime daemon, scheduler/timer, firewall, production, abuse automation, collector daemon, UI, and Telegram gates closed.
 

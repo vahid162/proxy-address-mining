@@ -16,6 +16,7 @@ from mpf.services.phase10_collector_dry_run_plan_service import build_collector_
 from mpf.services.phase10_runtime_worker_dry_run_readiness_service import build_runtime_worker_dry_run_readiness_report
 from mpf.services.phase10_scheduler_dry_run_readiness_service import build_scheduler_dry_run_readiness_report
 from mpf.services.phase10_worker_cycle_dry_run_plan_service import build_worker_cycle_dry_run_plan_report
+from mpf.services.phase10_final_acceptance_readiness_service import build_phase10_final_acceptance_readiness_report
 
 
 def cfg():
@@ -63,7 +64,7 @@ def test_phase10_implementation_readiness_accepted():
     assert r["execution_allowed"] is False
     assert r["share_timeline_model_readiness"] == "ACCEPTED"
     assert r["collector_dry_run_gate_readiness"] == "ACCEPTED"
-    assert r["farm5_0_1_134_sync_test_evidence_present"] is True
+    assert r["farm5_0_1_135_sync_test_evidence_present"] is True
     assert r["production_traffic_authorized"] is False
     assert r["firewall_apply_authorized"] is False
     assert r["abuse_automation_authorized"] is False
@@ -78,13 +79,13 @@ def test_phase10_implementation_fail_closed_missing_evidence(tmp_path: Path):
     (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
     r = build_phase10_implementation_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
-    assert "farm5_0_1_134_sync_test_evidence_missing" in r["blockers"]
+    assert "farm5_0_1_135_sync_test_evidence_missing" in r["blockers"]
 
 
 def test_phase10_implementation_fail_closed_missing_gate(tmp_path: Path):
     (tmp_path / "docs").mkdir()
     (tmp_path / "docs/PHASE_STATUS.md").write_text("invalid", encoding="utf-8")
-    (tmp_path / "docs/PHASE_10_FARM5_0_1_134_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
+    (tmp_path / "docs/PHASE_10_FARM5_0_1_135_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
     r = build_phase10_implementation_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
     assert "current_phase_gate_missing_or_invalid" in r["blockers"]
@@ -211,3 +212,41 @@ def test_phase10_worker_cycle_dry_run_plan_accepted():
     assert r["sample_cycle_result"]["hardening_actions"] == 0
     assert r["sample_cycle_result"]["firewall_actions"] == 0
     assert r["sample_cycle_result"]["customer_mutations"] == 0
+
+def test_phase10_final_acceptance_readiness_accepted():
+    r = build_phase10_final_acceptance_readiness_report(cfg())
+    assert r["component"] == "phase10_final_acceptance_readiness"
+    assert r["final_decision"] == "ACCEPTED"
+    assert r["readiness_only"] is True
+    assert r["phase10_final_acceptance_authorized"] is False
+    assert r["phase11_production_activation_authorized"] is False
+    assert r["execution_allowed"] is False
+    assert r["production_traffic_authorized"] is False
+    assert r["firewall_apply_authorized"] is False
+    assert r["abuse_automation_authorized"] is False
+    assert r["real_worker_runtime_authorized"] is False
+    assert r["scheduler_authorized"] is False
+    assert r["timer_authorized"] is False
+    assert r["collector_authorized"] is False
+    assert r["production_db_execution_authorized"] is False
+    assert r["hard_block_authorized"] is False
+    assert r["soft_block_authorized"] is False
+    assert r["pause_automation_authorized"] is False
+    assert r["customer_mutation_authorized"] is False
+    assert r["ui_authorized"] is False
+    assert r["telegram_authorized"] is False
+    assert r["blockers"] == []
+
+
+def test_phase10_final_acceptance_cli_json():
+    out = CliRunner().invoke(app, ["phase10", "final-acceptance-readiness", "--config", "configs/mpf.example.yaml", "--output", "json"])
+    assert out.exit_code == 0
+    j = json.loads(out.stdout)
+    assert j["final_decision"] == "ACCEPTED"
+
+
+def test_phase10_final_acceptance_fail_closed_missing_evidence(tmp_path: Path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
+    r = build_phase10_final_acceptance_readiness_report(cfg(), repo_root=tmp_path)
+    assert r["final_decision"] == "BLOCKED"
