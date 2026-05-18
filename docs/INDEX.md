@@ -13,36 +13,17 @@ Read these first:
 3. `docs/INDEX.md`
 4. `docs/PHASE_STATUS.md`
 5. `docs/AI_CODING_RULES.md`
-6. `docs/AI_PHASE_8_TASK.md`
-7. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only Phase 6-D1 boundary contract)
-8. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-9. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md` (isolated/non-production harness contracts only; non-authorizing)
-10. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-11. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md` (isolated/non-production hardening contract; non-authorizing)
-12. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-13. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md` (accepted step contract; isolated/non-production only, non-authorizing)
-14. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-15. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md` (accepted, isolated/non-production only, non-authorizing)
-16. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-17. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md` (accepted scope contract, documentation/test-only, non-authorizing)
-18. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
-19. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` (accepted planning scope, documentation/test-only, non-authorizing)
-20. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
-21. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md` (accepted scope, documentation/test-only, non-authorizing)
-22. `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; documentation/test-only, non-authorizing)
-23. `docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md` (planned readiness boundary, documentation/test-only, non-authorizing)
-24. `docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md` (planned readiness boundary, documentation/test-only, non-authorizing)
-25. `docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md` (planned contract, documentation/test-only, non-authorizing)
-26. `docs/PHASE_6_APPLY_SLICE_4_MANUAL_CANARY_APPLY_GATE_PROPOSAL.md` (planned contract, documentation/test-only, non-authorizing)
-27. `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md` (proposal/review contract only, documentation/test-only, non-authorizing)
-28. `docs/REMAINING_PHASE_PLAN.md` (finite remaining project/Phase 8 plan aligned to PHASE_STATUS)
+6. `docs/AI_PHASE_11_TASK.md`
+7. `docs/PRODUCTION_ACTIVATION_GATE.md`
+8. `docs/AI_PHASE_10_TASK.md` (accepted Phase 10 context)
+9. `docs/REMAINING_PHASE_PLAN.md`
 
 `AGENTS.md` is the general implementation contract.
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_8_TASK.md` and `docs/AI_PHASE_9_TASK.md` are historical/accepted. `docs/AI_PHASE_10_TASK.md` is active/current for Phase 10 planning/readiness. Phase 6 documents below are historical/reference-only and non-authorizing.
-This file is the documentation map.
+`docs/AI_PHASE_11_TASK.md` and `docs/PRODUCTION_ACTIVATION_GATE.md` define the current Phase 11 planning/readiness boundary.
+`docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context and is not the active implementation target.
 
 ## Core Contracts
 
@@ -66,77 +47,60 @@ Read these before implementation work:
 Current accepted phase:
 
 ```text
-Phase 9 — Check / Report / Diagnostics accepted on farm5
+Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
 ```
 
 Current working phase:
 
 ```text
-Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
+Phase 11 — Production / Customer Activation Gate planning/readiness
 ```
 
-Current active add-on read first: `docs/AI_PHASE_10_TASK.md` (active/current).
-Phase 6 documents below remain historical/reference/non-authorizing context.
-
-Current Phase 10 step:
+Current active add-on read first:
 
 ```text
-Phase 10 planning/readiness foundation is report-only, non-runtime, and non-authorizing. docs/PHASE_STATUS.md is authoritative for active phase language.
-No real worker runtime, no background worker loop, no scheduler/timer, no collector, no live share ingestion, no production DB transition, no enforcement, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no hard/soft block, no pause automation, no production traffic, no UI, no Telegram.
-Fresh farm5 0.1.129 sync/test evidence is required after merge before any Phase 10 runtime/worker/scheduler/collector implementation PRs.
-Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
-Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.
-
+docs/AI_PHASE_11_TASK.md
+docs/PRODUCTION_ACTIVATION_GATE.md
 ```
 
-Read:
+Historical/reference-only context:
 
-1. `docs/PHASE_STATUS.md`
-2. `docs/AI_PHASE_6_TASK.md`
-3. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
-4. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`
-5. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
-6. `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`
-7. `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`
-8. `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`
-9. `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`
-10. `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md`
-11. `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`
-12. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
-13. `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`
-14. `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
-15. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`
-16. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
-17. `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
-18. `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`
-19. `docs/FIREWALL.md`
-20. `docs/BACKEND_PORT_POLICY.md`
-21. `docs/PHASE_6_C0_APPLY_GATE_READINESS.md`
-22. `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md`
-23. `docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md`
-24. `docs/REMAINING_PHASE_PLAN.md`
-25. `docs/SAFETY.md`
-26. `docs/DATA_MODEL.md`
-27. `docs/TAXONOMY.md`
-28. `docs/ABUSE.md`
-29. `docs/PHASE_5_FINAL_ACCEPTANCE.md`
-30. `docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md`
-31. `docs/OBSERVABILITY_HASHRATE.md`
-32. `docs/INTRANET_INSTALL.md`
+```text
+docs/AI_PHASE_10_TASK.md
+docs/AI_PHASE_9_TASK.md
+docs/AI_PHASE_8_TASK.md
+Phase 6 apply-gate and apply-slice documents
+```
 
-Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
-Future dedicated Phase 6 apply gate remains not accepted and not authorized.
-Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`.
+## Current Phase 11 Boundary
 
-Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`, `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`, `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`, and `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (documentation/test-only, non-authorizing).
+```text
+Phase 11 is planning/readiness only.
+Production activation is not enabled.
+Controlled CLI canary is not authorized yet.
+Limited real customer onboarding is not authorized yet.
+docs/PHASE_STATUS.md is authoritative for active phase language.
+```
 
-Phase 6-F may define manual canary criteria, operator approval requirements, evidence templates, and rollback-readiness checks only. It does not authorize live firewall read/write, live apply/rollback/verify, `iptables-save`, `iptables-restore`, real adapters, DB apply writes, lock acquisition, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
+Forbidden in the current boundary:
 
-`docs/PHASE_6_C0_APPLY_GATE_READINESS.md` is a future live apply gate readiness contract and manual canary runbook only; it does not authorize live apply in the current phase.
-
-`docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md` is a future apply gate risk matrix and operator approval checklist only; it does not authorize live apply.
-
-Historical note: Phase 6-A established planner/model/diff foundations. Phase 5 — Customer CRUD in DB Only included documentation-only contract clarification for customer lifecycle, control rules, worker policy, and future abuse coverage. These historical notes do not authorize runtime behavior now.
+```text
+production traffic
+controlled CLI canary execution
+limited real customer onboarding
+firewall apply
+iptables-restore
+customer NAT/customer firewall rules
+abuse automation runner
+real worker runtime
+scheduler/timer
+collector daemon
+production DB execution
+hard/soft block automation
+pause automation
+UI
+Telegram
+```
 
 ## Reading Order by Task
 
@@ -171,6 +135,35 @@ Read:
 13. `docs/WORKER_POLICY.md`
 14. all phase/domain documents affected by the change
 
+### Phase 11 production/customer activation work
+
+Read:
+
+1. `../AGENTS.md`
+2. `../README.md`
+3. `docs/PHASE_STATUS.md`
+4. `docs/AI_CODING_RULES.md`
+5. `docs/AI_PHASE_11_TASK.md`
+6. `docs/PRODUCTION_ACTIVATION_GATE.md`
+7. `docs/SAFETY.md`
+8. `docs/FIREWALL.md`
+9. `docs/BACKEND_PORT_POLICY.md`
+10. `docs/ABUSE.md`
+11. `docs/DATA_MODEL.md`
+12. `docs/TAXONOMY.md`
+13. relevant phase/domain document
+
+Rules:
+
+- Phase 11 starts as planning/readiness only.
+- no controlled CLI canary until explicit Phase 11 gate.
+- no production traffic until explicit Phase 11 gate.
+- no firewall apply or `iptables-restore` until explicit controlled gate.
+- customer NAT/customer firewall rules must go through the planner only after the explicit gate.
+- abuse 1h runtime coverage must be proven before real customer activation.
+- restart/container-order safety and rollback/restore-plan evidence are required before acceptance.
+- UI and Telegram remain disabled in Phase 11.
+
 ### Phase 10 session, worker, policy, share timeline, or enforcement-boundary work
 
 Read:
@@ -190,26 +183,11 @@ Read:
 
 Rules:
 
-- Phase 10 starts as planning/readiness only.
-- report-only/read-only/non-mutating surfaces are allowed.
-- no real worker runtime.
-- no background worker loop.
-- no scheduler/timer.
-- no collector.
-- no live share ingestion.
-- no production DB transition.
-- no enforcement.
-- no firewall apply.
-- no iptables-restore.
-- no customer NAT/customer firewall rules.
-- no hard/soft block.
-- no pause automation.
-- no production traffic.
-- no UI.
-- no Telegram.
-- future runtime/worker/scheduler/collector implementation PRs require fresh farm5 sync/test evidence and explicit gates.
+- Phase 10 is accepted context.
+- do not reopen Phase 10 runtime, worker, scheduler, collector, or enforcement behavior unless `docs/PHASE_STATUS.md` explicitly authorizes it.
+- worker enforcement remains Phase 12.
 
-### Phase 5 Customer CRUD DB-only work
+### Customer CRUD DB-only work
 
 Read:
 
@@ -217,59 +195,48 @@ Read:
 2. `../README.md`
 3. `docs/PHASE_STATUS.md`
 4. `docs/AI_CODING_RULES.md`
-5. `docs/AI_PHASE_5_TASK.md`
-6. `docs/CUSTOMER_LIFECYCLE.md`
-7. `docs/DATA_MODEL.md`
-8. `docs/TAXONOMY.md`
-9. `docs/CONTROL_RULES.md`
-10. `docs/WORKER_POLICY.md`
-11. `docs/SAFETY.md`
-12. `docs/ABUSE.md`
+5. `docs/CUSTOMER_LIFECYCLE.md`
+6. `docs/DATA_MODEL.md`
+7. `docs/TAXONOMY.md`
+8. `docs/CONTROL_RULES.md`
+9. `docs/WORKER_POLICY.md`
+10. `docs/SAFETY.md`
+11. `docs/ABUSE.md`
 
 Rules:
 
-- customer mutations are DB-only
-- customer lifecycle is DB-only in Phase 5
-- first-connect activation is contract-only in Phase 5
-- auto-expire and auto-delete are contract/report/preview only in Phase 5
-- soft-delete means `status=deleted` and `deleted_at=now()`
-- no customer NAT redirects
-- no customer firewall rules
-- no firewall apply
-- no lifecycle timer
-- no runtime block/pause command in Phase 5
-- no worker scanner or worker enforcement in Phase 5
-- no usage or abuse automation
-- customer validation must avoid future schema/service dead ends for lifecycle, controls, and worker policy
+- customer mutations remain DB-only unless the current gate explicitly authorizes activation.
+- no customer NAT redirects.
+- no customer firewall rules.
+- no firewall apply.
+- no lifecycle timer unless accepted by the current phase gate.
+- no worker scanner or worker enforcement before the relevant accepted phase.
 
-### Firewall, proxy, backend port, or current Phase 6 work
+### Firewall, proxy, or backend-port work
 
 Read:
 
 1. `../AGENTS.md`
 2. `docs/PHASE_STATUS.md`
 3. `docs/AI_CODING_RULES.md`
-4. `docs/AI_PHASE_6_TASK.md`
-5. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only)
-6. `docs/SAFETY.md`
-7. `docs/FIREWALL.md`
-8. `docs/BACKEND_PORT_POLICY.md`
-9. `docs/DATA_MODEL.md`
-10. `docs/CONTROL_RULES.md`
-11. relevant phase/domain document
+4. `docs/SAFETY.md`
+5. `docs/FIREWALL.md`
+6. `docs/BACKEND_PORT_POLICY.md`
+7. `docs/PRODUCTION_ACTIVATION_GATE.md`
+8. `docs/DATA_MODEL.md`
+9. `docs/CONTROL_RULES.md`
+10. relevant phase/domain document
 
 Rules:
 
-- no ad-hoc production firewall mutation
-- desired model first
-- plan/diff before apply
-- restore point before any future apply
-- atomic apply through `iptables-restore` only after a future explicit apply gate
-- backend direct external exposure is critical
-- backend internal reachability failure is also critical
-- never hide backend ports by breaking valid internal paths
-- current post-Phase-6-C boundary must remain offline/artifact-only/inspection-only until a dedicated apply gate is accepted
-- current post-Phase-6-C boundary must not execute `iptables-save`, `iptables-restore`, live apply, live rollback, live verify, or conntrack flush
+- no ad-hoc production firewall mutation.
+- desired model first.
+- plan/diff before apply.
+- restore point before any future apply.
+- atomic apply through `iptables-restore` only after an explicit accepted gate.
+- backend direct external exposure is critical.
+- backend internal reachability failure is also critical.
+- never hide backend ports by breaking valid internal paths.
 
 ### Hash-rate, share, worker, or observability work
 
@@ -286,12 +253,12 @@ Read:
 
 Rules:
 
-- accepted/rejected hash-rate per device is a future first-class capability
-- do not implement it as UI-only calculations
-- do not collect high-volume share events without retention and partitioning policy
-- UI charts must read aggregate samples, not raw high-volume events
-- worker name alone is not a guaranteed physical device identity
-- worker enforcement is future-only until evidence and adapter phases are accepted
+- accepted/rejected hash-rate per device is a future first-class capability.
+- do not implement it as UI-only calculations.
+- do not collect high-volume share events without retention and partitioning policy.
+- UI charts must read aggregate samples, not raw high-volume events.
+- worker name alone is not a guaranteed physical device identity.
+- worker enforcement is future-only until evidence and adapter phases are accepted.
 
 ### Abuse work
 
@@ -312,13 +279,13 @@ Read:
 
 Rules:
 
-- all active customers in all enabled lanes are scanned
-- no silent skip
-- farms-over alone must not harden
-- worker-over alone must not harden
-- sustained miner-abuse hardens after about 3600 seconds
-- hard/unhard must use restore points, events, audit, and firewall service
-- abuse automation remains forbidden until Phase 8
+- all active customers in all enabled lanes are scanned.
+- no silent skip.
+- farms-over alone must not harden.
+- worker-over alone must not harden.
+- sustained miner-abuse hardens after about 3600 seconds.
+- hard/unhard must use restore points, events, audit, and firewall service.
+- abuse automation remains forbidden until the current gate explicitly authorizes it.
 
 ### CLI/API/UI/Telegram interface work
 
@@ -335,12 +302,13 @@ Read:
 
 Rules:
 
-- interfaces are thin
-- no direct DB writes
-- no direct firewall commands
-- call services only
-- UI/API bind local-only in early phases
-- Telegram starts notification-only
+- interfaces are thin.
+- no direct DB writes.
+- no direct firewall commands.
+- call services only.
+- UI/API bind local-only in early phases.
+- Telegram starts notification-only.
+- UI and Telegram remain future phases after backend activation and worker enforcement boundaries.
 
 ### Job or scheduler work
 
@@ -356,105 +324,12 @@ Read:
 
 Rules:
 
-- use systemd timers
-- no mixed cron/systemd model
-- every job writes `job_runs`
-- overlapping jobs use `scheduler_locks`
-- jobs call services, not direct DB/firewall logic
-- runtime jobs for lifecycle, controls, worker scanning, usage, or abuse remain forbidden until accepted phases
-
-## Documentation Summary
-
-### `docs/PHASE_STATUS.md`
-
-Defines the accepted phase, current working phase, allowed work, forbidden work, and next safe step.
-
-### `docs/AI_PHASE_10_TASK.md`
-
-Defines the active AI coding boundary for Phase 10 planning/readiness foundation work.
-
-### `docs/AI_PHASE_6_TASK.md`
-
-Defines the active AI coding boundary for current Phase 6 planner/offline contract work and references the Phase 6-D1 boundary.
-
-### `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md`
-
-Defines the non-authorizing documentation/test-only live-apply boundary contract for Phase 6-D1.
-
-### `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`
-
-Defines the accepted farm5 evidence for Phase 6-D1 and confirms that the next safe step is Phase 6-E0 isolated/non-production planning only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, customer NAT/firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`
-
-Defines Phase 6-E0 isolated/non-production-only harness contracts for deterministic fake/no-op ordering tests. It does not authorize host production firewall mutation, live firewall read/write, iptables-save, iptables-restore, apply, rollback, or verify.
-
-### `docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md`
-
-Records farm5 acceptance evidence for Phase 6-E0 and confirms that the next safe step is Phase 6-E1 isolated/non-production hardening only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, customer NAT/firewall rules, production traffic, DB apply writes, locks, restore points, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md`
-
-Defines Phase 6-E1 isolated/non-production-only harness hardening scope for fake/no-op contracts and tests. It does not authorize host firewall mutation, live apply/rollback/verify, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, or restore points.
-
-### `docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md`
-
-Records farm5 acceptance evidence for Phase 6-E1 and confirms that the next safe step is Phase 6-E2 isolated/non-production boundary planning only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md`
-
-Defines the accepted Phase 6-E2 isolated/non-production evidence package and boundary planning contract. It remains non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md`
-
-Records farm5 acceptance evidence for Phase 6-E2 and confirms that the historical next safe step was Phase 6-E3 isolated/non-production evidence review/checklist only. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md`
-
-Defines the planned Phase 6-E3 isolated/non-production evidence review and non-authorizing gate checklist. It does not mark Phase 6-E3 accepted. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`
-
-Records farm5 acceptance evidence for Phase 6-E3 and confirms that the next planned step is Phase 6-F manual canary gate definition, documentation/test-only and non-authorizing. It does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md`
-
-Defines the accepted Phase 6-F manual canary gate definition scope only (documentation/test-only, non-authorizing). It allows only manual canary criteria, operator approval requirements, evidence templates, rollback-readiness checks, backend exposure preconditions, local-only runtime preconditions, and safety assertions. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md`
-
-Records farm5 acceptance evidence for Phase 6-F as historical context only; next planned implementation sub-step is Apply Slice 1 live snapshot readiness boundary (planned, documentation/test-only, non-authorizing). This acceptance does not authorize live apply, live firewall reads/writes, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`
-
-Defines planned Phase 6-G controlled live apply gate planning / pre-apply review scope only (documentation/test-only, non-authorizing). It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real iptables adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`
-
-Records farm5 acceptance evidence for Phase 6-G and confirms Phase 6-G is accepted as documentation/test-only and non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`
-
-Defines accepted Phase 6-H dedicated apply gate entry criteria / authorization boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore point writes, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-Defines `docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md` for the planned Phase 6 Apply Slice 1 live snapshot readiness boundary only. It is documentation/test-only and non-authorizing. It does not authorize live firewall read, iptables-save, live firewall write/apply/rollback/verify, iptables-restore, real adapters, subprocess firewall calls, DB writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-### `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md`
-
-Records farm5 acceptance evidence for Phase 6-H. Confirms Phase 6-H is accepted as documentation/test-only and non-authorizing. It does not authorize live apply, live firewall read/write, iptables-save, iptables-restore, real adapters, DB apply writes, locks, restore points, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-
-### `docs/AI_PHASE_5_TASK.md`
-
-Historical active task for accepted Phase 5 Customer CRUD in DB Only.
-
-### `docs/FIREWALL.md`
-
-Defines firewall planner contract, apply modes, chain model, NAT, backend guard, plan/diff/apply/rollback lifecycle, doctor requirements, and tests.
-
-### `docs/ABUSE.md`
-
-Defines mandatory one-hour miner-abuse state machine, coverage requirements, exemption rules, hard/unhard behavior, evidence sources, reports, failure behavior, and tests.
+- use systemd timers.
+- no mixed cron/systemd model.
+- every job writes `job_runs`.
+- overlapping jobs use `scheduler_locks`.
+- jobs call services, not direct DB/firewall logic.
+- runtime jobs for lifecycle, controls, worker scanning, usage, or abuse remain forbidden until accepted phases.
 
 ## Current Roadmap Snapshot
 
@@ -475,82 +350,44 @@ Phase 7   — Usage + Policy/Reject Accounting
 Phase 8   — Abuse 1h Core
 Phase 9   — Check / Report / Diagnostics
 Phase 10  — Session / Worker / Policy / Share Timeline
-Phase 11  — Local Web UI Read-only
-Phase 12  — Buyer-safe Read-only Reporting
-Phase 13  — UI Actions With Confirmation
-Phase 14  — Telegram Notifications, Read-only Commands, Restricted Actions
-Phase 15  — Worker Policy Enforcement
+Phase 11  — Production / Customer Activation Gate
+Phase 12  — Worker Policy Enforcement
+Phase 13  — Local UI
+Phase 14  — Operator UI Actions
+Phase 15  — Telegram
 ```
 
 ## Stop Conditions
 
 Stop and revise if any change introduces:
 
-1. firewall apply before explicit Phase 6 apply gate acceptance
-2. live firewall read/write dependency before explicit apply gate acceptance
-3. `iptables-save` execution before explicit apply gate acceptance
-4. `iptables-restore` execution before explicit apply gate acceptance
-5. conntrack flush before the relevant runtime gate
-6. abuse automation before Phase 8
-7. customer rules before their phase
-8. NAT redirects before their phase
-9. backend public exposure
-10. backend internal reachability failure
-11. UI direct DB write
-12. Telegram shell command execution
-13. bypassing `firewall.apply_mode=plan_only`
-14. production TSV/SQLite source of truth
-15. silent abuse scan exclusion
-16. ad-hoc production firewall mutation
-17. missing event/audit for mutation
-18. missing restore point for dangerous action
-19. proxy data-plane activation outside accepted runtime gates
-20. high-volume share/hash-rate collection before retention and partitioning review
-21. UI charts reading raw high-volume share events directly
-22. worker/block/pause/usage/abuse runtime before accepted phase
-23. public v2rayA UI exposure
-24. public backend exposure
-25. Phase 10 runtime/worker/scheduler/collector implementation before fresh farm5 sync/test evidence and explicit gate
+1. production traffic before explicit Phase 11 authorization
+2. controlled CLI canary before explicit Phase 11 authorization
+3. limited real customer onboarding before explicit Phase 11 authorization
+4. firewall apply before explicit Phase 11 controlled gate acceptance
+5. live firewall write dependency before explicit controlled gate acceptance
+6. `iptables-restore` execution before explicit controlled gate acceptance
+7. conntrack flush before the relevant runtime gate
+8. abuse automation before the relevant accepted runtime gate
+9. customer rules before their accepted gate
+10. NAT redirects before their accepted gate
+11. backend public exposure
+12. backend internal reachability failure
+13. UI direct DB write
+14. Telegram shell command execution
+15. bypassing `firewall.apply_mode=plan_only`
+16. production TSV/SQLite source of truth
+17. silent abuse scan exclusion
+18. ad-hoc production firewall mutation
+19. missing event/audit for mutation
+20. missing restore point for dangerous action
+21. proxy data-plane activation outside accepted runtime gates
+22. high-volume share/hash-rate collection before retention and partitioning review
+23. UI charts reading raw high-volume share events directly
+24. worker/block/pause/usage/abuse runtime before accepted phase
+25. public v2rayA UI exposure
+26. public backend exposure
 
 ## Final Rule
 
 When in doubt, read the stricter document and choose the safer implementation.
-
-
-Phase 6-C is accepted as offline apply-gate readiness/review only and does not authorize live apply.
-
-
-Documentation Summary: docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md defines the planned Phase 6 Apply Slice 2 restore point, lock, and DB apply record readiness boundary only. It is documentation/test-only and non-authorizing. It does not authorize restore point writes, lock acquisition, DB apply writes, DB apply records, migrations, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-
-Documentation Summary: docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md defines the planned controlled no-customer harness contract only (documentation/test-only, non-authorizing). It does not authorize no-customer apply, live firewall read/write/apply/rollback/verify, iptables-save, iptables-restore, real adapters, subprocess firewall calls, restore point writes, lock acquisition, DB apply writes/records, migrations, NAT/customer firewall rules, production traffic, usage automation, abuse automation, UI, or Telegram.
-
-
-Phase 7 planning/readiness document: `docs/AI_PHASE_7_TASK.md`.
-
-- docs/AI_PHASE_8_TASK.md
-
-
-Current phase gate flags:
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-ui_allowed: no
-telegram_allowed: no
-
-Current Phase 8 step: farm5 controlled worker dry-run evidence collection preparation (report-only, non-runtime, non-authorizing). farm5 0.1.120 sync evidence is recorded. Controlled worker dry-run evidence is not yet collected.
-
-Compatibility note: previous step was the Phase 8 abuse dry-run evaluator package (historical/reference-only).
-
-Compatibility note: previous step also included the Phase 8 abuse evidence/reporting contract package (historical/reference-only).
-
-DB-only controlled transition readiness package
-
-Historical compatibility anchor: DB-only controlled transition execution package.
-
-
-
-Historical compatibility anchor: runtime/worker integration readiness package.
-
-
-Current Phase 8 step: farm5 controlled worker dry-run evidence collection preparation. farm5 0.1.120 sync evidence is recorded. Controlled worker dry-run evidence is not yet collected.
