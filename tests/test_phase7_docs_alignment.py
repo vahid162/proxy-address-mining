@@ -11,7 +11,8 @@ def test_readme_phase_alignment() -> None:
     assert "fresh farm5 0.1.129 sync/test evidence" in t
     assert "production traffic" in t and "firewall apply" in t and "Telegram remain disabled" in t
     assert "Phase 9 Check / Report / Diagnostics accepted on farm5 as report-only/final diagnostics" in t
-    assert "Phase 10 Session / Worker / Policy / Share Timeline planning/readiness in progress" in t
+    assert "Phase 10 Session / Worker / Policy / Share Timeline accepted on farm5" in t
+    assert "Current target is Phase 11 Production / Customer Activation Gate planning/readiness" in t
 
 
 def test_readme_stale_wording_removed() -> None:
