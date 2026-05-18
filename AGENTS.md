@@ -24,12 +24,14 @@ Before changing documentation, code, tests, scripts, config, deployment artifact
 12. the relevant phase document for the task
 13. the relevant domain document for the task
 
-For the current Phase 6 work, also read:
+For current Phase 11 work, also read:
 
 ```text
-docs/AI_PHASE_6_TASK.md
+docs/AI_PHASE_11_TASK.md
+docs/PRODUCTION_ACTIVATION_GATE.md
 docs/FIREWALL.md
 docs/BACKEND_PORT_POLICY.md
+docs/ABUSE.md
 ```
 
 For hash-rate, share, worker, reporting, or charting work, also read:
@@ -82,9 +84,9 @@ docs/PHASE_STATUS.md
 Current repository gate:
 
 ```text
-current_accepted_phase: Phase 5 — Customer CRUD in DB Only accepted on farm5
-current_working_phase: Phase 6 — Firewall Planner
-current_phase6_step: Phase 6-H accepted (dedicated apply gate entry criteria / authorization boundary only, documentation/test-only, non-authorizing); Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries; next planning target: Future Dedicated Phase 6 Apply Gate Proposal/Review; future dedicated Phase 6 apply gate remains not accepted and not authorized
+current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
+current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
+server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -92,54 +94,13 @@ customer_onboarding_allowed: db_only
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
-Phase 6-B allowed work (historical reference, already accepted):
+Phase 11 is planning/readiness only. It does not authorize controlled CLI canary, production traffic, firewall apply, customer NAT/customer firewall rules, abuse automation, scheduler/timer, collector daemon, UI, Telegram, or unrestricted customer onboarding.
 
-```text
-repository/documentation cleanup that preserves gates
-firewall desired-state model refinement
-firewall planner/diff contracts
-human-readable and JSON plan/report rendering
-dry-run evidence generation
-offline snapshot parser and file-backed diff fixtures
-offline restore payload artifacts
-offline apply-readiness contracts
-offline apply package reports
-offline rollback artifacts from explicit snapshot files
-offline preflight reports
-planner/contract/preflight safety tests
-backend exposure classification
-internal backend reachability classification
-```
-
-Phase 6-B forbidden work (historical reference, constraints still forbidden now):
-
-```text
-production traffic
-customer NAT redirects
-customer firewall rules
-live firewall apply
-live firewall rollback
-live firewall verify
-iptables-save execution
-iptables-restore execution
-conntrack flush
-usage timers
-hash-rate/share collectors
-abuse runner automation
-block or pause automation
-local UI service
-buyer UI service
-Telegram bot
-production customer import
-worker enforcement
-public API binding
-public v2rayA UI exposure
-public backend exposure
-```
-
-Live firewall apply remains forbidden until a dedicated Phase 6 apply gate is explicitly accepted.
+Historical Phase 6/7/8/9/10 materials are reference context unless `docs/PHASE_STATUS.md` explicitly reopens a gate.
 
 ## 4. Fixed Architecture Decisions
 
@@ -277,7 +238,7 @@ iptables-restore
 
 Direct firewall commands may appear only in diagnostics, isolated tests, or generated emergency restore artifacts, not as normal production state mutation.
 
-During the current post-Phase-6-E0 / Phase-6-E1 isolated/non-production boundary, no live firewall read/write, `iptables-save`, `iptables-restore`, apply, rollback, or verify execution is allowed.
+Live firewall apply remains forbidden until the Phase 11 production/customer activation gate explicitly accepts a controlled apply path.
 
 ## 10. Abuse Requirement
 
@@ -441,13 +402,13 @@ interface boundary tests
 Stop and revise before continuing if a change introduces any of these:
 
 ```text
-live firewall apply before explicit Phase 6 apply gate acceptance
-live firewall read/write dependency before explicit apply gate acceptance
-iptables-save execution before explicit apply gate acceptance
-iptables-restore execution before explicit apply gate acceptance
-abuse automation before Phase 8
+live firewall apply before explicit Phase 11 production/customer activation gate acceptance
+live firewall write dependency before explicit Phase 11 production/customer activation gate acceptance
+iptables-restore execution before explicit Phase 11 production/customer activation gate acceptance
 customer firewall rules before accepted gate
 NAT redirects before accepted gate
+abuse automation before the relevant Phase 11 runtime gate
+controlled CLI canary before explicit Phase 11 authorization
 backend public exposure
 backend internal reachability failure
 UI direct DB write
