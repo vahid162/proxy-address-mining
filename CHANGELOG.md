@@ -80,3 +80,81 @@
 
 ## 0.1.110
 - Fix offline zip sync gate validation after Phase 7 acceptance so the server can sync Phase 7 accepted / Phase 8 planning-readiness zips without opening runtime gates.
+
+## 0.1.109
+- Accept Phase 7 as report-only/service-contract/readiness after farm5 0.1.108 evidence; start Phase 8 planning/readiness with report-only service/CLI and keep all runtime gates closed.
+
+## 0.1.108
+- Record farm5 0.1.107 batched sync evidence and add Phase 7 final acceptance readiness/operator decision report-only services and CLI.
+
+## 0.1.107
+- Add Phase 7 read-only reports summary/doctor service and CLI commands; keep all runtime gates closed.
+
+## 0.1.106
+- Add Phase 7 policy/reject accounting report-only service-contract package and CLI; keep all runtime gates closed.
+
+## 0.1.105 - 2026-05-15
+- Add Phase 7 usage accounting report-only contract service and CLI and align sync evidence/runbook docs.
+
+## 0.1.104 - 2026-05-15
+- Fix Phase 7 readiness detector alignment with current docs/AI_PHASE_7_TASK.md semantics and keep reports blocked/non-authorizing.
+
+## 0.1.103 - 2026-05-15
+- Add Phase 7 report-only usage/policy readiness service and CLI, align README/phase docs, and record farm5 0.1.102 sync evidence while keeping runtime/customer/production gates closed.
+
+## 0.1.102 - 2026-05-15
+- Normalize Phase 6/7 planning docs wording, preserve legacy compatibility anchors, and keep safety/runtime gates unchanged.
+
+## 0.1.101 - 2026-05-15
+- Accept Phase 6 as planner/reporting-only on farm5, record 0.1.100 sync evidence, and open Phase 7 planning/readiness while keeping runtime/customer/production gates closed.
+
+## 0.1.100
+- Add Phase 6 operator acceptance decision report/CLI, integrate gate summaries, and record farm5 0.1.99 sync evidence while keeping runtime/customer/production gates closed.
+
+## 0.1.99
+- Add report-only Phase 6 final acceptance review service/CLI, integrate summaries into apply-gate-readiness and gate-review, and align docs with farm5 0.1.98 sync evidence.
+
+## 0.1.98
+- Fix Phase 6 documentation compatibility anchors in docs/AI_PHASE_6_TASK.md and keep test suite green after 0.1.97 rollout.
+
+## 0.1.97
+- Add report-only manual canary server evidence and Phase 6 final acceptance readiness services/CLI, integrate summaries, and align Phase 6 docs with farm5 0.1.96 sync evidence.
+
+## 0.1.96
+- Add report-only manual canary customer proposal and acceptance-readiness services/CLI and Phase 6 docs sync to farm5 0.1.95 evidence.
+
+## 0.1.95
+- Add controlled no-customer runtime execution evidence service/CLI and integrated summaries; record farm5 0.1.94 sync evidence docs updates.
+
+## 0.1.94
+- Add report-only no-customer runtime execution approval readiness service/CLI and integrate compact summaries into readiness/review outputs.
+
+## 0.1.93 - 2026-05-14
+- Fix gate-review JSON serialization by adding FirewallPlanMessage.to_dict() so config-only warnings/errors render without crashing.
+
+## 0.1.92 - 2026-05-14
+- Refine Phase 6 docs wording in place, clarify repo 0.1.92 vs last farm5 sync 0.1.90, and tighten current-state validation.
+
+## 0.1.91 - 2026-05-14
+- Add report-only no-customer apply package and execution acceptance services plus CLI surfaces, and record PR #98 farm5 execution-gate sync evidence.
+
+## 0.1.90 - 2026-05-13
+- Include non-authorizing apply gate readiness summary in Phase 6 firewall gate review while preserving closed runtime/customer/production gates and the abuse 1h invariant.
+
+## 0.1.89 - 2026-05-13
+- Add non-authorizing Phase 6 apply gate readiness report and read-only firewall apply-gate readiness CLI command.
+
+## 0.1.88 - 2026-05-13
+- Add Future Dedicated Phase 6 Apply Gate Proposal/Review contract as documentation/test-only and non-authorizing while preserving closed gates and abuse 1h invariant.
+
+## 0.1.87 - 2026-05-13
+- Record farm5 0.1.86 sync evidence for Slice 3 and Slice 4 documentation/test-only boundaries and align next planning target.
+
+## 0.1.86 - 2026-05-13
+- Add concise Apply Slice 4 manual canary apply gate proposal contract and index Slice 4 documentation without introducing live behavior.
+
+## 0.1.85 - 2026-05-13
+- Add concise Apply Slice 3 controlled no-customer harness contract, index Slice 3 documentation, and preserve closed gates and abuse 1h invariant.
+
+## Historical entries before 0.1.85
+- Retained in git history; this changelog remains headed by the active release chain and the Phase 6+ safety/roadmap record.
