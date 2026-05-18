@@ -4,7 +4,7 @@ from mpf.config import load_config
 from mpf.interfaces.cli import app
 from mpf.services.phase8_final_acceptance_readiness_service import build_phase8_final_acceptance_readiness_report
 
-EXPECTED_VERSION = "0.1.137"
+EXPECTED_VERSION = "0.1.138"
 
 
 def cfg():

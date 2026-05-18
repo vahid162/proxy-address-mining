@@ -6,18 +6,20 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.136.
-- Repository version after this PR is 0.1.137.
+- GitHub main repository version before this PR is 0.1.137.
+- Repository version after this PR is 0.1.138.
 - latest recorded farm5 sync evidence is 0.1.136.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
 - Phase 10F runtime worker/scheduler dry-run readiness is done.
-- Phase 10 final acceptance is introduced/completed by this PR.
+- Phase 10 final-acceptance-readiness is done.
+- Phase 10 final acceptance is done.
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
 - Next target is Phase 11 production/customer activation planning-readiness, then controlled CLI canary.
 - Controlled CLI canary is not authorized by this PR.
 - Production activation is not enabled by this PR.
+- This PR only aligns stale current-state documentation and version metadata.
 
 ## Finite Remaining Path
 
@@ -28,10 +30,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 5. Phase 10 report-only planning/readiness foundation — accepted on farm5 evidence chain through 0.1.135
 6. Phase 10A/10B/10C Session / Worker Identity / Worker Policy readiness — implemented as backend-readiness and non-authorizing
 7. Phase 10D/10E Share Timeline / Collector dry-run readiness — implemented as backend-readiness and non-authorizing
-8. Phase 10F Runtime Worker / Scheduler dry-run readiness — introduced in this PR as backend-readiness and non-authorizing
-9. Phase 10 final-acceptance-readiness — introduced in this PR as non-authorizing explicit gate
-10. Phase 10 final acceptance — future explicit gate, not production activation
-11. Phase 11 Production / Customer Activation Gate — future, explicit, controlled CLI canary first, then limited real customer onboarding
+8. Phase 10F Runtime Worker / Scheduler dry-run readiness — implemented as backend-readiness and non-authorizing
+9. Phase 10 final-acceptance-readiness — implemented as non-authorizing explicit gate
+10. Phase 10 final acceptance — accepted, not production activation
+11. Phase 11 Production / Customer Activation Gate — current planning/readiness target; explicit controlled CLI canary first, then limited real customer onboarding after evidence
 12. Phase 12 Worker Policy Enforcement — future, after Phase 10 worker/session evidence and Phase 11 production activation
 13. Phase 13 Local UI — future service-layer interface after backend path is accepted
 14. Phase 14 Operator UI Actions — future service-layer interface with confirmation and audit

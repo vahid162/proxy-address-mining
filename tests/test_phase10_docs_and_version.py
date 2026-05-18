@@ -3,10 +3,10 @@ from pathlib import Path
 from mpf import __version__
 
 
-def test_version_0_1_137_consistency():
-    assert Path("VERSION").read_text().strip() == "0.1.137"
-    assert __version__ == "0.1.137"
-    assert 'version = "0.1.137"' in Path("pyproject.toml").read_text(encoding="utf-8")
+def test_version_0_1_138_consistency():
+    assert Path("VERSION").read_text().strip() == "0.1.138"
+    assert __version__ == "0.1.138"
+    assert 'version = "0.1.138"' in Path("pyproject.toml").read_text(encoding="utf-8")
 
 
 def test_phase10_docs_present():
