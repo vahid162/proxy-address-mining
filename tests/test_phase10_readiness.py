@@ -213,6 +213,7 @@ def test_phase10_worker_cycle_dry_run_plan_accepted():
     assert r["sample_cycle_result"]["firewall_actions"] == 0
     assert r["sample_cycle_result"]["customer_mutations"] == 0
 
+
 def test_phase10_final_acceptance_readiness_accepted():
     r = build_phase10_final_acceptance_readiness_report(cfg())
     assert r["component"] == "phase10_final_acceptance_readiness"
@@ -235,7 +236,10 @@ def test_phase10_final_acceptance_readiness_accepted():
     assert r["customer_mutation_authorized"] is False
     assert r["ui_authorized"] is False
     assert r["telegram_authorized"] is False
+    assert r["downstream_dangerous_authorization_flags"] == []
     assert r["blockers"] == []
+    assert r["warnings"] == []
+    assert r["errors"] == []
 
 
 def test_phase10_final_acceptance_cli_json():
@@ -243,6 +247,9 @@ def test_phase10_final_acceptance_cli_json():
     assert out.exit_code == 0
     j = json.loads(out.stdout)
     assert j["final_decision"] == "ACCEPTED"
+    assert j["readiness_only"] is True
+    assert j["phase10_final_acceptance_authorized"] is False
+    assert j["phase11_production_activation_authorized"] is False
 
 
 def test_phase10_final_acceptance_fail_closed_missing_evidence(tmp_path: Path):
@@ -250,3 +257,42 @@ def test_phase10_final_acceptance_fail_closed_missing_evidence(tmp_path: Path):
     (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
     r = build_phase10_final_acceptance_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
+    assert "farm5_0_1_135_sync_test_evidence_missing" in r["blockers"]
+
+
+def test_phase10_final_acceptance_fail_closed_missing_gate(tmp_path: Path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs/PHASE_STATUS.md").write_text("invalid", encoding="utf-8")
+    (tmp_path / "docs/PHASE_10_FARM5_0_1_135_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
+    r = build_phase10_final_acceptance_readiness_report(cfg(), repo_root=tmp_path)
+    assert r["final_decision"] == "BLOCKED"
+    assert "current_phase_gate_missing_or_invalid" in r["blockers"]
+
+
+def test_phase10_final_acceptance_fail_closed_downstream_dangerous_flag(monkeypatch):
+    from mpf.services import phase10_final_acceptance_readiness_service as svc
+
+    def fake_phase10(*args, **kwargs):
+        report = build_phase10_readiness_report(cfg())
+        report["production_traffic_authorized"] = True
+        return report
+
+    monkeypatch.setattr(svc, "build_phase10_readiness_report", fake_phase10)
+    r = svc.build_phase10_final_acceptance_readiness_report(cfg())
+    assert r["final_decision"] == "BLOCKED"
+    assert "dangerous_authorization_flag_enabled" in r["blockers"]
+    assert "phase10_readiness.production_traffic_authorized" in r["downstream_dangerous_authorization_flags"]
+
+
+def test_phase10_final_acceptance_fail_closed_required_readiness_not_accepted(monkeypatch):
+    from mpf.services import phase10_final_acceptance_readiness_service as svc
+
+    def fake_session(*args, **kwargs):
+        report = build_session_model_readiness_report(cfg())
+        report["final_decision"] = "BLOCKED"
+        return report
+
+    monkeypatch.setattr(svc, "build_session_model_readiness_report", fake_session)
+    r = svc.build_phase10_final_acceptance_readiness_report(cfg())
+    assert r["final_decision"] == "BLOCKED"
+    assert "session_model_readiness_not_accepted" in r["blockers"]
