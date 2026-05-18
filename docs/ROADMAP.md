@@ -2,8 +2,7 @@
 
 Status: active implementation roadmap
 
-This document defines the numbered roadmap for `proxy-address-mining`.
-It is an implementation contract for humans and AI coding agents.
+This document defines the numbered roadmap for `proxy-address-mining`. It is an implementation contract for humans and AI coding agents.
 
 The roadmap must be followed in order. Do not start a later phase until the current phase acceptance gate passes.
 
@@ -11,7 +10,7 @@ The roadmap must be followed in order. Do not start a later phase until the curr
 
 ## Current Backend-First Continuation
 
-The project is now backend-first after Phase 10:
+The project is backend-first after Phase 10:
 
 ```text
 Phase 10 — Session / Worker / Policy / Share Timeline
@@ -35,12 +34,12 @@ UI and Telegram must never become the implementation backend. They may call only
 
 ## Current Phase Alignment Note
 
-Phase 9 is accepted on farm5 as Check / Report / Diagnostics evidence/readiness.
-Phase 10 is the current working phase and starts as planning/readiness/report-only.
-Phase 10 does not authorize production traffic, customer NAT/customer firewall rules, firewall apply, abuse automation, worker enforcement, UI, or Telegram.
+Phase 10 is accepted on farm5 as Session / Worker / Policy / Share Timeline evidence/readiness.
+Phase 11 is the current working phase and is planning/readiness only.
+Phase 11 currently does not authorize production traffic, controlled CLI canary, customer NAT/customer firewall rules, firewall apply, abuse automation, worker enforcement, UI, or Telegram.
 
 Historical Phase 6 apply-gate material remains reference-only unless a current explicit gate reopens it.
-Future production activation is Phase 11 and remains closed until accepted.
+Production activation remains closed until Phase 11 has explicit acceptance evidence.
 
 ## 0. Project Objective
 
@@ -149,17 +148,6 @@ interface
   -> response DTO
 ```
 
-Interfaces include:
-
-```text
-CLI
-internal API
-local Web UI
-operator UI
-Telegram bot
-future integrations
-```
-
 Forbidden:
 
 ```text
@@ -176,153 +164,33 @@ job bypasses service validation
 
 ## Phase 0 — Architecture Freeze
 
+Status: accepted.
+
 Goal: freeze scope and safety rules before implementation.
-
-Acceptance gate:
-
-```text
-architecture frozen
-safety rules documented
-API-first boundaries documented
-data model contract documented
-firewall lifecycle documented
-abuse 1h requirement documented
-Phase 1 preflight checklist documented
-```
 
 ## Phase 1 — Preflight + Bootstrap Without Traffic Changes
 
+Status: accepted.
+
 Goal: prepare the server and skeleton without touching production traffic.
-
-Allowed:
-
-```text
-inspect OS/kernel/timezone/network/DNS
-inspect firewall backend
-inspect Docker/PostgreSQL/tool availability
-install base tools
-create standard directories
-prepare local PostgreSQL database/user
-create Python virtual environment
-create initial project skeleton
-create /etc/mpf/mpf.yaml with apply_mode=plan_only
-run smoke tests
-```
-
-Forbidden:
-
-```text
-customer rule creation
-NAT redirect
-backend public exposure
-abuse automation
-block automation
-pause automation
-UI actions
-Telegram actions
-production customer onboarding
-```
-
-Acceptance gate:
-
-```bash
-mpf --help
-mpf doctor
-mpf config validate
-mpf db ping
-python -m pytest
-systemctl status postgresql
-docker version
-docker compose version
-conntrack -V
-iptables --version
-```
 
 ## Phase 2 — PostgreSQL + Config + Domain Model
 
+Status: accepted.
+
 Goal: implement the source-of-truth schema and core domain objects.
-
-Required work:
-
-```text
-SQLAlchemy models
-Alembic migrations
-config loader and validator
-lane/customer/policy models
-abuse state model
-event/audit model
-job_runs and scheduler_locks
-restore_points and firewall_snapshots
-worker/session/share evidence model foundations
-```
-
-Acceptance gate:
-
-```text
-migration upgrade passes
-restore strategy documented
-config validation passes
-DB ping passes
-BTC lane seed exists or is clearly represented
-customer policy versioning works
-abuse state is representable
-worker blocks are not firewall-only
-feature flags do not bypass phase gates
-no live firewall apply exists
-no customer firewall rule exists
-no NAT redirect exists
-```
 
 ## Phase 3 — CLI + Internal API Foundation
 
+Status: accepted.
+
 Goal: expose safe read-only and DB-only operations through the service layer.
-
-Required commands:
-
-```bash
-mpf config show
-mpf db status
-mpf lanes list
-mpf customer list
-mpf jobs status
-mpf doctor
-```
-
-Acceptance gate:
-
-```text
-CLI uses services
-internal API uses services
-read-only commands work
-DB-only commands are audited where needed
-no firewall rule is created
-```
 
 ## Phase 4 — Compose Forward-only + Proxy Doctor
 
+Status: accepted as limited local-only proxy runtime.
+
 Goal: start the proxy data-plane without customer firewall redirects.
-
-Required work:
-
-```text
-v2rayA service
-v2raya bridge when needed
-BTC simple-forwarder / gost on backend 60010
-healthchecks
-Docker Compose doctor
-proxy reachability probe
-backend exposure detection
-```
-
-Acceptance gate:
-
-```text
-forwarder listens on BTC backend
-v2rayA UI is local-only
-backend direct public exposure is blocked or detected as critical
-proxy doctor passes
-no customer NAT redirect exists yet
-```
 
 ## Phase 5 — Customer CRUD in DB Only
 
@@ -330,92 +198,17 @@ Status: accepted on farm5.
 
 Goal: manage customer state without creating live firewall rules.
 
-Required work:
-
-```text
-add/edit/delete/renew/list customers
-days/expiry
-miners/farms/maxconn/rate/burst
-optional IP whitelist
-active/paused/expired/deleted status model
-policy versioning
-event/audit records
-port/lane collision detection
-```
-
-Acceptance gate:
-
-```text
-customer CRUD works in DB
-policy history is preserved
-events are recorded
-port collisions are detected
-lane collisions are detected
-no iptables rule is created
-```
-
 ## Phase 6 — Firewall Planner + Apply/Verify/Rollback
 
 Status: accepted as planner/reporting/readiness context; live production apply still requires explicit later gate.
 
 Goal: implement safe firewall state management.
 
-Required commands:
-
-```bash
-mpf firewall doctor
-mpf firewall plan
-mpf firewall diff
-mpf firewall apply --yes
-mpf firewall verify
-mpf firewall rollback <apply_id> --yes
-```
-
-Required behavior:
-
-```text
-desired model generation
-live firewall snapshot parsing after allowed gates
-human-readable plan
-JSON plan
-restore point before apply
-iptables-save backup before apply
-lock before apply
-atomic iptables-restore after allowed gates
-verify after apply
-rollback from stored restore artifact
-backend exposure guard
-drift detection
-```
-
-Acceptance gate:
-
-```text
-plan output is human-readable and JSON
-plan with errors cannot be applied
-backup is created before apply
-verify is mandatory after apply
-rollback is tested
-backend exposure blocks unsafe apply
-drift is detected
-firewall tests pass
-```
-
 ## Phase 7 — Usage + Policy/Reject Accounting
 
 Status: accepted on farm5 as report-only/service-contract/readiness.
 
 Goal: collect reliable usage and reject data before abuse automation.
-
-Acceptance gate:
-
-```text
-every active customer has accounting rules
-missing accounting rule count is zero
-counter deltas are reliable
-usage reports work
-reject events are explainable
-```
 
 ## Phase 8 — Abuse 1h Core
 
@@ -446,64 +239,22 @@ Status: accepted on farm5.
 
 Goal: produce clear operator verdicts.
 
-Required commands:
-
-```bash
-mpf check <name|port>
-mpf report <name|port>
-mpf monitor summary
-mpf monitor port <target>
-mpf diag <target>
-mpf audit miners-over
-mpf audit farms-over
-mpf audit suspicious
-```
-
-Acceptance gate:
-
-```text
-common failures produce final verdicts
-reports are understandable
-operator action is clear
-read-only diagnostics do not mutate state
-```
-
 ## Phase 10 — Session / Worker / Policy / Share Timeline
+
+Status: accepted on farm5.
 
 Goal: provide forensic history, worker evidence, policy/reject timeline, share timeline, and evidence packs before production activation or worker enforcement.
 
-Required work:
+Acceptance boundary:
 
 ```text
-flow sessions
-worker events
-customer worker timeline
-policy/reject timeline
-share accepted/rejected timeline planning
-session reconcile
-worker binding from Stratum authorize/submit when available
-evidence pack
-worker policy reporting without enforcement
-collector/readiness boundaries without production activation
-```
-
-Acceptance gate:
-
-```text
-active sessions visible per customer
-recent closed sessions visible
-unique IPs visible
-unique workers visible
-reject timeline visible
-worker timeline visible
-share timeline/evidence contract exists
-evidence pack can be generated
-worker policy can be reported without enforcement
 no worker enforcement is active
 no production traffic is active
 ```
 
 ## Phase 11 — Production / Customer Activation Gate
+
+Status: current planning/readiness target.
 
 Goal: make the server operational for real customers through the standard `mpf` CLI and service layer before UI or Telegram work.
 
@@ -533,18 +284,19 @@ mpf production canary-acceptance
 mpf production final-activation
 ```
 
-Initial operational boundary:
+Current Phase 11 planning/readiness boundary:
 
 ```text
-production_traffic: controlled_cli_canary or controlled_cli_limited
-firewall_apply_allowed: controlled
-abuse_automation_allowed: controlled
-customer_onboarding_allowed: controlled_cli_canary or controlled_cli_limited
+production_traffic: none
+controlled_cli_canary: no
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
 ui_allowed: no
 telegram_allowed: no
 ```
 
-Acceptance gate:
+Future Phase 11 acceptance gate:
 
 ```text
 manual canary customer connects successfully
@@ -559,6 +311,8 @@ no unrestricted production onboarding is enabled
 
 ## Phase 12 — Worker Policy Enforcement
 
+Status: future.
+
 Goal: enforce worker policy only after Phase 10 worker/session evidence and Phase 11 controlled production activation exist.
 
 Allowed enforcement modes:
@@ -569,47 +323,11 @@ manual_operator_action
 stratum_proxy, only after adapter is implemented and tested
 ```
 
-Required work:
-
-```text
-worker-to-session mapping confidence model
-worker policy service
-operator-visible enforcement plan
-adapter failure behavior
-safe fallback to detection_only
-worker enforcement events/audit
-no firewall-only worker block design
-```
-
-Acceptance gate:
-
-```text
-worker-to-session mapping is reliable enough for selected mode
-worker policy service is tested
-adapter behavior is tested
-detection-only mode is safe
-manual/operator enforcement is audited
-strict enforcement does not rely on firewall-only worker names
-```
-
 ## Phase 13 — Local UI
 
+Status: future.
+
 Goal: provide a local-only UI after the backend/CLI production path and worker-enforcement boundary are defined.
-
-Required pages:
-
-```text
-Dashboard
-Customers
-Customer detail
-Report
-Abuse status
-Usage
-Blocks
-Runbook
-Worker/session timeline
-Production activation status
-```
 
 Rules:
 
@@ -621,53 +339,15 @@ use service/API layer only
 read-only first unless a later explicit Operator UI Actions phase opens actions
 ```
 
-Acceptance gate:
-
-```text
-UI is local-only
-UI uses service/API layer
-no direct mutation path exists
-operator can inspect production/customer/worker status without shell access
-```
-
 ## Phase 14 — Operator UI Actions
+
+Status: future.
 
 Goal: add controlled local operator UI actions after the read-only UI exists.
 
-Required actions:
-
-```text
-add/edit/renew/delete customer
-set IPs
-firewall plan/apply with confirmation
-block/unblock
-note add
-pause/unpause
-manual unhard
-worker enforcement manual action where allowed
-```
-
-Rules:
-
-```text
-every action requires confirmation
-dangerous actions show plan first
-dangerous actions create restore points
-all actions are audited
-UI actions call the same service layer as CLI
-```
-
-Acceptance gate:
-
-```text
-confirmation exists
-event/audit exists
-restore point exists where needed
-plan output is visible before apply
-UI cannot bypass service-layer gates
-```
-
 ## Phase 15 — Telegram
+
+Status: future.
 
 Goal: add Telegram safely after backend, production activation, worker-enforcement boundary, local UI, and operator UI action patterns are established.
 
@@ -677,28 +357,6 @@ Stages:
 notifications only
 read-only commands
 restricted actions with allowlist and confirmation
-```
-
-Rules:
-
-```text
-no raw token in repository
-no direct DB write
-no direct firewall command
-no shell command bridge
-use service/API layer only
-actions require allowlist and confirmation
-actions are audited
-```
-
-Acceptance gate:
-
-```text
-notifications work
-read-only commands work
-actions require allowlist and confirmation
-actions are audited
-Telegram cannot bypass service-layer gates
 ```
 
 ## 6. MVP Definition
@@ -784,12 +442,14 @@ Stop implementation and review when any of these happen:
 firewall apply is introduced before an accepted apply/production gate
 abuse automation is introduced before accepted automation gate
 production traffic is opened before Phase 11 acceptance
+controlled CLI canary is executed before explicit Phase 11 authorization
+limited real customer onboarding starts before explicit Phase 11 authorization
 UI writes directly to DB
 UI directly mutates firewall state
 Telegram runs shell commands
 Telegram directly writes DB
-customer rules are created during Phase 1/2
-NAT redirects are created during Phase 1/2
+customer rules are created before their accepted gate
+NAT redirects are created before their accepted gate
 backend is publicly exposed
 apply_mode=plan_only is bypassed
 TSV/SQLite becomes production source of truth
