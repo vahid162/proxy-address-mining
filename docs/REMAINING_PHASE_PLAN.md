@@ -6,16 +6,16 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.130.
-- Repository version after this PR is 0.1.131.
-- latest recorded farm5 sync evidence is 0.1.130.
+- GitHub main repository version before this PR is 0.1.131.
+- Repository version after this PR is 0.1.132.
+- latest recorded farm5 sync evidence is 0.1.131.
 - Phase 8 final Abuse 1h acceptance readiness/review is done in 0.1.122 and synced/tested on farm5.
 - Phase 8 Abuse 1h Core is accepted on farm5 in 0.1.123.
 - Phase 9 Check / Report / Diagnostics is accepted on farm5.
 - Current target is Phase 10 planning/readiness.
 - Phase 10 remains Session / Worker / Policy / Share Timeline planning/readiness and does not by itself open production traffic.
-- This PR records farm5 0.1.130 sync/test evidence and refreshes Phase 10 evidence wording.
-- Next required operator evidence is farm5 0.1.131 sync/test before any Phase 10 runtime/worker/scheduler/collector implementation PRs.
+- This PR records farm5 0.1.131 sync/test evidence and refreshes Phase 10 evidence wording.
+- Next required operator evidence is farm5 0.1.132 sync/test before Phase 10A/10B/10C readiness implementation is accepted.
 - Do not fabricate server evidence.
 - No production activation is enabled by this PR.
 - No production traffic is enabled.
@@ -35,8 +35,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
 3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
 4. Phase 9 Check / Report / Diagnostics planning/readiness — accepted
-5. Phase 10 report-only planning/readiness foundation — repository version 0.1.129, synced/tested on farm5 in 0.1.130 evidence
-6. farm5 0.1.131 sync/test evidence before Phase 10 implementation PRs — next required operator evidence after this PR
+5. Phase 10 report-only planning/readiness foundation — repository version 0.1.132, latest recorded farm5 sync evidence 0.1.131
+6. farm5 0.1.132 sync/test evidence before Phase 10A/10B/10C readiness implementation acceptance — next required operator evidence after this PR
 7. Phase 10 Session / Worker / Policy / Share Timeline — active backend-readiness work
 8. Phase 11 Production / Customer Activation Gate — future, explicit, controlled CLI canary first, then limited real customer onboarding
 9. Phase 12 Worker Policy Enforcement — future, after Phase 10 worker/session evidence and Phase 11 production activation

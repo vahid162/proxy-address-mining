@@ -13,12 +13,12 @@ def test_current_position_single_and_targets() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
     assert t.count("## Current Position") == 1
-    assert "- GitHub main repository version before this PR is 0.1.130." in current
-    assert "- Repository version after this PR is 0.1.131." in current
-    assert "- latest recorded farm5 sync evidence is 0.1.130." in current
+    assert "- GitHub main repository version before this PR is 0.1.131." in current
+    assert "- Repository version after this PR is 0.1.132." in current
+    assert "- latest recorded farm5 sync evidence is 0.1.131." in current
     assert "- Current target is Phase 10 planning/readiness." in current
     assert "Phase 10 remains Session / Worker / Policy / Share Timeline" in current
-    assert "farm5 0.1.131 sync/test" in current
+    assert "farm5 0.1.132 sync/test" in current
 
 
 def test_current_position_safety_and_non_activation() -> None:
