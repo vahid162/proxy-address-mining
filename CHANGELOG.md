@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.140
+- Define the Phase 11 AI-safe Runtime-first operating principle, clarify the controlled real-customer-sales target for final Phase 11 acceptance, and keep production/firewall/canary/runtime/abuse/UI/Telegram gates closed until explicit evidence-backed acceptance.
+
 ## 0.1.139
 - Move historical compatibility anchors out of README into dedicated historical documentation, keep active docs focused on Phase 10 accepted / Phase 11 planning-readiness, and preserve all production/firewall/canary/runtime/abuse/UI/Telegram gates closed.
 
