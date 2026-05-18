@@ -44,6 +44,10 @@ Read these first:
 `docs/AI_PHASE_11_TASK.md` is active/current for Phase 11 planning/readiness. `docs/PRODUCTION_ACTIVATION_GATE.md` defines the current production/customer activation boundary. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
 This file is the documentation map.
 
+Historical/reference note:
+
+- `docs/HISTORICAL_COMPATIBILITY_ANCHORS.md` (historical compatibility/reference-only, non-authorizing; does not override `docs/PHASE_STATUS.md`)
+
 ## Core Contracts
 
 Read these before implementation work:

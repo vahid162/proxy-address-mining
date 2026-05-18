@@ -3,16 +3,18 @@ from pathlib import Path
 
 def test_readme_phase_alignment() -> None:
     t = Path("README.md").read_text(encoding="utf-8")
+    hist = Path("docs/HISTORICAL_COMPATIBILITY_ANCHORS.md").read_text(encoding="utf-8")
     assert "accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in t
     assert "working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in t
-    assert "Latest recorded farm5 sync evidence is 0.1.128" in t
-    assert "not production activation" in t
-    assert "Current target is Phase 10 planning/readiness" in t
-    assert "fresh farm5 0.1.129 sync/test evidence" in t
+    assert "Latest recorded farm5 sync evidence is 0.1.128" in hist
+    assert "not production activation" in hist
+    assert "Current target is Phase 10 planning/readiness" in hist
+    assert "fresh farm5 0.1.129 sync/test evidence" in hist
     assert "production traffic" in t and "firewall apply" in t and "Telegram remain disabled" in t
     assert "Phase 9 Check / Report / Diagnostics accepted on farm5 as report-only/final diagnostics" in t
     assert "Phase 10 Session / Worker / Policy / Share Timeline accepted on farm5" in t
     assert "Current target is Phase 11 Production / Customer Activation Gate planning/readiness" in t
+    assert "Historical compatibility anchors are kept in docs/HISTORICAL_COMPATIBILITY_ANCHORS.md." in t
 
 
 def test_readme_stale_wording_removed() -> None:
