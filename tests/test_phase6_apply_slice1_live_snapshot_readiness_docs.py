@@ -6,6 +6,7 @@ INDEX = Path("docs/INDEX.md").read_text()
 AI_TASK = Path("docs/AI_PHASE_6_TASK.md").read_text()
 REMAINING = Path("docs/REMAINING_PHASE_PLAN.md").read_text()
 README = Path("README.md").read_text()
+HIST = Path("docs/HISTORICAL_COMPATIBILITY_ANCHORS.md").read_text()
 
 
 def test_new_doc_exists_and_status():
@@ -80,7 +81,7 @@ def test_abuse_invariant_and_stale_wording_rejection():
 
 
 def test_readme_and_phase_status_next_step_wording():
-    assert "Future Dedicated Phase 6 Apply Gate Proposal/Review" in README
+    assert "Future Dedicated Phase 6 Apply Gate Proposal/Review" in HIST
     assert "with Phase 6-G documentation/test-only non-authorizing next step" not in README
     assert "## Next Planned Step" in PHASE_STATUS
     assert "Future Dedicated Phase 6 Apply Gate Proposal/Review" in PHASE_STATUS

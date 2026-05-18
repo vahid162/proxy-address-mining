@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.139
+- Move historical compatibility anchors out of README into dedicated historical documentation, keep active docs focused on Phase 10 accepted / Phase 11 planning-readiness, and preserve all production/firewall/canary/runtime/abuse/UI/Telegram gates closed.
+
 ## 0.1.138
 - Minimally align current-state documentation and version metadata with Phase 10 accepted / Phase 11 Production Customer Activation Gate planning-readiness, while preserving historical docs, evidence, changelog history, and all production/firewall/canary/runtime/UI/Telegram gates closed.
 
