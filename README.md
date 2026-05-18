@@ -39,7 +39,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 Do not use this repository for production customer traffic yet.
 Latest recorded farm5 sync evidence is 0.1.136. Phase 10 Session / Worker / Policy / Share Timeline is accepted on farm5. Current target is Phase 11 Production / Customer Activation Gate planning/readiness. Production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, unrestricted production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
-Historical compatibility anchor: Latest recorded farm5 sync evidence is 0.1.128. This is stale/non-authorizing historical Phase 7/9 context only; current authoritative evidence remains 0.1.136 and current work remains Phase 11 planning/readiness.
+Historical compatibility anchor: Latest recorded farm5 sync evidence is 0.1.128. This is stale/non-authorizing historical Phase 7/9 context only and not production activation; current authoritative evidence remains 0.1.136 and current work remains Phase 11 planning/readiness.
 
 
 ## Current Accepted/Working Boundary (Phase 10 accepted / Phase 11 planning)
