@@ -39,6 +39,8 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 Do not use this repository for production customer traffic yet.
 Latest recorded farm5 sync evidence is 0.1.136. Phase 10 Session / Worker / Policy / Share Timeline is accepted on farm5. Current target is Phase 11 Production / Customer Activation Gate planning/readiness. Production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, unrestricted production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
+Historical compatibility anchor: Latest recorded farm5 sync evidence is 0.1.128. This is stale/non-authorizing historical Phase 7/9 context only; current authoritative evidence remains 0.1.136 and current work remains Phase 11 planning/readiness.
+
 
 ## Current Accepted/Working Boundary (Phase 10 accepted / Phase 11 planning)
 
@@ -46,7 +48,7 @@ Latest recorded farm5 sync evidence is 0.1.136. Phase 10 Session / Worker / Poli
 
 Current advancement target is Phase 11 Production / Customer Activation Gate planning/readiness. Historical anchors only: Phase 8 Abuse 1h Core, Phase 9 Check / Report / Diagnostics, and Phase 10 Session / Worker / Policy / Share Timeline are completed accepted context and are not active implementation targets unless `docs/PHASE_STATUS.md` explicitly reopens them.
 
-Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
+Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Historical compatibility anchor: Future Dedicated Phase 6 Apply Gate Proposal/Review.
 
 No production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, customer NAT/customer firewall rules, usage automation, abuse automation, worker automation, UI, or Telegram is authorized.
 
@@ -319,7 +321,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-Phase 6-H is accepted as historical documentation/test-only context. Apply Slice 3 and Apply Slice 4 are server-synced documentation/test-only boundaries. Live apply remains disabled until the Phase 11 Production / Customer Activation Gate explicitly accepts a controlled apply path.
+Phase 6-H is accepted as historical documentation/test-only context. Apply Slice 3 and Apply Slice 4 are server-synced documentation/test-only boundaries. Historical compatibility anchor: Future Dedicated Phase 6 Apply Gate Proposal/Review. Live apply remains disabled until the Phase 11 Production / Customer Activation Gate explicitly accepts a controlled apply path.
 
 ## Backend Port Policy
 
