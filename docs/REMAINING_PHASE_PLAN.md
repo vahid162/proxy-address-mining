@@ -6,31 +6,17 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.134.
-- Repository version after this PR is 0.1.135.
-- latest recorded farm5 sync evidence is 0.1.134.
-- farm5 0.1.134 sync/test evidence is recorded.
+- GitHub main repository version before this PR is 0.1.135.
+- Repository version after this PR is 0.1.136.
+- latest recorded farm5 sync evidence is 0.1.135.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
-- Phase 10F runtime worker/scheduler dry-run readiness is introduced.
+- Phase 10F runtime worker/scheduler dry-run readiness is done.
+- Phase 10 final-acceptance-readiness is introduced.
 - Current target is Phase 10 planning/readiness.
-- Phase 10 remains Session / Worker / Policy / Share Timeline planning/readiness and does not by itself open production traffic.
-- Next target is Phase 10 final-acceptance-readiness, then Phase 10 final acceptance.
-- Do not create more evidence-only PRs unless required after merge/sync.
+- Next target is Phase 10 final acceptance after farm5 0.1.136 sync/test evidence.
 - Controlled CLI canary remains Phase 11 after Phase 10 final acceptance.
 - No production activation is enabled by this PR.
-- No production traffic is enabled.
-- No firewall apply is enabled.
-- No abuse automation runner is enabled.
-- No real worker daemon is enabled.
-- No background worker/scheduler/timer is enabled.
-- No collector daemon is enabled.
-- No worker policy enforcement is enabled.
-- No real production customer evaluation is enabled.
-- No production DB execution is enabled.
-- No hard/soft firewall block automation is enabled.
-- No pause automation is enabled.
-- No customer NAT/customer firewall rules, UI, or Telegram is authorized.
 
 ## Finite Remaining Path
 
@@ -38,11 +24,11 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
 3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
 4. Phase 9 Check / Report / Diagnostics planning/readiness — accepted
-5. Phase 10 report-only planning/readiness foundation — accepted on farm5 evidence chain through 0.1.134
+5. Phase 10 report-only planning/readiness foundation — accepted on farm5 evidence chain through 0.1.135
 6. Phase 10A/10B/10C Session / Worker Identity / Worker Policy readiness — implemented as backend-readiness and non-authorizing
 7. Phase 10D/10E Share Timeline / Collector dry-run readiness — implemented as backend-readiness and non-authorizing
 8. Phase 10F Runtime Worker / Scheduler dry-run readiness — introduced in this PR as backend-readiness and non-authorizing
-9. Phase 10 final-acceptance-readiness — next target, future explicit gate
+9. Phase 10 final-acceptance-readiness — introduced in this PR as non-authorizing explicit gate
 10. Phase 10 final acceptance — future explicit gate, not production activation
 11. Phase 11 Production / Customer Activation Gate — future, explicit, controlled CLI canary first, then limited real customer onboarding
 12. Phase 12 Worker Policy Enforcement — future, after Phase 10 worker/session evidence and Phase 11 production activation
