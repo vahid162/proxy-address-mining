@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.138
+- Minimally align current-state documentation and version metadata with Phase 10 accepted / Phase 11 Production Customer Activation Gate planning-readiness, while preserving historical docs, evidence, changelog history, and all production/firewall/canary/runtime/UI/Telegram gates closed.
+
 ## 0.1.137
 - Accept Phase 10 Session / Worker / Policy / Share Timeline after farm5 0.1.136 sync/test evidence, open Phase 11 production/customer activation planning-readiness, and keep production activation, controlled CLI canary, firewall, runtime, abuse automation, UI, and Telegram gates closed.
 
