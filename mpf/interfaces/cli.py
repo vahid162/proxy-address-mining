@@ -92,6 +92,9 @@ from mpf.services import (
     phase10_worker_policy_contract_readiness_service,
     phase10_implementation_readiness_service,
     phase10_share_timeline_readiness_service,
+    phase10_share_timeline_model_readiness_service,
+    phase10_collector_dry_run_gate_service,
+    phase10_collector_dry_run_plan_service,
     phase10_enforcement_boundary_service,
 )
 
@@ -2077,6 +2080,25 @@ def phase10_share_timeline_readiness(config: Path | None = typer.Option(None, "-
     report = phase10_share_timeline_readiness_service.build_share_timeline_readiness_report(_load(config))
     if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
     _emit_key_values(report,["component","final_decision","authorization_status","execution_allowed","share_timeline_readiness","blockers","warnings","errors"])
+
+
+
+@phase10_app.command("share-timeline-model-readiness")
+def phase10_share_timeline_model_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_share_timeline_model_readiness_service.build_share_timeline_model_readiness_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else f"component: {report['component']}\nfinal_decision: {report['final_decision']}")
+
+
+@phase10_app.command("collector-dry-run-gate-readiness")
+def phase10_collector_dry_run_gate_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_collector_dry_run_gate_service.build_collector_dry_run_gate_readiness_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else f"component: {report['component']}\nfinal_decision: {report['final_decision']}")
+
+
+@phase10_app.command("collector-dry-run-plan")
+def phase10_collector_dry_run_plan(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_collector_dry_run_plan_service.build_collector_dry_run_plan_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else f"component: {report['component']}\nfinal_decision: {report['final_decision']}")
 
 @phase10_app.command("enforcement-boundary")
 def phase10_enforcement_boundary(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:

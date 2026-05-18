@@ -3,11 +3,12 @@
 Status: Current / Planning-Readiness / Backend-Readiness
 
 ## Current boundary
-- Phase 10A/10B/10C readiness contracts are implemented in this PR as safe, non-mutating backend-readiness surfaces.
+- Phase 10A/10B/10C readiness contracts are implemented as safe, non-mutating backend-readiness surfaces.
+- Phase 10D/10E readiness contracts are implemented in this PR as safe, non-mutating backend-readiness surfaces.
 - Current accepted phase remains Phase 9 — Check / Report / Diagnostics accepted on farm5.
 - Current working phase remains Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness.
-- Fresh farm5 0.1.132 sync/test evidence is recorded for this implementation package.
-- After this PR is merged, fresh farm5 0.1.133 sync/test evidence is required before accepting Phase 10D/10E work.
+- Fresh farm5 0.1.133 sync/test evidence is recorded for this implementation package.
+- This PR is not evidence-only.
 
 ## Implemented report-only outputs
 - `mpf phase10 readiness --output json`
@@ -18,11 +19,14 @@ Status: Current / Planning-Readiness / Backend-Readiness
 - `mpf phase10 session-model-readiness --output json`
 - `mpf phase10 worker-identity-readiness --output json`
 - `mpf phase10 worker-policy-contract-readiness --output json`
+- `mpf phase10 share-timeline-model-readiness --output json`
+- `mpf phase10 collector-dry-run-gate-readiness --output json`
+- `mpf phase10 collector-dry-run-plan --output json`
 - `mpf phase10 implementation-readiness --output json`
 
 ## Next target
-- Phase 10D — Share Timeline readiness.
-- Phase 10E — Collector dry-run gate readiness.
+- Phase 10F — runtime worker/scheduler dry-run readiness.
+- Then Phase 10 final-acceptance-readiness.
 - Do not create another evidence-only PR unless it is required to record a post-merge farm5 sync/test boundary.
 - Do not jump directly to UI, Telegram, worker enforcement, or production/customer activation.
 - Controlled CLI canary remains in Phase 11 after Phase 10 final acceptance.
@@ -38,8 +42,18 @@ No silent skip is allowed.
 This PR must not start or authorize abuse automation.
 
 ## Phase 10A/10B/10C implementation note
-- This PR is not evidence-only.
-- It implements Phase 10A/10B/10C readiness contracts.
+- Phase 10A/10B/10C readiness contracts are implemented.
+- They do not authorize runtime.
+- They do not authorize scheduler/timer.
+- They do not authorize collector daemon.
+- They do not authorize production traffic.
+- They do not authorize firewall apply.
+- They do not authorize worker enforcement.
+- They do not authorize customer NAT/customer firewall rules.
+- They do not authorize abuse automation.
+
+## Phase 10D/10E implementation note
+- This PR implements Phase 10D/10E readiness contracts.
 - It does not authorize runtime.
 - It does not authorize scheduler/timer.
 - It does not authorize collector daemon.

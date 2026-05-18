@@ -7,6 +7,8 @@ from mpf.services.phase10_readiness_service import build_phase10_readiness_repor
 from mpf.services.phase10_session_model_readiness_service import build_session_model_readiness_report
 from mpf.services.phase10_worker_identity_readiness_service import build_worker_identity_readiness_report
 from mpf.services.phase10_worker_policy_contract_readiness_service import build_worker_policy_contract_readiness_report
+from mpf.services.phase10_share_timeline_model_readiness_service import build_share_timeline_model_readiness_report
+from mpf.services.phase10_collector_dry_run_gate_service import build_collector_dry_run_gate_readiness_report
 
 
 def build_phase10_implementation_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
@@ -15,17 +17,19 @@ def build_phase10_implementation_readiness_report(cfg: MPFConfig, repo_root: Pat
     session = build_session_model_readiness_report(cfg, repo_root=root)
     identity = build_worker_identity_readiness_report(cfg, repo_root=root)
     policy = build_worker_policy_contract_readiness_report(cfg, repo_root=root)
-    evidence_present = (root / 'docs/PHASE_10_FARM5_0_1_132_SYNC_TEST_EVIDENCE.md').exists()
+    share_timeline = build_share_timeline_model_readiness_report(cfg, repo_root=root)
+    collector_gate = build_collector_dry_run_gate_readiness_report(cfg, repo_root=root)
+    evidence_present = (root / 'docs/PHASE_10_FARM5_0_1_133_SYNC_TEST_EVIDENCE.md').exists()
     gate_ok = phase10.get('current_phase_gate_status') == 'OK'
     dangerous = any([
         phase10.get('production_traffic_authorized', False), phase10.get('firewall_apply_authorized', False),
         phase10.get('abuse_automation_authorized', False), phase10.get('scheduler_authorized', False),
         phase10.get('collector_authorized', False), phase10.get('ui_authorized', False), phase10.get('telegram_authorized', False),
     ])
-    accepted = all([gate_ok, evidence_present, session['final_decision']=='ACCEPTED', identity['final_decision']=='ACCEPTED', policy['final_decision']=='ACCEPTED', not dangerous])
+    accepted = all([gate_ok, evidence_present, session['final_decision']=='ACCEPTED', identity['final_decision']=='ACCEPTED', policy['final_decision']=='ACCEPTED', share_timeline['final_decision']=='ACCEPTED', collector_gate['final_decision']=='ACCEPTED', not dangerous])
     blockers=[]
     if not gate_ok: blockers.append('current_phase_gate_missing_or_invalid')
-    if not evidence_present: blockers.append('farm5_0_1_132_sync_test_evidence_missing')
+    if not evidence_present: blockers.append('farm5_0_1_133_sync_test_evidence_missing')
     if dangerous: blockers.append('dangerous_authorization_flag_enabled')
     return {
         'component':'phase10_implementation_readiness',
@@ -40,11 +44,13 @@ def build_phase10_implementation_readiness_report(cfg: MPFConfig, repo_root: Pat
         'collector_authorized':False,
         'ui_authorized':False,
         'telegram_authorized':False,
-        'next_step':'Phase 10D share timeline readiness and Phase 10E collector dry-run gate, not production activation.',
-        'farm5_0_1_132_sync_test_evidence_present': evidence_present,
+        'next_step':'Phase 10F runtime worker/scheduler dry-run readiness, then Phase 10 final-acceptance-readiness; not production activation.',
+        'farm5_0_1_133_sync_test_evidence_present': evidence_present,
         'session_model_readiness': session['final_decision'],
         'worker_identity_readiness': identity['final_decision'],
         'worker_policy_contract_readiness': policy['final_decision'],
+        'share_timeline_model_readiness': share_timeline['final_decision'],
+        'collector_dry_run_gate_readiness': collector_gate['final_decision'],
         'current_phase_gate_status': phase10.get('current_phase_gate_status'),
         'blockers':blockers,
         'warnings':[],
