@@ -36,37 +36,15 @@ v2rayA UI: 127.0.0.1:2015 -> container 2017
 BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
-Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.128. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.129 sync/test evidence is required after merge before any Phase 10 runtime/worker/scheduler/collector implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Do not use this repository for production customer traffic yet. Phase 10 is accepted, but Phase 11 is still planning/readiness only. Production traffic, firewall apply, iptables-restore, customer NAT/customer firewall rules, abuse automation runner, worker runtime, scheduler/timer, collector daemon, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
+## Current Accepted/Working Boundary
 
-## Current Accepted/Working Boundary (Phase 9 accepted / Phase 10 planning)
+`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 10 / working Phase 11 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 9 / working Phase 10 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+Current advancement target is Phase 11 Production / Customer Activation Gate planning/readiness. Controlled CLI canary and limited real customer onboarding remain future Phase 11 gates and are not authorized by the current repository state.
 
-Current advancement target is Phase 10 planning/readiness after post-merge farm5 0.1.129 sync/test evidence. Historical anchors only: Phase 8 Abuse 1h Core and Phase 9 Check / Report / Diagnostics are completed accepted context and are not active implementation targets.
-
-Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
-
-No firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, worker automation, UI, or Telegram is authorized.
-
-Historical/reference-only notes from accepted Phase 6 boundaries:
-
-```text
-repository/documentation cleanup that preserves phase gates
-firewall desired-state model refinement
-firewall planner/diff contracts
-human-readable firewall plan/report output
-machine-readable JSON firewall plan/report output
-offline snapshot parser and file-backed offline diff fixtures
-offline restore payload artifacts
-offline apply-readiness contracts
-offline apply package reports
-offline rollback artifacts from explicit snapshot files
-offline preflight inspection/failure matrix
-planner/contract/preflight safety tests
-proxy/backend safety checks that preserve internal reachability and external non-exposure
-```
+Phase 6 apply-gate materials, Phase 7 accounting, Phase 8 abuse, Phase 9 diagnostics, and Phase 10 timeline materials are accepted historical/reference context unless `docs/PHASE_STATUS.md` explicitly reopens one of their gates.
 
 Forbidden now:
 
@@ -114,30 +92,16 @@ telegram_allowed = no
 ```text
 Phase 0 architecture and safety contracts
 Phase 1 preflight/bootstrap runbook and Ubuntu 24.04 bootstrap script
-safe CLI smoke skeleton
-config validator
-PostgreSQL DB ping helper
-SQLAlchemy model skeletons
-Alembic bootstrap
-Phase 2 schema representation and migration accepted on farm5
-Phase 3 read-only CLI/API foundation accepted on farm5
-Phase 3.1 official runtime alignment accepted on farm5
-read-only DB status, lane list, customer list, and job status commands
-service/repository boundaries for CLI/API commands
-internal API foundation with stable read-only response DTOs
-foundation taxonomy and request context/correlation_id contracts
-future-ready buyer/account and worker-policy boundaries
-extension-ready control-plane schema contracts
-pytest CI on GitHub Actions
-backend internal/external reachability policy contract
-accepted/rejected hash-rate and share observability contract
+Phase 2 PostgreSQL + Config + Domain Model accepted on farm5
+Phase 3 CLI + Internal API Foundation accepted on farm5
+Phase 3.1 Pre-Phase4 Runtime Alignment + Future Observability Contracts accepted on farm5
 Phase 4 limited local-only proxy runtime accepted on farm5
 Phase 5 DB-only customer CRUD accepted on farm5
 Phase 6 firewall planner accepted on farm5 as planner/reporting/gate-readiness
 Phase 7 usage + policy/reject accounting accepted on farm5 as report-only/service-contract/readiness
 Phase 8 Abuse 1h Core accepted on farm5 as evidence/readiness only
 Phase 9 Check / Report / Diagnostics accepted on farm5 as report-only/final diagnostics
-Phase 10 Session / Worker / Policy / Share Timeline planning/readiness in progress
+Phase 10 Session / Worker / Policy / Share Timeline accepted on farm5
 ```
 
 ## Not Implemented Yet
@@ -317,7 +281,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-Phase 6-H is accepted. Apply Slice 3 and Apply Slice 4 are server-synced documentation/test-only boundaries. Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
+Live apply remains disabled until the current Phase 11 production/customer activation gate explicitly accepts a controlled apply path.
 
 ## Backend Port Policy
 
@@ -360,7 +324,7 @@ README.md
 docs/INDEX.md
 docs/PHASE_STATUS.md
 docs/AI_CODING_RULES.md
-docs/AI_PHASE_10_TASK.md
+docs/AI_PHASE_11_TASK.md
 ```
 
 Core contracts:
@@ -382,7 +346,10 @@ Current phase and accepted result contracts:
 
 ```text
 docs/PHASE_STATUS.md
+docs/AI_PHASE_11_TASK.md
+docs/PRODUCTION_ACTIVATION_GATE.md
 docs/AI_PHASE_10_TASK.md
+docs/PHASE_10_FARM5_0_1_136_SYNC_TEST_EVIDENCE.md
 docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md
 docs/PHASE_5_FINAL_ACCEPTANCE.md
 docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
@@ -408,11 +375,11 @@ Phase 7   — Usage + Policy/Reject Accounting
 Phase 8   — Abuse 1h Core
 Phase 9   — Check / Report / Diagnostics
 Phase 10  — Session / Worker / Policy / Share Timeline
-Phase 11  — Local Web UI Read-only
-Phase 12  — Buyer-safe Read-only Reporting
-Phase 13  — UI Actions With Confirmation
-Phase 14  — Telegram Notifications, Read-only Commands, Restricted Actions
-Phase 15  — Worker Policy Enforcement
+Phase 11  — Production / Customer Activation Gate
+Phase 12  — Worker Policy Enforcement
+Phase 13  — Local UI
+Phase 14  — Operator UI Actions
+Phase 15  — Telegram
 ```
 
 Do not start a later phase until the current phase acceptance gate passes.
@@ -426,7 +393,7 @@ System clock synchronized: no
 NTP service: active
 ```
 
-This warning is not a Phase 6 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This warning is not a production blocker for documentation-only work, but it must be resolved before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## Security Guardrails
 
@@ -453,14 +420,5 @@ License is not defined yet.
 Choose and add a license before public or multi-person use.
 
 Historical Phase 8 references: the Phase 8 abuse evidence/reporting contract, DB-only controlled transition readiness package, and DB-only controlled transition execution package are completed Phase 8 context only; they are not active targets.
-
-Compatibility anchors for historical Phase 8 report surfaces:
-
-```text
-DB-only controlled transition readiness package
-report-only/non-mutating/non-authorizing
-Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing.
-Current advancement target is the Phase 8 runtime/worker integration readiness package, report-only/readiness-only/non-runtime/non-authorizing.
-```
 
 Historical gate reference: accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5 / working_phase: Phase 8 — Abuse 1h Core planning/readiness.
