@@ -35,8 +35,8 @@ UI and Telegram must never become the implementation backend. They may call only
 
 ## Current Phase Alignment Note
 
-Phase 9 is accepted on farm5 as Check / Report / Diagnostics evidence/readiness.
-Phase 10 is the current working phase and starts as planning/readiness/report-only.
+Phase 10 is accepted on farm5 as Session / Worker / Policy / Share Timeline evidence/readiness context.
+Phase 11 is the current working phase and starts as Production / Customer Activation Gate planning/readiness/report-only.
 Phase 10 does not authorize production traffic, customer NAT/customer firewall rules, firewall apply, abuse automation, worker enforcement, UI, or Telegram.
 
 Historical Phase 6 apply-gate material remains reference-only unless a current explicit gate reopens it.

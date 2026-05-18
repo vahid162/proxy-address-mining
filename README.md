@@ -37,14 +37,14 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.128. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.129 sync/test evidence is required after merge before any Phase 10 runtime/worker/scheduler/collector implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Latest recorded farm5 sync evidence is 0.1.128 (historical compatibility anchor only; non-authorizing for current Phase 11 work). Phase 10 Session / Worker / Policy / Share Timeline is accepted on farm5 as context evidence and is not production activation. Current target is Phase 11 Production / Customer Activation Gate planning/readiness. Historical compatibility anchor: "Current target is Phase 10 planning/readiness" and "fresh farm5 0.1.129 sync/test evidence" are stale and non-authorizing. Production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, unrestricted production DB execution, hard/soft block automation, pause automation, runtime worker/scheduler/collector, UI, and Telegram remain disabled.
 
 
 ## Current Accepted/Working Boundary (Phase 9 accepted / Phase 10 planning)
 
 `docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 9 / working Phase 10 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Current advancement target is Phase 10 planning/readiness after post-merge farm5 0.1.129 sync/test evidence. Historical anchors only: Phase 8 Abuse 1h Core and Phase 9 Check / Report / Diagnostics are completed accepted context and are not active implementation targets.
+Current advancement target is Phase 11 Production / Customer Activation Gate planning/readiness. Historical anchors only: Phase 6/8/9/10 materials are completed accepted/reference context and are not active implementation targets unless docs/PHASE_STATUS.md explicitly reopens them.
 
 Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
@@ -408,11 +408,11 @@ Phase 7   — Usage + Policy/Reject Accounting
 Phase 8   — Abuse 1h Core
 Phase 9   — Check / Report / Diagnostics
 Phase 10  — Session / Worker / Policy / Share Timeline
-Phase 11  — Local Web UI Read-only
-Phase 12  — Buyer-safe Read-only Reporting
-Phase 13  — UI Actions With Confirmation
-Phase 14  — Telegram Notifications, Read-only Commands, Restricted Actions
-Phase 15  — Worker Policy Enforcement
+Phase 11  — Production / Customer Activation Gate
+Phase 12  — Worker Policy Enforcement
+Phase 13  — Local UI
+Phase 14  — Operator UI Actions
+Phase 15  — Telegram
 ```
 
 Do not start a later phase until the current phase acceptance gate passes.
