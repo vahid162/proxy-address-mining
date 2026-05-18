@@ -24,6 +24,8 @@ Phase 10 accepted
 
 The goal is to make `mpf` usable as the standard terminal operator interface for real customer operations while preserving the Python/API-first architecture.
 
+Phase 11 follows `docs/AI_SAFE_RUNTIME_FIRST.md`: it should move toward controlled runtime evidence in small accepted gates, not remain report-only indefinitely and not bypass safety controls.
+
 ## Legacy Compatibility Boundary
 
 The uploaded legacy inventory/tgz and existing production shell scripts are reference material only.
@@ -204,6 +206,22 @@ Phase 15 Telegram
 ```
 
 Worker Policy Enforcement belongs after Phase 11 because it needs Phase 10 worker/session evidence plus a real controlled production path.
+
+## Phase 11 Final Operational Target
+
+By final Phase 11 acceptance, the server should be operational for controlled real customer sales through CLI/service-layer workflows:
+
+```text
+production_traffic: controlled_cli_limited
+firewall_apply_allowed: controlled
+abuse_automation_allowed: controlled
+customer_onboarding_allowed: controlled_cli_limited
+worker_enforcement_allowed: no
+ui_allowed: no
+telegram_allowed: no
+```
+
+Worker enforcement, Local UI, Operator UI Actions, and Telegram remain later upgrades over this accepted runtime path.
 
 ## UI and Telegram Reuse Rule
 
