@@ -23,3 +23,16 @@ Sustained hardening remains about 3600s.
 farms-over alone / worker-over alone / missing-stale evidence / DB-firewall failure must not harden.
 No silent skip is allowed.
 This PR must not start or authorize abuse automation.
+
+
+## Phase 10A/10B/10C implementation note
+- This PR is not evidence-only.
+- It implements Phase 10A/10B/10C readiness contracts.
+- It does not authorize runtime.
+- It does not authorize scheduler/timer.
+- It does not authorize collector daemon.
+- It does not authorize production traffic.
+- It does not authorize firewall apply.
+- It does not authorize worker enforcement.
+- It does not authorize customer NAT/customer firewall rules.
+- It does not authorize abuse automation.
