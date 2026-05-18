@@ -12,13 +12,16 @@ def _read(path: Path) -> str:
 
 
 def build_phase9_final_acceptance_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
+    del cfg
     root = repo_root or Path(__file__).resolve().parents[2]
     phase = _read(root / "docs/PHASE_STATUS.md")
 
-    gate_ok = (
+    phase9_current_gate_ok = (
         "current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5" in phase
         and "current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness" in phase
     )
+    later_phase_gate_ok = "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in phase
+    gate_ok = phase9_current_gate_ok or later_phase_gate_ok
     farm5_0_1_127_present = "### Phase 9 farm5 0.1.127 Sync/Test Evidence" in phase and "server version after sync:\n  0.1.127" in phase
     phase8_final_accepted = "phase8 final-acceptance:\n  ACCEPTED" in phase
     phase9_readiness_accepted = "phase9 readiness:\n  ACCEPTED" in phase
@@ -51,14 +54,14 @@ def build_phase9_final_acceptance_report(cfg: MPFConfig, repo_root: Path | None 
         "evidence_pack_readiness": "READY",
         "troubleshooting_summary_readiness": "READY",
         "next_phase": "Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness",
-        "post_merge_required_operator_evidence": "fresh farm5 0.1.128 sync/test evidence required before Phase 10 implementation PRs",
+        "post_merge_required_operator_evidence": "historical: farm5 0.1.128 sync/test evidence required before Phase 10 implementation PRs",
     }
     report.update(false_flags())
     report["all_dangerous_authorization_flags_false"] = all_flags_false(report)
 
     blockers: list[str] = []
     if not gate_ok:
-        blockers.append("phase9_accepted_phase10_working_gate_missing")
+        blockers.append("phase9_accepted_phase10_working_or_later_gate_missing")
     if not farm5_0_1_127_present:
         blockers.append("farm5_0_1_127_sync_test_evidence_missing")
     if not phase8_final_accepted:
