@@ -6,17 +6,18 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.135.
-- Repository version after this PR is 0.1.136.
-- latest recorded farm5 sync evidence is 0.1.135.
+- GitHub main repository version before this PR is 0.1.136.
+- Repository version after this PR is 0.1.137.
+- latest recorded farm5 sync evidence is 0.1.136.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
 - Phase 10F runtime worker/scheduler dry-run readiness is done.
-- Phase 10 final-acceptance-readiness is introduced.
-- Current target is Phase 10 planning/readiness.
-- Next target is Phase 10 final acceptance after farm5 0.1.136 sync/test evidence.
-- Controlled CLI canary remains Phase 11 after Phase 10 final acceptance.
-- No production activation is enabled by this PR.
+- Phase 10 final acceptance is introduced/completed by this PR.
+- Current accepted phase is Phase 10.
+- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
+- Next target is Phase 11 production/customer activation planning-readiness, then controlled CLI canary.
+- Controlled CLI canary is not authorized by this PR.
+- Production activation is not enabled by this PR.
 
 ## Finite Remaining Path
 

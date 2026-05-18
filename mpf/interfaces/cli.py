@@ -99,6 +99,7 @@ from mpf.services import (
     phase10_scheduler_dry_run_readiness_service,
     phase10_worker_cycle_dry_run_plan_service,
     phase10_final_acceptance_readiness_service,
+    phase10_final_acceptance_service,
     phase10_enforcement_boundary_service,
 )
 
@@ -2127,6 +2128,12 @@ def phase10_worker_cycle_dry_run_plan(config: Path | None = typer.Option(None, "
 @phase10_app.command("final-acceptance-readiness")
 def phase10_final_acceptance_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     report = phase10_final_acceptance_readiness_service.build_phase10_final_acceptance_readiness_report(_load(config))
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
+
+
+@phase10_app.command("final-acceptance")
+def phase10_final_acceptance(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_final_acceptance_service.build_phase10_final_acceptance_report(_load(config))
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2) if output == "json" else str(report))
 
 @phase10_app.command("enforcement-boundary")

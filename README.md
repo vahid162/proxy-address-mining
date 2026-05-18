@@ -15,8 +15,8 @@ docs/PHASE_STATUS.md
 Current repository/server gate:
 
 ```text
-accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5
-working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
+accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
+working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no

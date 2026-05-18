@@ -64,7 +64,7 @@ def _cfg():
 
 
 def _base_text() -> str:
-    return """## Current State\n```text\ncurrent_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5\ncurrent_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\nrestore_lock_record_execution_allowed: controlled_boundary_only\n```\nPhase 6 Read-Only iptables-save Snapshot — Server Evidence\nPhase 6 farm5 Time Synchronization — Server Evidence\nPhase 6 Restore/Lock/DB Apply Record Readiness — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary\nPhase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync\nSystem clock synchronized: yes\nNTPSynchronized=yes\n194.225.150.25\n"""
+    return """## Current State\n```text\ncurrent_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5\ncurrent_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\nrestore_lock_record_execution_allowed: controlled_boundary_only\n```\nPhase 6 Read-Only iptables-save Snapshot — Server Evidence\nPhase 6 farm5 Time Synchronization — Server Evidence\nPhase 6 Restore/Lock/DB Apply Record Readiness — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary\nPhase 6 Restore/Lock/DB Apply Record Gate Report — Server Sync\nPhase 6 Restore/Lock/DB Apply Record Acceptance Gate — Server Sync\nSystem clock synchronized: yes\nNTPSynchronized=yes\n194.225.150.25\n"""
 
 
 def test_service_blocked_and_not_authorized() -> None:
@@ -201,8 +201,8 @@ def test_phase_status_execution_gate_sync_evidence_tokens_present() -> None:
 
 def test_phase_status_current_state_block_unchanged() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
-    expected = """current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5
-current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
+    expected = """current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
+current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no

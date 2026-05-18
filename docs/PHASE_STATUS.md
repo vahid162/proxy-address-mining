@@ -7,8 +7,8 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 ## Current State
 
 ```text
-current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5
-current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness
+current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
+current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
 production_traffic: none
 firewall_apply_allowed: no
@@ -27,6 +27,15 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 Phase 9 is accepted only as Check / Report / Diagnostics evidence/readiness on farm5. This acceptance does not authorize production traffic, firewall apply, customer NAT/customer firewall rules, abuse automation runner, scheduler/timer, production DB execution, hard/soft block automation, pause automation, UI, Telegram, or production customer onboarding.
 
 The `Current State` block above is the current gate. Historical compatibility notes and accepted evidence are informational only.
+
+### Phase 10 final acceptance evidence summary
+
+- farm5 0.1.136 sync/test evidence recorded (`docs/PHASE_10_FARM5_0_1_136_SYNC_TEST_EVIDENCE.md`)
+- final-acceptance-readiness: ACCEPTED
+- final-acceptance: ACCEPTED
+- production activation remains disabled
+- Phase 11 is planning/readiness only
+
 
 Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Phase 6 operator acceptance decision is completed and accepted after farm5 0.1.100 sync evidence. Phase 7 is now accepted only as report-only/service-contract/readiness after farm5 0.1.108 evidence and later farm5 0.1.110 sync evidence. Historical note: at that time, current working phase was Phase 8 Abuse 1h Core planning/readiness only; runtime gates remain closed and non-authorizing. Current farm5 has no non-deleted customers. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path remains authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, Phase 8 abuse runner, hard/soft blocks, pause automation, UI, or Telegram is authorized.
 

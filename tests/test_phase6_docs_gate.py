@@ -3,8 +3,8 @@ from pathlib import Path
 
 def test_phase_status_gate_and_next_step_alignment() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
-    assert "current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5" in text
-    assert "current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness" in text
+    assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in text
+    assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in text
     assert "production_traffic: none" in text
     assert "firewall_apply_allowed: no" in text
     assert "abuse_automation_allowed: no" in text

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.137
+- Accept Phase 10 Session / Worker / Policy / Share Timeline after farm5 0.1.136 sync/test evidence, open Phase 11 production/customer activation planning-readiness, and keep production activation, controlled CLI canary, firewall, runtime, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.136
 - Add Phase 10 final-acceptance-readiness gate, record farm5 0.1.135 sync/test evidence, and keep Phase 10 final acceptance, Phase 11 production activation, runtime, scheduler, firewall, abuse automation, UI, and Telegram gates closed.
 
