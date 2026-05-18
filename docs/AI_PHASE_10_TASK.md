@@ -6,8 +6,8 @@ Status: Current / Planning-Readiness / Backend-Readiness
 - Phase 10A/10B/10C readiness contracts are implemented in this PR as safe, non-mutating backend-readiness surfaces.
 - Current accepted phase remains Phase 9 — Check / Report / Diagnostics accepted on farm5.
 - Current working phase remains Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness.
-- Fresh farm5 0.1.132 sync/test evidence is recorded for this implementation package.
-- After this PR is merged, fresh farm5 0.1.133 sync/test evidence is required before accepting Phase 10D/10E work.
+- Fresh farm5 0.1.133 sync/test evidence is recorded for this implementation package.
+- This PR implements Phase 10D/10E readiness and is not evidence-only.
 
 ## Implemented report-only outputs
 - `mpf phase10 readiness --output json`
@@ -26,6 +26,7 @@ Status: Current / Planning-Readiness / Backend-Readiness
 - Do not create another evidence-only PR unless it is required to record a post-merge farm5 sync/test boundary.
 - Do not jump directly to UI, Telegram, worker enforcement, or production/customer activation.
 - Controlled CLI canary remains in Phase 11 after Phase 10 final acceptance.
+- Next target after this PR is Phase 10F runtime worker/scheduler dry-run readiness, then Phase 10 final-acceptance-readiness.
 
 ## Forbidden in the current Phase 10 boundary
 No real worker runtime, no background worker loop, no scheduler/timer, no collector daemon, no live share ingestion, no production DB execution, no enforcement, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no hard/soft block, no pause automation, no production traffic, no UI, no Telegram.
