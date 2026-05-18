@@ -4,7 +4,7 @@ from pathlib import Path
 def test_ai_safe_runtime_first_contract_exists() -> None:
     text = Path("docs/AI_SAFE_RUNTIME_FIRST.md").read_text(encoding="utf-8")
     assert "AI-safe Runtime-first" in text
-    assert "docs/PHASE_STATUS.md remains authoritative" in text
+    assert "`docs/PHASE_STATUS.md` remains authoritative" in text
     assert "prefer the shortest safe path from planning/readiness to a real controlled runtime gate" in text
     assert "It is a Phase 11 execution discipline, not a shortcut around safety gates." in text
     assert "limited real customer onboarding after canary acceptance" in text
