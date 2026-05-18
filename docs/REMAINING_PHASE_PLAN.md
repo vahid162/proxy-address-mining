@@ -22,6 +22,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - No firewall apply is enabled.
 - No abuse automation runner is enabled.
 - No background worker/scheduler/timer is enabled.
+- No collector daemon is enabled.
 - No worker policy enforcement is enabled.
 - No real production customer evaluation is enabled.
 - No production DB execution is enabled.
@@ -35,14 +36,17 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 2. Phase 7 Usage + Policy/Reject Accounting — accepted on farm5 as report-only/service-contract/readiness
 3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123
 4. Phase 9 Check / Report / Diagnostics planning/readiness — accepted
-5. Phase 10 report-only planning/readiness foundation — repository version 0.1.133, latest recorded farm5 sync evidence 0.1.133
-6. farm5 0.1.133 sync/test evidence before Phase 10A/10B/10C readiness implementation acceptance — next required operator evidence after this PR
-7. Phase 10 Session / Worker / Policy / Share Timeline — active backend-readiness work
-8. Phase 11 Production / Customer Activation Gate — future, explicit, controlled CLI canary first, then limited real customer onboarding
-9. Phase 12 Worker Policy Enforcement — future, after Phase 10 worker/session evidence and Phase 11 production activation
-10. Phase 13 Local UI — future service-layer interface after backend path is accepted
-11. Phase 14 Operator UI Actions — future service-layer interface with confirmation and audit
-12. Phase 15 Telegram — future notification/read-only/restricted-action interface, last in the roadmap
+5. Phase 10 report-only planning/readiness foundation — accepted on farm5 evidence chain through 0.1.133
+6. Phase 10A/10B/10C Session / Worker Identity / Worker Policy readiness — implemented as backend-readiness and non-authorizing
+7. Phase 10D/10E Share Timeline / Collector dry-run readiness — introduced in this PR as backend-readiness and non-authorizing
+8. Phase 10F Runtime Worker / Scheduler dry-run readiness — next target, still non-authorizing unless an explicit later gate says otherwise
+9. Phase 10 final-acceptance-readiness — future explicit gate
+10. Phase 10 final acceptance — future explicit gate, not production activation
+11. Phase 11 Production / Customer Activation Gate — future, explicit, controlled CLI canary first, then limited real customer onboarding
+12. Phase 12 Worker Policy Enforcement — future, after Phase 10 worker/session evidence and Phase 11 production activation
+13. Phase 13 Local UI — future service-layer interface after backend path is accepted
+14. Phase 14 Operator UI Actions — future service-layer interface with confirmation and audit
+15. Phase 15 Telegram — future notification/read-only/restricted-action interface, last in the roadmap
 
 ## Backend-First Principle
 
