@@ -10,7 +10,7 @@ This file is the implementation contract for AI coding agents when Phase 11 beco
 
 Make the server operational for real customers through the standard `mpf` CLI and Python service layer before Local UI, Operator UI Actions, or Telegram work.
 
-Phase 11 is backend-first and CLI-managed:
+Phase 11 is backend-first, CLI-managed, and AI-safe Runtime-first:
 
 ```text
 Phase 10 accepted
@@ -19,6 +19,8 @@ Phase 10 accepted
   -> limited real customer onboarding
   -> Phase 12 Worker Policy Enforcement
 ```
+
+Read `docs/AI_SAFE_RUNTIME_FIRST.md` before changing Phase 11 code, tests, services, jobs, scripts, or runbooks. Runtime-first means moving toward real controlled runtime evidence in small accepted steps; it does not authorize bypassing phase gates, planner/service-layer boundaries, rollback evidence, or operator approval.
 
 ## Required Sub-step Execution Model
 
@@ -327,6 +329,8 @@ ui_allowed: no
 telegram_allowed: no
 ```
 
+By final Phase 11 acceptance, the target is controlled real customer sales through CLI/service-layer workflows, not UI/Telegram and not unrestricted onboarding.
+
 ## Acceptance Gate
 
 ```text
@@ -355,4 +359,5 @@ abuse 1h coverage invariant tests
 restart/container-order docs tests
 legacy shell backend forbidden tests
 sub-step gate ordering tests
+AI-safe Runtime-first boundary tests
 ```
