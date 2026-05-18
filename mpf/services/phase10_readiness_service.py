@@ -7,7 +7,7 @@ from mpf.config import MPFConfig
 from mpf.services.phase9_diagnostics_common import DANGEROUS_AUTHORIZATION_FLAGS, all_flags_false, false_flags
 
 LATEST_EVIDENCE_VERSION = "0.1.133"
-NEXT_EVIDENCE = "fresh farm5 0.1.133 sync/test after merge before any runtime/scheduler/collector implementation PR"
+NEXT_EVIDENCE = "Phase 10 accepted; fresh farm5 0.1.137 sync/test evidence required before Phase 11 production/canary implementation PRs"
 
 
 def _read(path: Path) -> str:
@@ -20,26 +20,32 @@ def build_phase10_readiness_report(cfg: MPFConfig, repo_root: Path | None = None
     phase = _read(root / "docs/PHASE_STATUS.md")
     farm5_0_1_130 = _read(root / "docs/PHASE_10_FARM5_0_1_130_SYNC_TEST_EVIDENCE.md")
     farm5_0_1_131 = _read(root / "docs/PHASE_10_FARM5_0_1_131_SYNC_TEST_EVIDENCE.md")
-    farm5_0_1_132 = _read(root / "docs/PHASE_10_FARM5_0_1_133_SYNC_TEST_EVIDENCE.md")
+    farm5_0_1_133 = _read(root / "docs/PHASE_10_FARM5_0_1_133_SYNC_TEST_EVIDENCE.md")
 
-    gate_ok = (
+    phase10_working_gate_ok = (
         "current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5" in phase
         and "current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness" in phase
     )
+    phase10_accepted_gate_ok = (
+        "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in phase
+        and "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in phase
+    )
+    gate_ok = phase10_working_gate_ok or phase10_accepted_gate_ok
+
     farm5_0_1_128_evidence = "### Phase 10 farm5 0.1.128 Sync/Test Evidence" in phase
     farm5_0_1_130_evidence = "# Phase 10 farm5 0.1.130 Sync/Test Evidence" in farm5_0_1_130
     farm5_0_1_131_sync_test_evidence_present = "# Phase 10 farm5 0.1.131 Sync/Test Evidence" in farm5_0_1_131
     farm5_0_1_133_sync_test_evidence_present = (
-        "# Phase 10 farm5 0.1.133 sync/test evidence" in farm5_0_1_132
-        and "server version after sync:\n  0.1.133" in farm5_0_1_132
-        and "773 passed in 145.95s" in farm5_0_1_132
-        and "production_traffic: none" in farm5_0_1_132
-        and "firewall_apply_allowed: no" in farm5_0_1_132
-        and "abuse_automation_allowed: no" in farm5_0_1_132
-        and "no customer NAT redirects" in farm5_0_1_132
-        and "production customer traffic is still disabled" in farm5_0_1_132
+        "# Phase 10 farm5 0.1.133 sync/test evidence" in farm5_0_1_133
+        and "server version after sync:\n  0.1.133" in farm5_0_1_133
+        and "773 passed in 145.95s" in farm5_0_1_133
+        and "production_traffic: none" in farm5_0_1_133
+        and "firewall_apply_allowed: no" in farm5_0_1_133
+        and "abuse_automation_allowed: no" in farm5_0_1_133
+        and "no customer NAT redirects" in farm5_0_1_133
+        and "production customer traffic is still disabled" in farm5_0_1_133
     )
-    phase9_accepted = "phase9 final-acceptance:\n  ACCEPTED" in phase
+    phase9_accepted = "phase9 final-acceptance:\n  ACCEPTED" in phase or phase10_accepted_gate_ok
 
     report = {
         "component": "phase10_readiness",
@@ -70,7 +76,7 @@ def build_phase10_readiness_report(cfg: MPFConfig, repo_root: Path | None = None
 
     blockers: list[str] = []
     if not gate_ok:
-        blockers.append("phase9_accepted_phase10_working_gate_missing")
+        blockers.append("phase10_gate_missing_or_invalid")
     if not farm5_0_1_133_sync_test_evidence_present:
         blockers.append("farm5_0_1_133_sync_test_evidence_missing")
     if not phase9_accepted:
