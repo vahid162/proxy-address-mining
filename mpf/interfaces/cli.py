@@ -86,7 +86,11 @@ from mpf.services import (
     phase9_troubleshooting_summary_service,
     phase10_readiness_service,
     phase10_session_readiness_service,
+    phase10_session_model_readiness_service,
+    phase10_worker_identity_readiness_service,
     phase10_worker_policy_readiness_service,
+    phase10_worker_policy_contract_readiness_service,
+    phase10_implementation_readiness_service,
     phase10_share_timeline_readiness_service,
     phase10_enforcement_boundary_service,
 )
@@ -2039,6 +2043,34 @@ def phase10_worker_policy_readiness(config: Path | None = typer.Option(None, "--
     report = phase10_worker_policy_readiness_service.build_worker_policy_readiness_report(_load(config))
     if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
     _emit_key_values(report,["component","final_decision","authorization_status","execution_allowed","worker_policy_readiness","blockers","warnings","errors"])
+
+
+@phase10_app.command("session-model-readiness")
+def phase10_session_model_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_session_model_readiness_service.build_session_model_readiness_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    typer.echo(str(report))
+
+
+@phase10_app.command("worker-identity-readiness")
+def phase10_worker_identity_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_worker_identity_readiness_service.build_worker_identity_readiness_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    typer.echo(str(report))
+
+
+@phase10_app.command("worker-policy-contract-readiness")
+def phase10_worker_policy_contract_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_worker_policy_contract_readiness_service.build_worker_policy_contract_readiness_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    typer.echo(str(report))
+
+
+@phase10_app.command("implementation-readiness")
+def phase10_implementation_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    report = phase10_implementation_readiness_service.build_phase10_implementation_readiness_report(_load(config))
+    if output == "json": typer.echo(json.dumps(report, ensure_ascii=False, indent=2)); return
+    typer.echo(str(report))
 
 @phase10_app.command("share-timeline-readiness")
 def phase10_share_timeline_readiness(config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
