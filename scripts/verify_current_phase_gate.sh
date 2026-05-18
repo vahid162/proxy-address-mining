@@ -25,8 +25,8 @@ hostname
 
 section 'PHASE STATUS CONTENT'
 [ -f docs/PHASE_STATUS.md ] || fail 'docs/PHASE_STATUS.md is missing'
-grep -q 'current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show accepted Phase 9 gate'
-grep -q 'current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 10 planning/readiness as current working phase'
+grep -q 'current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show accepted Phase 9 gate'
+grep -q 'current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 10 planning/readiness as current working phase'
 grep -q 'production_traffic: none' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep production_traffic=none'
 grep -q 'firewall_apply_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep firewall apply disabled'
 grep -q 'abuse_automation_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep abuse automation disabled'
@@ -39,8 +39,8 @@ section 'CLI PHASE STATUS + SAFE COMMANDS'
 command -v mpf >/dev/null 2>&1 || fail 'mpf command not found'
 phase_status_output="$(mpf phase-status)"
 printf '%s\n' "$phase_status_output"
-[[ "$phase_status_output" == *'current_accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5'* ]] || fail 'mpf phase-status is not aligned with accepted Phase 9 gate'
-[[ "$phase_status_output" == *'current_working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness'* ]] || fail 'mpf phase-status is not aligned with Phase 10 planning/readiness'
+[[ "$phase_status_output" == *'current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5'* ]] || fail 'mpf phase-status is not aligned with accepted Phase 9 gate'
+[[ "$phase_status_output" == *'current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness'* ]] || fail 'mpf phase-status is not aligned with Phase 10 planning/readiness'
 [[ "$phase_status_output" == *'production_traffic: none'* ]] || fail 'mpf phase-status does not keep production_traffic=none'
 [[ "$phase_status_output" == *'firewall_apply_allowed: no'* ]] || fail 'mpf phase-status does not keep firewall apply disabled'
 [[ "$phase_status_output" == *'abuse_automation_allowed: no'* ]] || fail 'mpf phase-status does not keep abuse automation disabled'
@@ -111,4 +111,4 @@ if command -v ss >/dev/null 2>&1; then
 fi
 
 section 'CURRENT GATE VERDICT'
-echo 'OK: current Phase 9 accepted / Phase 10 planning safety gate passed. Production customer traffic remains disabled.'
+echo 'OK: current Phase 10 accepted / Phase 11 planning safety gate passed. Production customer traffic remains disabled.'

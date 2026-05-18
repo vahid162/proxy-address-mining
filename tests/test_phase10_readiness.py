@@ -17,6 +17,7 @@ from mpf.services.phase10_runtime_worker_dry_run_readiness_service import build_
 from mpf.services.phase10_scheduler_dry_run_readiness_service import build_scheduler_dry_run_readiness_report
 from mpf.services.phase10_worker_cycle_dry_run_plan_service import build_worker_cycle_dry_run_plan_report
 from mpf.services.phase10_final_acceptance_readiness_service import build_phase10_final_acceptance_readiness_report
+from mpf.services.phase10_final_acceptance_service import build_phase10_final_acceptance_report
 
 
 def cfg():
@@ -296,3 +297,52 @@ def test_phase10_final_acceptance_fail_closed_required_readiness_not_accepted(mo
     r = svc.build_phase10_final_acceptance_readiness_report(cfg())
     assert r["final_decision"] == "BLOCKED"
     assert "session_model_readiness_not_accepted" in r["blockers"]
+
+
+def test_phase10_final_acceptance_service_accepted():
+    r = build_phase10_final_acceptance_report(cfg())
+    assert r["component"] == "phase10_final_acceptance"
+    assert r["final_decision"] == "ACCEPTED"
+    assert r["acceptance_status"] == "PHASE10_ACCEPTED"
+    assert r["report_only"] is True
+    assert r["inspection_only"] is True
+    assert r["execution_allowed"] is False
+    assert r["phase10_acceptance_authorized"] is True
+    assert r["phase11_production_activation_authorized"] is False
+    assert r["controlled_cli_canary_authorized"] is False
+    assert r["production_traffic_authorized"] is False
+    assert r["firewall_apply_authorized"] is False
+    assert r["abuse_automation_authorized"] is False
+    assert r["real_worker_runtime_authorized"] is False
+    assert r["scheduler_authorized"] is False
+    assert r["timer_authorized"] is False
+    assert r["collector_authorized"] is False
+    assert r["production_db_execution_authorized"] is False
+    assert r["hard_block_authorized"] is False
+    assert r["soft_block_authorized"] is False
+    assert r["pause_automation_authorized"] is False
+    assert r["customer_mutation_authorized"] is False
+    assert r["ui_authorized"] is False
+    assert r["telegram_authorized"] is False
+    assert r["blockers"] == []
+    assert r["warnings"] == []
+    assert r["errors"] == []
+
+
+def test_phase10_final_acceptance_cli_json_new():
+    out = CliRunner().invoke(app, ["phase10", "final-acceptance", "--config", "configs/mpf.example.yaml", "--output", "json"])
+    assert out.exit_code == 0
+    j = json.loads(out.stdout)
+    assert j["final_decision"] == "ACCEPTED"
+    assert j["phase10_acceptance_authorized"] is True
+    assert j["phase11_production_activation_authorized"] is False
+    assert j["controlled_cli_canary_authorized"] is False
+
+
+def test_phase10_final_acceptance_fail_closed_missing_evidence_doc(tmp_path: Path):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "docs/PHASE_10_FARM5_0_1_135_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
+    r = build_phase10_final_acceptance_report(cfg(), repo_root=tmp_path)
+    assert r["final_decision"] == "BLOCKED"
+

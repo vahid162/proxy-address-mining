@@ -3,8 +3,8 @@ from pathlib import Path
 
 def test_readme_phase_alignment() -> None:
     t = Path("README.md").read_text(encoding="utf-8")
-    assert "accepted_phase: Phase 9 — Check / Report / Diagnostics accepted on farm5" in t
-    assert "working_phase: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness" in t
+    assert "accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in t
+    assert "working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in t
     assert "Latest recorded farm5 sync evidence is 0.1.128" in t
     assert "not production activation" in t
     assert "Current target is Phase 10 planning/readiness" in t
@@ -28,8 +28,8 @@ def test_readme_stale_wording_removed() -> None:
 
 def test_ai_coding_rules_current_gate_and_stale_sections() -> None:
     t = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
-    assert "accepted: Phase 9 — Check / Report / Diagnostics accepted on farm5" in t
-    assert "working: Phase 10 — Session / Worker / Policy / Share Timeline planning/readiness" in t
+    assert "accepted: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in t
+    assert "working: Phase 11 — Production / Customer Activation Gate planning/readiness" in t
     assert "accepted: Phase 7" not in t
     assert "Forbidden in current Phase 8 work:" not in t
     assert "Phase PR bodies must use Why / What / How to test / Version / Risk + Rollback." in t
