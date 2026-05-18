@@ -147,6 +147,8 @@ public backend exposure
 
 Live firewall apply remains forbidden until the Phase 11 production/customer activation gate explicitly accepts a controlled apply path.
 
+Historical compatibility anchor: Slice 3 / Apply Slice 3 and Future Dedicated Phase 6 Apply Gate Proposal/Review are retained as non-authorizing Phase 6 references only; they do not reopen any current gate.
+
 ## 4. Fixed Architecture Decisions
 
 These decisions are frozen for the initial implementation:
