@@ -19,6 +19,7 @@ def test_current_position_single_and_targets() -> None:
     assert "- Current target is Phase 10 planning/readiness." in current
     assert "Phase 10 remains Session / Worker / Policy / Share Timeline" in current
     assert "farm5 0.1.133 sync/test" in current
+    assert "Phase 10F runtime worker/scheduler dry-run readiness" in current
 
 
 def test_current_position_safety_and_non_activation() -> None:
@@ -27,6 +28,8 @@ def test_current_position_safety_and_non_activation() -> None:
     assert "- No production traffic is enabled." in current
     assert "- No firewall apply is enabled." in current
     assert "- No abuse automation runner is enabled." in current
+    assert "- No background worker/scheduler/timer is enabled." in current
+    assert "- No collector daemon is enabled." in current
     assert "- No worker policy enforcement is enabled." in current
     assert "- No customer NAT/customer firewall rules, UI, or Telegram is authorized." in current
     assert "- No production activation is enabled by this PR." in current
@@ -36,12 +39,16 @@ def test_finite_path_backend_first_after_phase10() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "3. Phase 8 Abuse 1h Core — accepted on farm5 in 0.1.123" in t
     assert "4. Phase 9 Check / Report / Diagnostics planning/readiness — accepted" in t
-    assert "7. Phase 10 Session / Worker / Policy / Share Timeline — active backend-readiness work" in t
-    assert "8. Phase 11 Production / Customer Activation Gate" in t
-    assert "9. Phase 12 Worker Policy Enforcement" in t
-    assert "10. Phase 13 Local UI" in t
-    assert "11. Phase 14 Operator UI Actions" in t
-    assert "12. Phase 15 Telegram" in t
+    assert "6. Phase 10A/10B/10C Session / Worker Identity / Worker Policy readiness" in t
+    assert "7. Phase 10D/10E Share Timeline / Collector dry-run readiness" in t
+    assert "8. Phase 10F Runtime Worker / Scheduler dry-run readiness" in t
+    assert "9. Phase 10 final-acceptance-readiness" in t
+    assert "10. Phase 10 final acceptance" in t
+    assert "11. Phase 11 Production / Customer Activation Gate" in t
+    assert "12. Phase 12 Worker Policy Enforcement" in t
+    assert "13. Phase 13 Local UI" in t
+    assert "14. Phase 14 Operator UI Actions" in t
+    assert "15. Phase 15 Telegram" in t
 
 
 def test_backend_first_sequence_is_explicit() -> None:
@@ -63,3 +70,5 @@ def test_no_stale_active_phase7_phase8_or_ui_first_wording_in_current_position()
     assert "Phase 9 final acceptance — current PR" not in current
     assert "Phase 11 Local UI + Buyer Read-only" not in t
     assert "Production / Customer Activation Gate — future, separate, explicit" not in t
+    assert "Next target\n- Phase 10D" not in _read("docs/AI_PHASE_10_TASK.md")
+    assert "Next target\n- Phase 10E" not in _read("docs/AI_PHASE_10_TASK.md")
