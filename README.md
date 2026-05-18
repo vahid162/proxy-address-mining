@@ -37,18 +37,18 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.128. Phase 9 Check / Report / Diagnostics is accepted on farm5 as report/evidence only and is not production activation. Current target is Phase 10 planning/readiness; fresh farm5 0.1.129 sync/test evidence is required after merge before any Phase 10 runtime/worker/scheduler/collector implementation PRs. Production traffic, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Latest recorded farm5 sync evidence is 0.1.136. Phase 10 Session / Worker / Policy / Share Timeline is accepted on farm5. Current target is Phase 11 Production / Customer Activation Gate planning/readiness. Production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, unrestricted production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 
-## Current Accepted/Working Boundary (Phase 9 accepted / Phase 10 planning)
+## Current Accepted/Working Boundary (Phase 10 accepted / Phase 11 planning)
 
-`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 9 / working Phase 10 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 10 / working Phase 11 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
-Current advancement target is Phase 10 planning/readiness after post-merge farm5 0.1.129 sync/test evidence. Historical anchors only: Phase 8 Abuse 1h Core and Phase 9 Check / Report / Diagnostics are completed accepted context and are not active implementation targets.
+Current advancement target is Phase 11 Production / Customer Activation Gate planning/readiness. Historical anchors only: Phase 8 Abuse 1h Core, Phase 9 Check / Report / Diagnostics, and Phase 10 Session / Worker / Policy / Share Timeline are completed accepted context and are not active implementation targets unless `docs/PHASE_STATUS.md` explicitly reopens them.
 
 Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries.
 
-No firewall apply, iptables-restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, worker automation, UI, or Telegram is authorized.
+No production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, customer NAT/customer firewall rules, usage automation, abuse automation, worker automation, UI, or Telegram is authorized.
 
 Historical/reference-only notes from accepted Phase 6 boundaries:
 
@@ -72,6 +72,8 @@ Forbidden now:
 
 ```text
 production traffic
+controlled CLI canary execution
+limited real customer onboarding
 customer NAT redirects
 customer firewall rules
 live firewall apply
@@ -137,7 +139,7 @@ Phase 6 firewall planner accepted on farm5 as planner/reporting/gate-readiness
 Phase 7 usage + policy/reject accounting accepted on farm5 as report-only/service-contract/readiness
 Phase 8 Abuse 1h Core accepted on farm5 as evidence/readiness only
 Phase 9 Check / Report / Diagnostics accepted on farm5 as report-only/final diagnostics
-Phase 10 Session / Worker / Policy / Share Timeline planning/readiness in progress
+Phase 10 Session / Worker / Policy / Share Timeline accepted on farm5
 ```
 
 ## Not Implemented Yet
@@ -162,7 +164,7 @@ production import
 
 ## Project Objective
 
-Build a new MPF control plane that preserves the operational capabilities of the old shell-based setup while replacing the implementation with a testable Python architecture.
+Build a new MPF control plane that preserves the operational capabilities of the old shell-based setup while replacing it with a testable Python architecture.
 
 The target system is:
 
@@ -317,7 +319,7 @@ one-off NAT redirects
 interface-triggered firewall shell commands
 ```
 
-Phase 6-H is accepted. Apply Slice 3 and Apply Slice 4 are server-synced documentation/test-only boundaries. Next planning target is Future Dedicated Phase 6 Apply Gate Proposal/Review. Live apply remains disabled until a dedicated apply gate is explicitly accepted.
+Phase 6-H is accepted as historical documentation/test-only context. Apply Slice 3 and Apply Slice 4 are server-synced documentation/test-only boundaries. Live apply remains disabled until the Phase 11 Production / Customer Activation Gate explicitly accepts a controlled apply path.
 
 ## Backend Port Policy
 
@@ -360,7 +362,7 @@ README.md
 docs/INDEX.md
 docs/PHASE_STATUS.md
 docs/AI_CODING_RULES.md
-docs/AI_PHASE_10_TASK.md
+docs/AI_PHASE_11_TASK.md
 ```
 
 Core contracts:
@@ -382,7 +384,10 @@ Current phase and accepted result contracts:
 
 ```text
 docs/PHASE_STATUS.md
+docs/AI_PHASE_11_TASK.md
+docs/PRODUCTION_ACTIVATION_GATE.md
 docs/AI_PHASE_10_TASK.md
+docs/PHASE_10_FARM5_0_1_136_SYNC_TEST_EVIDENCE.md
 docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md
 docs/PHASE_5_FINAL_ACCEPTANCE.md
 docs/PHASE_4_RUNTIME_ACTIVATION_SERVER_RESULT.md
@@ -408,11 +413,11 @@ Phase 7   — Usage + Policy/Reject Accounting
 Phase 8   — Abuse 1h Core
 Phase 9   — Check / Report / Diagnostics
 Phase 10  — Session / Worker / Policy / Share Timeline
-Phase 11  — Local Web UI Read-only
-Phase 12  — Buyer-safe Read-only Reporting
-Phase 13  — UI Actions With Confirmation
-Phase 14  — Telegram Notifications, Read-only Commands, Restricted Actions
-Phase 15  — Worker Policy Enforcement
+Phase 11  — Production / Customer Activation Gate
+Phase 12  — Worker Policy Enforcement
+Phase 13  — Local UI
+Phase 14  — Operator UI Actions
+Phase 15  — Telegram
 ```
 
 Do not start a later phase until the current phase acceptance gate passes.
@@ -426,7 +431,7 @@ System clock synchronized: no
 NTP service: active
 ```
 
-This warning is not a Phase 6 planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
+This warning is not a Phase 11 documentation/planning blocker, but it must be fixed before production traffic, usage accuracy, hash-rate time-series collection, expiry automation, job automation that depends on reliable time, or abuse automation.
 
 ## Security Guardrails
 
