@@ -1,10 +1,7 @@
 # Changelog
 
-## 0.1.141
-- Align AI-safe Runtime-first documentation reading paths across AGENTS, README, INDEX, AI_CODING_RULES, ROADMAP, and REMAINING_PHASE_PLAN while keeping all production/firewall/canary/runtime/abuse/UI/Telegram gates closed.
-
 ## 0.1.140
-- Define the Phase 11 AI-safe Runtime-first operating principle, clarify the controlled real-customer-sales target for final Phase 11 acceptance, and keep production/firewall/canary/runtime/abuse/UI/Telegram gates closed until explicit evidence-backed acceptance.
+- Add Phase 11A production readiness inventory report and CLI command while keeping production/firewall/canary/customer/abuse/UI/Telegram gates closed.
 
 ## 0.1.139
 - Move historical compatibility anchors out of README into dedicated historical documentation, keep active docs focused on Phase 10 accepted / Phase 11 planning-readiness, and preserve all production/firewall/canary/runtime/abuse/UI/Telegram gates closed.

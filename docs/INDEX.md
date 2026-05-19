@@ -135,6 +135,7 @@ Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`.
 
 Current Phase 11 read-first add-on: `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, `docs/AI_SAFE_RUNTIME_FIRST.md`, `docs/SAFETY.md`, `docs/FIREWALL.md`, `docs/BACKEND_PORT_POLICY.md`, `docs/ABUSE.md`, `docs/DATA_MODEL.md`, and `docs/TAXONOMY.md`.
+Current Phase 11A implementation document: `docs/PHASE_11A_PRODUCTION_READINESS_INVENTORY.md` (report-only, non-authorizing).
 
 Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`, `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`, `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`, and `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (documentation/test-only, non-authorizing).
 

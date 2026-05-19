@@ -101,6 +101,7 @@ from mpf.services import (
     phase10_final_acceptance_readiness_service,
     phase10_final_acceptance_service,
     phase10_enforcement_boundary_service,
+    phase11_production_readiness_service,
 )
 
 app = typer.Typer(
@@ -122,6 +123,7 @@ phase7_app = typer.Typer(help="Phase 7 report-only readiness commands.")
 phase8_app = typer.Typer(help="Phase 8 report-only readiness commands.")
 phase9_app = typer.Typer(help="Phase 9 report-only readiness commands.")
 phase10_app = typer.Typer(help="Phase 10 report-only planning/readiness commands.")
+production_app = typer.Typer(help="Phase 11 production readiness report-only commands.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
@@ -135,6 +137,7 @@ app.add_typer(phase7_app, name="phase7")
 app.add_typer(phase8_app, name="phase8")
 app.add_typer(phase9_app, name="phase9")
 app.add_typer(phase10_app, name="phase10")
+app.add_typer(production_app, name="production")
 
 
 def _config_path(config: Path | None) -> Path:
@@ -1840,6 +1843,25 @@ def phase_status() -> None:
         typer.echo(f"ERROR: {exc}")
         raise typer.Exit(1)
     typer.echo(block)
+
+
+@production_app.command("readiness")
+def production_readiness(output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    """Render Phase 11A production readiness inventory report (report-only, non-authorizing)."""
+    report = phase11_production_readiness_service.build_phase11_production_readiness_report()
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    typer.echo(f"component: {report['component']}")
+    typer.echo(f"final_decision: {report['final_decision']}")
+    typer.echo(f"authorization_status: {report['authorization_status']}")
+    typer.echo(f"execution_allowed: {report['execution_allowed']}")
+    safety_flags = report["safety_flags"]
+    typer.echo(f"production_traffic_authorized: {safety_flags['production_traffic_authorized']}")
+    typer.echo(f"firewall_apply_authorized: {safety_flags['firewall_apply_authorized']}")
+    typer.echo(f"customer_nat_authorized: {safety_flags['customer_nat_authorized']}")
+    typer.echo(f"abuse_automation_authorized: {safety_flags['abuse_automation_authorized']}")
+    typer.echo(f"blockers: {report['blockers']}")
 
 
 @lanes_app.command("sync-config")
