@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.144
+- Record farm5 0.1.143 sync/test evidence for Phase 11A production readiness and Phase 11B canary plan report while keeping production traffic, firewall apply, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.143
 - Add Phase 11B canary plan/report-only service and `mpf production canary-plan --output json` while keeping canary execution, production traffic, firewall apply, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
 
