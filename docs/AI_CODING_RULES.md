@@ -27,6 +27,7 @@ For current Phase 11 production/customer activation planning-readiness work, als
 ```text
 docs/AI_PHASE_11_TASK.md
 docs/PRODUCTION_ACTIVATION_GATE.md
+docs/AI_SAFE_RUNTIME_FIRST.md
 docs/BACKEND_PORT_POLICY.md
 ```
 
@@ -45,6 +46,9 @@ docs/WORKER_POLICY.md
 ```
 
 ## Phase Gate Rule
+
+AI-safe Runtime-first does not override `docs/PHASE_STATUS.md`. It means prefer the shortest safe path to a controlled runtime gate, while preserving fail-closed behavior, operator approval, service-layer boundaries, rollback evidence, and explicit phase authorization.
+
 
 The current phase in `docs/PHASE_STATUS.md` is authoritative.
 

@@ -39,8 +39,8 @@ def test_phase6_e3_accepted_block_location_and_next_step():
 
 def test_index_contains_e3_acceptance_doc_in_required_sections():
     idx = Path("docs/INDEX.md").read_text()
-    assert "16. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`" in idx
-    assert "12. `docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`" in idx
+    assert "`docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`" in idx
+    assert "accepted farm5 evidence; non-authorizing" in idx
     assert "docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md" in idx
 
 

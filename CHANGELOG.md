@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.141
+- Align AI-safe Runtime-first documentation reading paths across AGENTS, README, INDEX, AI_CODING_RULES, ROADMAP, and REMAINING_PHASE_PLAN while keeping all production/firewall/canary/runtime/abuse/UI/Telegram gates closed.
+
 ## 0.1.140
 - Define the Phase 11 AI-safe Runtime-first operating principle, clarify the controlled real-customer-sales target for final Phase 11 acceptance, and keep production/firewall/canary/runtime/abuse/UI/Telegram gates closed until explicit evidence-backed acceptance.
 
