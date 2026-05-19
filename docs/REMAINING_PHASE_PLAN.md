@@ -7,7 +7,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Current Position
 
 - GitHub main repository version before this PR is 0.1.145.
-- Repository version after this PR is 0.1.146.
+- Repository version after this PR is 0.1.147.
 - latest recorded farm5 sync evidence is 0.1.145.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
@@ -147,3 +147,8 @@ Repository version after this PR is 0.1.129. (historical)
 ```
 
 Current roadmap ordering remains the Finite Remaining Path above. These anchors do not reopen Phase 6, Phase 7, Phase 8, firewall apply, production traffic, abuse automation, worker enforcement, UI, or Telegram.
+- Phase 11D manual canary customer acceptance package is implemented in GitHub by this PR.
+- Phase 11D package farm5 evidence is pending.
+- Phase 11D execution remains not authorized.
+- Next target after this PR is farm5 sync/test evidence for Phase 11D package.
+- After that, a separate explicit Phase 11D execution gate may be considered.
