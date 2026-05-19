@@ -610,3 +610,5 @@ Current Phase 11 evidence documents: `docs/PHASE_11_FARM5_0_1_143_SYNC_TEST_EVID
 
 
 Current Phase 11C implementation document: `docs/PHASE_11C_CONTROLLED_ACTIVATION_HARNESS.md` (controlled harness, non-mutating, non-authorizing).
+
+- `docs/PHASE_11D_MANUAL_CANARY_ACCEPTANCE_PACKAGE.md`
