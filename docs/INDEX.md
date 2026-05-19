@@ -605,3 +605,5 @@ Historical compatibility note: previous Current Phase 8 step remains reference-o
 
 
 Current Phase 11B implementation document: `docs/PHASE_11B_CANARY_PLAN_REPORT.md` (report-only, non-authorizing).
+
+Current Phase 11 evidence document: `docs/PHASE_11_FARM5_0_1_143_SYNC_TEST_EVIDENCE.md` (farm5 sync/test evidence for Phase 11A + 11B, report-only, non-authorizing).
