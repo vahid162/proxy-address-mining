@@ -13,7 +13,8 @@ Read these first:
 3. `docs/INDEX.md`
 4. `docs/PHASE_STATUS.md`
 5. `docs/AI_CODING_RULES.md`
-6. `docs/AI_PHASE_8_TASK.md`
+6. `docs/AI_SAFE_RUNTIME_FIRST.md`
+7. `docs/AI_PHASE_8_TASK.md`
 7. `docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md` (non-authorizing, documentation/test-only Phase 6-D1 boundary contract)
 8. `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md` (accepted farm5 evidence; non-authorizing)
 9. `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md` (isolated/non-production harness contracts only; non-authorizing)
@@ -41,7 +42,7 @@ Read these first:
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_11_TASK.md` is active/current for Phase 11 planning/readiness. `docs/PRODUCTION_ACTIVATION_GATE.md` defines the current production/customer activation boundary. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
+`docs/AI_PHASE_11_TASK.md` is active/current for Phase 11 planning/readiness. `docs/PRODUCTION_ACTIVATION_GATE.md` defines the current production/customer activation boundary. `docs/AI_SAFE_RUNTIME_FIRST.md` defines the Phase 11 AI-safe Runtime-first operating principle. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
 This file is the documentation map.
 
 Historical/reference note:
@@ -79,13 +80,13 @@ Current working phase:
 Phase 11 — Production / Customer Activation Gate planning/readiness
 ```
 
-Current active add-on read first: `docs/AI_PHASE_11_TASK.md` and `docs/PRODUCTION_ACTIVATION_GATE.md` (active/current). `docs/AI_PHASE_10_TASK.md` remains accepted Phase 10 context.
+Current active add-on read first: `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` (active/current). `docs/AI_PHASE_10_TASK.md` remains accepted Phase 10 context.
 Phase 6 documents below remain historical/reference/non-authorizing context.
 
 Current Phase 11 step:
 
 ```text
-Phase 11 planning/readiness is report-only, non-runtime, and non-authorizing. docs/PHASE_STATUS.md is authoritative for active phase language.
+Current Phase 11 work remains non-authorizing until explicit accepted gates. Phase 11 now follows AI-safe Runtime-first: move toward real controlled runtime evidence in small accepted steps, while production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation, UI, and Telegram remain closed until their explicit gates.. docs/PHASE_STATUS.md is authoritative for active phase language.
 No production traffic, no controlled CLI canary execution yet, no limited real customer onboarding yet, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no abuse automation runner, no real worker runtime, no scheduler/timer, no collector daemon, no unrestricted production DB execution, no hard/soft block automation, no pause automation, no UI, no Telegram.
 Phase 10 is accepted context only unless docs/PHASE_STATUS.md explicitly reopens it.
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
@@ -132,7 +133,7 @@ Phase 6-G is accepted as controlled live apply gate planning / pre-apply review 
 Future dedicated Phase 6 apply gate remains not accepted and not authorized.
 Reference: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md` and `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`.
 
-Current Phase 11 read-first add-on: `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, `docs/SAFETY.md`, `docs/FIREWALL.md`, `docs/BACKEND_PORT_POLICY.md`, `docs/ABUSE.md`, `docs/DATA_MODEL.md`, and `docs/TAXONOMY.md`.
+Current Phase 11 read-first add-on: `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, `docs/AI_SAFE_RUNTIME_FIRST.md`, `docs/SAFETY.md`, `docs/FIREWALL.md`, `docs/BACKEND_PORT_POLICY.md`, `docs/ABUSE.md`, `docs/DATA_MODEL.md`, and `docs/TAXONOMY.md`.
 
 Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`, `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`, `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`, and `docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md` (documentation/test-only, non-authorizing).
 

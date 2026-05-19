@@ -29,6 +29,7 @@ For the current Phase 11 work, also read:
 ```text
 docs/AI_PHASE_11_TASK.md
 docs/PRODUCTION_ACTIVATION_GATE.md
+docs/AI_SAFE_RUNTIME_FIRST.md
 docs/FIREWALL.md
 docs/BACKEND_PORT_POLICY.md
 docs/ABUSE.md
@@ -55,6 +56,7 @@ service-layer based
 lane-based
 firewall-plan based
 safety-gated
+AI-safe Runtime-first
 future-ready for local UI, buyer UI, Telegram, worker intelligence, and hash-rate/share observability
 ```
 

@@ -44,7 +44,7 @@ Historical compatibility anchors are kept in docs/HISTORICAL_COMPATIBILITY_ANCHO
 
 ## Current Accepted/Working Boundary (Phase 10 accepted / Phase 11 planning)
 
-`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 10 / working Phase 11 planning-readiness with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
+`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 10 / working Phase 11 planning-readiness. `docs/AI_SAFE_RUNTIME_FIRST.md` is part of the current Phase 11 contract reading path and does not open gates by itself with production_traffic=none, firewall_apply_allowed=no, abuse_automation_allowed=no, customer_onboarding_allowed=db_only, proxy_data_plane_allowed=limited_runtime_local_only, ui_allowed=no, telegram_allowed=no, live_snapshot_read_allowed=iptables_save_read_only, and restore_lock_record_execution_allowed=controlled_boundary_only.
 
 Current advancement target is Phase 11 Production / Customer Activation Gate planning/readiness. Historical anchors only: Phase 8 Abuse 1h Core, Phase 9 Check / Report / Diagnostics, and Phase 10 Session / Worker / Policy / Share Timeline are completed accepted context and are not active implementation targets unless `docs/PHASE_STATUS.md` explicitly reopens them.
 
@@ -178,6 +178,7 @@ service-layer based
 lane-based
 firewall-plan based
 safety-gated
+AI-safe Runtime-first
 future-ready for local UI, buyer UI, Telegram, worker intelligence, and hash-rate/share observability
 ```
 

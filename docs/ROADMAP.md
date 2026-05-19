@@ -11,6 +11,8 @@ The roadmap must be followed in order. Do not start a later phase until the curr
 
 ## Current Backend-First Continuation
 
+Phase 11 continuation follows `docs/AI_SAFE_RUNTIME_FIRST.md`.
+
 The project is now backend-first after Phase 10:
 
 ```text
@@ -36,7 +38,7 @@ UI and Telegram must never become the implementation backend. They may call only
 ## Current Phase Alignment Note
 
 Phase 10 is accepted on farm5 as Session / Worker / Policy / Share Timeline evidence/readiness.
-Phase 11 is the current working phase and is planning/readiness only.
+Phase 11 is the current working phase. It remains non-authorizing until explicit accepted gates, but now follows AI-safe Runtime-first to move toward controlled runtime evidence in small accepted steps.
 Phase 11 currently does not authorize production traffic, controlled CLI canary, limited real customer onboarding, customer NAT/customer firewall rules, firewall apply, abuse automation, worker enforcement, UI, or Telegram.
 
 Historical Phase 6 apply-gate material remains reference-only unless a current explicit gate reopens it.
