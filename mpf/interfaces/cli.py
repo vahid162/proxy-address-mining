@@ -106,6 +106,7 @@ from mpf.services import (
     phase11_canary_plan_service,
     phase11_controlled_activation_harness_service,
     phase11_manual_canary_acceptance_service,
+    phase11_manual_canary_execution_gate_service,
 )
 
 app = typer.Typer(
@@ -1998,6 +1999,43 @@ def production_canary_acceptance(
     typer.echo(f"authorization_status: {report['authorization_status']}")
     typer.echo(f"execution_allowed: {report['execution_allowed']}")
     typer.echo(f"acceptance_package_mode: {report['acceptance_package_mode']}")
+    typer.echo(f"mutation_performed: {report['mutation_performed']}")
+    typer.echo(f"blockers: {report['blockers']}")
+    typer.echo(f"validation_errors: {report['validation_errors']}")
+
+
+@production_app.command("canary-execution-gate")
+def production_canary_execution_gate(
+    lane: str = typer.Option("btc", "--lane"),
+    customer_key: str | None = typer.Option("canary-btc-001", "--customer-key"),
+    name: str | None = typer.Option("Phase 11 manual canary execution", "--name"),
+    port: int | None = typer.Option(20001, "--port"),
+    miners: int = typer.Option(1, "--miners"),
+    farms: int = typer.Option(1, "--farms"),
+    maxconn: int = typer.Option(1, "--maxconn"),
+    rate_per_min: int = typer.Option(120, "--rate-per-min"),
+    burst: int = typer.Option(240, "--burst"),
+    ips_mode: str = typer.Option("any", "--ips-mode"),
+    ip_whitelist: list[str] = typer.Option([], "--ip"),
+    operator: str | None = typer.Option(None, "--operator"),
+    reason: str | None = typer.Option(None, "--reason"),
+    requested_action: str = typer.Option("gate", "--requested-action"),
+    require_operator_confirmation: bool = typer.Option(True, "--require-operator-confirmation/--no-require-operator-confirmation"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    request = production_domain.ManualCanaryExecutionGateRequest(
+        customer_key=customer_key, lane=lane, port=port, name=name, miners=miners, farms=farms, maxconn=maxconn,
+        rate_per_min=rate_per_min, burst=burst, ips_mode=ips_mode, ip_whitelist=ip_whitelist, operator=operator, reason=reason,
+        requested_action=requested_action, require_operator_confirmation=require_operator_confirmation,
+    )
+    report = phase11_manual_canary_execution_gate_service.build_phase11_manual_canary_execution_gate_report(request)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    typer.echo(f"component: {report['component']}")
+    typer.echo(f"final_decision: {report['final_decision']}")
+    typer.echo(f"authorization_status: {report['authorization_status']}")
+    typer.echo(f"execution_allowed: {report['execution_allowed']}")
     typer.echo(f"mutation_performed: {report['mutation_performed']}")
     typer.echo(f"blockers: {report['blockers']}")
     typer.echo(f"validation_errors: {report['validation_errors']}")
