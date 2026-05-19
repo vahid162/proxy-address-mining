@@ -62,3 +62,48 @@ class CanaryPlanRequest:
             errors.append("reason must be non-empty when provided")
 
         return errors
+
+
+ALLOWED_CONTROLLED_HARNESS_ACTIONS = {"preflight", "package", "apply"}
+
+
+@dataclass(slots=True)
+class ControlledActivationHarnessRequest:
+    customer_key: str | None = "canary-btc-001"
+    lane: str = "btc"
+    port: int | None = 20001
+    name: str | None = "Phase 11 controlled canary"
+    miners: int = 1
+    farms: int = 1
+    maxconn: int = 1
+    rate_per_min: int = 120
+    burst: int = 240
+    ips_mode: str = "any"
+    ip_whitelist: list[str] = field(default_factory=list)
+    operator: str | None = None
+    reason: str | None = None
+    requested_action: str = "preflight"
+    dry_run: bool = True
+    require_operator_confirmation: bool = True
+
+    def validate(self) -> list[str]:
+        errors = CanaryPlanRequest(
+            customer_key=self.customer_key,
+            lane=self.lane,
+            port=self.port,
+            name=self.name,
+            miners=self.miners,
+            farms=self.farms,
+            maxconn=self.maxconn,
+            rate_per_min=self.rate_per_min,
+            burst=self.burst,
+            ips_mode=self.ips_mode,
+            ip_whitelist=self.ip_whitelist,
+            operator=self.operator,
+            reason=self.reason,
+        ).validate()
+
+        if self.requested_action not in ALLOWED_CONTROLLED_HARNESS_ACTIONS:
+            errors.append("requested_action must be preflight, package, or apply")
+
+        return errors
