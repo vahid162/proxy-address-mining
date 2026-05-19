@@ -37,7 +37,7 @@ BTC backend: 127.0.0.1:60010 -> forwarder -> v2rayA -> pool
 ```
 
 Do not use this repository for production customer traffic yet.
-Latest recorded farm5 sync evidence is 0.1.147. Phase 11D manual canary acceptance package farm5 evidence is recorded. Phase 11D execution remains not authorized. Phase 10 Session / Worker / Policy / Share Timeline is accepted on farm5. Current target is Phase 11 Production / Customer Activation Gate planning/readiness. Production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, unrestricted production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
+Latest recorded farm5 sync evidence is 0.1.147. Phase 11D manual canary acceptance package farm5 evidence is recorded. Phase 11D manual canary execution gate package is implemented on GitHub as non-authorizing and requires post-merge farm5 sync/test evidence. Phase 11D execution remains not authorized. Phase 10 Session / Worker / Policy / Share Timeline is accepted on farm5. Current target is Phase 11 Production / Customer Activation Gate planning/readiness. Production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation runner, customer NAT/customer firewall rules, unrestricted production DB execution, hard/soft block automation, pause automation, UI, and Telegram remain disabled.
 
 Historical compatibility anchors are kept in docs/HISTORICAL_COMPATIBILITY_ANCHORS.md.
 

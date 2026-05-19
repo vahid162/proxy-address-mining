@@ -42,7 +42,7 @@ def test_readme_phase_status_and_plan_alignment_for_0_1_147() -> None:
     assert "Phase 11D execution not authorized." in status
 
     assert "latest recorded farm5 sync evidence is 0.1.147." in plan
-    assert "next target is a separate explicit Phase 11D execution gate package." in plan
-    assert "Phase 11D execution gate is not implemented or authorized by this PR." in plan
+    assert "next target after this PR is farm5 sync/test evidence for Phase 11D execution gate package." in plan
+    assert "Phase 11D execution gate is implemented as non-authorizing in this PR." in plan
     assert "Current accepted phase is Phase 10." in plan
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in plan
