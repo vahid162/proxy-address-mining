@@ -3,6 +3,9 @@
 ## 0.1.149
 - Add the Phase 11D manual canary execution gate package and `mpf production canary-execution-gate --output json` while keeping actual canary execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
 
+## 0.1.148
+- Record farm5 0.1.147 sync/test evidence for Phase 11D manual canary acceptance package while keeping Phase 11D execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.147
 - Add Phase 11D manual canary customer acceptance package, evidence requirements, execution boundary, and `mpf production canary-acceptance --output json` while keeping manual canary execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
 
@@ -181,7 +184,7 @@
 - Record farm5 0.1.86 sync evidence for Slice 3 and Slice 4 documentation/test-only boundaries and align next planning target.
 
 ## 0.1.86 - 2026-05-13
-- Add concise Apply Slice 4 manual canary apply gate proposal contract and index Slice 4 documentation without introducing live behavior.
+- Add concise Apply Slice 4 manual canary apply gate proposal contract and index Slice 4 documentation, without introducing live behavior.
 
 ## 0.1.85 - 2026-05-13
 - Add concise Apply Slice 3 controlled no-customer harness contract, index Slice 3 documentation, and preserve closed gates and abuse 1h invariant.
