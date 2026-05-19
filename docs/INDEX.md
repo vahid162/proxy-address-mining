@@ -602,3 +602,6 @@ Historical compatibility anchor: runtime/worker integration readiness package.
 
 
 Historical compatibility note: previous Current Phase 8 step remains reference-only and non-authorizing in Phase 11.
+
+
+Current Phase 11B implementation document: `docs/PHASE_11B_CANARY_PLAN_REPORT.md` (report-only, non-authorizing).
