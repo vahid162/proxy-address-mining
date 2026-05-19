@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.146
+- Record farm5 0.1.145 sync/test evidence for Phase 11C controlled activation harness while keeping production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.145
 - Add Phase 11C controlled activation harness, preflight, activation package, execution boundary, and `mpf production activation-harness --output json` while keeping production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
 
