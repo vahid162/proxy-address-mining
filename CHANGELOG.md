@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.142
+- Add Phase 11A production readiness inventory report and `mpf production readiness --output json` while keeping production/firewall/canary/customer/abuse/UI/Telegram gates closed.
+
+## 0.1.141
+- Align AI-safe Runtime-first documentation reading paths across AGENTS, README, INDEX, AI_CODING_RULES, ROADMAP, and REMAINING_PHASE_PLAN while keeping all production/firewall/canary/runtime/abuse/UI/Telegram gates closed.
+
 ## 0.1.140
 - Add Phase 11A production readiness inventory report and CLI command while keeping production/firewall/canary/customer/abuse/UI/Telegram gates closed.
 
