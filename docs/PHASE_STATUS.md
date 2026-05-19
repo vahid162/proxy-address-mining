@@ -41,6 +41,17 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 ## Accepted Server Results
 
+### Phase 11 farm5 0.1.147 Sync/Test Evidence
+
+- Phase 11D manual canary customer acceptance package evidence recorded (`docs/PHASE_11_FARM5_0_1_147_SYNC_TEST_EVIDENCE.md`).
+- Phase 11D execution not authorized.
+- production_traffic: none
+- firewall_apply_allowed: no
+- customer_onboarding_allowed: db_only
+- abuse_automation_allowed: no
+- ui_allowed: no
+- telegram_allowed: no
+
 
 ### Phase 10 farm5 0.1.128 Sync/Test Evidence
 

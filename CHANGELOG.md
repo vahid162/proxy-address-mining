@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.148
+- Record farm5 0.1.147 sync/test evidence for Phase 11D manual canary acceptance package while keeping Phase 11D execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.147
 - Add Phase 11D manual canary customer acceptance package, evidence requirements, execution boundary, and `mpf production canary-acceptance --output json` while keeping manual canary execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
 
