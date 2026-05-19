@@ -39,7 +39,7 @@ def test_activation_package_and_blockers_present() -> None:
     assert "production traffic remains none" in blockers
 
 
-def test_apply_and_no_dry_run_are_blocked() -> None:
+def test_apply_no_dry_run_and_no_confirmation_are_blocked() -> None:
     r_apply = phase11_controlled_activation_harness_service.build_phase11_controlled_activation_harness_report(ControlledActivationHarnessRequest(requested_action="apply"))
     assert r_apply["final_decision"] == "BLOCKED"
     assert r_apply["execution_boundary"]["requested_apply_blocked"] is True
@@ -47,6 +47,12 @@ def test_apply_and_no_dry_run_are_blocked() -> None:
     r_no_dry = phase11_controlled_activation_harness_service.build_phase11_controlled_activation_harness_report(ControlledActivationHarnessRequest(dry_run=False))
     assert r_no_dry["final_decision"] == "BLOCKED"
     assert r_no_dry["execution_boundary"]["no_dry_run_blocked"] is True
+
+    r_no_confirmation = phase11_controlled_activation_harness_service.build_phase11_controlled_activation_harness_report(ControlledActivationHarnessRequest(require_operator_confirmation=False))
+    assert r_no_confirmation["final_decision"] == "BLOCKED"
+    assert r_no_confirmation["execution_allowed"] is False
+    assert r_no_confirmation["mutation_performed"] is False
+    assert "operator confirmation remains required before any controlled activation step" in r_no_confirmation["validation_errors"]
 
 
 def test_cli_json_valid_and_calls_service_layer(monkeypatch) -> None:
