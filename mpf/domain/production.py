@@ -39,7 +39,7 @@ class CanaryPlanRequest:
         for key in ("miners", "farms", "maxconn", "rate_per_min", "burst"):
             value = getattr(self, key)
             if value <= 0:
-                errors.append(f"{ey} must be positive")
+                errors.append(f"{key} must be positive")
 
         if self.maxconn < self.miners:
             errors.append("maxconn must be >= miners")
