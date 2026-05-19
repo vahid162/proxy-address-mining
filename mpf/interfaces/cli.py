@@ -12,6 +12,7 @@ from mpf.db import write_local_peer_root_guard_message
 from mpf.domain.customer_lifecycle import CustomerLifecycleInput
 from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, CustomerDisableRequest, CustomerPolicyInput, CustomerRenewRequest, CustomerSetIpsRequest, CustomerUpdateRequest
 from mpf.domain.health import HealthReport
+from mpf.domain import production as production_domain
 from mpf.services import (
     phase8_controlled_worker_dry_run_gate_service,
     firewall_apply_gate_readiness_service,
@@ -102,6 +103,7 @@ from mpf.services import (
     phase10_final_acceptance_service,
     phase10_enforcement_boundary_service,
     phase11_production_readiness_service,
+    phase11_canary_plan_service,
 )
 
 app = typer.Typer(
@@ -1863,6 +1865,44 @@ def production_readiness(output: Literal["human", "json"] = typer.Option("human"
     typer.echo(f"abuse_automation_authorized: {safety_flags['abuse_automation_authorized']}")
     typer.echo(f"blockers: {report['blockers']}")
 
+
+
+
+@production_app.command("canary-plan")
+def production_canary_plan(
+    lane: str = typer.Option("btc", "--lane"),
+    customer_key: str | None = typer.Option("canary-btc-001", "--customer-key"),
+    name: str | None = typer.Option("Phase 11 canary", "--name"),
+    port: int | None = typer.Option(20001, "--port"),
+    miners: int = typer.Option(1, "--miners"),
+    farms: int = typer.Option(1, "--farms"),
+    maxconn: int = typer.Option(1, "--maxconn"),
+    rate_per_min: int = typer.Option(120, "--rate-per-min"),
+    burst: int = typer.Option(240, "--burst"),
+    ips_mode: str = typer.Option("any", "--ips-mode"),
+    ip_whitelist: list[str] = typer.Option([], "--ip"),
+    operator: str | None = typer.Option(None, "--operator"),
+    reason: str | None = typer.Option(None, "--reason"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    """Render Phase 11B canary plan report (report-only, non-authorizing)."""
+    request = production_domain.CanaryPlanRequest(
+        customer_key=customer_key, lane=lane, port=port, name=name,
+        miners=miners, farms=farms, maxconn=maxconn, rate_per_min=rate_per_min, burst=burst,
+        ips_mode=ips_mode, ip_whitelist=ip_whitelist, operator=operator, reason=reason,
+    )
+    report = phase11_canary_plan_service.build_phase11_canary_plan_report(request)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    typer.echo(f"component: {report['component']}")
+    typer.echo(f"final_decision: {report['final_decision']}")
+    typer.echo(f"authorization_status: {report['authorization_status']}")
+    typer.echo(f"execution_allowed: {report['execution_allowed']}")
+    typer.echo(f"report_only: {report['report_only']}")
+    typer.echo(f"mutation_performed: {report['mutation_performed']}")
+    typer.echo(f"blockers: {report['blockers']}")
+    typer.echo(f"validation_errors: {report['validation_errors']}")
 
 @lanes_app.command("sync-config")
 def lanes_sync_config(config: Path | None = typer.Option(None, "--config", "-c", help="Path to mpf.yaml."), yes: bool = typer.Option(False, "--yes", help="Apply DB writes (default is dry-run).")) -> None:

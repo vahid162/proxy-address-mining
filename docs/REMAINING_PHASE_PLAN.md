@@ -6,8 +6,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.141.
-- Repository version after this PR is 0.1.142.
+- GitHub main repository version before this PR is 0.1.142.
+- Repository version after this PR is 0.1.143.
 - latest recorded farm5 sync evidence is 0.1.136.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
@@ -18,10 +18,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
 - Phase 11 now follows AI-safe Runtime-first, while all current production/firewall/canary/runtime/abuse/UI/Telegram gates remain closed until explicit accepted evidence.
 - Phase 11A production readiness inventory is implemented in report-only/non-authorizing mode.
-- Next target is farm5 sync/test evidence for Phase 11A, then Phase 11B canary plan/report only.
+- Phase 11A is implemented in GitHub, farm5 evidence pending unless already recorded.
+- Phase 11B canary plan/report is implemented in GitHub by this PR.
+- Phase 11B remains non-authorizing until farm5 evidence is collected.
+- Next target after this PR is farm5 sync/test evidence for Phase 11A + 11B, then Phase 11C controlled activation harness.
 - Controlled CLI canary is not authorized by this PR.
 - Production activation is not enabled by this PR.
-- This PR only adds Phase 11A report-only readiness inventory and keeps all runtime gates closed.
+- This PR adds Phase 11B canary plan/report-only surfaces and keeps all runtime gates closed.
 
 ## Finite Remaining Path
 

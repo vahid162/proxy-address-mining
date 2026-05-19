@@ -8,18 +8,21 @@ def _read(p: str) -> str:
 def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- GitHub main repository version before this PR is 0.1.141." in current
-    assert "- Repository version after this PR is 0.1.142." in current
+    assert "- GitHub main repository version before this PR is 0.1.142." in current
+    assert "- Repository version after this PR is 0.1.143." in current
     assert "- latest recorded farm5 sync evidence is 0.1.136." in current
     assert "- Phase 10 final-acceptance-readiness is done." in current
     assert "- Phase 10 final acceptance is done." in current
     assert "- Current accepted phase is Phase 10." in current
     assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
     assert "- Phase 11A production readiness inventory is implemented in report-only/non-authorizing mode." in current
-    assert "- Next target is farm5 sync/test evidence for Phase 11A, then Phase 11B canary plan/report only." in current
+    assert "- Phase 11A is implemented in GitHub, farm5 evidence pending unless already recorded." in current
+    assert "- Phase 11B canary plan/report is implemented in GitHub by this PR." in current
+    assert "- Phase 11B remains non-authorizing until farm5 evidence is collected." in current
+    assert "- Next target after this PR is farm5 sync/test evidence for Phase 11A + 11B, then Phase 11C controlled activation harness." in current
     assert "- Controlled CLI canary is not authorized by this PR." in current
     assert "- Production activation is not enabled by this PR." in current
-    assert "- This PR only adds Phase 11A report-only readiness inventory and keeps all runtime gates closed." in current
+    assert "- This PR adds Phase 11B canary plan/report-only surfaces and keeps all runtime gates closed." in current
 
 
 def test_finite_path_updates() -> None:

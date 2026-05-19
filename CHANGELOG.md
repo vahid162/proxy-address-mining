@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.143
+- Add Phase 11B canary plan/report-only service and `mpf production canary-plan --output json` while keeping canary execution, production traffic, firewall apply, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.142
 - Add Phase 11A production readiness inventory report and `mpf production readiness --output json` while keeping production/firewall/canary/customer/abuse/UI/Telegram gates closed.
 
