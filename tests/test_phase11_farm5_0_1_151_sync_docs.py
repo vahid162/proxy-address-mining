@@ -22,17 +22,17 @@ def test_readme_plan_phase_status_align_0_1_151() -> None:
 
     assert "Latest recorded farm5 sync evidence is 0.1.151." in readme
     assert "Phase 11D operator-reviewed manual canary execution run preparation package farm5 evidence is recorded." in readme
-    assert "Phase 11D actual execution remains not authorized." in readme
+    assert "Phase 11D actual execution remains not authorized as accepted farm5 evidence." in readme
 
     assert "latest recorded farm5 sync evidence is 0.1.151." in plan
-    assert "next target after this PR: actual operator-approved manual canary execution run package." in plan
+    assert "Next target: farm5 sync/test evidence for actual operator-approved manual canary execution run package." in plan
     assert "Current accepted phase is Phase 10." in plan
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in plan
     assert "Phase 11 is accepted" not in plan
     assert "production traffic remains none." in plan
-    assert "firewall apply remains no." in plan
+    assert "firewall apply remains no" in plan
     assert "abuse automation remains no." in plan
-    assert "customer onboarding remains db_only." in plan
+    assert "customer onboarding remains db_only" in plan
     assert "UI remains no." in plan
     assert "Telegram remains no." in plan
 
