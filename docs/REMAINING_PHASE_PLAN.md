@@ -6,9 +6,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.150.
-- Repository version after this PR is 0.1.151.
-- latest recorded farm5 sync evidence is 0.1.149.
+- GitHub main repository version before this PR is 0.1.151.
+- Repository version after this PR is 0.1.152.
+- latest recorded farm5 sync evidence is 0.1.151.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
 - Phase 10F runtime worker/scheduler dry-run readiness is done.
@@ -25,14 +25,12 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11C remains non-authorizing; evidence recorded does not authorize runtime execution.
 - Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded.
 - Phase 11D package farm5 evidence is recorded.
-- Phase 11D execution remains not authorized.
 - Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
-- Phase 11D operator-reviewed manual canary execution run preparation package is implemented in GitHub by this PR.
-- farm5 evidence for this preparation package is pending.
+- Phase 11D operator-reviewed manual canary execution run preparation package is implemented and farm5 evidence is recorded.
 - Phase 11D actual execution remains not authorized.
 - actual canary execution is not implemented or authorized by this PR.
-- next target after this PR: farm5 sync/test evidence for the operator-reviewed manual canary execution run preparation package.
-- after that: actual operator-approved manual canary execution run may be considered.
+- next target after this PR: actual operator-approved manual canary execution run package.
+- after that: farm5 manual canary execution evidence may be collected if the operator-approved execution package is accepted.
 - server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.
 - production traffic remains none.
 - firewall apply remains no.
