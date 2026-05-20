@@ -396,7 +396,7 @@ class ManualCanaryExecutionRunRequest:
     require_conntrack_scope_review: bool = True
     require_post_execution_evidence_collection: bool = True
 
-    def validate(self, expected_repo_version: str = "0.1.153") -> list[str]:
+    def validate(self, expected_repo_version: str | None = None) -> list[str]:
         errors = CanaryPlanRequest(customer_key=self.customer_key,lane=self.lane,port=self.port,name=self.name,miners=self.miners,farms=self.farms,maxconn=self.maxconn,rate_per_min=self.rate_per_min,burst=self.burst,ips_mode=self.ips_mode,ip_whitelist=self.ip_whitelist,operator=self.operator,reason=self.reason).validate()
         if self.requested_action not in ALLOWED_MANUAL_CANARY_EXECUTION_RUN_ACTIONS:
             errors.append("requested_action must be plan or execute")
@@ -424,7 +424,9 @@ class ManualCanaryExecutionRunRequest:
             if not self.understand_firewall_apply: errors.append("understand_firewall_apply must be true for execute")
             if not self.reviewed_rollback: errors.append("reviewed_rollback must be true for execute")
             if not self.fresh_farm5_sync_confirmed: errors.append("fresh_farm5_sync_confirmed must be true for execute")
-            if self.expected_version != expected_repo_version: errors.append(f"expected_version must be {expected_repo_version} for execute")
+            if not expected_repo_version:
+                errors.append("expected_repo_version is required for execute validation")
+            elif self.expected_version != expected_repo_version: errors.append(f"expected_version must be {expected_repo_version} for execute")
         return errors
 
     def as_dict(self) -> dict[str, object]:
