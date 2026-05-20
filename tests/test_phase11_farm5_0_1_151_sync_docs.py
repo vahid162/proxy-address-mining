@@ -1,5 +1,7 @@
 from pathlib import Path
 
+NEXT_TARGET = "Next target: implement the accepted single-canary host apply primitive (`accepted_single_canary_host_apply_primitive`), then sync latest main to farm5 and run one explicit operator-approved single-canary execution."
+
 
 def test_phase11_farm5_0_1_151_evidence_doc_required_tokens() -> None:
     t = Path("docs/PHASE_11_FARM5_0_1_151_SYNC_TEST_EVIDENCE.md").read_text(encoding="utf-8")
@@ -25,7 +27,7 @@ def test_readme_plan_phase_status_align_0_1_151() -> None:
     assert "Actual canary execution has not been performed or accepted." in readme
 
     assert "latest recorded farm5 sync evidence is 0.1.153." in plan
-    assert "Next target: implement the missing accepted single-canary firewall apply adapter (`missing_real_firewall_apply_adapter`) so the explicit operator-approved canary execution can complete via service-layer boundaries." in plan
+    assert NEXT_TARGET in plan
     assert "Current accepted phase is Phase 10." in plan
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in plan
     assert "Phase 11 is accepted" not in plan

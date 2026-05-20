@@ -13,17 +13,17 @@ def test_docs_and_readme_updates() -> None:
     assert 'Actual canary execution has not been performed or accepted.' in r
 
     rp = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')
-    assert 'GitHub main repository version before this PR is 0.1.155.' in rp
-    assert 'Repository version after this PR is 0.1.156.' in rp
+    assert 'GitHub main repository version before this PR is 0.1.156.' in rp
+    assert 'Repository version after this PR is 0.1.157.' in rp
     assert 'Latest recorded farm5 sync evidence' not in rp
     assert 'latest recorded farm5 sync evidence is 0.1.153.' in rp
     assert 'Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded.' in rp
     assert 'Actual farm5 canary execution has not been run by this PR.' in rp
-    assert 'Next target: implement the missing accepted single-canary firewall apply adapter (`missing_real_firewall_apply_adapter`) so the explicit operator-approved canary execution can complete via service-layer boundaries.' in rp
+    assert 'Next target: implement the accepted single-canary host apply primitive (`accepted_single_canary_host_apply_primitive`), then sync latest main to farm5 and run one explicit operator-approved single-canary execution.' in rp
     assert 'Phase 11 remains not accepted.' in rp
 
 
 def test_runbook_exists_with_exact_command() -> None:
-    rb = Path("docs/PHASE_11D_FARM5_MANUAL_CANARY_EXECUTION_RUNBOOK.md").read_text(encoding="utf-8")
-    assert "--expected-version 0.1.156" in rb
-    assert "manual-canary-execute" in rb
+    rb = Path('docs/PHASE_11D_FARM5_MANUAL_CANARY_EXECUTION_RUNBOOK.md').read_text(encoding='utf-8')
+    assert '--expected-version 0.1.157' in rb
+    assert 'manual-canary-execute' in rb

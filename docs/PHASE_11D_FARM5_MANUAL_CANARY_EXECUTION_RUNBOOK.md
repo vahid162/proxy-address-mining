@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.156`.
+- Confirm version is `0.1.157`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -26,7 +26,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.156 \
+  --expected-version 0.1.157 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -58,5 +58,5 @@ mpf production manual-canary-execute \
 
 ## Phase 11E adapter wiring note
 - Execute mode is now wired to production service-layer adapters.
-- Actual execution remains BLOCKED until `missing_real_firewall_apply_adapter` is implemented through an accepted service-layer apply boundary.
+- Actual execution remains BLOCKED until `unsafe_firewall_apply_boundary (missing accepted_single_canary_host_apply_primitive)` is implemented through an accepted service-layer apply boundary.
 - Do **not** run real customer onboarding.

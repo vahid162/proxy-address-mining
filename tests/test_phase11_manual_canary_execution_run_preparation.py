@@ -61,7 +61,7 @@ def test_docs_and_plan_alignment() -> None:
 
     rem = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     assert "latest recorded farm5 sync evidence is 0.1.153" in rem
-    assert "Next target: implement the missing accepted single-canary firewall apply adapter (`missing_real_firewall_apply_adapter`) so the explicit operator-approved canary execution can complete via service-layer boundaries." in rem
+    assert "Next target: sync latest main to farm5, run explicit operator-approved single-canary execution once, and collect evidence; if execution blocks, implement the exact missing primitive reported as `accepted_single_canary_host_apply_primitive`." in rem
     assert "Current accepted phase is Phase 10." in rem
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in rem
     assert "Phase 11 is accepted" not in rem
