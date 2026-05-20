@@ -345,3 +345,89 @@ class ManualCanaryExecutionRunPreparationRequest:
         return {k: getattr(self, k) for k in (
             "customer_key","lane","port","name","miners","farms","maxconn","rate_per_min","burst","ips_mode","ip_whitelist","operator","reason","requested_action","require_operator_confirmation","require_farm5_0_1_149_evidence","require_execution_gate_evidence","require_latest_main_sync_before_execution","require_phase_gate_pass","require_mpf_doctor_ok","require_db_status_ok","require_proxy_doctor_ok","require_no_customer_nat_baseline","require_no_customer_firewall_baseline","require_local_only_runtime_baseline","require_firewall_plan_review","require_firewall_diff_review","require_restore_point_before_apply","require_iptables_save_backup_before_apply","require_lock_before_apply","require_verify_after_apply","require_rollback_plan","require_usage_visibility_check","require_reject_visibility_check","require_session_worker_visibility_check","require_abuse_1h_coverage_check","require_conntrack_scope_review","require_post_execution_evidence_collection",
         )}
+
+
+ALLOWED_MANUAL_CANARY_EXECUTION_RUN_ACTIONS = {"plan", "execute"}
+
+
+@dataclass(slots=True)
+class ManualCanaryExecutionRunRequest:
+    customer_key: str | None = "canary-btc-001"
+    lane: str = "btc"
+    port: int | None = 20001
+    name: str | None = "Phase 11 manual canary execution"
+    miners: int = 1
+    farms: int = 1
+    maxconn: int = 1
+    rate_per_min: int = 120
+    burst: int = 240
+    ips_mode: str = "any"
+    ip_whitelist: list[str] = field(default_factory=list)
+    operator: str | None = None
+    reason: str | None = None
+    requested_action: str = "plan"
+    expected_version: str | None = None
+    operator_confirmed: bool = False
+    understand_canary_customer: bool = False
+    understand_firewall_apply: bool = False
+    reviewed_rollback: bool = False
+    fresh_farm5_sync_confirmed: bool = False
+    require_farm5_0_1_151_evidence: bool = True
+    require_run_preparation_evidence: bool = True
+    require_latest_main_sync_before_execution: bool = True
+    require_phase_gate_pass: bool = True
+    require_mpf_doctor_ok: bool = True
+    require_db_status_ok: bool = True
+    require_proxy_doctor_ok: bool = True
+    require_no_customer_nat_baseline: bool = True
+    require_no_customer_firewall_baseline: bool = True
+    require_local_only_runtime_baseline: bool = True
+    require_firewall_plan_review: bool = True
+    require_firewall_diff_review: bool = True
+    require_restore_point_before_apply: bool = True
+    require_iptables_save_backup_before_apply: bool = True
+    require_lock_before_apply: bool = True
+    require_verify_after_apply: bool = True
+    require_rollback_plan: bool = True
+    require_usage_visibility_check: bool = True
+    require_reject_visibility_check: bool = True
+    require_session_worker_visibility_check: bool = True
+    require_abuse_1h_coverage_check: bool = True
+    require_conntrack_scope_review: bool = True
+    require_post_execution_evidence_collection: bool = True
+
+    def validate(self, expected_repo_version: str = "0.1.153") -> list[str]:
+        errors = CanaryPlanRequest(customer_key=self.customer_key,lane=self.lane,port=self.port,name=self.name,miners=self.miners,farms=self.farms,maxconn=self.maxconn,rate_per_min=self.rate_per_min,burst=self.burst,ips_mode=self.ips_mode,ip_whitelist=self.ip_whitelist,operator=self.operator,reason=self.reason).validate()
+        if self.requested_action not in ALLOWED_MANUAL_CANARY_EXECUTION_RUN_ACTIONS:
+            errors.append("requested_action must be plan or execute")
+        if self.lane != "btc":
+            errors.append("lane must be btc for first real canary")
+        if self.port != 20001:
+            errors.append("port must be 20001 for first real canary")
+        if self.customer_key != "canary-btc-001":
+            errors.append("customer_key must be canary-btc-001 for first real canary")
+        if self.miners < 1 or self.farms < 1 or self.maxconn < 1:
+            errors.append("miners/farms/maxconn must be >= 1")
+        if self.maxconn > self.miners and not (self.reason and self.reason.strip()):
+            errors.append("maxconn greater than miners requires a clear reason")
+        if self.ips_mode not in ALLOWED_IPS_MODE:
+            errors.append("ips_mode must be any or whitelist")
+        if self.ips_mode == "whitelist" and not self.ip_whitelist:
+            errors.append("ip_whitelist must be non-empty when ips_mode=whitelist")
+        reqs=("require_farm5_0_1_151_evidence","require_run_preparation_evidence","require_latest_main_sync_before_execution","require_phase_gate_pass","require_mpf_doctor_ok","require_db_status_ok","require_proxy_doctor_ok","require_no_customer_nat_baseline","require_no_customer_firewall_baseline","require_local_only_runtime_baseline","require_firewall_plan_review","require_firewall_diff_review","require_restore_point_before_apply","require_iptables_save_backup_before_apply","require_lock_before_apply","require_verify_after_apply","require_rollback_plan","require_usage_visibility_check","require_reject_visibility_check","require_session_worker_visibility_check","require_abuse_1h_coverage_check","require_conntrack_scope_review","require_post_execution_evidence_collection")
+        for name in reqs:
+            if not getattr(self,name):
+                errors.append(f"{name} must stay true")
+        if self.requested_action=="execute":
+            if not self.operator_confirmed: errors.append("operator_confirmed must be true for execute")
+            if not self.understand_canary_customer: errors.append("understand_canary_customer must be true for execute")
+            if not self.understand_firewall_apply: errors.append("understand_firewall_apply must be true for execute")
+            if not self.reviewed_rollback: errors.append("reviewed_rollback must be true for execute")
+            if not self.fresh_farm5_sync_confirmed: errors.append("fresh_farm5_sync_confirmed must be true for execute")
+            if self.expected_version != expected_repo_version: errors.append(f"expected_version must be {expected_repo_version} for execute")
+        return errors
+
+    def as_dict(self) -> dict[str, object]:
+        return {k: getattr(self, k) for k in (
+            "customer_key","lane","port","name","miners","farms","maxconn","rate_per_min","burst","ips_mode","ip_whitelist","operator","reason","requested_action","expected_version","operator_confirmed","understand_canary_customer","understand_firewall_apply","reviewed_rollback","fresh_farm5_sync_confirmed","require_farm5_0_1_151_evidence","require_run_preparation_evidence","require_latest_main_sync_before_execution","require_phase_gate_pass","require_mpf_doctor_ok","require_db_status_ok","require_proxy_doctor_ok","require_no_customer_nat_baseline","require_no_customer_firewall_baseline","require_local_only_runtime_baseline","require_firewall_plan_review","require_firewall_diff_review","require_restore_point_before_apply","require_iptables_save_backup_before_apply","require_lock_before_apply","require_verify_after_apply","require_rollback_plan","require_usage_visibility_check","require_reject_visibility_check","require_session_worker_visibility_check","require_abuse_1h_coverage_check","require_conntrack_scope_review","require_post_execution_evidence_collection",
+        )}

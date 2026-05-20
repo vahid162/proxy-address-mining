@@ -7,7 +7,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Current Position
 
 - GitHub main repository version before this PR is 0.1.151.
-- Repository version after this PR is 0.1.152.
+- Repository version after this PR is 0.1.153.
 - latest recorded farm5 sync evidence is 0.1.151.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
@@ -154,3 +154,13 @@ Repository version after this PR is 0.1.129. (historical)
 ```
 
 Current roadmap ordering remains the Finite Remaining Path above. These anchors do not reopen Phase 6, Phase 7, Phase 8, firewall apply, production traffic, abuse automation, worker enforcement, UI, or Telegram.
+
+- Version in this PR: 0.1.152 -> 0.1.153
+- Latest recorded farm5 sync evidence remains 0.1.151 unless new evidence is provided.
+- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub by this PR.
+- Farm5 evidence for actual manual canary execution run package is pending.
+- Actual farm5 canary execution has not been run by this PR.
+- Next target: farm5 sync/test evidence for actual operator-approved manual canary execution run package.
+- After that: one explicit operator-approved manual canary execution run on farm5 + evidence.
+- Limited real customer onboarding remains forbidden until canary execution evidence is accepted.
+- Phase 11 remains not accepted. UI/Telegram remain closed.

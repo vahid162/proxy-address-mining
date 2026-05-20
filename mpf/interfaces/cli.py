@@ -108,6 +108,7 @@ from mpf.services import (
     phase11_manual_canary_acceptance_service,
     phase11_manual_canary_execution_gate_service,
     phase11_manual_canary_execution_run_preparation_service,
+    phase11_manual_canary_execution_run_service,
 )
 
 app = typer.Typer(
@@ -2041,6 +2042,45 @@ def production_canary_execution_gate(
     typer.echo(f"blockers: {report['blockers']}")
     typer.echo(f"validation_errors: {report['validation_errors']}")
 
+
+
+@production_app.command("manual-canary-execute")
+def production_manual_canary_execute(
+    lane: str = typer.Option("btc", "--lane"),
+    customer_key: str | None = typer.Option("canary-btc-001", "--customer-key"),
+    name: str | None = typer.Option("Phase 11 manual canary execution", "--name"),
+    port: int | None = typer.Option(20001, "--port"),
+    miners: int = typer.Option(1, "--miners"),
+    farms: int = typer.Option(1, "--farms"),
+    maxconn: int = typer.Option(1, "--maxconn"),
+    rate_per_min: int = typer.Option(120, "--rate-per-min"),
+    burst: int = typer.Option(240, "--burst"),
+    ips_mode: str = typer.Option("any", "--ips-mode"),
+    ip_whitelist: list[str] = typer.Option([], "--ip"),
+    operator: str | None = typer.Option(None, "--operator"),
+    reason: str | None = typer.Option(None, "--reason"),
+    requested_action: str = typer.Option("plan", "--requested-action"),
+    expected_version: str | None = typer.Option(None, "--expected-version"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed/--no-operator-confirmed"),
+    understand_canary_customer: bool = typer.Option(False, "--i-understand-this-can-create-a-canary-customer"),
+    understand_firewall_apply: bool = typer.Option(False, "--i-understand-this-can-apply-firewall"),
+    reviewed_rollback: bool = typer.Option(False, "--i-have-reviewed-rollback"),
+    fresh_farm5_sync_confirmed: bool = typer.Option(False, "--i-have-fresh-farm5-sync"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    request = production_domain.ManualCanaryExecutionRunRequest(
+        customer_key=customer_key, lane=lane, port=port, name=name, miners=miners, farms=farms, maxconn=maxconn,
+        rate_per_min=rate_per_min, burst=burst, ips_mode=ips_mode, ip_whitelist=ip_whitelist, operator=operator, reason=reason,
+        requested_action=requested_action, expected_version=expected_version, operator_confirmed=operator_confirmed,
+        understand_canary_customer=understand_canary_customer, understand_firewall_apply=understand_firewall_apply,
+        reviewed_rollback=reviewed_rollback, fresh_farm5_sync_confirmed=fresh_farm5_sync_confirmed,
+    )
+    report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(request)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for key in ("component", "final_decision", "authorization_status", "execution_allowed", "mutation_performed", "blockers", "validation_errors"):
+        typer.echo(f"{key}: {report[key]}")
 
 
 @production_app.command("canary-execution-run-prep")

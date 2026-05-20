@@ -489,3 +489,5 @@ Current advancement target is the Phase 8 runtime/worker integration readiness p
 ```
 
 Historical gate reference: accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5 / working_phase: Phase 8 — Abuse 1h Core planning/readiness.
+
+Phase 11D actual operator-approved manual canary execution run package is implemented on GitHub in this PR; latest recorded farm5 evidence remains 0.1.151; actual farm5 canary execution evidence is still pending; limited real customer onboarding remains forbidden; production/customer/firewall/abuse/UI/Telegram gates remain closed except future explicit single-canary operator run after merge/sync/approval.

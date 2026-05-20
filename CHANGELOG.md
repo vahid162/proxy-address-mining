@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.153
+- Add the Phase 11D actual operator-approved manual canary execution run package and `mpf production manual-canary-execute --output json`, with fail-closed plan mode, explicit execution approvals, service-layer adapter boundaries, rollback/evidence requirements, and no PR-time canary execution or production activation.
+
 ## 0.1.152
 - Record farm5 0.1.151 sync/test evidence for the Phase 11D operator-reviewed manual canary execution run preparation package while keeping actual canary execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
 
