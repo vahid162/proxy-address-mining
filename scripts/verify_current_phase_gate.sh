@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Resolve repository root from this script location so absolute-path invocation
+# works from any caller CWD (for example: /root during post-sync checks).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
+
+
 PROJECT_NAME="mpf-proxy"
 V2RAYA_HOST_PORT="2015"
 BTC_BACKEND_PORT="60010"

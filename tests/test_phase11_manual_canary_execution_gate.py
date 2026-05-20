@@ -57,8 +57,8 @@ def test_docs_and_plan_alignment() -> None:
     assert "does **not** authorize execution" in d
 
     rem = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
-    assert "latest recorded farm5 sync evidence is 0.1.147" in rem
-    assert "next target after this PR is farm5 sync/test evidence for Phase 11D execution gate package" in rem
+    assert "latest recorded farm5 sync evidence is 0.1.149" in rem
+    assert "next target after this PR is operator-reviewed manual canary execution run preparation" in rem
     assert "Phase 11D actual execution remains not authorized" in rem
     assert "Phase 11 is accepted" not in rem
     assert "production traffic remains none" in rem
