@@ -8,9 +8,9 @@ def _read(p: str) -> str:
 def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- GitHub main repository version before this PR is 0.1.150." in current
-    assert "- Repository version after this PR is 0.1.151." in current
-    assert "- latest recorded farm5 sync evidence is 0.1.149." in current
+    assert "- GitHub main repository version before this PR is 0.1.151." in current
+    assert "- Repository version after this PR is 0.1.152." in current
+    assert "- latest recorded farm5 sync evidence is 0.1.151." in current
     assert "- Phase 10 final-acceptance-readiness is done." in current
     assert "- Phase 10 final acceptance is done." in current
     assert "- Current accepted phase is Phase 10." in current
@@ -23,8 +23,8 @@ def test_current_position_updates() -> None:
     assert "- Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded." in current
     assert "- Phase 11D package farm5 evidence is recorded." in current
     assert "- Phase 11D actual execution remains not authorized." in current
-    assert "- next target after this PR: farm5 sync/test evidence for the operator-reviewed manual canary execution run preparation package." in current
-    assert "- farm5 evidence for this preparation package is pending." in current
+    assert "- next target after this PR: actual operator-approved manual canary execution run package." in current
+    assert "- actual canary execution is not implemented or authorized by this PR." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no." in current
     assert "- abuse automation remains no." in current
@@ -56,7 +56,7 @@ def test_phase11_non_accepted_and_gates_closed() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "Current accepted phase is Phase 10." in t
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in t
-    assert "Phase 11D execution remains not authorized." in t
+    assert "Phase 11D actual execution remains not authorized." in t
     assert "production traffic remains none." in t
     assert "firewall apply remains no." in t
     assert "abuse automation remains no." in t

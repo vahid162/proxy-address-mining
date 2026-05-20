@@ -45,6 +45,7 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 - Phase 11D manual canary customer acceptance package evidence recorded (`docs/PHASE_11_FARM5_0_1_147_SYNC_TEST_EVIDENCE.md`).
 - Phase 11 farm5 0.1.149 Sync/Test Evidence recorded (`docs/PHASE_11_FARM5_0_1_149_SYNC_TEST_EVIDENCE.md`): Phase 11D execution gate farm5 evidence recorded; Phase 11D actual execution not authorized; production traffic none; firewall apply no; customer onboarding db_only; abuse automation no; UI no; Telegram no.
+- Phase 11 farm5 0.1.151 Sync/Test Evidence recorded (`docs/PHASE_11_FARM5_0_1_151_SYNC_TEST_EVIDENCE.md`): Phase 11D operator-reviewed execution run preparation farm5 evidence recorded; Phase 11D actual execution not authorized; production traffic none; firewall apply no; customer onboarding db_only; abuse automation no; UI no; Telegram no.
 - Phase 11D execution not authorized.
 - production_traffic: none
 - firewall_apply_allowed: no
