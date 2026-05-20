@@ -8,9 +8,9 @@ def _read(p: str) -> str:
 def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- GitHub main repository version before this PR is 0.1.152." in current
-    assert "- Repository version after this PR is 0.1.153." in current
-    assert "- latest recorded farm5 sync evidence is 0.1.151." in current
+    assert "- GitHub main repository version before this PR is 0.1.153." in current
+    assert "- Repository version after this PR is 0.1.154." in current
+    assert "- latest recorded farm5 sync evidence is 0.1.153." in current
     assert "- Phase 10 final-acceptance-readiness is done." in current
     assert "- Phase 10 final acceptance is done." in current
     assert "- Current accepted phase is Phase 10." in current
@@ -22,11 +22,11 @@ def test_current_position_updates() -> None:
     assert "- Phase 11C remains non-authorizing; evidence recorded does not authorize runtime execution." in current
     assert "- Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded." in current
     assert "- Phase 11D package farm5 evidence is recorded." in current
-    assert "- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub by this PR." in current
-    assert "- Farm5 evidence for actual manual canary execution run package is pending." in current
+    assert "- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded." in current
+    assert "- Actual farm5 canary execution has not been run by this PR." in current
     assert "- Actual farm5 canary execution has not been run by this PR." in current
     assert "- Phase 11D actual execution remains not accepted." in current
-    assert "- Next target: farm5 sync/test evidence for actual operator-approved manual canary execution run package." in current
+    assert "- Next target: one explicit operator-approved manual canary execution run on farm5 and evidence collection." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no except future explicit single-canary operator-approved run path." in current
     assert "- abuse automation remains no." in current
