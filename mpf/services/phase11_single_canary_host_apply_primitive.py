@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from typing import Callable
 
 
 @dataclass(slots=True)
 class SingleCanaryHostApplyPrimitive:
     expected_version: str = "0.1.158"
+    host_apply_executor: Callable[[dict[str, object], str], dict[str, object]] | None = None
+    post_apply_verifier: Callable[[dict[str, object]], dict[str, object]] | None = None
 
     def execute(self, report: dict[str, object]) -> dict[str, object]:
         request = report.get("request", {}) if isinstance(report.get("request"), dict) else {}
@@ -68,12 +71,31 @@ class SingleCanaryHostApplyPrimitive:
         if report.get("existing_canary_state") == "conflict":
             return {"status": "blocked", "error": "single_canary_conflicting_rule_detected", "conflict": report.get("existing_canary_conflict", "unknown")}
 
-        return {
-            "status": "ok",
-            "applied": True,
-            "existing_state_verified": False,
-            "customer_port": 20001,
-            "backend_port": 60010,
-            "iptables_restore_used": False,
-            "nat_rule_verified": True,
-        }
+        if self.host_apply_executor is None:
+            return {
+                "status": "blocked",
+                "error": "accepted_single_canary_host_apply_execution_missing",
+                "missing_primitive": "accepted_single_canary_host_apply_execution",
+            }
+
+        try:
+            apply_result = self.host_apply_executor(report, payload)
+        except Exception as exc:
+            return {"status": "error", "error": f"single_canary_host_apply_exception: {exc}"}
+        if not isinstance(apply_result, dict):
+            return {"status": "error", "error": "single_canary_host_apply_invalid_response"}
+        if apply_result.get("status") != "ok" or apply_result.get("applied") is not True:
+            return {"status": "blocked", "error": apply_result.get("error", "single_canary_host_apply_failed")}
+
+        if self.post_apply_verifier is None:
+            return {"status": "blocked", "error": "single_canary_post_apply_verification_missing"}
+        try:
+            verify_result = self.post_apply_verifier(report)
+        except Exception as exc:
+            return {"status": "error", "error": f"single_canary_post_apply_verification_exception: {exc}"}
+        if not isinstance(verify_result, dict):
+            return {"status": "error", "error": "single_canary_post_apply_verification_invalid_response"}
+        if verify_result.get("status") != "ok" or verify_result.get("nat_rule_verified") is not True:
+            return {"status": "blocked", "error": verify_result.get("error", "single_canary_post_apply_verification_missing")}
+
+        return {"status": "ok", "applied": True, "existing_state_verified": False, "customer_port": 20001, "backend_port": 60010, "iptables_restore_used": bool(apply_result.get("iptables_restore_used") is True), "nat_rule_verified": True}

@@ -87,12 +87,13 @@ class _FirewallAdapter:
         json_diff = diff.get("json_diff", {}) if isinstance(diff, dict) else {}
         if json_diff.get("customer_port") != 20001 or json_diff.get("backend_port") != 60010:
             return {"status": "blocked", "error": "firewall_diff_not_reviewed"}
-        report.setdefault("firewall_plan", {})["restore_payload"] = (
-            "*nat\n"
-            ":MPF_NAT_PRE - [0:0]\n"
-            '-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:canary-btc-001" -j DNAT --to-destination 127.0.0.1:60010\n'
-            "COMMIT\n"
-        )
+        payload = report.get("firewall_plan", {}).get("restore_payload")
+        if not isinstance(payload, str):
+            return {
+                "status": "blocked",
+                "error": "single_canary_restore_payload_renderer_missing",
+                "missing_primitive": "accepted_exact_canary_restore_payload_renderer",
+            }
         primitive = self.host_apply_primitive or SingleCanaryHostApplyPrimitive()
         return primitive.execute(report)
 

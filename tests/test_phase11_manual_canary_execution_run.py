@@ -8,6 +8,7 @@ from mpf import __version__
 from mpf.domain.production import ManualCanaryExecutionRunRequest
 from mpf.interfaces.cli import app
 from mpf.services import phase11_manual_canary_execution_run_service
+from mpf.services.phase11_single_canary_host_apply_primitive import SingleCanaryHostApplyPrimitive
 
 RUNNER = CliRunner()
 
@@ -207,3 +208,43 @@ def test_cli_execute_uses_production_adapters_and_blocks_on_missing_real_apply()
     assert payload["final_decision"] == "BLOCKED"
     assert "real_restore_backup_adapter_missing" in payload["blockers"]
     assert all(v is False for v in payload["safety_flags"].values())
+
+
+def test_single_canary_primitive_blocks_without_real_apply_executor() -> None:
+    primitive = SingleCanaryHostApplyPrimitive()
+    report = {
+        "scope": {"single_canary_only": True},
+        "request": _approved_execute_request().as_dict(),
+        "preflight_results": {"phase_gate": "OK", "mpf_doctor": "OK", "db_status": "OK", "proxy_doctor": "OK", "no_customer_nat_baseline": "OK", "no_customer_firewall_baseline": "OK", "local_only_runtime_baseline": "OK"},
+        "restore_point": {"id": "rp-1"},
+        "iptables_save_backup": {"id": "bk-1"},
+        "lock": {"acquired": True},
+        "firewall_diff": {"json_diff": {"customer_port": 20001, "backend_port": 60010}},
+        "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 127.0.0.1:60010\nCOMMIT\n"},
+    }
+    import os
+    os.environ["MPF_PHASE11_SINGLE_CANARY_HOST_APPLY"] = "allow"
+    out = primitive.execute(report)
+    assert out["status"] == "blocked"
+    assert out["error"] == "accepted_single_canary_host_apply_execution_missing"
+
+
+def test_single_canary_primitive_blocks_without_verifier() -> None:
+    def _ok_apply(report, payload):
+        return {"status": "ok", "applied": True}
+    primitive = SingleCanaryHostApplyPrimitive(host_apply_executor=_ok_apply, post_apply_verifier=None)
+    report = {
+        "scope": {"single_canary_only": True},
+        "request": _approved_execute_request().as_dict(),
+        "preflight_results": {"phase_gate": "OK", "mpf_doctor": "OK", "db_status": "OK", "proxy_doctor": "OK", "no_customer_nat_baseline": "OK", "no_customer_firewall_baseline": "OK", "local_only_runtime_baseline": "OK"},
+        "restore_point": {"id": "rp-1"},
+        "iptables_save_backup": {"id": "bk-1"},
+        "lock": {"acquired": True},
+        "firewall_diff": {"json_diff": {"customer_port": 20001, "backend_port": 60010}},
+        "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 127.0.0.1:60010\nCOMMIT\n"},
+    }
+    import os
+    os.environ["MPF_PHASE11_SINGLE_CANARY_HOST_APPLY"] = "allow"
+    out = primitive.execute(report)
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_post_apply_verification_missing"
