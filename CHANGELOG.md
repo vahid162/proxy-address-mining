@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.158
+
+- Implement accepted single-canary host apply primitive boundary for Phase 11 manual canary execution exact-scoped to `canary-btc-001` / `btc` / `20001 -> 60010`, with non-placeholder restore/backup/lock/diff/context gates, fail-closed blockers, idempotency checks, mutation-accurate reporting, and no broad production activation.
+
 ## 0.1.157
 - Add a fail-closed Phase 11F single-canary firewall apply adapter boundary for `canary-btc-001` (`btc`/`20001 -> 60010`) with exact-scope checks, restore/backup/lock/diff gates, structured blockers, and blocked-by-default host apply primitive reporting (`unsafe_firewall_apply_boundary`) without enabling broad production activation.
 
