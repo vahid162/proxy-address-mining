@@ -42,7 +42,7 @@ def test_readme_phase_status_and_plan_alignment_for_0_1_147() -> None:
     assert "Phase 11D execution not authorized." in status
 
     assert "latest recorded farm5 sync evidence is 0.1.149." in plan
-    assert "next target after this PR is operator-reviewed manual canary execution run preparation." in plan
-    assert "Phase 11D execution gate farm5 evidence is recorded as non-authorizing in this PR." in plan
+    assert "next target after this PR: farm5 sync/test evidence for the operator-reviewed manual canary execution run preparation package." in plan
+    assert "Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded." in plan
     assert "Current accepted phase is Phase 10." in plan
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in plan

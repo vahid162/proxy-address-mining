@@ -621,3 +621,6 @@ Current Phase 11 evidence docs include:
 - `docs/PHASE_11_FARM5_0_1_149_SYNC_TEST_EVIDENCE.md`
 
 - [PHASE_11D_MANUAL_CANARY_EXECUTION_GATE.md](./PHASE_11D_MANUAL_CANARY_EXECUTION_GATE.md)
+
+
+- `docs/PHASE_11D_MANUAL_CANARY_EXECUTION_RUN_PREPARATION.md` (Phase 11D preparation package, non-authorizing)
