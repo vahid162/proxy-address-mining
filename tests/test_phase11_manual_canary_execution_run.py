@@ -206,7 +206,7 @@ def test_cli_execute_uses_production_adapters_and_blocks_on_missing_real_apply()
     assert payload["adapter_mode"] == "production_service_layer"
     assert payload["real_adapters_wired"] is True
     assert payload["final_decision"] == "BLOCKED"
-    assert "real_restore_backup_adapter_missing" in payload["blockers"]
+    assert "single_canary_restore_backup_context_not_confirmed" in payload["blockers"]
     assert all(v is False for v in payload["safety_flags"].values())
 
 

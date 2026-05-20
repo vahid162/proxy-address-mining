@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.158`.
+- Confirm version is `0.1.159`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -26,7 +26,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.158 \
+  --expected-version 0.1.159 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -60,3 +60,14 @@ mpf production manual-canary-execute \
 - Execute mode is now wired to production service-layer adapters.
 - Actual execution remains BLOCKED until `unsafe_firewall_apply_boundary (missing accepted_single_canary_host_apply_primitive)` is implemented through an accepted service-layer apply boundary.
 - Do **not** run real customer onboarding.
+
+
+## Restore/backup context guard
+
+- execute-control now requires `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow` in addition to exact scope, expected version, approvals, and phase safety checks.
+- plan command:
+  - `mpf production manual-canary-execute --output json`
+- execute-control command:
+  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.159 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
+- expected blocker progression: first context/scope/version blockers, then `single_canary_restore_payload_renderer_missing` (or `accepted_single_canary_host_apply_execution_missing` if renderer exists).
+- warning: no real customer onboarding in this step.

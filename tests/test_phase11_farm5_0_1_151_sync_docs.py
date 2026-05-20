@@ -1,6 +1,6 @@
 from pathlib import Path
 
-NEXT_TARGET = "Next target: implement the accepted single-canary host apply primitive (`accepted_single_canary_host_apply_primitive`), then sync latest main to farm5 and run one explicit operator-approved single-canary execution."
+NEXT_TARGET = "Current blocker: real_restore_backup_adapter_missing."
 
 
 def test_phase11_farm5_0_1_151_evidence_doc_required_tokens() -> None:

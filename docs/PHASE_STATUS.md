@@ -2917,3 +2917,8 @@ State:
 - It requires operator approval before future controlled worker dry-run.
 - It requires kill-switch, lock, explicit skip, no-silent-skip, and fail-closed behavior.
 - Runtime worker execution remains future-gated.
+
+
+## Accepted server result updates
+
+- farm5 0.1.158 sync/test evidence recorded: sync OK, pytest OK, doctor/db/proxy doctor OK, plan mode non-mutating, execute-control blocked on `real_restore_backup_adapter_missing`; Current State remains unchanged and Phase 11 remains not accepted.
