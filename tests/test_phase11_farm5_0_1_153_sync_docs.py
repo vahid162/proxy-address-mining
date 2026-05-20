@@ -30,7 +30,7 @@ def test_docs_alignment_after_0_1_153_evidence_recording() -> None:
 
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     assert "latest recorded farm5 sync evidence is 0.1.153." in plan
-    assert "Next target: wire/accept real production service-layer execution adapters, then run one explicit operator-approved manual canary execution on farm5 and collect evidence." in plan
+    assert "Next target: implement the missing accepted single-canary firewall apply adapter (`missing_real_firewall_apply_adapter`) so the explicit operator-approved canary execution can complete via service-layer boundaries." in plan
     assert "Phase 11 remains not accepted." in plan
     assert "production traffic remains none." in plan
     assert "firewall apply remains no except future explicit single-canary operator-approved run path." in plan

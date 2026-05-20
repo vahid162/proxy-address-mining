@@ -178,4 +178,31 @@ def test_execute_success_fake_and_lock_release() -> None:
 def test_cli_plan_json() -> None:
     result = RUNNER.invoke(app, ["production", "manual-canary-execute", "--output", "json"])
     assert result.exit_code == 0
-    assert json.loads(result.output)["component"] == "phase11_manual_canary_execution_run"
+    payload = json.loads(result.output)
+    assert payload["component"] == "phase11_manual_canary_execution_run"
+    assert payload["adapter_mode"] == "production_service_layer"
+
+
+def test_cli_execute_uses_production_adapters_and_blocks_on_missing_real_apply() -> None:
+    args = [
+        "production", "manual-canary-execute", "--requested-action", "execute",
+        "--customer-key", "canary-btc-001", "--lane", "btc", "--port", "20001",
+        "--miners", "1", "--farms", "1", "--maxconn", "1",
+        "--expected-version", __version__,
+        "--operator-confirmed",
+        "--i-understand-this-can-create-a-canary-customer",
+        "--i-understand-this-can-apply-firewall",
+        "--i-have-reviewed-rollback",
+        "--i-have-fresh-farm5-sync",
+        "--operator", "tester",
+        "--reason", "test",
+        "--output", "json",
+    ]
+    result = RUNNER.invoke(app, args)
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["adapter_mode"] == "production_service_layer"
+    assert payload["real_adapters_wired"] is True
+    assert payload["final_decision"] == "BLOCKED"
+    assert "missing_real_firewall_apply_adapter" in payload["missing_real_adapter_capabilities"]
+    assert all(v is False for v in payload["safety_flags"].values())

@@ -25,7 +25,7 @@ def test_readme_plan_phase_status_align_0_1_151() -> None:
     assert "Actual canary execution has not been performed or accepted." in readme
 
     assert "latest recorded farm5 sync evidence is 0.1.153." in plan
-    assert "Next target: wire/accept real production service-layer execution adapters, then run one explicit operator-approved manual canary execution on farm5 and collect evidence." in plan
+    assert "Next target: implement the missing accepted single-canary firewall apply adapter (`missing_real_firewall_apply_adapter`) so the explicit operator-approved canary execution can complete via service-layer boundaries." in plan
     assert "Current accepted phase is Phase 10." in plan
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in plan
     assert "Phase 11 is accepted" not in plan
