@@ -29,10 +29,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11D operator-reviewed manual canary execution run preparation package is implemented and farm5 evidence is recorded.
 - Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded.
 - Actual farm5 canary execution has not been run by this PR.
-- Actual farm5 canary execution has not been run by this PR.
 - Phase 11D actual execution remains not accepted.
 - Next target: one explicit operator-approved manual canary execution run on farm5 and evidence collection.
-- After that: one explicit operator-approved manual canary execution run on farm5 and evidence collection may be considered.
+- After that: record actual canary execution evidence if successful.
 - Limited real customer onboarding remains forbidden until canary execution evidence is accepted.
 - server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.
 - production traffic remains none.
