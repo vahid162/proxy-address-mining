@@ -8,8 +8,8 @@ def _read(p: str) -> str:
 def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- GitHub main repository version before this PR is 0.1.151." in current
-    assert "- Repository version after this PR is 0.1.152." in current
+    assert "- GitHub main repository version before this PR is 0.1.152." in current
+    assert "- Repository version after this PR is 0.1.153." in current
     assert "- latest recorded farm5 sync evidence is 0.1.151." in current
     assert "- Phase 10 final-acceptance-readiness is done." in current
     assert "- Phase 10 final acceptance is done." in current
@@ -22,17 +22,18 @@ def test_current_position_updates() -> None:
     assert "- Phase 11C remains non-authorizing; evidence recorded does not authorize runtime execution." in current
     assert "- Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded." in current
     assert "- Phase 11D package farm5 evidence is recorded." in current
-    assert "- Phase 11D actual execution remains not authorized." in current
-    assert "- next target after this PR: actual operator-approved manual canary execution run package." in current
-    assert "- actual canary execution is not implemented or authorized by this PR." in current
+    assert "- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub by this PR." in current
+    assert "- Farm5 evidence for actual manual canary execution run package is pending." in current
+    assert "- Actual farm5 canary execution has not been run by this PR." in current
+    assert "- Phase 11D actual execution remains not accepted." in current
+    assert "- Next target: farm5 sync/test evidence for actual operator-approved manual canary execution run package." in current
     assert "- production traffic remains none." in current
-    assert "- firewall apply remains no." in current
+    assert "- firewall apply remains no except future explicit single-canary operator-approved run path." in current
     assert "- abuse automation remains no." in current
-    assert "- customer onboarding remains db_only." in current
+    assert "- customer onboarding remains db_only except future explicit canary run path." in current
     assert "- UI remains no." in current
     assert "- Telegram remains no." in current
-    assert "- Controlled CLI canary is not authorized by this PR." in current
-    assert "- Production activation is not enabled by this PR." in current
+    assert "- Phase 11 remains not accepted." in current
 
 
 def test_finite_path_updates() -> None:
@@ -56,10 +57,10 @@ def test_phase11_non_accepted_and_gates_closed() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "Current accepted phase is Phase 10." in t
     assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in t
-    assert "Phase 11D actual execution remains not authorized." in t
+    assert "Phase 11D actual execution remains not accepted." in t
     assert "production traffic remains none." in t
-    assert "firewall apply remains no." in t
+    assert "firewall apply remains no except future explicit single-canary operator-approved run path." in t
     assert "abuse automation remains no." in t
-    assert "customer onboarding remains db_only." in t
+    assert "customer onboarding remains db_only except future explicit canary run path." in t
     assert "UI remains no." in t
     assert "Telegram remains no." in t
