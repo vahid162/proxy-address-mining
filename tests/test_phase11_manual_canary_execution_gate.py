@@ -52,7 +52,7 @@ def test_docs_and_plan_alignment() -> None:
     assert "does **not** authorize execution" in d
 
     rem = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
-    assert "latest recorded farm5 sync evidence is 0.1.153" in rem
+    assert "latest recorded farm5 sync evidence is 0.1.159" in rem
     assert "Next target: sync latest main to farm5, run explicit operator-approved single-canary execution once, and collect evidence; if execution blocks, implement the exact missing primitive reported as `accepted_single_canary_host_apply_primitive`." in rem
     assert "Phase 11D actual execution remains not accepted" in rem
     assert "Phase 11 is accepted" not in rem

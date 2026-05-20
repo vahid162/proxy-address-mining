@@ -1,6 +1,6 @@
 from pathlib import Path
 
-NEXT_TARGET = "Current blocker: real_restore_backup_adapter_missing."
+NEXT_TARGET = "Current blocker before this PR: single_canary_restore_payload_renderer_missing."
 
 
 def test_phase11_farm5_0_1_147_evidence_doc_present_and_tokens() -> None:
@@ -43,7 +43,7 @@ def test_readme_phase_status_and_plan_alignment_for_0_1_147() -> None:
     assert "Phase 11 farm5 0.1.147 Sync/Test Evidence" in status
     assert "Phase 11D execution not authorized." in status
 
-    assert "latest recorded farm5 sync evidence is 0.1.153." in plan
+    assert "latest recorded farm5 sync evidence is 0.1.159." in plan
     assert NEXT_TARGET in plan
     assert "Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded." in plan
     assert "Current accepted phase is Phase 10." in plan

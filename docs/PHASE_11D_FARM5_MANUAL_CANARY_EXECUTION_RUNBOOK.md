@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.159`.
+- Confirm version is `0.1.160`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -18,6 +18,7 @@
 
 ## Execute mode (single explicit canary only)
 ```bash
+MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow \
 mpf production manual-canary-execute \
   --requested-action execute \
   --customer-key canary-btc-001 \
@@ -26,7 +27,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.159 \
+  --expected-version 0.1.160 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -68,6 +69,8 @@ mpf production manual-canary-execute \
 - plan command:
   - `mpf production manual-canary-execute --output json`
 - execute-control command:
-  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.159 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
-- expected blocker progression: first context/scope/version blockers, then `single_canary_restore_payload_renderer_missing` (or `accepted_single_canary_host_apply_execution_missing` if renderer exists).
+  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.160 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
+- exact payload renderer behavior: execute path now renders deterministic exact payload for canary-btc-001/btc/20001->60010 after restore+backup+diff checks.
+- expected next blocker: `accepted_single_canary_host_apply_execution_missing` (or `single_canary_post_apply_verification_missing` only when a real host apply executor exists).
+- warning: no production traffic, no real customer onboarding, no abuse automation, no UI/Telegram, and no host apply in this PR.
 - warning: no real customer onboarding in this step.
