@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from mpf.services.phase11_manual_canary_execution_run_service import CanaryExecutionAdapters
 from mpf.services.phase11_single_canary_host_apply_primitive import SingleCanaryHostApplyPrimitive
+from mpf.services.phase11_single_canary_restore_backup_adapter import SingleCanaryRestoreBackupAdapter
 
 
 @dataclass(slots=True)
@@ -14,15 +15,35 @@ class _ReadinessAdapter:
 
 @dataclass(slots=True)
 class _RestoreAdapter:
+    adapter: SingleCanaryRestoreBackupAdapter | None = None
+
+    def _run_execute(self, report: dict[str, object]) -> dict[str, object]:
+        if isinstance(report.get("_single_canary_restore_backup_result"), dict):
+            return report["_single_canary_restore_backup_result"]
+        adapter = self.adapter or SingleCanaryRestoreBackupAdapter()
+        result = adapter.run(report)
+        report["_single_canary_restore_backup_result"] = result
+        return result
+
     def create_restore_point(self, report: dict[str, object]) -> dict[str, object]:
-        if report.get("request", {}).get("requested_action") == "execute":
-            return {"status": "blocked", "error": "real_restore_backup_adapter_missing"}
-        return {"status": "ok", "restore_point": {"status": "placeholder", "mode": "service_layer_boundary"}}
+        if report.get("request", {}).get("requested_action") != "execute":
+            return {"status": "ok", "restore_point": {"status": "placeholder", "mode": "service_layer_boundary"}}
+        result = self._run_execute(report)
+        if result.get("status") != "ok":
+            return {"status": result.get("status", "error"), "error": result.get("error", "real_restore_backup_failed")}
+        return {"status": "ok", "restore_point": result.get("restore_point")}
 
     def create_iptables_save_backup(self, report: dict[str, object]) -> dict[str, object]:
-        if report.get("request", {}).get("requested_action") == "execute":
-            return {"status": "blocked", "error": "real_restore_backup_adapter_missing"}
-        return {"status": "ok", "iptables_save_backup": {"status": "placeholder", "mode": "service_layer_boundary"}}
+        if report.get("request", {}).get("requested_action") != "execute":
+            return {"status": "ok", "iptables_save_backup": {"status": "placeholder", "mode": "service_layer_boundary"}}
+        result = self._run_execute(report)
+        if result.get("status") != "ok":
+            return {"status": result.get("status", "error"), "error": result.get("error", "real_restore_backup_failed")}
+        backup = result.get("iptables_save_backup")
+        if isinstance(backup, dict):
+            backup.setdefault("backup_path", result.get("backup_path"))
+            backup.setdefault("backup_sha256", result.get("backup_sha256"))
+        return {"status": "ok", "iptables_save_backup": backup}
 
 
 @dataclass(slots=True)
@@ -118,7 +139,7 @@ class _EvidenceAdapter:
 def build_manual_canary_production_adapters() -> dict[str, object]:
     adapters = CanaryExecutionAdapters(
         readiness=_ReadinessAdapter(),
-        restore=_RestoreAdapter(),
+        restore=_RestoreAdapter(adapter=SingleCanaryRestoreBackupAdapter()),
         lock=_LockAdapter(),
         customer=_CustomerAdapter(),
         firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive()),
