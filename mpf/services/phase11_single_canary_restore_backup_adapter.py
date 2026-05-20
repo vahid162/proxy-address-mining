@@ -37,10 +37,10 @@ class SingleCanaryRestoreBackupAdapter:
         for gate in ("phase_gate", "mpf_doctor", "db_status", "proxy_doctor", "no_customer_nat_baseline", "no_customer_firewall_baseline", "local_only_runtime_baseline"):
             if report.get("preflight_results", {}).get(gate) != "OK":
                 return f"precondition_failed:{gate}"
-        if os.environ.get("CI"):
-            return "single_canary_restore_backup_not_allowed_in_ci"
         if os.environ.get(self.env_gate_var) != "allow":
             return "single_canary_restore_backup_context_not_confirmed"
+        if os.environ.get("CI"):
+            return "single_canary_restore_backup_not_allowed_in_ci"
         return None
 
     def _save_backup(self) -> tuple[str, str]:
