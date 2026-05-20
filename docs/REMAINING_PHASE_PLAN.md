@@ -143,6 +143,8 @@ latest recorded farm5 sync evidence is 0.1.94
 latest recorded farm5 sync evidence is 0.1.99
 latest recorded farm5 sync evidence is 0.1.100
 latest recorded farm5 sync evidence is 0.1.110.
+latest recorded farm5 sync evidence is 0.1.153.
+GitHub main repository version before this PR is 0.1.157.
 Current target is Phase 8 abuse dry-run evaluator package.
 Current target is Phase 8 abuse evidence/reporting contract package.
 remaining_plan_state_machine_target_aligned compatibility anchor: Current target is Phase 8 abuse state-machine contract package.
