@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.151.
+- GitHub main repository version before this PR is 0.1.152.
 - Repository version after this PR is 0.1.153.
 - latest recorded farm5 sync evidence is 0.1.151.
 - Phase 10A/10B/10C backend readiness implementation is done.
@@ -27,19 +27,23 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11D package farm5 evidence is recorded.
 - Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
 - Phase 11D operator-reviewed manual canary execution run preparation package is implemented and farm5 evidence is recorded.
-- Phase 11D actual execution remains not authorized.
-- actual canary execution is not implemented or authorized by this PR.
-- next target after this PR: actual operator-approved manual canary execution run package.
-- after that: farm5 manual canary execution evidence may be collected if the operator-approved execution package is accepted.
+- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub by this PR.
+- Farm5 evidence for actual manual canary execution run package is pending.
+- Actual farm5 canary execution has not been run by this PR.
+- Phase 11D actual execution remains not accepted.
+- Next target: farm5 sync/test evidence for actual operator-approved manual canary execution run package.
+- After that: one explicit operator-approved manual canary execution run on farm5 and evidence collection may be considered.
+- Limited real customer onboarding remains forbidden until canary execution evidence is accepted.
 - server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.
 - production traffic remains none.
-- firewall apply remains no.
+- firewall apply remains no except future explicit single-canary operator-approved run path.
 - abuse automation remains no.
-- customer onboarding remains db_only.
+- customer onboarding remains db_only except future explicit canary run path.
 - UI remains no.
 - Telegram remains no.
-- Controlled CLI canary is not authorized by this PR.
+- General controlled CLI canary is not authorized by this PR outside the future explicit single-canary operator run path.
 - Production activation is not enabled by this PR.
+- Phase 11 remains not accepted.
 
 ## Finite Remaining Path
 
@@ -154,13 +158,3 @@ Repository version after this PR is 0.1.129. (historical)
 ```
 
 Current roadmap ordering remains the Finite Remaining Path above. These anchors do not reopen Phase 6, Phase 7, Phase 8, firewall apply, production traffic, abuse automation, worker enforcement, UI, or Telegram.
-
-- Version in this PR: 0.1.152 -> 0.1.153
-- Latest recorded farm5 sync evidence remains 0.1.151 unless new evidence is provided.
-- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub by this PR.
-- Farm5 evidence for actual manual canary execution run package is pending.
-- Actual farm5 canary execution has not been run by this PR.
-- Next target: farm5 sync/test evidence for actual operator-approved manual canary execution run package.
-- After that: one explicit operator-approved manual canary execution run on farm5 + evidence.
-- Limited real customer onboarding remains forbidden until canary execution evidence is accepted.
-- Phase 11 remains not accepted. UI/Telegram remain closed.
