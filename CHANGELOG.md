@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.155
+- Implement the Phase 11D single-canary operator-approved execution workflow and farm5 runbook for `canary-btc-001` on BTC port 20001, fix stale manual-canary expected-version validation, keep plan mode non-mutating by default, require explicit approvals for execute mode, leave farm5 execution evidence pending, keep limited real customer onboarding forbidden, and keep Phase 11 unaccepted.
+
 ## 0.1.154
 - Record farm5 0.1.153 sync/test evidence for the Phase 11D actual operator-approved manual canary execution run package while keeping actual canary execution unperformed, Phase 11 unaccepted, limited real customer onboarding forbidden, and production/firewall/customer/abuse/UI/Telegram gates closed.
 
