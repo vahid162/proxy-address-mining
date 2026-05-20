@@ -151,6 +151,7 @@ Current target is Phase 8 DB-only controlled transition execution package.
 Current target is Phase 8 runtime/worker integration readiness package.
 Phase 8 runtime worker dry-run harness — next target
 Controlled no-customer runtime execution evidence — current next target.
+Next target: sync latest main to farm5, run explicit operator-approved single-canary execution once, and collect evidence; if execution blocks, implement the exact missing primitive reported as `accepted_single_canary_host_apply_primitive`.
 GitHub main repository version before this PR is 0.1.128. (historical)
 Repository version after this PR is 0.1.129. (historical)
 0.1.99
