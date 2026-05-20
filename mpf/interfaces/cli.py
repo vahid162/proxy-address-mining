@@ -109,6 +109,7 @@ from mpf.services import (
     phase11_manual_canary_execution_gate_service,
     phase11_manual_canary_execution_run_preparation_service,
     phase11_manual_canary_execution_run_service,
+    phase11_manual_canary_execution_adapters,
 )
 
 app = typer.Typer(
@@ -2075,7 +2076,8 @@ def production_manual_canary_execute(
         understand_canary_customer=understand_canary_customer, understand_firewall_apply=understand_firewall_apply,
         reviewed_rollback=reviewed_rollback, fresh_farm5_sync_confirmed=fresh_farm5_sync_confirmed,
     )
-    report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(request)
+    adapters = phase11_manual_canary_execution_adapters.build_manual_canary_production_adapters()
+    report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(request, adapters=adapters)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
         return

@@ -60,7 +60,7 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
 
     report = {
         "component": "phase11_manual_canary_execution_run",
-        "phase": "Phase 11D — Actual operator-approved manual canary execution run",
+        "phase": "Phase 11E — Production service-layer manual canary execution adapter wiring",
         "mode": request.requested_action,
         "final_decision": "BLOCKED",
         "authorization_status": "MANUAL_CANARY_EXECUTION_OPERATOR_APPROVAL_REQUIRED",
@@ -78,6 +78,12 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
         "conntrack_mutation_performed": False,
         "production_traffic_enabled": False,
         "scope": {"single_canary_only": True, "customer_key": "canary-btc-001", "lane": "btc", "port": 20001},
+        "adapter_mode": "none",
+        "real_adapters_wired": False,
+        "missing_real_adapter_capabilities": [],
+        "canary_customer_idempotency": "unknown",
+        "firewall_apply_boundary": "unknown",
+        "production_execution_ready": False,
         "request": request.as_dict(),
         "validation_errors": validation_errors,
         "blockers": blockers,
@@ -110,11 +116,19 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
         report["final_decision"] = "PLAN_READY_FOR_FARM5_SYNC_EVIDENCE" if not validation_errors else "BLOCKED"
         report["authorization_status"] = "MANUAL_CANARY_EXECUTION_PACKAGE_NON_AUTHORIZING"
         warnings.append("plan mode is non-mutating and non-authorizing")
+        report["adapter_mode"] = "production_service_layer" if adapters else "none"
+        report["real_adapters_wired"] = bool(adapters)
         return report
+
+    report["adapter_mode"] = "production_service_layer"
+    report["real_adapters_wired"] = True
+    report["canary_customer_idempotency"] = "service_layer_adapter_required"
+    report["firewall_apply_boundary"] = "accepted_service_layer_apply_required"
 
     missing = [k for k in ("readiness", "restore", "lock", "customer", "firewall", "verify", "evidence") if k not in adapters]
     if missing:
         blockers.append(f"missing execution adapters: {', '.join(missing)}")
+        report["real_adapters_wired"] = False
         return report
 
     lock_acquired = False
@@ -169,7 +183,15 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
 
         report["firewall_apply"] = _call(adapters["firewall"], "apply_plan", report)
         if report["firewall_apply"].get("status") != "ok":
-            blockers.append(report["firewall_apply"].get("error", "firewall apply failed"))
+            blocker = report["firewall_apply"].get("error", "firewall apply failed")
+            blockers.append(blocker)
+            if blocker == "missing_real_firewall_apply_adapter":
+                report["missing_real_adapter_capabilities"].append("missing_real_firewall_apply_adapter")
+                report["firewall_apply_boundary"] = "missing_real_firewall_apply_adapter"
+                report["operator_next_steps"] = ["implement accepted single-canary firewall apply adapter"]
+                report["final_decision"] = "BLOCKED"
+                report["execution_allowed"] = False
+                return report
             report["final_decision"] = "EXECUTION_FAILED"
             report["execution_failed"] = True
             report["execution_allowed"] = False
@@ -201,6 +223,7 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
             "customer_firewall_rules_apply_authorized": True,
             "production_traffic_authorized": True,
         })
+        report["production_execution_ready"] = True
         report["final_decision"] = "EXECUTION_COMPLETED_PENDING_REVIEW"
         report["execution_completed"] = True
         report["actual_canary_execution_performed"] = True
