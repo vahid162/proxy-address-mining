@@ -26,7 +26,7 @@ def test_current_position_updates() -> None:
     assert "- Actual farm5 canary execution has not been run by this PR." in current
     assert "- Actual farm5 canary execution has not been run by this PR." in current
     assert "- Phase 11D actual execution remains not accepted." in current
-    assert "- Next target: one explicit operator-approved manual canary execution run on farm5 and evidence collection." in current
+    assert "- Next target: wire/accept real production service-layer execution adapters, then run one explicit operator-approved manual canary execution on farm5 and collect evidence." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no except future explicit single-canary operator-approved run path." in current
     assert "- abuse automation remains no." in current

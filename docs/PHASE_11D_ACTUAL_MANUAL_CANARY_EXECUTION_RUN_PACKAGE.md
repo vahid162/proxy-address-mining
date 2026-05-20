@@ -13,7 +13,7 @@ Execute mode (`--requested-action execute`) requires all explicit approvals:
 - `--i-understand-this-can-apply-firewall`
 - `--i-have-reviewed-rollback`
 - `--i-have-fresh-farm5-sync`
-- `--expected-version 0.1.153`
+- `--expected-version 0.1.155`
 - `--customer-key canary-btc-001`
 - `--lane btc`
 - `--port 20001`
@@ -21,3 +21,6 @@ Execute mode (`--requested-action execute`) requires all explicit approvals:
 Required preflight commands include: `mpf phase-status`, `mpf doctor`, `mpf db status`, `mpf proxy doctor`, `bash scripts/verify_current_phase_gate.sh`.
 
 This PR does **not** run canary execution. Farm5 execution evidence is still required after merge/sync/explicit approval. Limited real customer onboarding remains forbidden until accepted canary execution evidence.
+
+
+Execute mode remains intentionally BLOCKED until real production service-layer execution adapters are wired and accepted.

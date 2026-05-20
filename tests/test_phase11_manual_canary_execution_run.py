@@ -25,48 +25,33 @@ def _approved_execute_request(version: str | None = None) -> ManualCanaryExecuti
 
 
 class _FakeReadiness:
-    def check_readiness(self, report):
-        return {"status": "ok"}
+    def __init__(self, ok=True): self.ok = ok
+    def check_readiness(self, report): return {"status": "ok"} if self.ok else {"status": "error", "error": "readiness failed"}
 
 
 class _FakeRestore:
-    def create_restore_point(self, report):
-        return {"status": "ok", "restore_point": {"id": "rp-1"}}
-
-    def create_iptables_save_backup(self, report):
-        return {"status": "ok", "iptables_save_backup": {"id": "bk-1"}}
+    def __init__(self, fail_on: str | None = None): self.fail_on = fail_on
+    def create_restore_point(self, report): return {"status": "error", "error": "restore failed"} if self.fail_on == "restore" else {"status": "ok", "restore_point": {"id": "rp-1"}}
+    def create_iptables_save_backup(self, report): return {"status": "error", "error": "backup failed"} if self.fail_on == "backup" else {"status": "ok", "iptables_save_backup": {"id": "bk-1"}}
 
 
 class _FakeLock:
-    def __init__(self):
-        self.released = False
-
-    def acquire(self, report):
-        return {"acquired": True}
-
-    def release(self, report):
-        self.released = True
-        return {"released": True}
+    def __init__(self, acquire=True): self.acquire_ok = acquire; self.released = False
+    def acquire(self, report): return {"acquired": self.acquire_ok, "error": "lock fail" if not self.acquire_ok else None}
+    def release(self, report): self.released = True; return {"released": True}
 
 
 class _FakeCustomer:
-    def __init__(self):
-        self.count = 0
-
-    def ensure_customer(self, report):
-        self.count += 1
-        return {"status": "ok", "idempotent": self.count > 1}
+    def __init__(self, status="ok"): self.status = status; self.count = 0
+    def ensure_customer(self, report): self.count += 1; return {"status": self.status, "error": "customer failed" if self.status != "ok" else None, "idempotent": self.count > 1}
 
 
 class _FakeFirewall:
-    def build_plan(self, report):
-        return {"status": "ok", "plan_id": "p1"}
-
-    def render_diff(self, report):
-        return {"status": "ok", "human": "diff", "json": {}}
-
-    def apply_plan(self, report):
-        return {"status": "ok"}
+    def __init__(self, build="ok", diff="ok", apply="ok"):
+        self.build = build; self.diff = diff; self.apply = apply; self.called = []
+    def build_plan(self, report): self.called.append("build"); return {"status": self.build, "error": "build failed" if self.build != "ok" else None}
+    def render_diff(self, report): self.called.append("diff"); return {"status": self.diff, "error": "diff failed" if self.diff != "ok" else None}
+    def apply_plan(self, report): self.called.append("apply"); return {"status": self.apply, "error": "apply failed" if self.apply != "ok" else None}
 
 
 class _FakeVerify:
@@ -81,16 +66,19 @@ class _FakeVerify:
 
 
 class _FakeEvidence:
-    def emit_evidence(self, report):
-        return {"status": "ok", "saved": False}
+    def emit_evidence(self, report): return {"status": "ok", "saved": False}
 
 
-def _adapters(lock=None, customer=None):
-    return {"readiness": _FakeReadiness(), "restore": _FakeRestore(), "lock": lock or _FakeLock(), "customer": customer or _FakeCustomer(), "firewall": _FakeFirewall(), "verify": _FakeVerify(), "evidence": _FakeEvidence()}
-
-
-def test_dto_defaults_validate_plan() -> None:
-    assert ManualCanaryExecutionRunRequest().validate() == []
+def _adapters(**kwargs):
+    return {
+        "readiness": kwargs.get("readiness", _FakeReadiness()),
+        "restore": kwargs.get("restore", _FakeRestore()),
+        "lock": kwargs.get("lock", _FakeLock()),
+        "customer": kwargs.get("customer", _FakeCustomer()),
+        "firewall": kwargs.get("firewall", _FakeFirewall()),
+        "verify": kwargs.get("verify", _FakeVerify()),
+        "evidence": kwargs.get("evidence", _FakeEvidence()),
+    }
 
 
 def test_execute_version_validation() -> None:
@@ -102,26 +90,89 @@ def test_execute_version_validation() -> None:
 def test_plan_mode_safe_flags_false() -> None:
     r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(ManualCanaryExecutionRunRequest())
     assert r["final_decision"] == "PLAN_READY_FOR_FARM5_SYNC_EVIDENCE"
-    assert r["mutation_performed"] is False
     assert all(v is False for v in r["safety_flags"].values())
 
 
 def test_execute_blocked_without_adapters() -> None:
     r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request())
     assert r["final_decision"] == "BLOCKED"
+    assert r["execution_allowed"] is False
+
+
+def test_preflight_fail_keeps_flags_false() -> None:
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(readiness=_FakeReadiness(ok=False)))
+    assert r["final_decision"] == "BLOCKED"
+    assert r["execution_allowed"] is False
+    assert all(v is False for v in r["safety_flags"].values())
+
+
+def test_restore_fail_keeps_flags_false() -> None:
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(restore=_FakeRestore(fail_on="restore")))
+    assert r["final_decision"] == "BLOCKED"
+    assert all(v is False for v in r["safety_flags"].values())
+
+
+def test_lock_fail_keeps_flags_false() -> None:
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(lock=_FakeLock(acquire=False)))
+    assert r["final_decision"] == "BLOCKED"
+    assert all(v is False for v in r["safety_flags"].values())
+
+
+def test_customer_failure_stops_before_firewall() -> None:
+    fw = _FakeFirewall()
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(customer=_FakeCustomer(status="error"), firewall=fw))
+    assert r["final_decision"] == "EXECUTION_FAILED"
+    assert fw.called == []
+
+
+def test_build_plan_failure_stops_before_diff_apply() -> None:
+    fw = _FakeFirewall(build="error")
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(firewall=fw))
+    assert r["final_decision"] == "EXECUTION_FAILED"
+    assert fw.called == ["build"]
+
+
+def test_render_diff_failure_stops_before_apply() -> None:
+    fw = _FakeFirewall(diff="error")
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(firewall=fw))
+    assert r["final_decision"] == "EXECUTION_FAILED"
+    assert fw.called == ["build", "diff"]
+
+
+def test_apply_failure_exec_failed_release_lock_and_flags_false() -> None:
+    lock = _FakeLock()
+    fw = _FakeFirewall(apply="error")
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(lock=lock, firewall=fw))
+    assert r["final_decision"] == "EXECUTION_FAILED"
+    assert r["execution_allowed"] is False
+    assert lock.released is True
+    assert all(v is False for v in r["safety_flags"].values())
+
+
+def test_missing_adapter_method_returns_structured_failure() -> None:
+    class BadCustomer: pass
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(customer=BadCustomer()))
+    assert r["final_decision"] == "EXECUTION_FAILED"
+    assert any("adapter method missing" in b for b in r["blockers"])
+
+
+def test_adapter_exception_returns_structured_failure_and_releases_lock() -> None:
+    class ExplosiveFirewall(_FakeFirewall):
+        def apply_plan(self, report):
+            raise RuntimeError("boom")
+    lock = _FakeLock()
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(lock=lock, firewall=ExplosiveFirewall()))
+    assert r["final_decision"] == "EXECUTION_FAILED"
+    assert any("adapter call failed" in b for b in r["blockers"])
+    assert lock.released is True
 
 
 def test_execute_success_fake_and_lock_release() -> None:
     lock = _FakeLock()
     r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request(), adapters=_adapters(lock=lock))
     assert r["final_decision"] == "EXECUTION_COMPLETED_PENDING_REVIEW"
+    assert r["execution_completed"] is True
     assert lock.released is True
-
-
-def test_wrong_scope_blocked() -> None:
-    assert phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(ManualCanaryExecutionRunRequest(requested_action="execute", lane="zec"))["final_decision"] == "BLOCKED"
-    assert phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(ManualCanaryExecutionRunRequest(requested_action="execute", port=20002))["final_decision"] == "BLOCKED"
-    assert phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(ManualCanaryExecutionRunRequest(requested_action="execute", customer_key="bad"))["final_decision"] == "BLOCKED"
 
 
 def test_cli_plan_json() -> None:

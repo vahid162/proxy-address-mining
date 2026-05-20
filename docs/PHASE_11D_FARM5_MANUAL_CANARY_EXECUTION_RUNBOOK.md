@@ -51,3 +51,6 @@ mpf production manual-canary-execute \
 ## Safety reminders
 - Phase 11 remains unaccepted until evidence is reviewed and accepted.
 - Limited real customer onboarding remains forbidden until canary evidence is accepted.
+
+
+> Note: This command is a readiness contract and is expected to return BLOCKED when real production execution adapters are not wired yet.

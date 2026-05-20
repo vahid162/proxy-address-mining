@@ -7,4 +7,4 @@ def test_remaining_plan_targets_updated() -> None:
     assert "GitHub main repository version before this PR is 0.1.154" in current
     assert "Repository version after this PR is 0.1.155" in current
     assert "latest recorded farm5 sync evidence is 0.1.153" in current
-    assert "Next target: one explicit operator-approved manual canary execution run on farm5 and evidence collection" in current
+    assert "Next target: wire/accept real production service-layer execution adapters, then run one explicit operator-approved manual canary execution on farm5 and collect evidence" in current

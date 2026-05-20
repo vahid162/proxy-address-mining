@@ -19,7 +19,7 @@ def test_docs_and_readme_updates() -> None:
     assert 'latest recorded farm5 sync evidence is 0.1.153.' in rp
     assert 'Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded.' in rp
     assert 'Actual farm5 canary execution has not been run by this PR.' in rp
-    assert 'Next target: one explicit operator-approved manual canary execution run on farm5 and evidence collection.' in rp
+    assert 'Next target: wire/accept real production service-layer execution adapters, then run one explicit operator-approved manual canary execution on farm5 and collect evidence.' in rp
     assert 'Phase 11 remains not accepted.' in rp
 
 

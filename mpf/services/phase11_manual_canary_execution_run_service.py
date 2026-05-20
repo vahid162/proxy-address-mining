@@ -36,8 +36,17 @@ class CanaryExecutionAdapters:
 
 
 def _call(adapter: object, fn: str, report: dict[str, object]) -> dict[str, object]:
-    method = getattr(adapter, fn)
-    return method(report)
+    try:
+        method = getattr(adapter, fn)
+    except AttributeError:
+        return {"status": "error", "error": f"adapter method missing: {fn}"}
+    try:
+        result = method(report)
+    except Exception as exc:  # pragma: no cover - defensive fail-closed conversion
+        return {"status": "error", "error": f"adapter call failed: {fn}: {exc}"}
+    if not isinstance(result, dict):
+        return {"status": "error", "error": f"adapter call must return dict: {fn}"}
+    return result
 
 
 def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecutionRunRequest, runtime_context: dict[str, object] | None = None, adapters: dict[str, object] | None = None) -> dict[str, object]:
@@ -56,6 +65,11 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
         "final_decision": "BLOCKED",
         "authorization_status": "MANUAL_CANARY_EXECUTION_OPERATOR_APPROVAL_REQUIRED",
         "execution_allowed": False,
+        "execution_requested": request.requested_action == "execute",
+        "execution_preflight_passed": False,
+        "execution_started": False,
+        "execution_completed": False,
+        "execution_failed": False,
         "actual_canary_execution_performed": False,
         "mutation_performed": False,
         "customer_db_mutation_performed": False,
@@ -103,20 +117,11 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
         blockers.append(f"missing execution adapters: {', '.join(missing)}")
         return report
 
-    report["execution_allowed"] = not blockers
-    report["safety_flags"].update({
-        "controlled_cli_canary_execution_authorized": True,
-        "customer_db_mutation_authorized": True,
-        "firewall_apply_authorized": True,
-        "customer_nat_apply_authorized": True,
-        "customer_firewall_rules_apply_authorized": True,
-        "production_traffic_authorized": True,
-    })
-
     lock_acquired = False
+    report["execution_allowed"] = False
     try:
         for step, key in (("check_readiness", "preflight_results"), ("create_restore_point", "restore_point"), ("create_iptables_save_backup", "iptables_save_backup")):
-            obj = _call(adapters["readiness"] if step=="check_readiness" else adapters["restore"], step, report)
+            obj = _call(adapters["readiness"] if step == "check_readiness" else adapters["restore"], step, report)
             if obj.get("status") != "ok":
                 blockers.append(obj.get("error", f"{step} failed"))
                 report["final_decision"] = "BLOCKED"
@@ -124,21 +129,50 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
             if key in obj:
                 report[key] = obj[key]
 
+        report["execution_preflight_passed"] = True
+        report["execution_allowed"] = True
+
         lock_resp = _call(adapters["lock"], "acquire", report)
         lock_acquired = lock_resp.get("acquired", False)
         report["lock"]["acquired"] = lock_acquired
         if not lock_acquired:
             blockers.append(lock_resp.get("error", "lock acquire failed"))
-            report["final_decision"] = "EXECUTION_FAILED"
+            report["final_decision"] = "BLOCKED"
+            report["execution_allowed"] = False
             return report
 
+        report["execution_started"] = True
+
         report["customer_result"] = _call(adapters["customer"], "ensure_customer", report)
+        if report["customer_result"].get("status") != "ok":
+            blockers.append(report["customer_result"].get("error", "ensure_customer failed"))
+            report["final_decision"] = "EXECUTION_FAILED"
+            report["execution_failed"] = True
+            report["execution_allowed"] = False
+            return report
+
         report["firewall_plan"] = _call(adapters["firewall"], "build_plan", report)
+        if report["firewall_plan"].get("status") != "ok":
+            blockers.append(report["firewall_plan"].get("error", "build_plan failed"))
+            report["final_decision"] = "EXECUTION_FAILED"
+            report["execution_failed"] = True
+            report["execution_allowed"] = False
+            return report
+
         report["firewall_diff"] = _call(adapters["firewall"], "render_diff", report)
+        if report["firewall_diff"].get("status") != "ok":
+            blockers.append(report["firewall_diff"].get("error", "render_diff failed"))
+            report["final_decision"] = "EXECUTION_FAILED"
+            report["execution_failed"] = True
+            report["execution_allowed"] = False
+            return report
+
         report["firewall_apply"] = _call(adapters["firewall"], "apply_plan", report)
         if report["firewall_apply"].get("status") != "ok":
             blockers.append(report["firewall_apply"].get("error", "firewall apply failed"))
             report["final_decision"] = "EXECUTION_FAILED"
+            report["execution_failed"] = True
+            report["execution_allowed"] = False
             return report
 
         for field, method in (("post_apply_verification", "verify_post_apply"), ("canary_connection", "verify_canary_connection"), ("nat_hit_visibility", "verify_nat_hit"), ("usage_visibility", "verify_usage"), ("reject_visibility", "verify_reject"), ("session_worker_visibility", "verify_session_worker"), ("abuse_1h_coverage", "verify_abuse_coverage"), ("rollback_readiness", "rollback_readiness")):
@@ -147,10 +181,28 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
             if out.get("status") not in ("ok", "instruction_required"):
                 blockers.append(out.get("error", f"{method} failed"))
                 report["final_decision"] = "EXECUTION_FAILED"
+                report["execution_failed"] = True
+                report["execution_allowed"] = False
                 return report
 
         report["evidence_summary"] = _call(adapters["evidence"], "emit_evidence", report)
+        if report["evidence_summary"].get("status") != "ok":
+            blockers.append(report["evidence_summary"].get("error", "emit_evidence failed"))
+            report["final_decision"] = "EXECUTION_FAILED"
+            report["execution_failed"] = True
+            report["execution_allowed"] = False
+            return report
+
+        report["safety_flags"].update({
+            "controlled_cli_canary_execution_authorized": True,
+            "customer_db_mutation_authorized": True,
+            "firewall_apply_authorized": True,
+            "customer_nat_apply_authorized": True,
+            "customer_firewall_rules_apply_authorized": True,
+            "production_traffic_authorized": True,
+        })
         report["final_decision"] = "EXECUTION_COMPLETED_PENDING_REVIEW"
+        report["execution_completed"] = True
         report["actual_canary_execution_performed"] = True
         report["mutation_performed"] = True
         report["customer_db_mutation_performed"] = True
