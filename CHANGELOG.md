@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.150
+- Record farm5 0.1.149 sync/test evidence for the Phase 11D manual canary execution gate package and harden the current phase safety gate script for absolute-path execution while keeping actual canary execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
+
 ## 0.1.149
 - Add the Phase 11D manual canary execution gate package and `mpf production canary-execution-gate --output json` while keeping actual canary execution, production traffic, firewall apply, customer DB mutation, customer NAT/rules, abuse automation, UI, and Telegram gates closed.
 
