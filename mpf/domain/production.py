@@ -270,3 +270,78 @@ class ManualCanaryExecutionGateRequest:
         return {k: getattr(self, k) for k in (
             "customer_key","lane","port","name","miners","farms","maxconn","rate_per_min","burst","ips_mode","ip_whitelist","operator","reason","requested_action","require_operator_confirmation","require_farm5_0_1_147_evidence","require_phase11d_package_evidence","require_latest_main_sync_before_execution","require_backup_reference","require_restore_plan_reference","require_rollback_plan","require_no_customer_nat_baseline","require_no_customer_firewall_baseline","require_local_only_runtime_baseline","require_firewall_plan_review","require_abuse_coverage_check","require_usage_visibility_check","require_reject_visibility_check","require_session_worker_visibility_check","require_check_report_verdict",
         )}
+
+
+ALLOWED_MANUAL_CANARY_EXECUTION_RUN_PREPARATION_ACTIONS = {"prepare", "execute"}
+
+
+@dataclass(slots=True)
+class ManualCanaryExecutionRunPreparationRequest:
+    customer_key: str | None = "canary-btc-001"
+    lane: str = "btc"
+    port: int | None = 20001
+    name: str | None = "Phase 11 manual canary execution run"
+    miners: int = 1
+    farms: int = 1
+    maxconn: int = 1
+    rate_per_min: int = 120
+    burst: int = 240
+    ips_mode: str = "any"
+    ip_whitelist: list[str] = field(default_factory=list)
+    operator: str | None = None
+    reason: str | None = None
+    requested_action: str = "prepare"
+    require_operator_confirmation: bool = True
+    require_farm5_0_1_149_evidence: bool = True
+    require_execution_gate_evidence: bool = True
+    require_latest_main_sync_before_execution: bool = True
+    require_phase_gate_pass: bool = True
+    require_mpf_doctor_ok: bool = True
+    require_db_status_ok: bool = True
+    require_proxy_doctor_ok: bool = True
+    require_no_customer_nat_baseline: bool = True
+    require_no_customer_firewall_baseline: bool = True
+    require_local_only_runtime_baseline: bool = True
+    require_firewall_plan_review: bool = True
+    require_firewall_diff_review: bool = True
+    require_restore_point_before_apply: bool = True
+    require_iptables_save_backup_before_apply: bool = True
+    require_lock_before_apply: bool = True
+    require_verify_after_apply: bool = True
+    require_rollback_plan: bool = True
+    require_usage_visibility_check: bool = True
+    require_reject_visibility_check: bool = True
+    require_session_worker_visibility_check: bool = True
+    require_abuse_1h_coverage_check: bool = True
+    require_conntrack_scope_review: bool = True
+    require_post_execution_evidence_collection: bool = True
+
+    def validate(self) -> list[str]:
+        errors = CanaryPlanRequest(customer_key=self.customer_key,lane=self.lane,port=self.port,name=self.name,miners=self.miners,farms=self.farms,maxconn=self.maxconn,rate_per_min=self.rate_per_min,burst=self.burst,ips_mode=self.ips_mode,ip_whitelist=self.ip_whitelist,operator=self.operator,reason=self.reason).validate()
+        if self.requested_action not in ALLOWED_MANUAL_CANARY_EXECUTION_RUN_PREPARATION_ACTIONS:
+            errors.append("requested_action must be prepare or execute")
+        if self.requested_action == "execute":
+            errors.append("requested_action execute is blocked in this PR")
+        if not self.require_operator_confirmation:
+            errors.append("require_operator_confirmation must stay true")
+        if self.lane != "btc":
+            errors.append("lane must be btc for this manual canary preparation")
+        if self.port is None or not (20000 <= self.port <= 20999):
+            errors.append("port must be a safe canary port in range 20000..20999")
+        if self.miners < 1 or self.farms < 1 or self.maxconn < 1:
+            errors.append("miners/farms/maxconn must be >= 1")
+        if self.maxconn > self.miners and not (self.reason and self.reason.strip()):
+            errors.append("maxconn greater than miners requires a clear reason")
+        if self.ips_mode not in ALLOWED_IPS_MODE:
+            errors.append("ips_mode must be any or whitelist")
+        if self.ips_mode == "whitelist" and not self.ip_whitelist:
+            errors.append("ip_whitelist must be non-empty when ips_mode=whitelist")
+        for name in ("require_farm5_0_1_149_evidence","require_execution_gate_evidence","require_latest_main_sync_before_execution","require_phase_gate_pass","require_mpf_doctor_ok","require_db_status_ok","require_proxy_doctor_ok","require_no_customer_nat_baseline","require_no_customer_firewall_baseline","require_local_only_runtime_baseline","require_firewall_plan_review","require_firewall_diff_review","require_restore_point_before_apply","require_iptables_save_backup_before_apply","require_lock_before_apply","require_verify_after_apply","require_rollback_plan","require_usage_visibility_check","require_reject_visibility_check","require_session_worker_visibility_check","require_abuse_1h_coverage_check","require_conntrack_scope_review","require_post_execution_evidence_collection"):
+            if not getattr(self, name):
+                errors.append(f"{name} must stay true")
+        return errors
+
+    def as_dict(self) -> dict[str, object]:
+        return {k: getattr(self, k) for k in (
+            "customer_key","lane","port","name","miners","farms","maxconn","rate_per_min","burst","ips_mode","ip_whitelist","operator","reason","requested_action","require_operator_confirmation","require_farm5_0_1_149_evidence","require_execution_gate_evidence","require_latest_main_sync_before_execution","require_phase_gate_pass","require_mpf_doctor_ok","require_db_status_ok","require_proxy_doctor_ok","require_no_customer_nat_baseline","require_no_customer_firewall_baseline","require_local_only_runtime_baseline","require_firewall_plan_review","require_firewall_diff_review","require_restore_point_before_apply","require_iptables_save_backup_before_apply","require_lock_before_apply","require_verify_after_apply","require_rollback_plan","require_usage_visibility_check","require_reject_visibility_check","require_session_worker_visibility_check","require_abuse_1h_coverage_check","require_conntrack_scope_review","require_post_execution_evidence_collection",
+        )}

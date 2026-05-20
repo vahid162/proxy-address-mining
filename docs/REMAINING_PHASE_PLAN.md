@@ -6,8 +6,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.149.
-- Repository version after this PR is 0.1.150.
+- GitHub main repository version before this PR is 0.1.150.
+- Repository version after this PR is 0.1.151.
 - latest recorded farm5 sync evidence is 0.1.149.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
@@ -26,13 +26,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded.
 - Phase 11D package farm5 evidence is recorded.
 - Phase 11D execution remains not authorized.
-- Phase 11D manual canary execution gate package is implemented in GitHub by this PR.
-- Phase 11D execution gate farm5 evidence is recorded.
+- Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
+- Phase 11D operator-reviewed manual canary execution run preparation package is implemented in GitHub by this PR.
+- farm5 evidence for this preparation package is pending.
 - Phase 11D actual execution remains not authorized.
 - actual canary execution is not implemented or authorized by this PR.
-- next target after this PR is operator-reviewed manual canary execution run preparation.
-- after that: operator-reviewed manual canary execution run may be considered.
-- Phase 11D execution gate farm5 evidence is recorded as non-authorizing in this PR.
+- next target after this PR: farm5 sync/test evidence for the operator-reviewed manual canary execution run preparation package.
+- after that: actual operator-approved manual canary execution run may be considered.
 - server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.
 - production traffic remains none.
 - firewall apply remains no.
