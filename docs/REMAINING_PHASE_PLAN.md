@@ -25,15 +25,12 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11C remains non-authorizing; evidence recorded does not authorize runtime execution.
 - Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded.
 - Phase 11D package farm5 evidence is recorded.
-- Phase 11D execution remains not authorized.
 - Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
-- Phase 11D operator-reviewed manual canary execution run preparation package is implemented in GitHub by this PR.
-- actual canary execution is not implemented or authorized by this PR.
-- after that: farm5 manual canary execution evidence may be collected if the operator-approved execution package is accepted.
+- Phase 11D operator-reviewed manual canary execution run preparation package is implemented and farm5 evidence is recorded.
 - Phase 11D actual execution remains not authorized.
 - actual canary execution is not implemented or authorized by this PR.
 - next target after this PR: actual operator-approved manual canary execution run package.
-- after that: actual operator-approved manual canary execution run may be considered.
+- after that: farm5 manual canary execution evidence may be collected if the operator-approved execution package is accepted.
 - server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.
 - production traffic remains none.
 - firewall apply remains no.
