@@ -185,10 +185,11 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
         if report["firewall_apply"].get("status") != "ok":
             blocker = report["firewall_apply"].get("error", "firewall apply failed")
             blockers.append(blocker)
-            if blocker == "missing_real_firewall_apply_adapter":
-                report["missing_real_adapter_capabilities"].append("missing_real_firewall_apply_adapter")
-                report["firewall_apply_boundary"] = "missing_real_firewall_apply_adapter"
-                report["operator_next_steps"] = ["implement accepted single-canary firewall apply adapter"]
+            if report["firewall_apply"].get("status") == "blocked":
+                report["missing_real_adapter_capabilities"].append(blocker)
+                report["firewall_apply_boundary"] = blocker
+                missing_primitive = report["firewall_apply"].get("missing_primitive")
+                report["operator_next_steps"] = [f"implement {missing_primitive}" if missing_primitive else f"resolve blocker: {blocker}"]
                 report["final_decision"] = "BLOCKED"
                 report["execution_allowed"] = False
                 return report

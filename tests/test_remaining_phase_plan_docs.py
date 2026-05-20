@@ -9,7 +9,7 @@ def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
     assert "- GitHub main repository version before this PR is 0.1.155." in current
-    assert "- Repository version after this PR is 0.1.156." in current
+    assert "- Repository version after this PR is 0.1.157." in current
     assert "- latest recorded farm5 sync evidence is 0.1.153." in current
     assert "- Phase 10 final-acceptance-readiness is done." in current
     assert "- Phase 10 final acceptance is done." in current
@@ -25,7 +25,7 @@ def test_current_position_updates() -> None:
     assert "- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded." in current
     assert "- Actual farm5 canary execution has not been run by this PR." in current
     assert "- Phase 11D actual execution remains not accepted." in current
-    assert "- Next target: implement the missing accepted single-canary firewall apply adapter (`missing_real_firewall_apply_adapter`) so the explicit operator-approved canary execution can complete via service-layer boundaries." in current
+    assert "- Next target: sync latest main to farm5, run explicit operator-approved single-canary execution once, and collect evidence; if execution blocks, implement the exact missing primitive reported as `accepted_single_canary_host_apply_primitive`." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no except future explicit single-canary operator-approved run path." in current
     assert "- abuse automation remains no." in current

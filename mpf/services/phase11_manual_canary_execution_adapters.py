@@ -49,8 +49,18 @@ class _CustomerAdapter:
 
 @dataclass(slots=True)
 class _FirewallAdapter:
+    host_apply_primitive_available: bool = False
+
     def build_plan(self, report: dict[str, object]) -> dict[str, object]:
         request = report.get("request", {})
+        if request.get("customer_key") != "canary-btc-001":
+            return {"status": "blocked", "error": "wrong_customer_key"}
+        if request.get("lane") != "btc":
+            return {"status": "blocked", "error": "wrong_lane"}
+        if request.get("port") != 20001:
+            return {"status": "blocked", "error": "wrong_customer_port"}
+        if report.get("scope", {}).get("single_canary_only") is not True:
+            return {"status": "blocked", "error": "non_single_canary_scope"}
         return {
             "status": "ok",
             "lane": request.get("lane"),
@@ -62,7 +72,19 @@ class _FirewallAdapter:
         return {"status": "ok", "human_diff": "canary-btc-001:20001 -> btc:60010", "json_diff": {"customer_port": 20001, "backend_port": 60010}}
 
     def apply_plan(self, report: dict[str, object]) -> dict[str, object]:
-        return {"status": "blocked", "error": "missing_real_firewall_apply_adapter"}
+        if report.get("lock", {}).get("acquired") is not True:
+            return {"status": "blocked", "error": "missing_lock"}
+        if report.get("restore_point") is None:
+            return {"status": "blocked", "error": "missing_restore_point"}
+        if report.get("iptables_save_backup") is None:
+            return {"status": "blocked", "error": "missing_iptables_save_backup"}
+        diff = report.get("firewall_diff") or {}
+        json_diff = diff.get("json_diff", {}) if isinstance(diff, dict) else {}
+        if json_diff.get("customer_port") != 20001 or json_diff.get("backend_port") != 60010:
+            return {"status": "blocked", "error": "firewall_diff_not_reviewed"}
+        if not self.host_apply_primitive_available:
+            return {"status": "blocked", "error": "unsafe_firewall_apply_boundary", "missing_primitive": "accepted_single_canary_host_apply_primitive"}
+        return {"status": "ok", "applied": True, "customer_port": 20001, "backend_port": 60010}
 
 
 @dataclass(slots=True)
@@ -88,7 +110,7 @@ def build_manual_canary_production_adapters() -> dict[str, object]:
         restore=_RestoreAdapter(),
         lock=_LockAdapter(),
         customer=_CustomerAdapter(),
-        firewall=_FirewallAdapter(),
+        firewall=_FirewallAdapter(host_apply_primitive_available=False),
         verify=_VerifyAdapter(),
         evidence=_EvidenceAdapter(),
     )

@@ -204,5 +204,5 @@ def test_cli_execute_uses_production_adapters_and_blocks_on_missing_real_apply()
     assert payload["adapter_mode"] == "production_service_layer"
     assert payload["real_adapters_wired"] is True
     assert payload["final_decision"] == "BLOCKED"
-    assert "missing_real_firewall_apply_adapter" in payload["missing_real_adapter_capabilities"]
+    assert "unsafe_firewall_apply_boundary" in payload["missing_real_adapter_capabilities"]
     assert all(v is False for v in payload["safety_flags"].values())

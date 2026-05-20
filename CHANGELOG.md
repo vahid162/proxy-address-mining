@@ -1,7 +1,7 @@
 # Changelog
 
-## 0.1.155
-- Wire `mpf production manual-canary-execute` to production service-layer adapter boundaries for the exact single canary scope and add adapter-mode/report readiness fields, while fail-closing execute mode with `missing_real_firewall_apply_adapter` until an accepted real firewall apply adapter exists.
+## 0.1.157
+- Add a fail-closed Phase 11F single-canary firewall apply adapter boundary for `canary-btc-001` (`btc`/`20001 -> 60010`) with exact-scope checks, restore/backup/lock/diff gates, structured blockers, and blocked-by-default host apply primitive reporting (`unsafe_firewall_apply_boundary`) without enabling broad production activation.
 
 ## 0.1.156
 - Implement the Phase 11D single-canary operator-approved execution workflow and farm5 runbook for `canary-btc-001` on BTC port 20001, fix stale manual-canary expected-version validation, keep plan mode non-mutating by default, require explicit approvals for execute mode, leave farm5 execution evidence pending, keep limited real customer onboarding forbidden, and keep Phase 11 unaccepted.
