@@ -11,6 +11,18 @@ from mpf.services import phase11_manual_canary_execution_run_service
 RUNNER = CliRunner()
 
 
+def _approved_execute_request() -> ManualCanaryExecutionRunRequest:
+    return ManualCanaryExecutionRunRequest(
+        requested_action="execute",
+        expected_version="0.1.153",
+        operator_confirmed=True,
+        understand_canary_customer=True,
+        understand_firewall_apply=True,
+        reviewed_rollback=True,
+        fresh_farm5_sync_confirmed=True,
+    )
+
+
 def test_dto_defaults_validate_plan() -> None:
     assert ManualCanaryExecutionRunRequest().validate() == []
 
@@ -34,16 +46,31 @@ def test_service_plan_mode() -> None:
     assert r["final_decision"] == "PLAN_READY_FOR_FARM5_SYNC_EVIDENCE"
     assert r["execution_allowed"] is False
     assert r["mutation_performed"] is False
+    assert all(v is False for v in r["safety_flags"].values())
+
+
+def test_execute_mode_without_adapter_is_fail_closed() -> None:
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(_approved_execute_request())
+    assert r["final_decision"] == "BLOCKED"
+    assert r["execution_allowed"] is False
+    assert r["mutation_performed"] is False
+    assert "execution adapter readiness is required" in " ".join(r["blockers"])
 
 
 def test_execute_mode_with_fake_adapters() -> None:
-    req = ManualCanaryExecutionRunRequest(requested_action="execute", expected_version="0.1.153", operator_confirmed=True, understand_canary_customer=True, understand_firewall_apply=True, reviewed_rollback=True, fresh_farm5_sync_confirmed=True)
-    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(req)
+    r = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
+        _approved_execute_request(),
+        adapters={"simulate_execute": True},
+    )
     assert r["final_decision"] == "EXECUTION_READY_REQUIRES_OPERATOR_RUN"
+    assert r["execution_allowed"] is True
+    assert r["mutation_performed"] is False
     assert r["execution_steps"]
 
 
 def test_cli_plan_json() -> None:
     result = RUNNER.invoke(app, ["production", "manual-canary-execute", "--output", "json"])
     assert result.exit_code == 0
-    assert json.loads(result.output)["component"] == "phase11_manual_canary_execution_run"
+    data = json.loads(result.output)
+    assert data["component"] == "phase11_manual_canary_execution_run"
+    assert data["execution_allowed"] is False
