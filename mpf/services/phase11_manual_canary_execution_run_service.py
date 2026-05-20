@@ -216,23 +216,27 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
             report["execution_allowed"] = False
             return report
 
+        customer_ok = report["customer_result"].get("status") == "ok" and report["customer_result"].get("placeholder") is not True
+        applied = report["firewall_apply"].get("applied") is True
+        nat_ok = report["firewall_apply"].get("nat_rule_verified") is True
         report["safety_flags"].update({
             "controlled_cli_canary_execution_authorized": True,
-            "customer_db_mutation_authorized": True,
-            "firewall_apply_authorized": True,
-            "customer_nat_apply_authorized": True,
-            "customer_firewall_rules_apply_authorized": True,
-            "production_traffic_authorized": True,
+            "customer_db_mutation_authorized": bool(customer_ok and report["customer_result"].get("created") is True),
+            "firewall_apply_authorized": applied,
+            "iptables_restore_authorized": bool(report["firewall_apply"].get("iptables_restore_used") is True),
+            "customer_nat_apply_authorized": nat_ok,
+            "customer_firewall_rules_apply_authorized": applied,
+            "production_traffic_authorized": nat_ok,
         })
         report["production_execution_ready"] = True
         report["final_decision"] = "EXECUTION_COMPLETED_PENDING_REVIEW"
         report["execution_completed"] = True
         report["actual_canary_execution_performed"] = True
-        report["mutation_performed"] = True
-        report["customer_db_mutation_performed"] = True
-        report["firewall_mutation_performed"] = True
-        report["nat_mutation_performed"] = True
-        report["production_traffic_enabled"] = True
+        report["mutation_performed"] = bool(applied or report["customer_result"].get("created") is True)
+        report["customer_db_mutation_performed"] = bool(report["customer_result"].get("created") is True)
+        report["firewall_mutation_performed"] = applied
+        report["nat_mutation_performed"] = nat_ok
+        report["production_traffic_enabled"] = nat_ok
     finally:
         if lock_acquired:
             release = _call(adapters["lock"], "release", report)

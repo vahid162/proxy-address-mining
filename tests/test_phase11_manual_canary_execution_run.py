@@ -173,6 +173,7 @@ def test_execute_success_fake_and_lock_release() -> None:
     assert r["final_decision"] == "EXECUTION_COMPLETED_PENDING_REVIEW"
     assert r["execution_completed"] is True
     assert lock.released is True
+    assert r["customer_db_mutation_performed"] is False
 
 
 def test_cli_plan_json() -> None:
@@ -204,5 +205,5 @@ def test_cli_execute_uses_production_adapters_and_blocks_on_missing_real_apply()
     assert payload["adapter_mode"] == "production_service_layer"
     assert payload["real_adapters_wired"] is True
     assert payload["final_decision"] == "BLOCKED"
-    assert "unsafe_firewall_apply_boundary" in payload["missing_real_adapter_capabilities"]
+    assert "real_restore_backup_adapter_missing" in payload["blockers"]
     assert all(v is False for v in payload["safety_flags"].values())

@@ -13,7 +13,7 @@ Execute mode (`--requested-action execute`) requires all explicit approvals:
 - `--i-understand-this-can-apply-firewall`
 - `--i-have-reviewed-rollback`
 - `--i-have-fresh-farm5-sync`
-- `--expected-version 0.1.157`
+- `--expected-version 0.1.158`
 - `--customer-key canary-btc-001`
 - `--lane btc`
 - `--port 20001`

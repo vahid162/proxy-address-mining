@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.157`.
+- Confirm version is `0.1.158`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -26,7 +26,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.157 \
+  --expected-version 0.1.158 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
