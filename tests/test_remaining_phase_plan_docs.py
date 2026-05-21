@@ -8,9 +8,9 @@ def _read(p: str) -> str:
 def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- GitHub main repository version before this PR is 0.1.161." in current
+    assert "- GitHub main repository version before this PR is 0.1.162." in current
     assert "- Repository version after this PR is 0.1.163." in current
-    assert "- latest recorded farm5 sync evidence is 0.1.161." in current
+    assert "- latest recorded farm5 sync evidence is 0.1.162." in current
     assert "- Phase 10 final-acceptance-readiness is done." in current
     assert "- Phase 10 final acceptance is done." in current
     assert "- Current accepted phase is Phase 10." in current
@@ -25,8 +25,8 @@ def test_current_position_updates() -> None:
     assert "- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded." in current
     assert "- Actual farm5 canary execution has not been run by this PR." in current
     assert "- Phase 11D actual execution remains not accepted." in current
-    assert "Current blocker before this PR: accepted_apply_safe_single_canary_payload." in current
-    assert "- This PR adds the apply-safe single-canary payload boundary; actual farm5 canary execution is still not performed by this PR." in current
+    assert "Current blocker before this PR: single_canary_restore_payload_not_apply_safe." in current
+    assert "- This PR adds the exact single-canary NAT hook bootstrap boundary for MPF_NAT_PRE and PREROUTING -> MPF_NAT_PRE; actual farm5 canary DNAT execution is still not performed by this PR." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no except future explicit single-canary operator-approved run path." in current
     assert "- abuse automation remains no." in current
