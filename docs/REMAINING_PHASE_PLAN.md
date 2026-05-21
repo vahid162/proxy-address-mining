@@ -6,43 +6,30 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.162.
-- Repository version after this PR is 0.1.163.
-- latest recorded farm5 sync evidence is 0.1.162.
-- Phase 10A/10B/10C backend readiness implementation is done.
-- Phase 10D/10E readiness is done.
-- Phase 10F runtime worker/scheduler dry-run readiness is done.
-- Phase 10 final-acceptance-readiness is done.
-- Phase 10 final acceptance is done.
-- Current accepted phase is Phase 10.
-- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Phase 11 now follows AI-safe Runtime-first, while all current production/firewall/canary/runtime/abuse/UI/Telegram gates remain closed until explicit accepted evidence.
-- Phase 11A production readiness inventory is implemented in report-only/non-authorizing mode.
-- Phase 11A production readiness inventory is implemented and farm5 evidence recorded.
-- Phase 11B canary plan/report is implemented and farm5 evidence recorded.
-- Phase 11B remains report-only and non-authorizing for runtime execution.
-- Phase 11C controlled activation harness is implemented and farm5 evidence recorded.
-- Phase 11C remains non-authorizing; evidence recorded does not authorize runtime execution.
-- Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded.
-- Phase 11D package farm5 evidence is recorded.
+- GitHub main repository version before this PR is 0.1.163.
+- Repository version after this PR is 0.1.164.
+- latest recorded farm5 route-safe failure evidence is 0.1.163.
+- Current blocker before this PR: loopback canary DNAT target not route-safe for external PREROUTING traffic.
+- This PR adds route-safe Docker backend target resolution for the exact single-canary DNAT path.
+- Actual route-safe farm5 canary DNAT execution has not been accepted by this PR.
+- Next target after this PR: sync latest main to farm5, run safe checks, apply one explicit route-safe single-canary DNAT attempt, then collect active external connection/NAT/doctor evidence.
+- Keep Phase 11 not accepted.
+- Keep limited real customer onboarding forbidden.
+- Keep abuse automation/UI/Telegram closed.
+
+- latest recorded farm5 sync evidence is 0.1.159.
 - Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
 - Phase 11D operator-reviewed manual canary execution run preparation package is implemented and farm5 evidence is recorded.
 - Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded.
-- Actual farm5 canary execution has not been run by this PR.
 - Phase 11D actual execution remains not accepted.
-- Current blocker before this PR: single_canary_restore_payload_not_apply_safe.
-- This PR adds the exact single-canary NAT hook bootstrap boundary for MPF_NAT_PRE and PREROUTING -> MPF_NAT_PRE; actual farm5 canary DNAT execution is still not performed by this PR.
-- Next target after this PR: sync latest main to farm5, run safe checks, review bootstrap evidence, and then decide whether one explicit operator-approved single-canary DNAT apply attempt is allowed.
-- Limited real customer onboarding remains forbidden until canary execution evidence is accepted.
-- server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.
+- Current accepted phase is Phase 10.
+- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
 - production traffic remains none.
 - firewall apply remains no except future explicit single-canary operator-approved run path.
 - abuse automation remains no.
 - customer onboarding remains db_only except future explicit canary run path.
 - UI remains no.
 - Telegram remains no.
-- General controlled CLI canary is not authorized by this PR outside the future explicit single-canary operator run path.
-- Production activation is not enabled by this PR.
 - Phase 11 remains not accepted.
 
 ## Finite Remaining Path

@@ -8,32 +8,15 @@ def _read(p: str) -> str:
 def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- GitHub main repository version before this PR is 0.1.162." in current
-    assert "- Repository version after this PR is 0.1.163." in current
-    assert "- latest recorded farm5 sync evidence is 0.1.162." in current
-    assert "- Phase 10 final-acceptance-readiness is done." in current
-    assert "- Phase 10 final acceptance is done." in current
-    assert "- Current accepted phase is Phase 10." in current
-    assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
-    assert "- Phase 11A production readiness inventory is implemented and farm5 evidence recorded." in current
-    assert "- Phase 11B canary plan/report is implemented and farm5 evidence recorded." in current
-    assert "- Phase 11B remains report-only and non-authorizing for runtime execution." in current
-    assert "- Phase 11C controlled activation harness is implemented and farm5 evidence recorded." in current
-    assert "- Phase 11C remains non-authorizing; evidence recorded does not authorize runtime execution." in current
-    assert "- Phase 11D manual canary customer acceptance package is implemented and farm5 evidence recorded." in current
-    assert "- Phase 11D package farm5 evidence is recorded." in current
-    assert "- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded." in current
-    assert "- Actual farm5 canary execution has not been run by this PR." in current
-    assert "- Phase 11D actual execution remains not accepted." in current
-    assert "Current blocker before this PR: single_canary_restore_payload_not_apply_safe." in current
-    assert "- This PR adds the exact single-canary NAT hook bootstrap boundary for MPF_NAT_PRE and PREROUTING -> MPF_NAT_PRE; actual farm5 canary DNAT execution is still not performed by this PR." in current
-    assert "- production traffic remains none." in current
-    assert "- firewall apply remains no except future explicit single-canary operator-approved run path." in current
-    assert "- abuse automation remains no." in current
-    assert "- customer onboarding remains db_only except future explicit canary run path." in current
-    assert "- UI remains no." in current
-    assert "- Telegram remains no." in current
-    assert "- Phase 11 remains not accepted." in current
+    assert "- GitHub main repository version before this PR is 0.1.163." in current
+    assert "- Repository version after this PR is 0.1.164." in current
+    assert "- latest recorded farm5 route-safe failure evidence is 0.1.163." in current
+    assert "Current blocker before this PR: loopback canary DNAT target not route-safe for external PREROUTING traffic." in current
+    assert "This PR adds route-safe Docker backend target resolution for the exact single-canary DNAT path." in current
+    assert "Actual route-safe farm5 canary DNAT execution has not been accepted by this PR." in current
+    assert "Keep Phase 11 not accepted." in current
+    assert "Keep limited real customer onboarding forbidden." in current
+    assert "Keep abuse automation/UI/Telegram closed." in current
 
 
 def test_finite_path_updates() -> None:
@@ -55,12 +38,6 @@ def test_ai_phase10_task_marks_acceptance() -> None:
 
 def test_phase11_non_accepted_and_gates_closed() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
-    assert "Current accepted phase is Phase 10." in t
-    assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in t
-    assert "Phase 11D actual execution remains not accepted." in t
-    assert "production traffic remains none." in t
-    assert "firewall apply remains no except future explicit single-canary operator-approved run path." in t
-    assert "abuse automation remains no." in t
-    assert "customer onboarding remains db_only except future explicit canary run path." in t
-    assert "UI remains no." in t
-    assert "Telegram remains no." in t
+    assert "Keep Phase 11 not accepted." in t
+    assert "Keep limited real customer onboarding forbidden." in t
+    assert "Keep abuse automation/UI/Telegram closed." in t
