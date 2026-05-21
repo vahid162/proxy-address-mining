@@ -6,9 +6,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.161.
-- Repository version after this PR is 0.1.162.
-- latest recorded farm5 sync evidence is 0.1.161.
+- GitHub main repository version before this PR is 0.1.162.
+- Repository version after this PR is 0.1.163.
+- latest recorded farm5 sync evidence is 0.1.162.
 - Phase 10A/10B/10C backend readiness implementation is done.
 - Phase 10D/10E readiness is done.
 - Phase 10F runtime worker/scheduler dry-run readiness is done.
@@ -30,9 +30,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded.
 - Actual farm5 canary execution has not been run by this PR.
 - Phase 11D actual execution remains not accepted.
-- Current blocker before this PR: accepted_apply_safe_single_canary_payload.
-- This PR adds the apply-safe single-canary payload boundary; actual farm5 canary execution is still not performed by this PR.
-- Next target after this PR: sync latest main to farm5, run the safe plan/execute-control checks, and only then decide whether one explicit operator-approved farm5 single-canary apply attempt is allowed.
+- Current blocker before this PR: single_canary_restore_payload_not_apply_safe.
+- This PR adds the exact single-canary NAT hook bootstrap boundary for MPF_NAT_PRE and PREROUTING -> MPF_NAT_PRE; actual farm5 canary DNAT execution is still not performed by this PR.
+- Next target after this PR: sync latest main to farm5, run safe checks, review bootstrap evidence, and then decide whether one explicit operator-approved single-canary DNAT apply attempt is allowed.
 - Limited real customer onboarding remains forbidden until canary execution evidence is accepted.
 - server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.
 - production traffic remains none.

@@ -1,19 +1,14 @@
 # Changelog
 
-## 0.1.162
-- Record farm5 0.1.159 sync/test/execute-control evidence and implement the exact single-canary restore payload renderer for `canary-btc-001` / `btc` / `20001 -> 60010`, while keeping host apply, NAT mutation, production traffic, abuse automation, UI, Telegram, and limited real customer onboarding disabled.
+## 0.1.163
+- Add the exact Phase 11 single-canary NAT hook bootstrap boundary for `MPF_NAT_PRE` and `PREROUTING -> MPF_NAT_PRE`, guarded by explicit env flags, restore/backup, lock, `iptables-restore --test --noflush`, and terminal bootstrap review behavior without automatic final canary DNAT.
+- Record farm5 0.1.162 sync/safe-check evidence while keeping Phase 11 unaccepted, production traffic disabled, limited onboarding forbidden, and abuse/UI/Telegram gates closed.
 
 ## 0.1.159
 - add single-canary real restore point + iptables-save backup boundary for execute path only
 - record farm5 0.1.158 sync/test evidence
 
-# Changelog
-
-## 0.1.162
-- Record farm5 0.1.159 sync/test/execute-control evidence and implement the exact single-canary restore payload renderer for `canary-btc-001` / `btc` / `20001 -> 60010`, while keeping host apply, NAT mutation, production traffic, abuse automation, UI, Telegram, and limited real customer onboarding disabled.
-
 ## 0.1.158
-
 - Implement accepted single-canary host apply primitive boundary for Phase 11 manual canary execution exact-scoped to `canary-btc-001` / `btc` / `20001 -> 60010`, with non-placeholder restore/backup/lock/diff/context gates, fail-closed blockers, idempotency checks, mutation-accurate reporting, and no broad production activation.
 
 ## 0.1.157
