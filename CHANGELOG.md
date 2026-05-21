@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.164
+- Add route-safe Docker backend target resolution for the Phase 11 exact single-canary DNAT path, replacing the previous loopback `127.0.0.1:60010` target with a runtime-discovered Docker container IPv4 target.
+- Harden renderer, executor, and verifier to reject loopback/public/mismatched targets, preserve exact canary scope, and keep onboarding, abuse automation, UI, Telegram, and Phase 11 acceptance closed.
+- Record farm5 0.1.163 failure evidence: loopback DNAT hit counters but external connection timed out; failed rule was manually removed.
+
 ## 0.1.163
 - Add the exact Phase 11 single-canary NAT hook bootstrap boundary for `MPF_NAT_PRE` and `PREROUTING -> MPF_NAT_PRE`, guarded by explicit env flags, restore/backup, lock, `iptables-restore --test --noflush`, and terminal bootstrap review behavior without automatic final canary DNAT.
 - Record farm5 0.1.162 sync/safe-check evidence while keeping Phase 11 unaccepted, production traffic disabled, limited onboarding forbidden, and abuse/UI/Telegram gates closed.
