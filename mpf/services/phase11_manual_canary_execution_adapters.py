@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
@@ -114,7 +115,7 @@ class _FirewallAdapter:
         json_diff = diff.get("json_diff", {}) if isinstance(diff, dict) else {}
         if json_diff.get("customer_port") != 20001 or json_diff.get("backend_port") != 60010:
             return {"status": "blocked", "error": "firewall_diff_not_reviewed"}
-        import os
+
         if os.environ.get("MPF_PHASE11_SINGLE_CANARY_NAT_HOOK_BOOTSTRAP") == "allow":
             bootstrapper = self.nat_hook_bootstrap or Phase11SingleCanaryNatHookBootstrapService()
             bootstrap_result = bootstrapper.run(report)
@@ -122,9 +123,22 @@ class _FirewallAdapter:
             if bootstrap_result.get("status") != "ok":
                 return bootstrap_result
             if bootstrap_result.get("action") == "needs_bootstrap":
-                return {"status": "blocked", "error": "single_canary_nat_hook_bootstrap_required", "missing_primitive": "accepted_safe_single_canary_nat_hook_bootstrap", **bootstrap_result}
+                return {
+                    **bootstrap_result,
+                    "status": "blocked",
+                    "error": "single_canary_nat_hook_bootstrap_required",
+                    "missing_primitive": "accepted_safe_single_canary_nat_hook_bootstrap",
+                }
             if bootstrap_result.get("action") == "bootstrapped":
-                return {"status": "ok", "applied": False, "bootstrap_completed": True, "actual_canary_execution_performed": False, "production_traffic_enabled": False, "mutation_performed": True, "firewall_mutation_performed": True, "nat_mutation_performed": True, "pre_apply_nat_sha256": bootstrap_result.get("pre_bootstrap_nat_sha256"), "post_apply_nat_sha256": bootstrap_result.get("post_bootstrap_nat_sha256")}
+                return {
+                    **bootstrap_result,
+                    "status": "ok",
+                    "applied": False,
+                    "bootstrap_completed": True,
+                    "actual_canary_execution_performed": False,
+                    "production_traffic_enabled": False,
+                    "iptables_restore_used": True,
+                }
 
         renderer = self.restore_payload_renderer or Phase11ExactCanaryRestorePayloadRenderer()
         rendered = renderer.render(report)
