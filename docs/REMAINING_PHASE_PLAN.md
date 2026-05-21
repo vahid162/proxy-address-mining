@@ -6,7 +6,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.164.
+- GitHub main repository version before this PR is 0.1.167.
 - Repository version after this PR is 0.1.168.
 - latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).
 - latest recorded route-safe canary NAT success evidence is 0.1.164.
@@ -102,7 +102,7 @@ These entries are historical compatibility anchors for older docs/tests/services
 - Phase 6 Apply Slice 1 — Live Snapshot Readiness Boundary
 - Phase 6 Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness
 - Phase 6 Apply Slice 3 — Controlled No-Customer Apply Harness
-- Phase 6 Apply Slice 4 — Manual Canary Apply Gate Proposal
+- Phase 6 Apply Slice 4 — Manual Canary Apply Proposal
 - Phase 7 starts only after Phase 6 final acceptance.
 - iptables-restore remains forbidden in the current boundary context.
 
