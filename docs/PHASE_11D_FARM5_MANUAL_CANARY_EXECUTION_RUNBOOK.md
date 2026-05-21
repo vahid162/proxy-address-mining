@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.164`.
+- Confirm version is `0.1.165`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -27,7 +27,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.164 \
+  --expected-version 0.1.165 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -66,7 +66,7 @@ mpf production manual-canary-execute \
 - plan command:
   - `mpf production manual-canary-execute --output json`
 - execute-control command:
-  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.164 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
+  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.165 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
 - exact payload renderer behavior: execute path now renders deterministic exact payload for canary-btc-001/btc/20001->60010 after restore+backup+diff checks.
 - expected blocker without host-apply context guard: `single_canary_host_apply_context_not_confirmed`.
 - expected blocker with both restore-backup and host-apply context guards enabled: `accepted_single_canary_host_apply_execution_missing`.
@@ -86,7 +86,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.164 \
+  --expected-version 0.1.165 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -112,7 +112,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.164 \
+  --expected-version 0.1.165 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -128,3 +128,23 @@ Expected: `restore_payload_renderer.status=ok`, `firewall_plan.restore_payload` 
 No real host apply executor is wired in production in this PR.
 
 Warnings remain: no production traffic, no real customer onboarding, no abuse automation, no UI, no Telegram, and no host apply implementation in this PR.
+
+## Route-safe successful evidence (farm5, 0.1.164)
+
+- Recorded in `docs/PHASE_11_ROUTE_SAFE_CANARY_NAT_SUCCESS_EVIDENCE.md`.
+- External TCP test succeeded to `85.198.11.110:20001` and conntrack showed `ASSURED` flow to `172.18.0.3:60010`.
+- NAT evidence confirms exact single-canary DNAT rule and no loopback canary target.
+
+### Important boundary clarification
+
+- TCP/NAT success is **not** full Phase 11 acceptance.
+- Current State in `docs/PHASE_STATUS.md` remains authoritative and unchanged (`production_traffic: none`, `customer_onboarding_allowed: db_only`, `abuse_automation_allowed: no`, `ui_allowed: no`, `telegram_allowed: no`).
+- Limited real customer onboarding remains forbidden until canary evidence is formally accepted.
+
+### Next required validation before onboarding review
+
+- miner/Stratum canary validation on the same controlled single-canary scope
+- usage visibility evidence
+- reject visibility evidence
+- session visibility evidence
+- reviewer sign-off that Phase 11 remains unaccepted until all required evidence is accepted
