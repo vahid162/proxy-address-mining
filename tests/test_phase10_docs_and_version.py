@@ -4,9 +4,9 @@ from mpf import __version__
 
 
 def test_version_consistency():
-    assert Path("VERSION").read_text().strip() == "0.1.161"
-    assert __version__ == "0.1.161"
-    assert 'version = "0.1.161"' in Path("pyproject.toml").read_text(encoding="utf-8")
+    assert Path("VERSION").read_text().strip() == "0.1.162"
+    assert __version__ == "0.1.162"
+    assert 'version = "0.1.162"' in Path("pyproject.toml").read_text(encoding="utf-8")
 
 
 def test_phase10_docs_present():

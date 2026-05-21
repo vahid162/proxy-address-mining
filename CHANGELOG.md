@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.161
+## 0.1.162
 - Record farm5 0.1.159 sync/test/execute-control evidence and implement the exact single-canary restore payload renderer for `canary-btc-001` / `btc` / `20001 -> 60010`, while keeping host apply, NAT mutation, production traffic, abuse automation, UI, Telegram, and limited real customer onboarding disabled.
 
 ## 0.1.159
@@ -9,7 +9,7 @@
 
 # Changelog
 
-## 0.1.161
+## 0.1.162
 - Record farm5 0.1.159 sync/test/execute-control evidence and implement the exact single-canary restore payload renderer for `canary-btc-001` / `btc` / `20001 -> 60010`, while keeping host apply, NAT mutation, production traffic, abuse automation, UI, Telegram, and limited real customer onboarding disabled.
 
 ## 0.1.158
