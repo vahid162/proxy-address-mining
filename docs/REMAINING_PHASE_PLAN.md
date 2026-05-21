@@ -31,7 +31,9 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Actual farm5 canary execution has not been run by this PR.
 - Phase 11D actual execution remains not accepted.
 - Current blocker before this PR: single_canary_restore_payload_renderer_missing.
-- Expected next blocker after this PR: accepted_single_canary_host_apply_execution_missing.
+- Expected next blocker after this PR is env-gated:
+  - with only `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow`: `single_canary_host_apply_context_not_confirmed`
+  - with both `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow` and `MPF_PHASE11_SINGLE_CANARY_HOST_APPLY=allow`: `accepted_single_canary_host_apply_execution_missing`.
 - After that: record actual canary execution evidence if successful.
 - Limited real customer onboarding remains forbidden until canary execution evidence is accepted.
 - server sync may be batched across PRs, but farm5 must sync with latest main before any next execution gate.

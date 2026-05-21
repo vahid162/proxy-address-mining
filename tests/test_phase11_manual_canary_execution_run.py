@@ -248,3 +248,60 @@ def test_single_canary_primitive_blocks_without_verifier(monkeypatch) -> None:
     out = primitive.execute(report)
     assert out["status"] == "blocked"
     assert out["error"] == "single_canary_post_apply_verification_missing"
+
+
+
+
+class _RestoreOKNoIptables:
+    def create_restore_point(self, report):
+        return {"status": "ok", "restore_point": {"id": "rp-test", "mode": "single_canary_restore_backup_boundary"}}
+
+    def create_iptables_save_backup(self, report):
+        return {"status": "ok", "iptables_save_backup": {"id": "bk-test", "mode": "single_canary_restore_backup_boundary", "path": "/tmp/mock", "sha256": "abc"}}
+
+
+def _production_like_adapters_without_iptables_save():
+    from mpf.services.phase11_manual_canary_execution_adapters import build_manual_canary_production_adapters
+
+    adapters = build_manual_canary_production_adapters()
+    adapters["restore"] = _RestoreOKNoIptables()
+    return adapters
+
+
+def test_execute_restore_guard_path_renderer_ok_then_host_apply_context_blocked(monkeypatch) -> None:
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP", "allow")
+    monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", raising=False)
+    monkeypatch.delenv("CI", raising=False)
+    report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
+        _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
+    )
+    assert report["final_decision"] == "BLOCKED"
+    assert "single_canary_host_apply_context_not_confirmed" in report["blockers"]
+    assert report["restore_payload_renderer"]["status"] == "ok"
+    assert isinstance(report["firewall_plan"].get("restore_payload"), str)
+    assert report["mutation_performed"] is False
+    assert report["customer_db_mutation_performed"] is False
+    assert report["firewall_mutation_performed"] is False
+    assert report["nat_mutation_performed"] is False
+    assert report["production_traffic_enabled"] is False
+    assert all(v is False for v in report["safety_flags"].values())
+
+
+def test_execute_both_guards_renderer_ok_then_missing_host_apply_executor_blocked(monkeypatch) -> None:
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP", "allow")
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
+    monkeypatch.delenv("CI", raising=False)
+    report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
+        _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
+    )
+    assert report["final_decision"] == "BLOCKED"
+    assert "accepted_single_canary_host_apply_execution_missing" in report["blockers"]
+    assert report["firewall_apply"]["missing_primitive"] == "accepted_single_canary_host_apply_execution"
+    assert report["restore_payload_renderer"]["status"] == "ok"
+    assert isinstance(report["firewall_plan"].get("restore_payload"), str)
+    assert report["mutation_performed"] is False
+    assert report["customer_db_mutation_performed"] is False
+    assert report["firewall_mutation_performed"] is False
+    assert report["nat_mutation_performed"] is False
+    assert report["production_traffic_enabled"] is False
+    assert all(v is False for v in report["safety_flags"].values())

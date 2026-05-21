@@ -13,7 +13,8 @@ def test_docs_and_readme_updates() -> None:
     assert 'Repository version after this PR is 0.1.160.' in rp
     assert 'latest recorded farm5 sync evidence is 0.1.159.' in rp
     assert 'Current blocker before this PR: single_canary_restore_payload_renderer_missing.' in rp
-    assert 'Expected next blocker after this PR: accepted_single_canary_host_apply_execution_missing.' in rp
+    assert 'single_canary_host_apply_context_not_confirmed' in rp
+    assert 'accepted_single_canary_host_apply_execution_missing' in rp
     assert 'Phase 11 remains not accepted.' in rp
 
 
@@ -21,4 +22,6 @@ def test_runbook_exists_with_exact_command() -> None:
     rb = Path('docs/PHASE_11D_FARM5_MANUAL_CANARY_EXECUTION_RUNBOOK.md').read_text(encoding='utf-8')
     assert '--expected-version 0.1.160' in rb
     assert 'MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow' in rb
+    assert 'single_canary_host_apply_context_not_confirmed' in rb
     assert 'accepted_single_canary_host_apply_execution_missing' in rb
+    assert 'MPF_PHASE11_SINGLE_CANARY_HOST_APPLY=allow' in rb
