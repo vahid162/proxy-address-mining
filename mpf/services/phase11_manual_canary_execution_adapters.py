@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
 from mpf.services.phase11_manual_canary_execution_run_service import CanaryExecutionAdapters
+from mpf.services.phase11_single_canary_backend_target_resolver import Phase11SingleCanaryBackendTargetResolver
 from mpf.services.phase11_single_canary_host_apply_primitive import SingleCanaryHostApplyPrimitive
 from mpf.services.phase11_single_canary_host_apply_executor import Phase11SingleCanaryHostApplyExecutor
 from mpf.services.phase11_single_canary_post_apply_verifier import Phase11SingleCanaryPostApplyVerifier
@@ -83,6 +84,7 @@ class _FirewallAdapter:
     host_apply_primitive: object | None = None
     restore_payload_renderer: object | None = None
     nat_hook_bootstrap: object | None = None
+    backend_target_resolver: object | None = None
 
     def build_plan(self, report: dict[str, object]) -> dict[str, object]:
         request = report.get("request", {})
@@ -140,6 +142,12 @@ class _FirewallAdapter:
                     "iptables_restore_used": True,
                 }
 
+        resolver = self.backend_target_resolver or Phase11SingleCanaryBackendTargetResolver()
+        resolve_result = resolver.resolve(report) if hasattr(resolver, "resolve") else resolver(report)
+        report["single_canary_backend_target"] = resolve_result
+        if not isinstance(resolve_result, dict) or resolve_result.get("status") != "ok":
+            return resolve_result if isinstance(resolve_result, dict) else {"status": "error", "error": "single_canary_backend_target_invalid_response"}
+
         renderer = self.restore_payload_renderer or Phase11ExactCanaryRestorePayloadRenderer()
         rendered = renderer.render(report)
         report["restore_payload_renderer"] = rendered
@@ -173,7 +181,7 @@ def build_manual_canary_production_adapters() -> dict[str, object]:
         restore=_RestoreAdapter(adapter=SingleCanaryRestoreBackupAdapter()),
         lock=_LockAdapter(),
         customer=_CustomerAdapter(),
-        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive(host_apply_executor=Phase11SingleCanaryHostApplyExecutor(), post_apply_verifier=Phase11SingleCanaryPostApplyVerifier()), restore_payload_renderer=Phase11ExactCanaryRestorePayloadRenderer(), nat_hook_bootstrap=Phase11SingleCanaryNatHookBootstrapService()),
+        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive(host_apply_executor=Phase11SingleCanaryHostApplyExecutor(), post_apply_verifier=Phase11SingleCanaryPostApplyVerifier()), restore_payload_renderer=Phase11ExactCanaryRestorePayloadRenderer(), nat_hook_bootstrap=Phase11SingleCanaryNatHookBootstrapService(), backend_target_resolver=Phase11SingleCanaryBackendTargetResolver()),
         verify=_VerifyAdapter(),
         evidence=_EvidenceAdapter(),
     )

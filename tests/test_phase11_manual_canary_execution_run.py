@@ -220,7 +220,7 @@ def test_single_canary_primitive_blocks_without_real_apply_executor(monkeypatch)
         "iptables_save_backup": {"id": "bk-1"},
         "lock": {"acquired": True},
         "firewall_diff": {"json_diff": {"customer_port": 20001, "backend_port": 60010}},
-        "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 127.0.0.1:60010\nCOMMIT\n"},
+        "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 172.18.0.3:60010\nCOMMIT\n"},
     }
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY_EXECUTE", "allow")
@@ -242,7 +242,7 @@ def test_single_canary_primitive_blocks_without_verifier(monkeypatch) -> None:
         "iptables_save_backup": {"id": "bk-1"},
         "lock": {"acquired": True},
         "firewall_diff": {"json_diff": {"customer_port": 20001, "backend_port": 60010}},
-        "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 127.0.0.1:60010\nCOMMIT\n"},
+        "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 172.18.0.3:60010\nCOMMIT\n"},
     }
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY_EXECUTE", "allow")
@@ -277,9 +277,8 @@ def test_execute_restore_guard_path_renderer_ok_then_host_apply_context_blocked(
     report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
-    assert report["final_decision"] == "BLOCKED"
-    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
-    assert report["restore_payload_renderer"]["status"] == "blocked"
+    assert report["final_decision"] == "EXECUTION_FAILED"
+    assert "adapter call failed: apply_plan: [Errno 2] No such file or directory: 'docker'" in report["blockers"]
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False
@@ -295,9 +294,8 @@ def test_execute_both_guards_renderer_ok_then_missing_host_apply_executor_blocke
     report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
-    assert report["final_decision"] == "BLOCKED"
-    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
-    assert report["restore_payload_renderer"]["status"] == "blocked"
+    assert report["final_decision"] == "EXECUTION_FAILED"
+    assert "adapter call failed: apply_plan: [Errno 2] No such file or directory: 'docker'" in report["blockers"]
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False

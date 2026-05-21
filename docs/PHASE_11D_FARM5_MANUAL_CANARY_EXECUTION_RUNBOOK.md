@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.163`.
+- Confirm version is `0.1.164`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -27,7 +27,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.163 \
+  --expected-version 0.1.164 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -66,7 +66,7 @@ mpf production manual-canary-execute \
 - plan command:
   - `mpf production manual-canary-execute --output json`
 - execute-control command:
-  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.163 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
+  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.164 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
 - exact payload renderer behavior: execute path now renders deterministic exact payload for canary-btc-001/btc/20001->60010 after restore+backup+diff checks.
 - expected blocker without host-apply context guard: `single_canary_host_apply_context_not_confirmed`.
 - expected blocker with both restore-backup and host-apply context guards enabled: `accepted_single_canary_host_apply_execution_missing`.
@@ -86,7 +86,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.163 \
+  --expected-version 0.1.164 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -112,7 +112,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.163 \
+  --expected-version 0.1.164 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
