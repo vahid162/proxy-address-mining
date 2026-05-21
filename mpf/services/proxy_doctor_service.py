@@ -7,7 +7,7 @@ from mpf.adapters import docker_compose, socket_inspector
 from mpf.config import DEFAULT_CONFIG_PATH, MPFConfig, load_config
 from mpf.domain.health import HealthCheck, HealthReport, HealthStatus, worst_status
 
-EXPECTED_RUNTIME_CONTAINERS = {"mpf-v2raya", "mpf-forwarder-btc"}
+EXPECTED_RUNTIME_CONTAINERS = {"mpf-v2raya", "mpf-v2raya-socks-bridge", "mpf-forwarder-btc"}
 
 
 def run(config_path: Path = DEFAULT_CONFIG_PATH) -> HealthReport:
