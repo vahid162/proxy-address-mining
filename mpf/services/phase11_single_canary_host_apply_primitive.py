@@ -7,7 +7,7 @@ from typing import Callable
 
 @dataclass(slots=True)
 class SingleCanaryHostApplyPrimitive:
-    expected_version: str = "0.1.160"
+    expected_version: str = "0.1.161"
     host_apply_executor: Callable[[dict[str, object], str], dict[str, object]] | object | None = None
     post_apply_verifier: Callable[[dict[str, object]], dict[str, object]] | object | None = None
 
@@ -53,7 +53,7 @@ class SingleCanaryHostApplyPrimitive:
         apply_result = runner(report, payload)
         if not isinstance(apply_result, dict): return {"status": "error", "error": "single_canary_host_apply_invalid_response"}
         if apply_result.get("status") != "ok" or apply_result.get("applied") is not True:
-            return {"status": "blocked", "error": apply_result.get("error", "single_canary_host_apply_failed")}
+            return {"status": "blocked", "error": apply_result.get("error", "single_canary_host_apply_failed"), "mutation_performed": bool(apply_result.get("mutation_performed")), "firewall_mutation_performed": bool(apply_result.get("firewall_mutation_performed")), "nat_mutation_performed": bool(apply_result.get("nat_mutation_performed")), "pre_apply_nat_sha256": apply_result.get("pre_apply_nat_sha256"), "post_apply_nat_sha256": apply_result.get("post_apply_nat_sha256")}
 
         if self.post_apply_verifier is None:
             return {"status": "blocked", "error": "single_canary_post_apply_verification_missing"}
@@ -61,6 +61,6 @@ class SingleCanaryHostApplyPrimitive:
         verify_result = verifier(report)
         if not isinstance(verify_result, dict): return {"status": "error", "error": "single_canary_post_apply_verification_invalid_response"}
         if verify_result.get("status") != "ok" or verify_result.get("nat_rule_verified") is not True:
-            return {"status": "blocked", "error": verify_result.get("error", "single_canary_post_apply_verification_failed")}
+            return {"status": "error", "error": verify_result.get("error", "single_canary_post_apply_verification_failed"), "partial_mutation": True, "mutation_performed": True, "firewall_mutation_performed": True, "nat_mutation_performed": False, "production_traffic_enabled": False, "pre_apply_nat_sha256": apply_result.get("pre_apply_nat_sha256"), "post_apply_nat_sha256": apply_result.get("post_apply_nat_sha256"), "rollback_instructions": "use restore point + iptables-save backup evidence to rollback via accepted operator path"}
 
-        return {"status": "ok", "applied": True, "existing_state_verified": False, "customer_port": 20001, "backend_port": 60010, "iptables_restore_used": bool(apply_result.get("iptables_restore_used")), "nat_rule_verified": True}
+        return {"status": "ok", "applied": True, "existing_state_verified": False, "customer_port": 20001, "backend_port": 60010, "iptables_restore_used": bool(apply_result.get("iptables_restore_used")), "nat_rule_verified": True, "mutation_performed": True, "firewall_mutation_performed": True, "nat_mutation_performed": True, "pre_apply_nat_sha256": apply_result.get("pre_apply_nat_sha256"), "post_apply_nat_sha256": apply_result.get("post_apply_nat_sha256")}

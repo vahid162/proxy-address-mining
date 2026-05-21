@@ -171,6 +171,12 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
             report["final_decision"] = "EXECUTION_FAILED"
             report["execution_failed"] = True
             report["execution_allowed"] = False
+            if isinstance(report.get("firewall_apply"), dict) and (report["firewall_apply"].get("partial_mutation") is True or report["firewall_apply"].get("mutation_performed") is True):
+                report["mutation_performed"] = True
+                report["firewall_mutation_performed"] = True
+                report["nat_mutation_performed"] = bool(report["firewall_apply"].get("nat_mutation_performed"))
+                report["production_traffic_enabled"] = False
+                report["rollback_readiness"] = {"status": "required", "instructions": report["firewall_apply"].get("rollback_instructions"), "restore_point": report.get("restore_point"), "iptables_save_backup": report.get("iptables_save_backup"), "pre_apply_nat_sha256": report["firewall_apply"].get("pre_apply_nat_sha256"), "post_apply_nat_sha256": report["firewall_apply"].get("post_apply_nat_sha256")}
             return report
 
         report["firewall_diff"] = _call(adapters["firewall"], "render_diff", report)
