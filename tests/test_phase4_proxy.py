@@ -49,6 +49,11 @@ def test_proxy_doctor_sees_compose_template() -> None:
     assert checks["compose_runtime_profile_guard"].status == HealthStatus.OK
     assert checks["backend_docker_publish_mode.v2raya_ui"].status == HealthStatus.OK
     assert checks["backend_docker_publish_mode.btc"].status == HealthStatus.OK
+    assert checks["lane.btc.forwarder_upstream_socks"].status == HealthStatus.OK
+    assert checks["backend_docker_publish_mode.v2raya_socks"].status == HealthStatus.OK
+    assert checks["v2raya_socks_bridge_network_mode"].status == HealthStatus.OK
+    assert checks["v2raya_socks_bridge_command"].status == HealthStatus.OK
+    assert checks["v2raya_socks_bridge_host_publish"].status == HealthStatus.OK
     assert checks["healthcheck_state"].status == HealthStatus.OK
     assert checks["no_customer_nat_redirects"].status == HealthStatus.OK
 
@@ -77,7 +82,20 @@ def test_public_forwarder_bind_is_critical(tmp_path: Path) -> None:
 def test_compose_template_runtime_services_are_profile_guarded() -> None:
     text = COMPOSE_TEMPLATE.read_text(encoding="utf-8")
     assert "phase4-runtime" in text
+    assert "mpf-v2raya-socks-bridge" in text
+    assert 'network_mode: "service:mpf-v2raya"' in text
+    assert "-L=tcp://:22070/127.0.0.1:20170" in text
+    assert "-F=socks5://mpf-v2raya:22070" in text
     assert "docker compose up" not in text
+
+
+def test_direct_20170_upstream_is_critical(tmp_path: Path) -> None:
+    config_path = tmp_path / "mpf.yaml"
+    text = EXAMPLE_CONFIG.read_text(encoding="utf-8").replace("upstream_socks: v2raya:22070", "upstream_socks: v2raya:20170")
+    config_path.write_text(text, encoding="utf-8")
+    report = proxy_doctor_service.config_check(config_path)
+    checks = {check.key: check for check in report.checks}
+    assert checks["lane.btc.forwarder_upstream_socks"].status == HealthStatus.CRITICAL
 
 
 def test_public_backend_publish_in_compose_is_critical(tmp_path: Path) -> None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import yaml
 
 from mpf.adapters import docker_compose, socket_inspector
 from mpf.config import DEFAULT_CONFIG_PATH, MPFConfig, load_config
@@ -209,48 +210,59 @@ def _compose_template_contract_checks(cfg: MPFConfig) -> list[HealthCheck]:
             )
 
 
-    # Internal SOCKS path must be Docker-network reachable and consistent with config.
+    # Internal SOCKS bridge model: forwarder must use v2raya:22070 (bridge),
+    # not direct v2raya:20170 (loopback-only inside v2rayA container).
     for lane_name, lane in sorted(cfg.lanes.items()):
         if not lane.enabled or lane.forwarder is None or not lane.forwarder.upstream_socks:
             continue
         expected = lane.forwarder.upstream_socks
-        if expected.endswith(":22070"):
+        if expected.endswith(":20170"):
             checks.append(
                 HealthCheck(
                     key=f"lane.{lane_name}.forwarder_upstream_socks",
                     status=HealthStatus.CRITICAL,
-                    message="lane forwarder upstream_socks uses deprecated/unreachable 22070 endpoint",
+                    message="lane forwarder upstream_socks points to direct v2rayA loopback SOCKS endpoint",
                     evidence={"lane": lane_name, "upstream_socks": expected},
-                    remediation="Use the reachable Docker-network SOCKS endpoint (v2raya:20170).",
+                    remediation="Use bridge endpoint v2raya:22070 so forwarder can reach SOCKS through sidecar bridge.",
+                )
+            )
+        elif expected.endswith(":22070"):
+            checks.append(
+                HealthCheck(
+                    key=f"lane.{lane_name}.forwarder_upstream_socks",
+                    status=HealthStatus.OK,
+                    message="lane forwarder upstream_socks uses bridge endpoint",
+                    evidence={"lane": lane_name, "upstream_socks": expected},
                 )
             )
         else:
             checks.append(
                 HealthCheck(
                     key=f"lane.{lane_name}.forwarder_upstream_socks",
-                    status=HealthStatus.OK,
-                    message="lane forwarder upstream_socks is not using the stale 22070 endpoint",
+                    status=HealthStatus.WARN,
+                    message="lane forwarder upstream_socks does not match approved bridge endpoint",
                     evidence={"lane": lane_name, "upstream_socks": expected},
+                    remediation="Use v2raya:22070 unless a reviewed alternative bridge endpoint is accepted.",
                 )
             )
 
-    if docker_compose.has_public_bind_for_port(inspection, 20170):
+    if docker_compose.has_public_bind_for_port(inspection, 22070):
         checks.append(
             HealthCheck(
                 key="backend_docker_publish_mode.v2raya_socks",
                 status=HealthStatus.CRITICAL,
-                message="Compose template publishes v2rayA SOCKS port publicly",
-                evidence={"socks_port": 20170},
+                message="Compose template publishes v2rayA SOCKS bridge port publicly",
+                evidence={"socks_port": 22070},
                 remediation="Keep SOCKS internal-only in Docker network (no host port publish).",
             )
         )
-    elif docker_compose.has_local_bind_for_port(inspection, 20170):
+    elif docker_compose.has_local_bind_for_port(inspection, 22070):
         checks.append(
             HealthCheck(
                 key="backend_docker_publish_mode.v2raya_socks",
                 status=HealthStatus.WARN,
-                message="Compose template publishes v2rayA SOCKS on host loopback; prefer internal-only expose",
-                evidence={"socks_port": 20170},
+                message="Compose template publishes v2rayA SOCKS bridge on host loopback; prefer internal-only expose",
+                evidence={"socks_port": 22070},
                 remediation="Prefer Docker-network-only exposure for SOCKS upstream.",
             )
         )
@@ -260,9 +272,11 @@ def _compose_template_contract_checks(cfg: MPFConfig) -> list[HealthCheck]:
                 key="backend_docker_publish_mode.v2raya_socks",
                 status=HealthStatus.OK,
                 message="Compose template keeps v2rayA SOCKS internal-only",
-                evidence={"socks_port": 20170},
+                evidence={"socks_port": 22070},
             )
         )
+
+    checks.extend(_socks_bridge_contract_checks(cfg.proxy.compose_file))
 
     missing_healthchecks = docker_compose.services_missing_healthchecks(inspection)
     if missing_healthchecks:
@@ -350,6 +364,79 @@ def _lane_forwarder_config_checks(cfg: MPFConfig) -> list[HealthCheck]:
                     evidence={"lane": lane_name, "bind_host": bind_host, "backend_port": lane.backend_port},
                 )
             )
+    return checks
+
+
+def _socks_bridge_contract_checks(compose_file: Path) -> list[HealthCheck]:
+    try:
+        data = yaml.safe_load(compose_file.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        return [
+            HealthCheck(
+                key="v2raya_socks_bridge_contract",
+                status=HealthStatus.WARN,
+                message="compose file parse failed for socks bridge contract checks",
+                evidence={"compose_file": str(compose_file), "error": str(exc)},
+            )
+        ]
+
+    services = (data or {}).get("services", {}) if isinstance(data, dict) else {}
+    bridge = services.get("mpf-v2raya-socks-bridge") if isinstance(services, dict) else None
+    if not isinstance(bridge, dict):
+        return [
+            HealthCheck(
+                key="v2raya_socks_bridge_service",
+                status=HealthStatus.CRITICAL,
+                message="socks bridge service is missing in compose template",
+                evidence={"service": "mpf-v2raya-socks-bridge"},
+                remediation="Add internal socks bridge sidecar for v2rayA loopback SOCKS.",
+            )
+        ]
+
+    checks: list[HealthCheck] = []
+    network_mode = str(bridge.get("network_mode", ""))
+    checks.append(
+        HealthCheck(
+            key="v2raya_socks_bridge_network_mode",
+            status=HealthStatus.OK if network_mode == "service:mpf-v2raya" else HealthStatus.CRITICAL,
+            message="socks bridge network_mode is valid" if network_mode == "service:mpf-v2raya" else "socks bridge must share v2rayA network namespace",
+            evidence={"network_mode": network_mode},
+            remediation="Set network_mode to service:mpf-v2raya." if network_mode != "service:mpf-v2raya" else None,
+        )
+    )
+
+    command_text = " ".join(str(x) for x in bridge.get("command", [])) if isinstance(bridge.get("command"), list) else str(bridge.get("command", ""))
+    expected = "-L=tcp://:22070/127.0.0.1:20170"
+    checks.append(
+        HealthCheck(
+            key="v2raya_socks_bridge_command",
+            status=HealthStatus.OK if expected in command_text else HealthStatus.CRITICAL,
+            message="socks bridge command routes 22070 to loopback 20170" if expected in command_text else "socks bridge command does not route to v2rayA loopback SOCKS",
+            evidence={"command": command_text},
+            remediation=f"Use command argument {expected}." if expected not in command_text else None,
+        )
+    )
+
+    if "ports" in bridge and bridge.get("ports"):
+        checks.append(
+            HealthCheck(
+                key="v2raya_socks_bridge_host_publish",
+                status=HealthStatus.CRITICAL,
+                message="socks bridge must not publish host ports",
+                evidence={"ports": bridge.get("ports")},
+                remediation="Remove ports from mpf-v2raya-socks-bridge.",
+            )
+        )
+    else:
+        checks.append(
+            HealthCheck(
+                key="v2raya_socks_bridge_host_publish",
+                status=HealthStatus.OK,
+                message="socks bridge has no host port publish",
+                evidence={"ports": bridge.get("ports", [])},
+            )
+        )
+
     return checks
 
 

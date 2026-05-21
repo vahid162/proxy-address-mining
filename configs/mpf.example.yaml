@@ -34,7 +34,7 @@ lanes:
       service_name: mpf-forwarder-btc
       bind_host: 127.0.0.1
       listen_port: 60010
-      upstream_socks: v2raya:20170
+      upstream_socks: v2raya:22070
     upstreams:
       - host: bitcoin.viabtc.io
         port: 3333

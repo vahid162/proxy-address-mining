@@ -153,7 +153,7 @@ Warnings remain: no production traffic, no real customer onboarding, no abuse au
 ### v2rayA SOCKS reachability check
 
 ```bash
-docker exec mpf-forwarder-btc sh -c 'nc -zv mpf-v2raya 20170; echo rc=$?'
+docker exec mpf-forwarder-btc sh -c 'nc -zv mpf-v2raya 22070; echo rc=$?'
 ```
 
 Expected: `rc=0` before synthetic Stratum validation.

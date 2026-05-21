@@ -15,7 +15,8 @@ Route-safe single-canary NAT is working, but synthetic Stratum validation fails 
 
 ## Runtime-readiness fix intent
 
-- Standardize forwarder upstream to Docker-network reachable SOCKS endpoint `v2raya:20170`.
+- Direct `v2raya:20170` is **not** sufficient because xray listens on loopback inside `mpf-v2raya`.
+- Use internal bridge model: `mpf-forwarder-btc -> mpf-v2raya:22070 -> bridge -> 127.0.0.1:20170`.
 - Keep host exposure safe:
   - v2rayA UI local-only (`127.0.0.1:2015:2017`)
   - BTC backend local-only (`127.0.0.1:60010:60010`)

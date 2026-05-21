@@ -34,6 +34,7 @@ def test_btc_lane_backend_port_is_frozen() -> None:
     assert cfg.lanes["btc"].forwarder is not None
     assert cfg.lanes["btc"].forwarder.service_name == "mpf-forwarder-btc"
     assert cfg.lanes["btc"].forwarder.listen_port == 60010
+    assert cfg.lanes["btc"].forwarder.upstream_socks == "v2raya:22070"
 
 
 def test_rejects_non_postgresql_database(tmp_path: Path) -> None:

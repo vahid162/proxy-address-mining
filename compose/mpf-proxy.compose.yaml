@@ -17,8 +17,6 @@ services:
       # v2rayA UI must remain local-only.
       # Host/operator port is 2015; container v2rayA UI is 2017 for this image.
       - "127.0.0.1:2015:2017"
-    expose:
-      - "20170"
     volumes:
       - mpf-v2raya-data:/etc/v2raya
     healthcheck:
@@ -30,6 +28,25 @@ services:
     networks:
       - mpf-proxy-internal
 
+  mpf-v2raya-socks-bridge:
+    image: ${MPF_FORWARDER_IMAGE:-ginuerzh/gost:latest}
+    container_name: mpf-v2raya-socks-bridge
+    profiles:
+      - phase4-runtime
+    restart: unless-stopped
+    depends_on:
+      mpf-v2raya:
+        condition: service_started
+    network_mode: "service:mpf-v2raya"
+    command:
+      - "-L=tcp://:22070/127.0.0.1:20170"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 22070 >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   mpf-forwarder-btc:
     image: ${MPF_FORWARDER_IMAGE:-ginuerzh/gost:latest}
     container_name: mpf-forwarder-btc
@@ -39,9 +56,11 @@ services:
     depends_on:
       mpf-v2raya:
         condition: service_started
+      mpf-v2raya-socks-bridge:
+        condition: service_healthy
     command:
       - "-L=tcp://:60010/${MPF_BTC_POOL_HOST:-bitcoin.viabtc.io}:${MPF_BTC_POOL_PORT:-3333}"
-      - "-F=socks5://mpf-v2raya:20170"
+      - "-F=socks5://mpf-v2raya:22070"
     ports:
       # BTC backend is local-only. It must never be published on 0.0.0.0.
       - "127.0.0.1:60010:60010"
