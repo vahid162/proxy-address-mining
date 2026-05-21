@@ -64,8 +64,8 @@ def _record_partial_firewall_mutation(report: dict[str, object]) -> bool:
         "instructions": firewall_apply.get("rollback_instructions"),
         "restore_point": report.get("restore_point"),
         "iptables_save_backup": report.get("iptables_save_backup"),
-        "pre_apply_nat_sha256": firewall_apply.get("pre_apply_nat_sha256"),
-        "post_apply_nat_sha256": firewall_apply.get("post_apply_nat_sha256"),
+        "pre_apply_nat_sha256": firewall_apply.get("pre_apply_nat_sha256") or firewall_apply.get("pre_bootstrap_nat_sha256"),
+        "post_apply_nat_sha256": firewall_apply.get("post_apply_nat_sha256") or firewall_apply.get("post_bootstrap_nat_sha256"),
         "verification_error": firewall_apply.get("error"),
     }
     return True
@@ -219,6 +219,37 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
             report["final_decision"] = "EXECUTION_FAILED"
             report["execution_failed"] = True
             report["execution_allowed"] = False
+            return report
+
+        if report["firewall_apply"].get("bootstrap_completed") is True:
+            report["firewall_apply_boundary"] = "single_canary_nat_hook_bootstrap_completed_pending_review"
+            report["production_execution_ready"] = False
+            report["final_decision"] = "BOOTSTRAP_COMPLETED_PENDING_REVIEW"
+            report["execution_allowed"] = False
+            report["execution_completed"] = False
+            report["actual_canary_execution_performed"] = False
+            report["mutation_performed"] = True
+            report["customer_db_mutation_performed"] = False
+            report["firewall_mutation_performed"] = True
+            report["nat_mutation_performed"] = True
+            report["conntrack_mutation_performed"] = False
+            report["production_traffic_enabled"] = False
+            report["rollback_readiness"] = {
+                "status": "available",
+                "restore_point": report.get("restore_point"),
+                "iptables_save_backup": report.get("iptables_save_backup"),
+                "pre_bootstrap_nat_sha256": report["firewall_apply"].get("pre_bootstrap_nat_sha256") or report["firewall_apply"].get("pre_apply_nat_sha256"),
+                "post_bootstrap_nat_sha256": report["firewall_apply"].get("post_bootstrap_nat_sha256") or report["firewall_apply"].get("post_apply_nat_sha256"),
+            }
+            report["operator_next_steps"] = ["review bootstrap evidence, sync latest main to farm5, then decide whether a separate explicit single-canary DNAT apply attempt is allowed"]
+            report["safety_flags"].update({
+                "firewall_apply_authorized": True,
+                "iptables_restore_authorized": bool(report["firewall_apply"].get("iptables_restore_used") is True),
+                "production_traffic_authorized": False,
+                "customer_nat_apply_authorized": False,
+                "customer_firewall_rules_apply_authorized": False,
+                "controlled_cli_canary_execution_authorized": False,
+            })
             return report
 
         for field, method in (("post_apply_verification", "verify_post_apply"), ("canary_connection", "verify_canary_connection"), ("nat_hit_visibility", "verify_nat_hit"), ("usage_visibility", "verify_usage"), ("reject_visibility", "verify_reject"), ("session_worker_visibility", "verify_session_worker"), ("abuse_1h_coverage", "verify_abuse_coverage"), ("rollback_readiness", "rollback_readiness")):
