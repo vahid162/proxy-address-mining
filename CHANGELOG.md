@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.165
+- Record farm5 0.1.164 route-safe single-canary NAT success evidence while keeping Phase 11 unaccepted and real onboarding forbidden.
+
 ## 0.1.164
 - Add route-safe Docker backend target resolution for the Phase 11 exact single-canary DNAT path, replacing the previous loopback `127.0.0.1:60010` target with a runtime-discovered Docker container IPv4 target.
 - Harden renderer, executor, and verifier to reject loopback/public/mismatched targets, preserve exact canary scope, and keep onboarding, abuse automation, UI, Telegram, and Phase 11 acceptance closed.

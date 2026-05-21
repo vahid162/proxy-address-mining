@@ -8,12 +8,12 @@ def _read(p: str) -> str:
 def test_current_position_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- GitHub main repository version before this PR is 0.1.163." in current
-    assert "- Repository version after this PR is 0.1.164." in current
-    assert "- latest recorded farm5 route-safe failure evidence is 0.1.163." in current
-    assert "Current blocker before this PR: loopback canary DNAT target not route-safe for external PREROUTING traffic." in current
-    assert "This PR adds route-safe Docker backend target resolution for the exact single-canary DNAT path." in current
-    assert "Actual route-safe farm5 canary DNAT execution has not been accepted by this PR." in current
+    assert "- GitHub main repository version before this PR is 0.1.165." in current
+    assert "- Repository version after this PR is 0.1.165." in current
+    assert "- latest recorded farm5 route-safe failure evidence is 0.1.165." in current
+    assert "farm5 route-safe single-canary DNAT execution evidence is recorded and pending review." in current
+    assert "Next target: miner/Stratum canary validation plus usage/reject/session visibility evidence." in current
+    assert "Keep limited real customer onboarding forbidden until canary evidence is accepted." in current
     assert "Keep Phase 11 not accepted." in current
     assert "Keep limited real customer onboarding forbidden." in current
     assert "Keep abuse automation/UI/Telegram closed." in current
