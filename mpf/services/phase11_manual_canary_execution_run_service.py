@@ -49,6 +49,28 @@ def _call(adapter: object, fn: str, report: dict[str, object]) -> dict[str, obje
     return result
 
 
+def _record_partial_firewall_mutation(report: dict[str, object]) -> bool:
+    firewall_apply = report.get("firewall_apply")
+    if not isinstance(firewall_apply, dict):
+        return False
+    if firewall_apply.get("partial_mutation") is not True and firewall_apply.get("mutation_performed") is not True:
+        return False
+    report["mutation_performed"] = True
+    report["firewall_mutation_performed"] = bool(firewall_apply.get("firewall_mutation_performed", True))
+    report["nat_mutation_performed"] = bool(firewall_apply.get("nat_mutation_performed"))
+    report["production_traffic_enabled"] = False
+    report["rollback_readiness"] = {
+        "status": "required",
+        "instructions": firewall_apply.get("rollback_instructions"),
+        "restore_point": report.get("restore_point"),
+        "iptables_save_backup": report.get("iptables_save_backup"),
+        "pre_apply_nat_sha256": firewall_apply.get("pre_apply_nat_sha256"),
+        "post_apply_nat_sha256": firewall_apply.get("post_apply_nat_sha256"),
+        "verification_error": firewall_apply.get("error"),
+    }
+    return True
+
+
 def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecutionRunRequest, runtime_context: dict[str, object] | None = None, adapters: dict[str, object] | None = None) -> dict[str, object]:
     _ = runtime_context
     adapters = adapters or {}
@@ -185,7 +207,8 @@ def build_phase11_manual_canary_execution_run_report(request: ManualCanaryExecut
         if report["firewall_apply"].get("status") != "ok":
             blocker = report["firewall_apply"].get("error", "firewall apply failed")
             blockers.append(blocker)
-            if report["firewall_apply"].get("status") == "blocked":
+            partial_mutation = _record_partial_firewall_mutation(report)
+            if report["firewall_apply"].get("status") == "blocked" and not partial_mutation:
                 report["missing_real_adapter_capabilities"].append(blocker)
                 report["firewall_apply_boundary"] = blocker
                 missing_primitive = report["firewall_apply"].get("missing_primitive")

@@ -223,6 +223,7 @@ def test_single_canary_primitive_blocks_without_real_apply_executor(monkeypatch)
         "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 127.0.0.1:60010\nCOMMIT\n"},
     }
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY_EXECUTE", "allow")
     monkeypatch.delenv("CI", raising=False)
     out = primitive.execute(report)
     assert out["status"] == "blocked"
@@ -244,6 +245,7 @@ def test_single_canary_primitive_blocks_without_verifier(monkeypatch) -> None:
         "firewall_plan": {"restore_payload": "*nat\n-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 127.0.0.1:60010\nCOMMIT\n"},
     }
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY_EXECUTE", "allow")
     monkeypatch.delenv("CI", raising=False)
     out = primitive.execute(report)
     assert out["status"] == "blocked"
@@ -295,8 +297,7 @@ def test_execute_both_guards_renderer_ok_then_missing_host_apply_executor_blocke
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
     assert report["final_decision"] == "BLOCKED"
-    assert "accepted_single_canary_host_apply_execution_missing" in report["blockers"]
-    assert report["firewall_apply"]["missing_primitive"] == "accepted_single_canary_host_apply_execution"
+    assert "single_canary_host_apply_execution_not_confirmed" in report["blockers"]
     assert report["restore_payload_renderer"]["status"] == "ok"
     assert isinstance(report["firewall_plan"].get("restore_payload"), str)
     assert report["mutation_performed"] is False
