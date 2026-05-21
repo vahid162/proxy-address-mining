@@ -7,8 +7,8 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Current Position
 
 - GitHub main repository version before this PR is 0.1.164.
-- Repository version after this PR is 0.1.167.
-- latest recorded farm5 sync evidence is 0.1.164.
+- Repository version after this PR is 0.1.168.
+- latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).
 - latest recorded route-safe canary NAT success evidence is 0.1.164.
 - farm5 route-safe single-canary DNAT execution evidence is recorded and pending review.
 - Current accepted phase is Phase 10.
@@ -24,12 +24,13 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - customer onboarding remains db_only in current state.
 - customer onboarding remains db_only except future explicit canary run path.
 - Keep limited real customer onboarding forbidden.
-- limited real customer onboarding remains forbidden until canary evidence is accepted.
+- limited real customer onboarding remains forbidden until evidence review accepts the canary.
 - abuse automation remains no.
 - UI remains no.
 - Telegram remains no.
 - Keep abuse automation/UI/Telegram closed.
-- Next target: miner/Stratum canary validation plus usage/reject/session visibility evidence.
+- Avoid another broad docs-only loop after this evidence PR; next PR should be runtime-first acceptance/visibility work.
+- Next target: Phase 11 canary acceptance review with usage/reject/session visibility evidence.
 
 ## Finite Remaining Path
 
