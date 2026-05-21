@@ -149,6 +149,7 @@ GitHub main repository version before this PR is 0.1.157.
 GitHub main repository version before this PR is 0.1.159.
 Current blocker before this PR: single_canary_restore_payload_renderer_missing.
 single_canary_host_apply_context_not_confirmed
+accepted_single_canary_host_apply_execution_missing
 Current target is Phase 8 abuse dry-run evaluator package.
 Current target is Phase 8 abuse evidence/reporting contract package.
 remaining_plan_state_machine_target_aligned compatibility anchor: Current target is Phase 8 abuse state-machine contract package.
