@@ -262,6 +262,14 @@ class _RestoreOKNoIptables:
         return {"status": "ok", "iptables_save_backup": {"id": "bk-test", "mode": "single_canary_restore_backup_boundary", "path": "/tmp/mock", "sha256": "abc"}}
 
 
+
+
+def _patch_resolver_ok(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "mpf.services.phase11_single_canary_backend_target_resolver.Phase11SingleCanaryBackendTargetResolver.resolve",
+        lambda self, report: {"status": "ok", "target_host": "172.18.0.3", "target_port": 60010, "target_kind": "docker_container_ipv4"},
+    )
+
 def _production_like_adapters_without_iptables_save():
     from mpf.services.phase11_manual_canary_execution_adapters import build_manual_canary_production_adapters
 
@@ -274,11 +282,12 @@ def test_execute_restore_guard_path_renderer_ok_then_host_apply_context_blocked(
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP", "allow")
     monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", raising=False)
     monkeypatch.delenv("CI", raising=False)
+    _patch_resolver_ok(monkeypatch)
     report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
-    assert report["final_decision"] == "EXECUTION_FAILED"
-    assert "adapter call failed: apply_plan: [Errno 2] No such file or directory: 'docker'" in report["blockers"]
+    assert report["final_decision"] == "BLOCKED"
+    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False
@@ -291,11 +300,12 @@ def test_execute_both_guards_renderer_ok_then_missing_host_apply_executor_blocke
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP", "allow")
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
     monkeypatch.delenv("CI", raising=False)
+    _patch_resolver_ok(monkeypatch)
     report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
-    assert report["final_decision"] == "EXECUTION_FAILED"
-    assert "adapter call failed: apply_plan: [Errno 2] No such file or directory: 'docker'" in report["blockers"]
+    assert report["final_decision"] == "BLOCKED"
+    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False

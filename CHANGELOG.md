@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.164
+## 0.1.165
 - Add the exact Phase 11 single-canary NAT hook bootstrap boundary for `MPF_NAT_PRE` and `PREROUTING -> MPF_NAT_PRE`, guarded by explicit env flags, restore/backup, lock, `iptables-restore --test --noflush`, and terminal bootstrap review behavior without automatic final canary DNAT.
 - Record farm5 0.1.162 sync/safe-check evidence while keeping Phase 11 unaccepted, production traffic disabled, limited onboarding forbidden, and abuse/UI/Telegram gates closed.
 
