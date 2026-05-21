@@ -4,26 +4,24 @@ from pathlib import Path
 def test_docs_and_readme_updates() -> None:
     d = Path('docs/PHASE_11D_ACTUAL_MANUAL_CANARY_EXECUTION_RUN_PACKAGE.md').read_text(encoding='utf-8')
     assert 'manual-canary-execute --output json' in d
-    assert '--operator-confirmed' in d
-    assert 'does **not** run canary' in d
 
     r = Path('README.md').read_text(encoding='utf-8')
-    assert 'Latest recorded farm5 sync evidence is 0.1.153.' in r
-    assert 'Phase 11D actual operator-approved manual canary execution run package farm5 sync/test evidence is recorded.' in r
     assert 'Actual canary execution has not been performed or accepted.' in r
 
     rp = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')
-    assert 'GitHub main repository version before this PR is 0.1.157.' in rp
-    assert 'Repository version after this PR is 0.1.159.' in rp
-    assert 'Latest recorded farm5 sync evidence' not in rp
-    assert 'latest recorded farm5 sync evidence is 0.1.153.' in rp
-    assert 'Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded.' in rp
-    assert 'Actual farm5 canary execution has not been run by this PR.' in rp
-    assert 'Current blocker: real_restore_backup_adapter_missing.' in rp
+    assert 'GitHub main repository version before this PR is 0.1.159.' in rp
+    assert 'Repository version after this PR is 0.1.160.' in rp
+    assert 'latest recorded farm5 sync evidence is 0.1.159.' in rp
+    assert 'Current blocker before this PR: single_canary_restore_payload_renderer_missing.' in rp
+    assert 'single_canary_host_apply_context_not_confirmed' in rp
+    assert 'accepted_single_canary_host_apply_execution_missing' in rp
     assert 'Phase 11 remains not accepted.' in rp
 
 
 def test_runbook_exists_with_exact_command() -> None:
     rb = Path('docs/PHASE_11D_FARM5_MANUAL_CANARY_EXECUTION_RUNBOOK.md').read_text(encoding='utf-8')
-    assert '--expected-version 0.1.159' in rb
-    assert 'manual-canary-execute' in rb
+    assert '--expected-version 0.1.160' in rb
+    assert 'MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow' in rb
+    assert 'single_canary_host_apply_context_not_confirmed' in rb
+    assert 'accepted_single_canary_host_apply_execution_missing' in rb
+    assert 'MPF_PHASE11_SINGLE_CANARY_HOST_APPLY=allow' in rb

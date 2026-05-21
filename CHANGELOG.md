@@ -1,10 +1,16 @@
 # Changelog
 
+## 0.1.160
+- Record farm5 0.1.159 sync/test/execute-control evidence and implement the exact single-canary restore payload renderer for `canary-btc-001` / `btc` / `20001 -> 60010`, while keeping host apply, NAT mutation, production traffic, abuse automation, UI, Telegram, and limited real customer onboarding disabled.
+
 ## 0.1.159
 - add single-canary real restore point + iptables-save backup boundary for execute path only
 - record farm5 0.1.158 sync/test evidence
 
 # Changelog
+
+## 0.1.160
+- Record farm5 0.1.159 sync/test/execute-control evidence and implement the exact single-canary restore payload renderer for `canary-btc-001` / `btc` / `20001 -> 60010`, while keeping host apply, NAT mutation, production traffic, abuse automation, UI, Telegram, and limited real customer onboarding disabled.
 
 ## 0.1.158
 

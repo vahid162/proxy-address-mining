@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.159`.
+- Confirm version is `0.1.160`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -18,6 +18,7 @@
 
 ## Execute mode (single explicit canary only)
 ```bash
+MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow \
 mpf production manual-canary-execute \
   --requested-action execute \
   --customer-key canary-btc-001 \
@@ -26,7 +27,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.159 \
+  --expected-version 0.1.160 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -52,15 +53,12 @@ mpf production manual-canary-execute \
 - Phase 11 remains unaccepted until evidence is reviewed and accepted.
 - Limited real customer onboarding remains forbidden until canary evidence is accepted.
 
-
 > Note: This command is a readiness contract and is expected to return BLOCKED when real production execution adapters are not wired yet.
-
 
 ## Phase 11E adapter wiring note
 - Execute mode is now wired to production service-layer adapters.
-- Actual execution remains BLOCKED until `unsafe_firewall_apply_boundary (missing accepted_single_canary_host_apply_primitive)` is implemented through an accepted service-layer apply boundary.
+- Actual host apply remains BLOCKED in this PR; no real host apply executor is wired in production.
 - Do **not** run real customer onboarding.
-
 
 ## Restore/backup context guard
 
@@ -68,6 +66,65 @@ mpf production manual-canary-execute \
 - plan command:
   - `mpf production manual-canary-execute --output json`
 - execute-control command:
-  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.159 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
-- expected blocker progression: first context/scope/version blockers, then `single_canary_restore_payload_renderer_missing` (or `accepted_single_canary_host_apply_execution_missing` if renderer exists).
-- warning: no real customer onboarding in this step.
+  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.160 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
+- exact payload renderer behavior: execute path now renders deterministic exact payload for canary-btc-001/btc/20001->60010 after restore+backup+diff checks.
+- expected blocker without host-apply context guard: `single_canary_host_apply_context_not_confirmed`.
+- expected blocker with both restore-backup and host-apply context guards enabled: `accepted_single_canary_host_apply_execution_missing`.
+- warning: no production traffic, no real customer onboarding, no abuse automation, no UI/Telegram, and no host apply in this PR.
+
+## Two execute-control checks (required)
+
+1) Renderer-only execute-control (host apply context NOT enabled)
+
+```bash
+MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow \
+mpf production manual-canary-execute \
+  --requested-action execute \
+  --customer-key canary-btc-001 \
+  --lane btc \
+  --port 20001 \
+  --miners 1 \
+  --farms 1 \
+  --maxconn 1 \
+  --expected-version 0.1.160 \
+  --operator-confirmed \
+  --i-understand-this-can-create-a-canary-customer \
+  --i-understand-this-can-apply-firewall \
+  --i-have-reviewed-rollback \
+  --i-have-fresh-farm5-sync \
+  --operator "<operator-name>" \
+  --reason "Phase 11I renderer-only execute-control check" \
+  --output json
+```
+
+Expected: `restore_payload_renderer.status=ok`, `firewall_plan.restore_payload` present, `final_decision=BLOCKED`, blocker `single_canary_host_apply_context_not_confirmed`, all mutation flags false, all safety flags false.
+
+2) Pre-host-apply missing-executor execute-control (both guards enabled)
+
+```bash
+MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow \
+MPF_PHASE11_SINGLE_CANARY_HOST_APPLY=allow \
+mpf production manual-canary-execute \
+  --requested-action execute \
+  --customer-key canary-btc-001 \
+  --lane btc \
+  --port 20001 \
+  --miners 1 \
+  --farms 1 \
+  --maxconn 1 \
+  --expected-version 0.1.160 \
+  --operator-confirmed \
+  --i-understand-this-can-create-a-canary-customer \
+  --i-understand-this-can-apply-firewall \
+  --i-have-reviewed-rollback \
+  --i-have-fresh-farm5-sync \
+  --operator "<operator-name>" \
+  --reason "Phase 11I pre-host-apply missing-executor check" \
+  --output json
+```
+
+Expected: `restore_payload_renderer.status=ok`, `firewall_plan.restore_payload` present, `final_decision=BLOCKED`, blocker `accepted_single_canary_host_apply_execution_missing`, `missing_primitive=accepted_single_canary_host_apply_execution`, all mutation flags false, all safety flags false.
+
+No real host apply executor is wired in production in this PR.
+
+Warnings remain: no production traffic, no real customer onboarding, no abuse automation, no UI, no Telegram, and no host apply implementation in this PR.

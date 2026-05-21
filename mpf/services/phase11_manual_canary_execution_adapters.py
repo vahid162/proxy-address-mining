@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
 from mpf.services.phase11_manual_canary_execution_run_service import CanaryExecutionAdapters
 from mpf.services.phase11_single_canary_host_apply_primitive import SingleCanaryHostApplyPrimitive
 from mpf.services.phase11_single_canary_restore_backup_adapter import SingleCanaryRestoreBackupAdapter
@@ -76,6 +77,7 @@ class _CustomerAdapter:
 @dataclass(slots=True)
 class _FirewallAdapter:
     host_apply_primitive: object | None = None
+    restore_payload_renderer: object | None = None
 
     def build_plan(self, report: dict[str, object]) -> dict[str, object]:
         request = report.get("request", {})
@@ -108,13 +110,12 @@ class _FirewallAdapter:
         json_diff = diff.get("json_diff", {}) if isinstance(diff, dict) else {}
         if json_diff.get("customer_port") != 20001 or json_diff.get("backend_port") != 60010:
             return {"status": "blocked", "error": "firewall_diff_not_reviewed"}
-        payload = report.get("firewall_plan", {}).get("restore_payload")
-        if not isinstance(payload, str):
-            return {
-                "status": "blocked",
-                "error": "single_canary_restore_payload_renderer_missing",
-                "missing_primitive": "accepted_exact_canary_restore_payload_renderer",
-            }
+        renderer = self.restore_payload_renderer or Phase11ExactCanaryRestorePayloadRenderer()
+        rendered = renderer.render(report)
+        report["restore_payload_renderer"] = rendered
+        if rendered.get("status") != "ok":
+            return rendered
+        report.setdefault("firewall_plan", {})["restore_payload"] = rendered.get("restore_payload")
         primitive = self.host_apply_primitive or SingleCanaryHostApplyPrimitive()
         return primitive.execute(report)
 
@@ -142,7 +143,7 @@ def build_manual_canary_production_adapters() -> dict[str, object]:
         restore=_RestoreAdapter(adapter=SingleCanaryRestoreBackupAdapter()),
         lock=_LockAdapter(),
         customer=_CustomerAdapter(),
-        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive()),
+        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive(), restore_payload_renderer=Phase11ExactCanaryRestorePayloadRenderer()),
         verify=_VerifyAdapter(),
         evidence=_EvidenceAdapter(),
     )
