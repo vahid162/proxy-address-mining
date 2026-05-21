@@ -18,7 +18,7 @@ services:
       # Host/operator port is 2015; container v2rayA UI is 2017 for this image.
       - "127.0.0.1:2015:2017"
     expose:
-      - "22070"
+      - "20170"
     volumes:
       - mpf-v2raya-data:/etc/v2raya
     healthcheck:
@@ -41,7 +41,7 @@ services:
         condition: service_started
     command:
       - "-L=tcp://:60010/${MPF_BTC_POOL_HOST:-bitcoin.viabtc.io}:${MPF_BTC_POOL_PORT:-3333}"
-      - "-F=socks5://mpf-v2raya:22070"
+      - "-F=socks5://mpf-v2raya:20170"
     ports:
       # BTC backend is local-only. It must never be published on 0.0.0.0.
       - "127.0.0.1:60010:60010"

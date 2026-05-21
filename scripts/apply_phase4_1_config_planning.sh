@@ -98,7 +98,7 @@ forwarder = ensure_dict(btc, "forwarder")
 forwarder["service_name"] = "mpf-forwarder-btc"
 forwarder["bind_host"] = "127.0.0.1"
 forwarder["listen_port"] = 60010
-forwarder["upstream_socks"] = "v2raya:22070"
+forwarder["upstream_socks"] = "v2raya:20170"
 
 if not isinstance(btc.get("upstreams"), list) or not btc["upstreams"]:
     btc["upstreams"] = [{"host": "bitcoin.viabtc.io", "port": 3333}]

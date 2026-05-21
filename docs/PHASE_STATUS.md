@@ -52,6 +52,7 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 - Phase 11 farm5 0.1.162 Sync/Test Evidence recorded (`docs/PHASE_11_FARM5_0_1_162_SYNC_TEST_EVIDENCE.md`): synced/tested safely; blocker remained `single_canary_restore_payload_not_apply_safe`; no actual canary execution; current state unchanged.
 - Route-safe canary target evidence recorded (`docs/PHASE_11_ROUTE_SAFE_CANARY_TARGET_EVIDENCE.md`): 0.1.163 loopback DNAT target (`127.0.0.1:60010`) was structurally applied but external canary timed out; MPF_NAT_PRE counters increased; diagnosis confirms loopback target is not route-safe for external PREROUTING DNAT while route_localnet=0; Phase 11 remains not accepted.
 - Route-safe single-canary NAT success evidence recorded (`docs/PHASE_11_ROUTE_SAFE_CANARY_NAT_SUCCESS_EVIDENCE.md`): farm5 0.1.164 execution reached `EXECUTION_COMPLETED_PENDING_REVIEW` with external TCP success and ASSURED conntrack; evidence is controlled and pending review; Current State remains unchanged (production_traffic none, Phase 11 not accepted, onboarding db_only, abuse automation no, UI no, Telegram no).
+- v2rayA SOCKS reachability blocker evidence recorded (`docs/PHASE_11_V2RAYA_SOCKS_REACHABILITY_BLOCKER.md`): route-safe NAT path reached forwarder but forwarder->v2rayA upstream `mpf-v2raya:22070` was refused; readiness fix standardizes Docker-reachable SOCKS upstream; Current State remains unchanged and Phase 11 remains unaccepted.
 - Phase 11D execution not authorized.
 - production_traffic: none
 - firewall_apply_allowed: no

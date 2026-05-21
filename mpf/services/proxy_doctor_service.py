@@ -208,6 +208,62 @@ def _compose_template_contract_checks(cfg: MPFConfig) -> list[HealthCheck]:
                 )
             )
 
+
+    # Internal SOCKS path must be Docker-network reachable and consistent with config.
+    for lane_name, lane in sorted(cfg.lanes.items()):
+        if not lane.enabled or lane.forwarder is None or not lane.forwarder.upstream_socks:
+            continue
+        expected = lane.forwarder.upstream_socks
+        if expected.endswith(":22070"):
+            checks.append(
+                HealthCheck(
+                    key=f"lane.{lane_name}.forwarder_upstream_socks",
+                    status=HealthStatus.CRITICAL,
+                    message="lane forwarder upstream_socks uses deprecated/unreachable 22070 endpoint",
+                    evidence={"lane": lane_name, "upstream_socks": expected},
+                    remediation="Use the reachable Docker-network SOCKS endpoint (v2raya:20170).",
+                )
+            )
+        else:
+            checks.append(
+                HealthCheck(
+                    key=f"lane.{lane_name}.forwarder_upstream_socks",
+                    status=HealthStatus.OK,
+                    message="lane forwarder upstream_socks is not using the stale 22070 endpoint",
+                    evidence={"lane": lane_name, "upstream_socks": expected},
+                )
+            )
+
+    if docker_compose.has_public_bind_for_port(inspection, 20170):
+        checks.append(
+            HealthCheck(
+                key="backend_docker_publish_mode.v2raya_socks",
+                status=HealthStatus.CRITICAL,
+                message="Compose template publishes v2rayA SOCKS port publicly",
+                evidence={"socks_port": 20170},
+                remediation="Keep SOCKS internal-only in Docker network (no host port publish).",
+            )
+        )
+    elif docker_compose.has_local_bind_for_port(inspection, 20170):
+        checks.append(
+            HealthCheck(
+                key="backend_docker_publish_mode.v2raya_socks",
+                status=HealthStatus.WARN,
+                message="Compose template publishes v2rayA SOCKS on host loopback; prefer internal-only expose",
+                evidence={"socks_port": 20170},
+                remediation="Prefer Docker-network-only exposure for SOCKS upstream.",
+            )
+        )
+    else:
+        checks.append(
+            HealthCheck(
+                key="backend_docker_publish_mode.v2raya_socks",
+                status=HealthStatus.OK,
+                message="Compose template keeps v2rayA SOCKS internal-only",
+                evidence={"socks_port": 20170},
+            )
+        )
+
     missing_healthchecks = docker_compose.services_missing_healthchecks(inspection)
     if missing_healthchecks:
         checks.append(
