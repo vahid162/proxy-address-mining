@@ -30,6 +30,23 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - customer onboarding remains db_only in current state.
 - Phase 11 remains not accepted.
 
+- firewall apply remains no except future explicit single-canary operator-approved run path.
+
+- customer onboarding remains db_only except future explicit canary run path.
+
+- Keep abuse automation/UI/Telegram closed.
+
+- GitHub main repository version before this PR is 0.1.163.
+
+- GitHub main repository version before this PR is 0.1.165.
+
+- latest recorded farm5 sync evidence is 0.1.165.
+
+- latest recorded farm5 route-safe failure evidence is 0.1.163.
+- Current blocker before this PR: loopback canary DNAT target not route-safe for external PREROUTING traffic.
+
+- latest recorded farm5 route-safe failure evidence is 0.1.165.
+
 ## Finite Remaining Path
 
 1. Phase 6 Firewall Planner — accepted on farm5
