@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
 from mpf.services.phase11_manual_canary_execution_run_service import CanaryExecutionAdapters
 from mpf.services.phase11_single_canary_host_apply_primitive import SingleCanaryHostApplyPrimitive
+from mpf.services.phase11_single_canary_host_apply_executor import Phase11SingleCanaryHostApplyExecutor
+from mpf.services.phase11_single_canary_post_apply_verifier import Phase11SingleCanaryPostApplyVerifier
 from mpf.services.phase11_single_canary_restore_backup_adapter import SingleCanaryRestoreBackupAdapter
 
 
@@ -143,7 +145,7 @@ def build_manual_canary_production_adapters() -> dict[str, object]:
         restore=_RestoreAdapter(adapter=SingleCanaryRestoreBackupAdapter()),
         lock=_LockAdapter(),
         customer=_CustomerAdapter(),
-        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive(), restore_payload_renderer=Phase11ExactCanaryRestorePayloadRenderer()),
+        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive(host_apply_executor=Phase11SingleCanaryHostApplyExecutor(), post_apply_verifier=Phase11SingleCanaryPostApplyVerifier()), restore_payload_renderer=Phase11ExactCanaryRestorePayloadRenderer()),
         verify=_VerifyAdapter(),
         evidence=_EvidenceAdapter(),
     )
