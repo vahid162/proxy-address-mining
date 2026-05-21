@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.167
+- Fix proxy doctor runtime container expectations to require `mpf-v2raya-socks-bridge`, add a runtime-state test for missing bridge CRITICAL verdict, and keep Phase 11 unaccepted with onboarding still forbidden.
+
 ## 0.1.166
 - Record farm5 0.1.164 route-safe single-canary NAT success evidence while keeping Phase 11 unaccepted and real onboarding forbidden.
 

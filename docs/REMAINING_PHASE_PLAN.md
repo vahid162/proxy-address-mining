@@ -7,7 +7,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Current Position
 
 - GitHub main repository version before this PR is 0.1.164.
-- Repository version after this PR is 0.1.166.
+- Repository version after this PR is 0.1.167.
 - latest recorded farm5 sync evidence is 0.1.164.
 - latest recorded route-safe canary NAT success evidence is 0.1.164.
 - farm5 route-safe single-canary DNAT execution evidence is recorded and pending review.

@@ -136,3 +136,21 @@ def test_public_v2raya_publish_in_compose_is_critical(tmp_path: Path) -> None:
     report = proxy_doctor_service.config_check(config_path)
     checks = {check.key: check for check in report.checks}
     assert checks["backend_docker_publish_mode.v2raya_ui"].status == HealthStatus.CRITICAL
+
+
+def test_proxy_doctor_runtime_missing_socks_bridge_is_critical(monkeypatch) -> None:
+    def _fake_containers(_project_name: str):
+        from mpf.adapters.docker_compose import DockerContainerSummary
+
+        return [
+            DockerContainerSummary(name="mpf-v2raya", image="v2raya", status="Up 1 hour", ports=""),
+            DockerContainerSummary(name="mpf-forwarder-btc", image="gost", status="Up 1 hour", ports=""),
+        ]
+
+    monkeypatch.setattr(proxy_doctor_service.docker_compose, "list_project_containers", _fake_containers)
+
+    report = proxy_doctor_service.status(EXAMPLE_CONFIG)
+    checks = {check.key: check for check in report.checks}
+    container_check = checks["proxy_container_state"]
+    assert container_check.status == HealthStatus.CRITICAL
+    assert container_check.evidence["missing"] == ["mpf-v2raya-socks-bridge"]
