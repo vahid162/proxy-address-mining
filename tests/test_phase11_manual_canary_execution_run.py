@@ -278,9 +278,8 @@ def test_execute_restore_guard_path_renderer_ok_then_host_apply_context_blocked(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
     assert report["final_decision"] == "BLOCKED"
-    assert "single_canary_host_apply_context_not_confirmed" in report["blockers"]
-    assert report["restore_payload_renderer"]["status"] == "ok"
-    assert isinstance(report["firewall_plan"].get("restore_payload"), str)
+    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
+    assert report["restore_payload_renderer"]["status"] == "blocked"
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False
@@ -297,9 +296,8 @@ def test_execute_both_guards_renderer_ok_then_missing_host_apply_executor_blocke
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
     assert report["final_decision"] == "BLOCKED"
-    assert "single_canary_host_apply_execution_not_confirmed" in report["blockers"]
-    assert report["restore_payload_renderer"]["status"] == "ok"
-    assert isinstance(report["firewall_plan"].get("restore_payload"), str)
+    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
+    assert report["restore_payload_renderer"]["status"] == "blocked"
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False

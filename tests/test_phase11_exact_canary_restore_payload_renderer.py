@@ -5,7 +5,7 @@ def _report():
     return {
         "scope": {"single_canary_only": True},
         "request": {
-            "requested_action": "execute", "expected_version": "0.1.161", "customer_key": "canary-btc-001", "lane": "btc", "port": 20001,
+            "requested_action": "execute", "expected_version": "0.1.162", "customer_key": "canary-btc-001", "lane": "btc", "port": 20001,
             "operator_confirmed": True, "understand_canary_customer": True, "understand_firewall_apply": True, "reviewed_rollback": True, "fresh_farm5_sync_confirmed": True,
         },
         "preflight_results": {k: "OK" for k in ("phase_gate", "mpf_doctor", "db_status", "proxy_doctor", "no_customer_nat_baseline", "no_customer_firewall_baseline", "local_only_runtime_baseline")},
@@ -14,6 +14,7 @@ def _report():
         "lock": {"acquired": True},
         "firewall_plan": {"status": "ok", "lane": "btc", "customer_port": 20001, "backend_port": 60010},
         "firewall_diff": {"json_diff": {"customer_port": 20001, "backend_port": 60010}},
+        "live_nat_prerequisites": {"mpf_nat_pre_chain_exists": True, "prerouting_hook_to_mpf_nat_pre_count": 1},
     }
 
 
