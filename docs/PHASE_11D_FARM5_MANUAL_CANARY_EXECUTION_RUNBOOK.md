@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.167`.
+- Confirm version is `0.1.168`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -27,7 +27,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.167 \
+  --expected-version 0.1.168 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -66,7 +66,7 @@ mpf production manual-canary-execute \
 - plan command:
   - `mpf production manual-canary-execute --output json`
 - execute-control command:
-  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.167 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
+  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.168 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
 - exact payload renderer behavior: execute path now renders deterministic exact payload for canary-btc-001/btc/20001->60010 after restore+backup+diff checks.
 - expected blocker without host-apply context guard: `single_canary_host_apply_context_not_confirmed`.
 - expected blocker with both restore-backup and host-apply context guards enabled: `accepted_single_canary_host_apply_execution_missing`.
@@ -86,7 +86,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.167 \
+  --expected-version 0.1.168 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -112,7 +112,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.167 \
+  --expected-version 0.1.168 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -157,3 +157,55 @@ docker exec mpf-forwarder-btc sh -c 'nc -zv mpf-v2raya 22070; echo rc=$?'
 ```
 
 Expected: `rc=0` before synthetic Stratum validation.
+
+
+## Successful synthetic Stratum canary evidence (farm5 0.1.167)
+
+This section records a successful synthetic Stratum validation path and can be reused for reviewer-facing evidence collection. It does not, by itself, mark Phase 11 as accepted.
+
+### Windows PowerShell raw ASCII test
+
+```powershell
+$client = New-Object System.Net.Sockets.TcpClient("85.198.11.110", 20001)
+$stream = $client.GetStream()
+$writer = New-Object System.IO.StreamWriter($stream, [System.Text.Encoding]::ASCII)
+$writer.NewLine = "`n"
+$writer.AutoFlush = $true
+$reader = New-Object System.IO.StreamReader($stream, [System.Text.Encoding]::ASCII)
+
+$writer.WriteLine('{"id":1,"method":"mining.subscribe","params":["mpf-canary-windows-test/0.1"]}')
+$resp1 = $reader.ReadLine()
+$writer.WriteLine('{"id":2,"method":"mining.authorize","params":["canary-test.worker","x"]}')
+$resp2 = $reader.ReadLine()
+
+"subscribe response: $resp1"
+"authorize response: $resp2"
+
+1..4 | ForEach-Object { if ($stream.DataAvailable) { "notify: " + $reader.ReadLine() } }
+
+$reader.Close(); $writer.Close(); $stream.Close(); $client.Close()
+```
+
+### Farm5 evidence commands
+
+```bash
+mpf phase-status
+mpf doctor
+mpf db status
+mpf proxy doctor
+
+docker exec mpf-forwarder-btc sh -c 'nc -zv mpf-v2raya 22070; echo rc=$?'
+docker exec mpf-forwarder-btc sh -c 'iptables -t nat -L MPF_NAT_PRE -n -v --line-numbers'
+docker exec mpf-forwarder-btc sh -c 'conntrack -L | grep 20001 || true'
+docker logs --tail 200 mpf-forwarder-btc
+docker logs --tail 200 mpf-v2raya-socks-bridge
+```
+
+### Interpretation boundary
+
+- Synthetic Stratum subscribe/authorize success with NAT + conntrack ASSURED + forwarder/bridge evidence is strong canary evidence.
+- It is still not full Phase 11 acceptance by itself.
+- Keep Current State unchanged: `production_traffic: none`, `firewall_apply_allowed: no`, `customer_onboarding_allowed: db_only`, `abuse_automation_allowed: no`, `ui_allowed: no`, `telegram_allowed: no`.
+
+
+Historical executed-evidence note (farm5 0.1.167): `--expected-version 0.1.167` was used for the successful synthetic Stratum evidence capture.
