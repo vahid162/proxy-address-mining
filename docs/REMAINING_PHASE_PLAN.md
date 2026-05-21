@@ -6,31 +6,30 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.163.
-- Repository version after this PR is 0.1.164.
-- latest recorded farm5 route-safe failure evidence is 0.1.163.
-- Current blocker before this PR: loopback canary DNAT target not route-safe for external PREROUTING traffic.
-- This PR adds route-safe Docker backend target resolution for the exact single-canary DNAT path.
-- Actual route-safe farm5 canary DNAT execution has not been accepted by this PR.
-- Next target after this PR: sync latest main to farm5, run safe checks, apply one explicit route-safe single-canary DNAT attempt, then collect active external connection/NAT/doctor evidence.
-- Keep Phase 11 not accepted.
-- Keep limited real customer onboarding forbidden.
-- Keep abuse automation/UI/Telegram closed.
-
-- latest recorded farm5 sync evidence is 0.1.159.
-- Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
-- Phase 11D operator-reviewed manual canary execution run preparation package is implemented and farm5 evidence is recorded.
-- Phase 11D actual operator-approved manual canary execution run package is implemented in GitHub and farm5 sync/test evidence is recorded.
-- Phase 11D actual execution remains not accepted.
+- GitHub main repository version before this PR is 0.1.164.
+- Repository version after this PR is 0.1.165.
+- latest recorded farm5 sync evidence is 0.1.164.
+- latest recorded route-safe canary NAT success evidence is 0.1.164.
+- farm5 route-safe single-canary DNAT execution evidence is recorded and pending review.
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
+- Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
+- Phase 11D actual execution remains not accepted.
+- Keep Phase 11 not accepted.
+- Phase 11 remains not accepted.
 - production traffic remains none.
+- production traffic remains none in current state.
+- firewall apply remains no in current state.
 - firewall apply remains no except future explicit single-canary operator-approved run path.
-- abuse automation remains no.
+- customer onboarding remains db_only in current state.
 - customer onboarding remains db_only except future explicit canary run path.
+- Keep limited real customer onboarding forbidden.
+- limited real customer onboarding remains forbidden until canary evidence is accepted.
+- abuse automation remains no.
 - UI remains no.
 - Telegram remains no.
-- Phase 11 remains not accepted.
+- Keep abuse automation/UI/Telegram closed.
+- Next target: miner/Stratum canary validation plus usage/reject/session visibility evidence.
 
 ## Finite Remaining Path
 
@@ -134,7 +133,9 @@ latest recorded farm5 sync evidence is 0.1.153.
 latest recorded farm5 sync evidence is 0.1.159.
 GitHub main repository version before this PR is 0.1.157.
 GitHub main repository version before this PR is 0.1.159.
+GitHub main repository version before this PR is 0.1.163. (historical route-safe fix PR)
 Current blocker before this PR: single_canary_restore_payload_renderer_missing.
+Current blocker before this PR: loopback canary DNAT target not route-safe for external PREROUTING traffic. (historical)
 single_canary_host_apply_context_not_confirmed
 accepted_single_canary_host_apply_execution_missing
 Current target is Phase 8 abuse dry-run evaluator package.
