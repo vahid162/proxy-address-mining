@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Phase11SingleCanaryBackendTargetResolver:
-    expected_version: str = "0.1.165"
+    expected_version: str = "0.1.164"
     container_name: str = "mpf-forwarder-btc"
     docker_network: str = "mpf-proxy-internal"
     customer_key: str = "canary-btc-001"
@@ -29,6 +29,28 @@ class Phase11SingleCanaryBackendTargetResolver:
 
     def _is_public(self, ip: ipaddress.IPv4Address) -> bool:
         return not (ip.is_private or ip.is_loopback or ip.is_link_local)
+
+    def _backend_public_exposure(self) -> dict[str, object]:
+        """Detect host listener exposure without treating 127.0.0.1-only publish as public."""
+        ss = self._run(["ss", "-lnt"])
+        if ss.returncode != 0:
+            return {"status": "blocked", "error": "single_canary_backend_listener_snapshot_failed"}
+        exposed = []
+        local_only = []
+        for line in ss.stdout.splitlines():
+            if f":{self.backend_port}" not in line:
+                continue
+            parts = line.split()
+            if len(parts) < 4:
+                continue
+            local_addr = parts[3]
+            if local_addr.startswith("127.0.0.1:") or local_addr.startswith("[::1]:"):
+                local_only.append(local_addr)
+                continue
+            exposed.append(local_addr)
+        if exposed:
+            return {"status": "blocked", "error": "single_canary_backend_public_exposure_detected", "backend_public_exposure": True, "public_listeners": exposed}
+        return {"status": "ok", "backend_public_exposure": False, "local_only_listeners": local_only}
 
     def resolve(self, report: dict[str, object]) -> dict[str, object]:
         req = report.get("request", {}) if isinstance(report.get("request"), dict) else {}
@@ -72,9 +94,9 @@ class Phase11SingleCanaryBackendTargetResolver:
         if not host_backend_reachability:
             return {"status": "blocked", "error": "single_canary_backend_target_unreachable"}
 
-        backend_public_exposure = self._connect_ok("0.0.0.0", self.backend_port)
-        if backend_public_exposure:
-            return {"status": "blocked", "error": "single_canary_backend_public_exposure_detected"}
+        exposure = self._backend_public_exposure()
+        if exposure.get("status") != "ok":
+            return exposure
 
         net_inspect = self._run(["docker", "inspect", "network", self.docker_network])
         bridge_name = None
@@ -98,6 +120,7 @@ class Phase11SingleCanaryBackendTargetResolver:
             "target_kind": "docker_container_ipv4",
             "host_backend_reachability": True,
             "backend_public_exposure": False,
+            "backend_local_only_listeners": exposure.get("local_only_listeners", []),
             "mutation_performed": False,
             "production_traffic_enabled": False,
         }
