@@ -7,6 +7,7 @@ from mpf.services.phase11_manual_canary_execution_run_service import CanaryExecu
 from mpf.services.phase11_single_canary_host_apply_primitive import SingleCanaryHostApplyPrimitive
 from mpf.services.phase11_single_canary_host_apply_executor import Phase11SingleCanaryHostApplyExecutor
 from mpf.services.phase11_single_canary_post_apply_verifier import Phase11SingleCanaryPostApplyVerifier
+from mpf.services.phase11_single_canary_nat_hook_bootstrap import Phase11SingleCanaryNatHookBootstrapService
 from mpf.services.phase11_single_canary_restore_backup_adapter import SingleCanaryRestoreBackupAdapter
 
 
@@ -80,6 +81,7 @@ class _CustomerAdapter:
 class _FirewallAdapter:
     host_apply_primitive: object | None = None
     restore_payload_renderer: object | None = None
+    nat_hook_bootstrap: object | None = None
 
     def build_plan(self, report: dict[str, object]) -> dict[str, object]:
         request = report.get("request", {})
@@ -112,6 +114,18 @@ class _FirewallAdapter:
         json_diff = diff.get("json_diff", {}) if isinstance(diff, dict) else {}
         if json_diff.get("customer_port") != 20001 or json_diff.get("backend_port") != 60010:
             return {"status": "blocked", "error": "firewall_diff_not_reviewed"}
+        import os
+        if os.environ.get("MPF_PHASE11_SINGLE_CANARY_NAT_HOOK_BOOTSTRAP") == "allow":
+            bootstrapper = self.nat_hook_bootstrap or Phase11SingleCanaryNatHookBootstrapService()
+            bootstrap_result = bootstrapper.run(report)
+            report["nat_hook_bootstrap"] = bootstrap_result
+            if bootstrap_result.get("status") != "ok":
+                return bootstrap_result
+            if bootstrap_result.get("action") == "needs_bootstrap":
+                return {"status": "blocked", "error": "single_canary_nat_hook_bootstrap_required", "missing_primitive": "accepted_safe_single_canary_nat_hook_bootstrap", **bootstrap_result}
+            if bootstrap_result.get("action") == "bootstrapped":
+                return {"status": "ok", "applied": False, "bootstrap_completed": True, "actual_canary_execution_performed": False, "production_traffic_enabled": False, "mutation_performed": True, "firewall_mutation_performed": True, "nat_mutation_performed": True, "pre_apply_nat_sha256": bootstrap_result.get("pre_bootstrap_nat_sha256"), "post_apply_nat_sha256": bootstrap_result.get("post_bootstrap_nat_sha256")}
+
         renderer = self.restore_payload_renderer or Phase11ExactCanaryRestorePayloadRenderer()
         rendered = renderer.render(report)
         report["restore_payload_renderer"] = rendered
@@ -145,7 +159,7 @@ def build_manual_canary_production_adapters() -> dict[str, object]:
         restore=_RestoreAdapter(adapter=SingleCanaryRestoreBackupAdapter()),
         lock=_LockAdapter(),
         customer=_CustomerAdapter(),
-        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive(host_apply_executor=Phase11SingleCanaryHostApplyExecutor(), post_apply_verifier=Phase11SingleCanaryPostApplyVerifier()), restore_payload_renderer=Phase11ExactCanaryRestorePayloadRenderer()),
+        firewall=_FirewallAdapter(host_apply_primitive=SingleCanaryHostApplyPrimitive(host_apply_executor=Phase11SingleCanaryHostApplyExecutor(), post_apply_verifier=Phase11SingleCanaryPostApplyVerifier()), restore_payload_renderer=Phase11ExactCanaryRestorePayloadRenderer(), nat_hook_bootstrap=Phase11SingleCanaryNatHookBootstrapService()),
         verify=_VerifyAdapter(),
         evidence=_EvidenceAdapter(),
     )
