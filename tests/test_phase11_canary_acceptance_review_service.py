@@ -263,6 +263,39 @@ def test_cli_collect_visibility_merges_multiple_artifacts(monkeypatch, tmp_path)
     assert '"missing_visibility:reject_counters_visibility"' in res.stdout
 
 
+def test_cli_collect_visibility_wrong_backend_not_lifted_with_collect_live(monkeypatch, tmp_path):
+    runner = CliRunner()
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    monkeypatch.setattr(
+        "mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report",
+        lambda *a, **k: {"evidence": {"canary_nat_target": "172.18.0.3:60010"}},
+    )
+    usage = tmp_path / "usage.json"
+    usage.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"usage_visibility_ok":true,"usage_reference":"usage-ref","total_connections":5}', encoding="utf-8")
+    wrong_backend = tmp_path / "wrong_backend.json"
+    wrong_backend.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.99:60010","session_visibility_ok":true,"session_reference":"session-ref","unique_ip_visibility_ok":true,"unique_ip_reference":"ip-ref"}', encoding="utf-8")
+    res = runner.invoke(
+        app,
+        [
+            "production", "canary-acceptance-review",
+            "--expected-version", "0.1.180",
+            "--farm5-baseline-version", "0.1.168",
+            "--collect-live",
+            "--collect-visibility",
+            "--visibility-json", str(usage),
+            "--visibility-json", str(wrong_backend),
+            "--output", "json",
+            "--config", "configs/mpf.example.yaml",
+        ],
+    )
+    assert res.exit_code == 0
+    assert '"final_decision": "BLOCKED"' in res.stdout
+    assert '"missing_visibility:active_recent_sessions_visibility"' in res.stdout
+    assert '"mutation_performed": false' in res.stdout
+    assert '"production_traffic_enabled": false' in res.stdout
+
+
 def test_next_step_usage_when_customer_db_present_but_usage_missing(monkeypatch):
     ev = _base_evidence()
     ev.usage_visibility_ok = False

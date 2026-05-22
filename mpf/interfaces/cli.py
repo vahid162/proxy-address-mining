@@ -2193,11 +2193,13 @@ def production_canary_acceptance_review(
 ) -> None:
     cfg = _load(config)
     evidence = phase11_canary_acceptance_review_service.load_phase11_canary_acceptance_evidence_json(evidence_json) if evidence_json else None
+    expected_backend_target: str | None = None
     if collect_live:
         live_report = phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(
             cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version
         )
         live_ev = phase11_canary_acceptance_review_service.Phase11CanaryAcceptanceEvidence.from_dict(live_report["evidence"])
+        expected_backend_target = live_ev.canary_nat_target
         evidence = phase11_live_canary_evidence_collector_service.merge_phase11_evidence(live_ev, evidence) if evidence else live_ev
     if collect_visibility:
         visibility_evidences = [phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(path) for path in visibility_json]
@@ -2206,6 +2208,7 @@ def production_canary_acceptance_review(
             customer_key=customer_key,
             lane=lane,
             port=port,
+            expected_backend_target=expected_backend_target,
         ) if visibility_evidences else None
         visibility_report = phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report(
             cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=visibility_evidence
@@ -2275,12 +2278,21 @@ def production_canary_visibility_bundle(
     config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     cfg = _load(config)
+    expected_backend_target: str | None = None
+    if collect_live:
+        live_report = phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(
+            cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version
+        )
+        expected_backend_target = phase11_canary_acceptance_review_service.Phase11CanaryAcceptanceEvidence.from_dict(
+            live_report.get("evidence", {})
+        ).canary_nat_target
     evidences = [phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(path) for path in evidence_json]
     evidence = phase11_canary_visibility_bundle_service.merge_phase11_canary_visibility_evidence(
         evidences,
         customer_key=customer_key,
         lane=lane,
         port=port,
+        expected_backend_target=expected_backend_target,
     ) if evidences else None
     report = phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report(
         cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=evidence

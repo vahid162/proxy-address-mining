@@ -175,3 +175,22 @@ def test_cli_visibility_bundle_accepts_repeated_evidence_json(monkeypatch, tmp_p
     assert res.exit_code == 0
     assert '"usage_counters_visibility": {' in res.stdout
     assert '"next_required_step": "reject_counters_visibility"' in res.stdout
+
+
+def test_cli_visibility_bundle_collect_live_wrong_backend_evidence_not_lifted(monkeypatch, tmp_path):
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    monkeypatch.setattr(
+        "mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report",
+        lambda *a, **k: {"evidence": {"canary_nat_target": "172.18.0.3:60010"}},
+    )
+    usage = tmp_path / "usage.json"
+    usage.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"usage_visibility_ok":true,"usage_reference":"usage-ref","total_connections":3}', encoding="utf-8")
+    wrong_backend = tmp_path / "wrong_backend.json"
+    wrong_backend.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.99:60010","session_visibility_ok":true,"session_reference":"session-ref","unique_ip_visibility_ok":true,"unique_ip_reference":"ip-ref"}', encoding="utf-8")
+    runner = CliRunner()
+    res = runner.invoke(app, ["production", "canary-visibility-bundle", "--collect-live", "--evidence-json", str(usage), "--evidence-json", str(wrong_backend), "--output", "json", "--config", "configs/mpf.example.yaml"])
+    assert res.exit_code == 0
+    assert '"next_required_step": "reject_counters_visibility"' in res.stdout
+    assert '"mutation_performed": false' in res.stdout
+    assert '"firewall_mutation_performed": false' in res.stdout
