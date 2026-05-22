@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.1.177
+
+## 0.1.178
+- Added Phase 11 canary usage evidence capture + operator execution context guard (root read vs mpf DB-write).
+
+## 0.1.178
 
 - hotfix: fix Phase 11 canary DB visibility execute create path to use valid lifecycle `activation_mode="first_connect"` (instead of invalid `manual`) so execute no longer fails pre-DB-write on lifecycle validation.
 - add regression coverage for exact-canary execute create request lifecycle validation and keep DB-only/non-runtime mutation flags and plan-only behavior unchanged.

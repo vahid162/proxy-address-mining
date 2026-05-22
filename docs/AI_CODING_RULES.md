@@ -285,3 +285,5 @@ Phase 8 DB-only transition readiness stop condition: no DB connection, no DB rea
 no execution in PR, no dry-run evidence claimed before operator output exists, no background worker start, no scheduler/timer, no abuse runner, no real production customer evaluation, no production DB execution, no DB reads/writes for worker execution, no firewall/customer mutation, no hard/soft blocks, no pause automation, no production traffic, and farm5 dry-run evidence collection remains future-gated until 0.1.121 is synced/tested after merge.
 
 Phase PR body format rule: Why / What / How to test / Version / Risk + Rollback.
+
+- AI-safe operator rule: do not suggest root for DB write execute commands when `database.url` is local-peer `postgresql:///mpf`; use `sudo -u mpf mpf ...` for DB-only execute paths.

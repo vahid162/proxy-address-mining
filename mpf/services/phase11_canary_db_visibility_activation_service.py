@@ -4,7 +4,7 @@ from mpf import __version__
 from mpf.config import MPFConfig
 from mpf.domain.customers import CustomerCreateRequest, CustomerLifecycleInput, CustomerPolicyInput
 from mpf.domain.production import Phase11CanaryDbVisibilityActivationRequest
-from mpf.services import customer_mutation_service, customer_read_service
+from mpf.services import customer_mutation_service, customer_read_service, operator_execution_context_service
 
 
 def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, request: Phase11CanaryDbVisibilityActivationRequest) -> dict[str, object]:
@@ -24,6 +24,16 @@ def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, requ
     final_decision = "BLOCKED"
     execution_result: dict[str, object] = {"status": "not_executed"}
     mutation = False
+
+
+    context = operator_execution_context_service.build_operator_execution_context_report(config, mode="db-write")
+    if request.requested_action == "execute" and context.get("database_url_is_local_peer") and context.get("os_user") != "mpf":
+        blockers.append("db_write_requires_mpf_os_user")
+        execution_result = {
+            "status": "blocked",
+            "message": "Run this DB-only execute as OS user mpf, e.g. sudo -u mpf mpf production canary-db-visibility-activate --requested-action execute ...",
+            "recommended_command_prefix": "sudo -u mpf",
+        }
 
     if rows.ok is False:
         blockers.append("customer_list_read_failed")
@@ -108,6 +118,7 @@ def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, requ
         "planned_action": planned_action,
         "execution_result": execution_result,
         "rollback_plan": "soft-delete canary-btc-001 via customer delete service path",
+        "operator_context": context,
         "post_visibility_summary": {"canary_customer_db_visibility": "PRESENT" if visible else "MISSING"},
         "next_required_step": "usage_counters_visibility" if visible else "canary_customer_db_visibility",
     }

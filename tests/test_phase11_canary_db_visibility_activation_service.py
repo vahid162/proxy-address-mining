@@ -19,7 +19,7 @@ def _cfg():
 def _execute_req() -> Phase11CanaryDbVisibilityActivationRequest:
     return Phase11CanaryDbVisibilityActivationRequest(
         requested_action="execute",
-        expected_version="0.1.177",
+        expected_version="0.1.178",
         operator="operator-1",
         reason="phase11 canary db visibility",
         operator_confirmed=True,
@@ -36,7 +36,7 @@ def _row(customer_key="x", lane="btc", port=20002, status="deleted", deleted_at=
 
 def test_plan_create_no_rows(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178"))
     assert r["planned_action"] == "create_exact_canary_customer"
     assert r["mutation_performed"] is False
     assert r["db_mutation_performed"] is False
@@ -44,7 +44,7 @@ def test_plan_create_no_rows(monkeypatch):
 
 def test_plan_create_with_only_deleted_unrelated_rows_warns(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_row(customer_key="test_customer_1", port=23138)]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178"))
     assert r["final_decision"] == "DB_VISIBILITY_PLAN_READY"
     assert r["planned_action"] == "create_exact_canary_customer"
     assert "deleted_unrelated_customer_rows_ignored" in r["warnings"]
@@ -54,21 +54,21 @@ def test_plan_create_with_only_deleted_unrelated_rows_warns(monkeypatch):
 def test_active_unrelated_customer_blocked(monkeypatch):
     active = _row(customer_key="other", status="active", deleted_at=None)
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[active]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178"))
     assert r["final_decision"] == "BLOCKED"
     assert "unexpected_active_customer_present" in r["blockers"]
 
 
 def test_deleted_unrelated_port_collision_blocked(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_row(customer_key="other", port=20001)]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178"))
     assert r["final_decision"] == "BLOCKED"
     assert "canary_port_collision" in r["blockers"]
 
 
 def test_deleted_canary_key_wrong_scope_blocked(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_row(customer_key="canary-btc-001", lane="zec", port=20002)]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178"))
     assert r["final_decision"] == "BLOCKED"
     assert "canary_customer_key_collision" in r["blockers"]
     assert "deleted_canary_scope_mismatch" in r["blockers"]
@@ -76,7 +76,7 @@ def test_deleted_canary_key_wrong_scope_blocked(monkeypatch):
 
 def test_exact_deleted_canary_plans_restore(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_row(customer_key="canary-btc-001", lane="btc", port=20001)]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178"))
     assert r["final_decision"] == "DB_VISIBILITY_PLAN_READY"
     assert r["planned_action"] == "restore_deleted_exact_canary_customer"
 
@@ -84,19 +84,20 @@ def test_exact_deleted_canary_plans_restore(monkeypatch):
 def test_already_present(monkeypatch):
     c = _row(customer_key="canary-btc-001", lane="btc", port=20001, status="active", deleted_at=None)
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178"))
     assert r["final_decision"] == "DB_VISIBILITY_ALREADY_PRESENT"
 
 
 def test_execute_without_confirms_blocked(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
-    req = Phase11CanaryDbVisibilityActivationRequest(requested_action="execute", expected_version="0.1.177")
+    req = Phase11CanaryDbVisibilityActivationRequest(requested_action="execute", expected_version="0.1.178")
     r = build_phase11_canary_db_visibility_activation_report(_cfg(), req)
     assert r["final_decision"] == "BLOCKED"
     assert r["mutation_performed"] is False
 
 
 def test_execute_create_path_calls_create_db_only_customer_and_sets_db_only_flags(monkeypatch):
+    monkeypatch.setattr("mpf.services.operator_execution_context_service.build_operator_execution_context_report", lambda *a, **k: {"database_url_is_local_peer": True, "os_user": "mpf"})
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
     called: dict[str, object] = {}
 
@@ -137,6 +138,7 @@ def test_execute_create_path_calls_create_db_only_customer_and_sets_db_only_flag
 
 
 def test_execute_restore_path_calls_restore_and_sets_db_only_flags(monkeypatch):
+    monkeypatch.setattr("mpf.services.operator_execution_context_service.build_operator_execution_context_report", lambda *a, **k: {"database_url_is_local_peer": True, "os_user": "mpf"})
     deleted = _row(customer_key="canary-btc-001", lane="btc", port=20001, status="deleted", deleted_at="2026-05-22T00:00:00+00:00")
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[deleted]))
 
@@ -166,7 +168,7 @@ def test_execute_restore_path_calls_restore_and_sets_db_only_flags(monkeypatch):
 
 def test_plan_non_mutating(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
-    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.177", requested_action="plan"))
+    r = build_phase11_canary_db_visibility_activation_report(_cfg(), Phase11CanaryDbVisibilityActivationRequest(expected_version="0.1.178", requested_action="plan"))
     assert r["mutation_performed"] is False
     assert r["db_mutation_performed"] is False
 
