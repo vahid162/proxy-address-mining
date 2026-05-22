@@ -19,7 +19,7 @@ def _cfg():
 
 def test_db_missing_blocks(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
-    r = build_phase11_canary_usage_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.181", farm5_baseline_version="0.1.168")
+    r = build_phase11_canary_usage_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.182", farm5_baseline_version="0.1.168")
     assert r["usage_counters_visibility"]["status"] == "BLOCKED"
 
 
@@ -27,7 +27,7 @@ def test_exact_scope_present(monkeypatch):
     c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
     ev = Phase11CanaryUsageVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, usage_visibility_ok=True, usage_reference="ref", total_connections=1)
-    r = build_phase11_canary_usage_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.181", farm5_baseline_version="0.1.168", evidence=ev)
+    r = build_phase11_canary_usage_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.182", farm5_baseline_version="0.1.168", evidence=ev)
     assert r["final_decision"] == "USAGE_VISIBILITY_READY"
 
 
