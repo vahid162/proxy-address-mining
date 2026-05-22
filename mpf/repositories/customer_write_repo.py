@@ -276,3 +276,40 @@ def set_customer_ips(config: MPFConfig, req: CustomerSetIpsRequest, *, dry_run: 
     except Exception as exc:  # noqa: BLE001
         return CustomerMutationResult(ok=False, message=str(exc), customer_key=req.customer_key)
     return CustomerMutationResult(ok=True, message="OK", customer_id=int(customer_id), customer_key=req.customer_key)
+
+
+def restore_phase11_exact_canary_db_visibility_customer(config: MPFConfig, *, customer_key: str, lane: str, port: int, name: str, miners: int, farms: int, maxconn: int, rate_per_min: int, burst: int, ips_mode: str, reason: str | None = None, dry_run: bool = False) -> CustomerMutationResult:
+    if customer_key != "canary-btc-001" or lane != "btc" or port != 20001:
+        return CustomerMutationResult(ok=False, message="restore scope must be exact Phase 11 canary")
+    try:
+        import psycopg
+        with psycopg.connect(config.database.url, connect_timeout=5) as conn:
+            with conn.transaction():
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        select c.id, c.status, c.deleted_at, c.name
+                        from customers c
+                        left join lanes l on l.id = c.lane_id
+                        where c.customer_key=%s and lower(coalesce(l.name,''))=lower(%s) and c.port=%s
+                        order by c.id desc
+                        limit 1
+                    """, (customer_key, lane, port))
+                    row = cur.fetchone()
+                    if row is None:
+                        return CustomerMutationResult(ok=False, message="exact deleted canary row not found", customer_key=customer_key)
+                    customer_id, status, deleted_at, old_name = int(row[0]), str(row[1]), row[2], str(row[3])
+                    if deleted_at is None and status != "deleted":
+                        return CustomerMutationResult(ok=False, message="target row is not deleted", customer_key=customer_key)
+                    if dry_run:
+                        return CustomerMutationResult(ok=True, message="DRY_RUN_OK", customer_id=customer_id, customer_key=customer_key, would_mutate_customer=True, would_create_policy_version=True, would_create_event=True, would_create_audit=True)
+                    cur.execute("update customers set status='active', deleted_at=null, name=%s, updated_at=now() where id=%s", (name, customer_id))
+                    cur.execute("update customer_policies set is_current=false where customer_id=%s and is_current=true", (customer_id,))
+                    cur.execute("select coalesce(max(version),0) from customer_policies where customer_id=%s", (customer_id,))
+                    next_version = int(cur.fetchone()[0]) + 1
+                    cur.execute("""insert into customer_policies
+                        (customer_id, version, is_current, miners, farms, maxconn, rate_per_min, burst, ips_mode, reason)
+                        values (%s,%s,true,%s,%s,%s,%s,%s,%s,%s)""", (customer_id, next_version, miners, farms, maxconn, rate_per_min, burst, ips_mode, reason))
+                    _insert_event_audit(cur, customer_id=customer_id, event_type="customer.restored", message=f"Phase11 exact canary restored: {old_name}", action="customer.phase11_canary_restore", reason=reason)
+    except Exception as exc:  # noqa: BLE001
+        return CustomerMutationResult(ok=False, message=str(exc), customer_key=customer_key)
+    return CustomerMutationResult(ok=True, message="OK", customer_id=customer_id, customer_key=customer_key)

@@ -17,6 +17,7 @@ from mpf.repositories.customer_write_repo import (
     set_customer_ips,
     soft_delete_customer,
     update_customer,
+    restore_phase11_exact_canary_db_visibility_customer as _restore_phase11_exact_canary_db_visibility_customer,
 )
 
 
@@ -48,3 +49,7 @@ def soft_delete_db_only_customer(config: MPFConfig, req: CustomerDeleteRequest, 
 def set_ips_db_only_customer(config: MPFConfig, req: CustomerSetIpsRequest, *, dry_run: bool = False) -> CustomerMutationResult:
     req.validate()
     return set_customer_ips(config, req, dry_run=dry_run)
+
+
+def restore_phase11_exact_canary_db_visibility_customer(config: MPFConfig, **kwargs) -> CustomerMutationResult:
+    return _restore_phase11_exact_canary_db_visibility_customer(config, **kwargs)

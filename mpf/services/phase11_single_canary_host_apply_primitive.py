@@ -7,7 +7,7 @@ from typing import Callable
 
 @dataclass(slots=True)
 class SingleCanaryHostApplyPrimitive:
-    expected_version: str = "0.1.173"
+    expected_version: str = "0.1.174"
     host_apply_executor: Callable[[dict[str, object], str], dict[str, object]] | object | None = None
     post_apply_verifier: Callable[[dict[str, object]], dict[str, object]] | object | None = None
 
