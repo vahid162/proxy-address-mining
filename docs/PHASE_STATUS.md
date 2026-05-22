@@ -64,7 +64,7 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 
 - Phase 11 farm5 0.1.169 planning/readiness note: added read-only `mpf production canary-acceptance-review` verifier to classify exact controlled canary NAT artifact (`controlled_canary_artifact_present`) and fail-closed on any additional MPF/customer references or missing visibility primitives; Current State gate values remain unchanged and Phase 11 remains not accepted.
-- Phase 11 farm5 0.1.170 hotfix note: fixed `mpf production canary-acceptance-review` customer list contract to use `CustomerList.customers` (not `rows`) and added fail-closed blocker `customer_list_read_failed` when customer list read fails; Current State gate values remain unchanged and Phase 11 remains not accepted.
+- Phase 11 farm5 0.1.171 hotfix note: fixed `mpf production canary-acceptance-review` customer list contract to use `CustomerList.customers` (not `rows`) and added fail-closed blocker `customer_list_read_failed` when customer list read fails; Current State gate values remain unchanged and Phase 11 remains not accepted.
 
 ### Phase 10 farm5 0.1.128 Sync/Test Evidence
 

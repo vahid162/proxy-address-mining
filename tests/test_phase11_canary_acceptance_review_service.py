@@ -66,7 +66,7 @@ def _report(monkeypatch, ev: Phase11CanaryAcceptanceEvidence, **kwargs):
         customer_key=kwargs.get("customer_key", "canary-btc-001"),
         lane=kwargs.get("lane", "btc"),
         port=kwargs.get("port", 20001),
-        expected_version=kwargs.get("expected_version", "0.1.170"),
+        expected_version=kwargs.get("expected_version", "0.1.171"),
         farm5_baseline_version=kwargs.get("farm5_baseline_version", "0.1.168"),
         evidence=ev,
     )
@@ -144,7 +144,7 @@ def test_cli_json_smoke(tmp_path, monkeypatch):
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.170",
+            "0.1.171",
             "--farm5-baseline-version",
             "0.1.168",
             "--evidence-json",
@@ -167,7 +167,7 @@ def test_customer_list_read_failure_blocks_fail_closed(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.170",
+        expected_version="0.1.171",
         farm5_baseline_version="0.1.168",
         evidence=Phase11CanaryAcceptanceEvidence(),
     )
@@ -177,3 +177,30 @@ def test_customer_list_read_failure_blocks_fail_closed(monkeypatch):
     assert report["firewall_mutation_performed"] is False
     assert report["nat_mutation_performed"] is False
     assert report["conntrack_mutation_performed"] is False
+
+
+def test_cli_collect_live_review_smoke(monkeypatch):
+    runner = CliRunner()
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
+    monkeypatch.setattr(
+        "mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report",
+        lambda *a, **k: {"evidence": {"mpf_nat_pre_exists": True, "prerouting_hook_present": True, "canary_nat_rule_present": True, "canary_nat_rule_count": 1, "canary_nat_target": "172.18.0.3:60010", "no_extra_customer_nat_rules": True, "no_unexpected_mpf_firewall_references": True}},
+    )
+    res = runner.invoke(
+        app,
+        [
+            "production",
+            "canary-acceptance-review",
+            "--expected-version",
+            "0.1.171",
+            "--farm5-baseline-version",
+            "0.1.168",
+            "--collect-live",
+            "--output",
+            "json",
+            "--config",
+            "configs/mpf.example.yaml",
+        ],
+    )
+    assert res.exit_code == 0
+    assert '"controlled_canary_artifact_present": true' in res.stdout
