@@ -7,7 +7,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 ## Current Position
 
 - GitHub main repository version before this PR is 0.1.168.
-- Repository version after this PR is 0.1.181.
+- Repository version after this PR is 0.1.182.
 - latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).
 - latest recorded route-safe canary NAT success evidence remains 0.1.164; farm5 0.1.168 sync confirms the controlled canary NAT artifact is still present.
 - farm5 route-safe single-canary DNAT execution evidence is recorded and pending review.
@@ -155,5 +155,5 @@ Repository version after this PR is 0.1.129. (historical)
 ```
 
 Current roadmap ordering remains the Finite Remaining Path above. These anchors do not reopen Phase 6, Phase 7, Phase 8, firewall apply, production traffic, abuse automation, worker enforcement, UI, or Telegram.
-- Repository version after this PR is 0.1.181.
+- Repository version after this PR is 0.1.182.
 - After usage evidence capture/validation, next target is `reject_counters_visibility`.

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.182
+- feat(phase11): add exact controlled canary filter reject counter source in single-canary restore payload (`MPFC_20001` with `customer_connlimit_reject`/`customer_hashlimit_reject` comments) so reject visibility remains fail-closed and becomes PRESENT only when exact source exists.
+
 ## 0.1.181
 - add read-only Phase 11 canary reject counters visibility capture and CLI command.
 
