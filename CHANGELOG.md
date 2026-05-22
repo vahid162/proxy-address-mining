@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.1.175
+## 0.1.176
 
-- hotfix: allow Phase 11 canary DB visibility plan to create exact canary when only unrelated deleted customers exist, add `deleted_unrelated_customer_rows_ignored`, and preserve fail-closed collisions/active-customer blockers.
+- hotfix: fix Phase 11 canary DB visibility execute create path to use valid lifecycle `activation_mode="first_connect"` (instead of invalid `manual`) so execute no longer fails pre-DB-write on lifecycle validation.
+- add regression coverage for exact-canary execute create request lifecycle validation and keep DB-only/non-runtime mutation flags and plan-only behavior unchanged.
 
 ## 0.1.172
 

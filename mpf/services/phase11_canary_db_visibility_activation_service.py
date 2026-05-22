@@ -62,7 +62,7 @@ def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, requ
                     port=request.port,
                     status="active",
                     policy=CustomerPolicyInput(miners=request.miners, farms=request.farms, maxconn=request.maxconn, rate_per_min=request.rate_per_min, burst=request.burst, ips_mode=request.ips_mode, ip_whitelist=request.ip_whitelist, reason=request.reason),
-                    lifecycle=CustomerLifecycleInput(activation_mode="manual", service_days=30, lifecycle_note=request.reason),
+                    lifecycle=CustomerLifecycleInput(activation_mode="first_connect", service_days=30, lifecycle_note=request.reason),
                     customer_key=request.customer_key,
                 ),
                 dry_run=False,
