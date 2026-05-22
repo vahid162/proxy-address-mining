@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Phase11SingleCanaryBackendTargetResolver:
-    expected_version: str = "0.1.180"
+    expected_version: str = "0.1.181"
     container_name: str = "mpf-forwarder-btc"
     docker_network: str = "mpf-proxy-internal"
     customer_key: str = "canary-btc-001"
