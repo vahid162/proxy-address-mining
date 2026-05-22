@@ -204,3 +204,9 @@ def test_cli_collect_live_review_smoke(monkeypatch):
     )
     assert res.exit_code == 0
     assert '"controlled_canary_artifact_present": true' in res.stdout
+    assert '"backend_target": "172.18.0.3:60010"' in res.stdout
+    assert '"final_decision": "BLOCKED"' in res.stdout
+    assert '"mutation_performed": false' in res.stdout
+    assert '"firewall_mutation_performed": false' in res.stdout
+    assert '"nat_mutation_performed": false' in res.stdout
+    assert '"conntrack_mutation_performed": false' in res.stdout

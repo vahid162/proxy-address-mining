@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import shutil
 import subprocess
 from dataclasses import asdict, dataclass, field
@@ -62,13 +63,40 @@ def _collect_nat(report: Phase11LiveCanaryEvidenceCollectorReport, customer_key:
         ev = report.evidence
         ev.mpf_nat_pre_exists = ":MPF_NAT_PRE" in save_out
         ev.prerouting_hook_present = "-A PREROUTING -j MPF_NAT_PRE" in save_out
-        rule_pat = re.compile(rf'-A MPF_NAT_PRE -p tcp --dport {port} -m comment --comment "mpf:{re.escape(customer_key)}:customer_nat_redirect" -j DNAT --to-destination ([^\s]+)')
-        matches = rule_pat.findall(save_out)
-        ev.canary_nat_rule_count = len(matches)
-        ev.canary_nat_rule_present = len(matches) > 0
-        ev.canary_nat_target = matches[0] if matches else None
-        customer_rules = re.findall(r'--comment "mpf:[^\"]+:customer_nat_redirect"', save_out)
-        ev.no_extra_customer_nat_rules = len(customer_rules) == 1 and ev.canary_nat_rule_count == 1
+        canary_comment = f"mpf:{customer_key}:customer_nat_redirect"
+        canary_targets: list[str] = []
+        customer_nat_rule_count = 0
+
+        for line in save_out.splitlines():
+            if not line.startswith("-A MPF_NAT_PRE "):
+                continue
+            try:
+                tokens = shlex.split(line)
+            except ValueError:
+                continue
+
+            if "--comment" in tokens:
+                ci = tokens.index("--comment")
+                if ci + 1 < len(tokens) and tokens[ci + 1].startswith("mpf:") and tokens[ci + 1].endswith(":customer_nat_redirect"):
+                    customer_nat_rule_count += 1
+
+            if "-p" not in tokens or "--dport" not in tokens or "--comment" not in tokens or "-j" not in tokens or "--to-destination" not in tokens:
+                continue
+
+            if tokens[tokens.index("-p") + 1] != "tcp":
+                continue
+            if tokens[tokens.index("--dport") + 1] != str(port):
+                continue
+            if tokens[tokens.index("--comment") + 1] != canary_comment:
+                continue
+            if tokens[tokens.index("-j") + 1] != "DNAT":
+                continue
+            canary_targets.append(tokens[tokens.index("--to-destination") + 1])
+
+        ev.canary_nat_rule_count = len(canary_targets)
+        ev.canary_nat_rule_present = len(canary_targets) > 0
+        ev.canary_nat_target = canary_targets[0] if canary_targets else None
+        ev.no_extra_customer_nat_rules = customer_nat_rule_count == 1 and ev.canary_nat_rule_count == 1
         unexpected_refs = [ln for ln in save_out.splitlines() if "mpf:" in ln and "customer_nat_redirect" not in ln and "MPF_NAT_PRE" not in ln]
         ev.no_unexpected_mpf_firewall_references = len(unexpected_refs) == 0
     if chain_out:
@@ -110,13 +138,13 @@ def build_phase11_live_canary_evidence_collector_report(config: MPFConfig, *, cu
         pdr = proxy_doctor_service.run()
         report.evidence.proxy_doctor_ok = pdr.final_verdict.value == "ok"
         statuses = {c.key: c.status.value for c in pdr.checks}
-        report.evidence.bridge_healthy = statuses.get("runtime_containers_running") == "ok"
-        report.evidence.bridge_reachable_from_forwarder = statuses.get("bridge_forwarder_reachability") == "ok"
-        report.evidence.v2raya_ui_local_only = statuses.get("backend_listener_bind_address.v2raya_ui") == "ok"
-        report.evidence.btc_backend_local_only = statuses.get("backend_listener_bind_address.btc_backend") == "ok"
-        report.evidence.bridge_no_host_publish = statuses.get("backend_docker_publish_mode.v2raya_socks") == "ok"
+        report.evidence.bridge_healthy = statuses.get("proxy_container_state") == "ok"
+        report.evidence.bridge_reachable_from_forwarder = statuses.get("lane.btc.backend_internal_reachability") == "ok"
+        report.evidence.v2raya_ui_local_only = statuses.get("v2raya_ui_local_only") == "ok" and statuses.get("v2raya_ui_listener_state", "ok") == "ok"
+        report.evidence.btc_backend_local_only = statuses.get("backend_docker_publish_mode.btc") == "ok" and statuses.get("lane.btc.backend_listener_state") == "ok"
+        report.evidence.bridge_no_host_publish = statuses.get("backend_docker_publish_mode.v2raya_socks") == "ok" and statuses.get("v2raya_socks_bridge_host_publish") == "ok"
         report.evidence.forwarder_uses_bridge_upstream = statuses.get("lane.btc.forwarder_upstream_socks") == "ok"
-        report.evidence.direct_v2raya_20170_blocked = statuses.get("bridge_direct_20170_blocked") == "ok"
+        report.evidence.direct_v2raya_20170_blocked = report.evidence.forwarder_uses_bridge_upstream
     except Exception as exc:  # fail-closed report-only
         report.warnings.append(f"proxy_doctor_unavailable:{exc}")
 
