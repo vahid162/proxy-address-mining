@@ -106,7 +106,14 @@ def merge_phase11_canary_visibility_evidence(
 
     _lift("canary_customer_db_visible", "customer_db_reference")
     _lift("usage_visibility_ok", "usage_reference")
-    _lift("reject_visibility_ok", "reject_reference")
+    for ev in evidences:
+        if not ev.reject_visibility_ok or not ev.reject_reference or not _scope_ok(ev):
+            continue
+        if ev.evidence_source != "live_source_backed_canary_reject_counters":
+            continue
+        merged.reject_visibility_ok = True
+        merged.reject_reference = ev.reject_reference
+        break
     _lift("session_visibility_ok", "session_reference")
     _lift("unique_ip_visibility_ok", "unique_ip_reference")
     _lift("worker_visibility_ok", "worker_reference")

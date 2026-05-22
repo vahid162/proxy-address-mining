@@ -47,3 +47,15 @@ def test_cli_smoke():
     res = CliRunner().invoke(app, ["production", "canary-reject-counters-visibility", "--output", "json", "--config", "configs/mpf.example.yaml", "--no-collect-live"])
     assert res.exit_code == 0
     assert '"component": "phase11_canary_reject_counters_visibility"' in res.stdout
+
+
+def test_mutation_flags_false(monkeypatch):
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_active()]))
+    monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
+    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.181", farm5_baseline_version="0.1.168", collect_live=False)
+    assert r["mutation_performed"] is False
+    assert r["db_mutation_performed"] is False
+    assert r["firewall_mutation_performed"] is False
+    assert r["nat_mutation_performed"] is False
+    assert r["conntrack_mutation_performed"] is False
+    assert r["docker_mutation_performed"] is False

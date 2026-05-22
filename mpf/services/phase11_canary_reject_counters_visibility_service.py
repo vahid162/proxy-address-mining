@@ -3,8 +3,6 @@ from __future__ import annotations
 import getpass
 import hashlib
 import json
-import re
-import shlex
 import shutil
 import subprocess
 from dataclasses import asdict
@@ -62,8 +60,9 @@ def build_phase11_canary_reject_counters_visibility_report(config: MPFConfig, *,
         blockers.append("missing_canary_nat_rule")
     if live_ev.canary_nat_rule_count != 1:
         blockers.append("canary_nat_rule_not_exactly_one")
-    if live_ev.canary_nat_target and live_ev.canary_nat_target != "172.18.0.3:60010":
-        blockers.append("canary_nat_target_mismatch")
+    expected_backend_target = live_ev.canary_nat_target
+    if not expected_backend_target:
+        blockers.append("canary_nat_target_unavailable")
     if not live_ev.no_extra_customer_nat_rules:
         blockers.append("extra_customer_nat_rules_present")
     if not live_ev.no_unexpected_mpf_firewall_references:
@@ -78,10 +77,14 @@ def build_phase11_canary_reject_counters_visibility_report(config: MPFConfig, *,
     pause_reject = _extract_count(lines, customer_key, "customer_pause_reject")
     block_reject = _extract_count(lines, customer_key, "customer_block_reject")
 
-    counts_found = all(v is not None for v in (connlimit, hashlimit, pause_reject, block_reject))
-    reject_ok = bool(collect_live and counts_found and not blockers)
-    if not counts_found:
+    required_counts_found = all(v is not None for v in (connlimit, hashlimit))
+    optional_counts_found = all(v is not None for v in (pause_reject, block_reject))
+    counts_found = required_counts_found
+    reject_ok = bool(collect_live and required_counts_found and not blockers)
+    if not required_counts_found:
         blockers.append("missing_source_backed_canary_reject_counters")
+    if not optional_counts_found:
+        warnings.append("optional_reject_categories_missing:pause_or_block")
     reject_ref = None
     if reject_ok:
         seed = f"{customer_key}:{lane}:{port}:{live_ev.canary_nat_target}:{connlimit}:{hashlimit}:{pause_reject}:{block_reject}"
@@ -142,7 +145,7 @@ def build_phase11_canary_reject_counters_visibility_report(config: MPFConfig, *,
             "backend_target": live_ev.canary_nat_target,
             "reject_visibility_ok": reject_ok,
             "reject_reference": reject_ref,
-            "reject_counter_source": "MPFC_port_rule_comments",
+            "reject_counter_source": "MPFC_port_rule_comments_active_connlimit_hashlimit",
             "connlimit_reject_count": int(connlimit or 0),
             "hashlimit_reject_count": int(hashlimit or 0),
             "pause_reject_count": int(pause_reject or 0),

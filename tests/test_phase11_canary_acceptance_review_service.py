@@ -321,3 +321,24 @@ def test_next_step_evidence_priority_when_visibility_complete(monkeypatch):
     assert report["missing_visibility_primitives"] == []
     assert "conntrack_assured" in report["missing_evidence_primitives"]
     assert report["next_required_step"] == "conntrack_assured"
+
+def test_cli_collect_visibility_with_reject_evidence_advances_to_unique_workers(monkeypatch, tmp_path):
+    runner = CliRunner()
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    usage = tmp_path / "usage.json"
+    usage.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","usage_visibility_ok":true,"usage_reference":"usage-ref","total_connections":5}', encoding="utf-8")
+    sess = tmp_path / "sess.json"
+    sess.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","session_visibility_ok":true,"session_reference":"session-ref","unique_ip_visibility_ok":true,"unique_ip_reference":"ip-ref"}', encoding="utf-8")
+    reject = tmp_path / "reject.json"
+    reject.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","evidence_source":"live_source_backed_canary_reject_counters","reject_visibility_ok":true,"reject_reference":"iptables_filter_counter:canary-btc-001:btc:20001:abcd"}', encoding="utf-8")
+    res = runner.invoke(app,["production","canary-acceptance-review","--expected-version","0.1.181","--farm5-baseline-version","0.1.168","--collect-visibility","--visibility-json",str(usage),"--visibility-json",str(sess),"--visibility-json",str(reject),"--output","json","--config","configs/mpf.example.yaml"])
+    assert res.exit_code == 0
+    assert '"final_decision": "BLOCKED"' in res.stdout
+    assert '"next_required_step": "unique_workers_visibility"' in res.stdout
+    assert '"missing_visibility:usage_counters_visibility"' not in res.stdout
+    assert '"missing_visibility:reject_counters_visibility"' not in res.stdout
+    assert '"missing_visibility:active_recent_sessions_visibility"' not in res.stdout
+    assert '"missing_visibility:unique_ips_visibility"' not in res.stdout
+    assert '"phase11_accepted": false' in res.stdout
+    assert '"production_traffic_enabled": false' in res.stdout

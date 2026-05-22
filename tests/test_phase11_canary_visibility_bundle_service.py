@@ -194,3 +194,43 @@ def test_cli_visibility_bundle_collect_live_wrong_backend_evidence_not_lifted(mo
     assert '"next_required_step": "reject_counters_visibility"' in res.stdout
     assert '"mutation_performed": false' in res.stdout
     assert '"firewall_mutation_performed": false' in res.stdout
+
+def test_bundle_next_step_moves_to_unique_workers_when_usage_reject_session_ip_present(monkeypatch, tmp_path):
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    usage = tmp_path / "usage.json"
+    usage.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","usage_visibility_ok":true,"usage_reference":"usage-ref","total_connections":2}', encoding="utf-8")
+    sess = tmp_path / "sess.json"
+    sess.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","session_visibility_ok":true,"session_reference":"session-ref","unique_ip_visibility_ok":true,"unique_ip_reference":"ip-ref"}', encoding="utf-8")
+    rej = tmp_path / "rej.json"
+    rej.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","evidence_source":"live_source_backed_canary_reject_counters","reject_visibility_ok":true,"reject_reference":"iptables_filter_counter:canary-btc-001:btc:20001:abcd"}', encoding="utf-8")
+    runner = CliRunner()
+    res = runner.invoke(app, ["production", "canary-visibility-bundle", "--evidence-json", str(usage), "--evidence-json", str(sess), "--evidence-json", str(rej), "--output", "json", "--config", "configs/mpf.example.yaml"])
+    assert res.exit_code == 0
+    assert '"usage_counters_visibility": {' in res.stdout and '"status": "PRESENT"' in res.stdout
+    assert '"reject_counters_visibility": {' in res.stdout
+    assert '"active_recent_sessions_visibility": {' in res.stdout
+    assert '"unique_ips_visibility": {' in res.stdout
+    assert '"next_required_step": "unique_workers_visibility"' in res.stdout
+
+
+def test_reject_evidence_wrong_backend_or_missing_ref_not_lifted():
+    usage_ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, usage_visibility_ok=True, usage_reference="u")
+    wrong_backend_reject = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, backend_target="172.18.0.99:60010", reject_visibility_ok=True, reject_reference="r")
+    missing_ref_reject = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, reject_visibility_ok=True)
+    merged = merge_phase11_canary_visibility_evidence([usage_ev, wrong_backend_reject, missing_ref_reject], customer_key="canary-btc-001", lane="btc", port=20001, expected_backend_target="172.18.0.3:60010")
+    assert merged.usage_visibility_ok is True
+    assert merged.reject_visibility_ok is False
+
+
+def test_session_or_usage_cannot_lift_reject():
+    sess_only = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, session_visibility_ok=True, session_reference="s", unique_ip_visibility_ok=True, unique_ip_reference="ip")
+    usage_only = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, usage_visibility_ok=True, usage_reference="u")
+    merged = merge_phase11_canary_visibility_evidence([sess_only, usage_only], customer_key="canary-btc-001", lane="btc", port=20001)
+    assert merged.reject_visibility_ok is False
+
+
+def test_reject_evidence_source_mismatch_not_lifted():
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="conntrack", reject_visibility_ok=True, reject_reference="r")
+    merged = merge_phase11_canary_visibility_evidence([ev], customer_key="canary-btc-001", lane="btc", port=20001)
+    assert merged.reject_visibility_ok is False
