@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.1.174
+## 0.1.175
 
-- add read-only Phase 11 canary visibility bundle service/CLI and integrate optional visibility collection into acceptance review with exact-scope, source-backed PRESENT semantics.
+- hotfix: allow Phase 11 canary DB visibility plan to create exact canary when only unrelated deleted customers exist, add `deleted_unrelated_customer_rows_ignored`, and preserve fail-closed collisions/active-customer blockers.
 
 ## 0.1.172
 
