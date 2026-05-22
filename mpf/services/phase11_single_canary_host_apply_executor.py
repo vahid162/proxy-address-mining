@@ -11,6 +11,40 @@ class Phase11SingleCanaryHostApplyExecutor:
     def _run(self, argv: list[str], **kwargs) -> subprocess.CompletedProcess:
         return subprocess.run(argv, shell=False, check=False, capture_output=True, **kwargs)
 
+    def _validate_payload(self, payload: str, target_host: str) -> bool:
+        lines = [l.strip() for l in payload.splitlines() if l.strip()]
+        if any(k in payload for k in ("-A PREROUTING", "-F", "-X", "-D", "-I", "*mangle", "*raw")):
+            return False
+        nat = [l for l in lines if l.startswith('-A MPF_NAT_PRE')]
+        conn = [l for l in lines if l.startswith('-A MPFC_20001') and 'customer_connlimit_reject' in l]
+        hsh = [l for l in lines if l.startswith('-A MPFC_20001') and 'customer_hashlimit_reject' in l]
+        if len(nat) != 1 or len(conn) != 1 or len(hsh) != 1:
+            return False
+        nat_line = nat[0]
+        if not all(x in nat_line for x in ('--dport 20001', 'mpf:canary-btc-001:customer_nat_redirect', f'--to-destination {target_host}:60010')):
+            return False
+        if '--to-destination 127.0.0.1:60010' in payload:
+            return False
+        conn_line = conn[0]
+        hash_line = hsh[0]
+        if '--dport 20001' not in conn_line or '-j REJECT' not in conn_line or 'canary-btc-001' not in conn_line:
+            return False
+        if '--dport 20001' not in hash_line or '-j REJECT' not in hash_line or 'canary-btc-001' not in hash_line:
+            return False
+        dport20001 = [l for l in lines if '--dport 20001' in l and l.startswith('-A ')]
+        allowed = {nat_line, conn_line, hash_line}
+        if any(l not in allowed for l in dport20001):
+            return False
+        if any('canary-btc-001' in l and 'mpf:canary-btc-001:' not in l for l in lines):
+            return False
+        if any('customer_connlimit_reject' in l and 'mpf:canary-btc-001:customer_connlimit_reject' not in l for l in lines):
+            return False
+        if any('customer_hashlimit_reject' in l and 'mpf:canary-btc-001:customer_hashlimit_reject' not in l for l in lines):
+            return False
+        if any('mpf:' in l and 'canary-btc-001' not in l and ('customer_' in l or 'MPFC_20001' in l) for l in lines):
+            return False
+        return True
+
     def execute(self, report: dict[str, object], payload: str) -> dict[str, object]:
         if os.environ.get("CI"):
             return {"status": "blocked", "error": "single_canary_host_apply_not_allowed_in_ci"}
@@ -23,9 +57,7 @@ class Phase11SingleCanaryHostApplyExecutor:
         tport = target.get("target_port")
         if not isinstance(thost, str) or thost.startswith("127.") or tport != 60010:
             return {"status": "blocked", "error": "single_canary_backend_target_invalid"}
-        if f"--to-destination {thost}:60010" not in payload or "--to-destination 127.0.0.1:60010" in payload:
-            return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
-        if sum("--dport 20001" in l for l in payload.splitlines()) != 1:
+        if not self._validate_payload(payload, thost):
             return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
 
         live_nat = self._run(["iptables-save", "-t", "nat"], text=True)
