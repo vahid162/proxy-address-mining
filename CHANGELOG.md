@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.172
+## 0.1.173
 
 - hotfix: normalize Phase 11 live canary proxy evidence status mapping to canonical uppercase `HealthStatus` values so proxy evidence fields align with proxy doctor `OK` verdicts without changing NAT parsing or introducing mutation.
 
