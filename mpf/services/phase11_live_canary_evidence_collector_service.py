@@ -122,6 +122,10 @@ def _collect_conntrack(report: Phase11LiveCanaryEvidenceCollectorReport, port: i
     report.evidence.conntrack_assured = any(("ASSURED" in ln and (f"dport={port}" in ln or "dport=60010" in ln)) for ln in out.splitlines())
 
 
+def _is_ok(value: object) -> bool:
+    return str(value).upper() == "OK"
+
+
 def build_phase11_live_canary_evidence_collector_report(config: MPFConfig, *, customer_key: str, lane: str, port: int, expected_version: str, farm5_baseline_version: str) -> dict[str, object]:
     _ = config
     report = Phase11LiveCanaryEvidenceCollectorReport(
@@ -136,14 +140,14 @@ def build_phase11_live_canary_evidence_collector_report(config: MPFConfig, *, cu
 
     try:
         pdr = proxy_doctor_service.run()
-        report.evidence.proxy_doctor_ok = pdr.final_verdict.value == "ok"
+        report.evidence.proxy_doctor_ok = _is_ok(pdr.final_verdict.value)
         statuses = {c.key: c.status.value for c in pdr.checks}
-        report.evidence.bridge_healthy = statuses.get("proxy_container_state") == "ok"
-        report.evidence.bridge_reachable_from_forwarder = statuses.get("lane.btc.backend_internal_reachability") == "ok"
-        report.evidence.v2raya_ui_local_only = statuses.get("v2raya_ui_local_only") == "ok" and statuses.get("v2raya_ui_listener_state", "ok") == "ok"
-        report.evidence.btc_backend_local_only = statuses.get("backend_docker_publish_mode.btc") == "ok" and statuses.get("lane.btc.backend_listener_state") == "ok"
-        report.evidence.bridge_no_host_publish = statuses.get("backend_docker_publish_mode.v2raya_socks") == "ok" and statuses.get("v2raya_socks_bridge_host_publish") == "ok"
-        report.evidence.forwarder_uses_bridge_upstream = statuses.get("lane.btc.forwarder_upstream_socks") == "ok"
+        report.evidence.bridge_healthy = _is_ok(statuses.get("proxy_container_state"))
+        report.evidence.bridge_reachable_from_forwarder = _is_ok(statuses.get("lane.btc.backend_internal_reachability"))
+        report.evidence.v2raya_ui_local_only = _is_ok(statuses.get("v2raya_ui_local_only")) and _is_ok(statuses.get("v2raya_ui_listener_state", "OK"))
+        report.evidence.btc_backend_local_only = _is_ok(statuses.get("backend_docker_publish_mode.btc")) and _is_ok(statuses.get("lane.btc.backend_listener_state"))
+        report.evidence.bridge_no_host_publish = _is_ok(statuses.get("backend_docker_publish_mode.v2raya_socks")) and _is_ok(statuses.get("v2raya_socks_bridge_host_publish"))
+        report.evidence.forwarder_uses_bridge_upstream = _is_ok(statuses.get("lane.btc.forwarder_upstream_socks"))
         report.evidence.direct_v2raya_20170_blocked = report.evidence.forwarder_uses_bridge_upstream
     except Exception as exc:  # fail-closed report-only
         report.warnings.append(f"proxy_doctor_unavailable:{exc}")
