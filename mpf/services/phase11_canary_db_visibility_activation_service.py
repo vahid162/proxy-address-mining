@@ -19,6 +19,7 @@ def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, requ
     port_collision = any(c.port == request.port and c.customer_key != request.customer_key for c in all_rows)
     unexpected_active = any(c.customer_key != request.customer_key for c in active)
     blockers: list[str] = []
+    warnings: list[str] = []
     planned_action = "none"
     final_decision = "BLOCKED"
     execution_result: dict[str, object] = {"status": "not_executed"}
@@ -43,12 +44,13 @@ def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, requ
         elif exact_deleted:
             planned_action = "restore_deleted_exact_canary_customer"
             final_decision = "DB_VISIBILITY_PLAN_READY"
-        elif not all_rows:
+        elif not active:
             planned_action = "create_exact_canary_customer"
             final_decision = "DB_VISIBILITY_PLAN_READY"
+            if all_rows:
+                warnings.append("deleted_unrelated_customer_rows_ignored")
         else:
-            planned_action = "blocked_manual_review_required"
-            blockers.append("blocked_manual_review_required")
+            blockers.append("unexpected_active_customer_present")
 
     if request.requested_action == "execute" and not validation_errors and not blockers and final_decision == "DB_VISIBILITY_PLAN_READY":
         if planned_action == "create_exact_canary_customer":
@@ -101,7 +103,7 @@ def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, requ
         "authorization_status": status,
         "validation_errors": validation_errors,
         "blockers": sorted(set(blockers)),
-        "warnings": [],
+        "warnings": sorted(set(warnings)),
         "pre_state": {"active_count": len(active), "all_count": len(all_rows), "exact_active": len(exact_active), "exact_deleted": len(exact_deleted)},
         "planned_action": planned_action,
         "execution_result": execution_result,
