@@ -13,6 +13,7 @@ class Phase11SingleCanaryHostApplyExecutor:
 
     def _validate_payload(self, payload: str, target_host: str) -> bool:
         lines = [l.strip() for l in payload.splitlines() if l.strip()]
+        rule_lines = [l for l in lines if l.startswith('-A ')]
         if any(k in payload for k in ("-A PREROUTING", "-F", "-X", "-D", "-I", "*mangle", "*raw")):
             return False
         nat = [l for l in lines if l.startswith('-A MPF_NAT_PRE')]
@@ -31,17 +32,17 @@ class Phase11SingleCanaryHostApplyExecutor:
             return False
         if '--dport 20001' not in hash_line or '-j REJECT' not in hash_line or 'canary-btc-001' not in hash_line:
             return False
-        dport20001 = [l for l in lines if '--dport 20001' in l and l.startswith('-A ')]
+        dport20001 = [l for l in rule_lines if '--dport 20001' in l]
         allowed = {nat_line, conn_line, hash_line}
         if any(l not in allowed for l in dport20001):
             return False
-        if any('canary-btc-001' in l and 'mpf:canary-btc-001:' not in l for l in lines):
+        if any('canary-btc-001' in l and 'mpf:canary-btc-001:' not in l for l in rule_lines):
             return False
-        if any('customer_connlimit_reject' in l and 'mpf:canary-btc-001:customer_connlimit_reject' not in l for l in lines):
+        if any('customer_connlimit_reject' in l and 'mpf:canary-btc-001:customer_connlimit_reject' not in l for l in rule_lines):
             return False
-        if any('customer_hashlimit_reject' in l and 'mpf:canary-btc-001:customer_hashlimit_reject' not in l for l in lines):
+        if any('customer_hashlimit_reject' in l and 'mpf:canary-btc-001:customer_hashlimit_reject' not in l for l in rule_lines):
             return False
-        if any('mpf:' in l and 'canary-btc-001' not in l and ('customer_' in l or 'MPFC_20001' in l) for l in lines):
+        if any('mpf:' in l and 'canary-btc-001' not in l and ('customer_' in l or 'MPFC_20001' in l) for l in rule_lines):
             return False
         return True
 

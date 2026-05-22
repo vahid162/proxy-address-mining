@@ -1,5 +1,6 @@
 from mpf.services.phase11_single_canary_host_apply_executor import Phase11SingleCanaryHostApplyExecutor
 from mpf.services.phase11_single_canary_post_apply_verifier import Phase11SingleCanaryPostApplyVerifier
+from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
 
 
 def _target_report():
@@ -126,3 +127,58 @@ def test_verifier_backend_exposure_blocks(monkeypatch):
     out = Phase11SingleCanaryPostApplyVerifier().verify(_target_report())
     assert out["status"] == "blocked"
     assert out["error"] == "single_canary_backend_public_exposure_detected"
+
+
+def test_executor_accepts_real_renderer_payload(monkeypatch):
+    report = {
+        "scope": {"single_canary_only": True},
+        "request": {
+            "requested_action": "execute",
+            "expected_version": "0.1.182",
+            "customer_key": "canary-btc-001",
+            "lane": "btc",
+            "port": 20001,
+        },
+        "live_nat_prerequisites": {"mpf_nat_pre_chain_exists": True, "prerouting_hook_to_mpf_nat_pre_count": 1},
+        "single_canary_backend_target": {"target_host": "172.18.0.3", "target_port": 60010, "target_kind": "docker_container_ipv4"},
+    }
+    rendered = Phase11ExactCanaryRestorePayloadRenderer().render(report)
+    assert rendered["status"] == "ok"
+
+    ex = Phase11SingleCanaryHostApplyExecutor()
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP", "allow")
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
+    monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY_EXECUTE", "allow")
+    monkeypatch.delenv("CI", raising=False)
+
+    calls = []
+
+    class R:
+        def __init__(self, rc=0, out=""):
+            self.returncode = rc
+            self.stdout = out
+
+    def fake_run(argv, **kwargs):
+        calls.append(argv)
+        if argv == ["iptables-save", "-t", "nat"]:
+            return R(0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\nCOMMIT\n")
+        return R(0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\nCOMMIT\n")
+
+    monkeypatch.setattr(Phase11SingleCanaryHostApplyExecutor, "_run", lambda self, argv, **kwargs: fake_run(argv, **kwargs))
+    out = ex.execute(_target_report(), rendered["restore_payload"])
+    assert out["status"] == "ok"
+    assert ["iptables-restore", "--test", "--noflush"] in calls
+    assert ["iptables-restore", "--noflush"] in calls
+
+
+def test_verifier_blocks_unrelated_customer_nat_reference(monkeypatch):
+    class R:
+        def __init__(self, rc, out): self.returncode=rc; self.stdout=out
+    def fake_run(argv, **kwargs):
+        if argv[-1] == "nat":
+            return R(0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\n-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.3:60010\n-A MPF_NAT_PRE -p tcp --dport 20002 -m comment --comment \"mpf:other:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.4:60010\nCOMMIT\n")
+        return R(0, "*filter\n:MPFC_20001 - [0:0]\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_connlimit_reject\" -j REJECT\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_hashlimit_reject\" -j REJECT\nCOMMIT\n")
+    monkeypatch.setattr("subprocess.run", fake_run)
+    out = Phase11SingleCanaryPostApplyVerifier().verify(_target_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_unrelated_customer_rule_detected"

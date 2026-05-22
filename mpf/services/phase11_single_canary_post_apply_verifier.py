@@ -27,6 +27,8 @@ class Phase11SingleCanaryPostApplyVerifier:
             return {"status": "blocked", "error": "single_canary_nat_rule_missing"}
         if len(canary) > 1:
             return {"status": "blocked", "error": "single_canary_duplicate_rule_detected"}
+        if any("customer_nat_redirect" in l and "canary-btc-001" not in l for l in lines):
+            return {"status": "blocked", "error": "single_canary_unrelated_customer_rule_detected"}
 
         filt = subprocess.run(["iptables-save", "-t", "filter"], shell=False, check=False, capture_output=True, text=True)
         if filt.returncode != 0:
