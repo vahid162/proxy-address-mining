@@ -11,6 +11,14 @@ from mpf.services import customer_read_service
 
 _ALLOWED_FARM5_BASELINE_VERSION = "0.1.168"
 
+_VISIBILITY_PRIORITY = [
+    "canary_customer_db_visibility", "usage_counters_visibility", "reject_counters_visibility", "active_recent_sessions_visibility",
+    "unique_ips_visibility", "unique_workers_visibility", "abuse_coverage_visibility", "final_check_report_visibility", "rollback_or_restore_plan_visibility",
+]
+_EVIDENCE_PRIORITY = [
+    "conntrack_assured", "stratum_subscribe_ok", "stratum_authorize_ok", "stratum_set_difficulty_seen", "stratum_notify_seen", "forwarder_pool_seen", "bridge_loopback_seen",
+]
+
 
 @dataclass(slots=True)
 class Phase11CanaryAcceptanceEvidence:
@@ -269,7 +277,11 @@ def build_phase11_canary_acceptance_review_report(config: MPFConfig, *, customer
         "warnings": sorted(set(warnings)),
         "missing_visibility_primitives": sorted(set(missing_visibility)),
         "missing_evidence_primitives": sorted(set(missing_evidence)),
-        "next_required_step": "implement_or_evidence_missing_visibility_primitives_starting_with_canary_customer_db_visibility" if missing_visibility else "collect_missing_evidence_primitives",
+        "next_required_step": (
+            next((x for x in _VISIBILITY_PRIORITY if x in set(missing_visibility)), "none")
+            if missing_visibility
+            else (next((x for x in _EVIDENCE_PRIORITY if x in set(missing_evidence)), "none") if missing_evidence else "none")
+        ),
     }
 
 
