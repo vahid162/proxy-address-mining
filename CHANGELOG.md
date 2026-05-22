@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.180
+- fix(phase11): merge multiple canary visibility evidence artifacts (`--evidence-json` / `--visibility-json` repeated) so usage/session/IP source-backed primitives are aggregated fail-closed without opening runtime gates.
+
 ## 0.1.179
 - Add read-only Phase 11 canary reject/session/IP evidence capture and CLI, keeping Phase 11 unaccepted and all runtime gates closed.
 

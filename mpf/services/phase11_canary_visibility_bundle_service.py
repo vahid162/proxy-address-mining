@@ -68,6 +68,95 @@ def load_phase11_canary_visibility_evidence_json(path: Path) -> Phase11CanaryVis
     return Phase11CanaryVisibilityEvidence.from_dict(json.loads(path.read_text(encoding="utf-8")))
 
 
+def merge_phase11_canary_visibility_evidence(
+    evidences: list[Phase11CanaryVisibilityEvidence],
+    *,
+    customer_key: str,
+    lane: str,
+    port: int,
+    expected_backend_target: str | None = None,
+) -> Phase11CanaryVisibilityEvidence:
+    merged = Phase11CanaryVisibilityEvidence(customer_key=customer_key, lane=lane, port=port, backend_target=expected_backend_target)
+
+    def _scope_ok(ev: Phase11CanaryVisibilityEvidence) -> bool:
+        return (
+            ev.customer_key == customer_key
+            and ev.lane == lane
+            and ev.port == port
+            and (not ev.backend_target or not expected_backend_target or ev.backend_target == expected_backend_target)
+        )
+
+    def _lift(ok_field: str, ref_field: str) -> None:
+        for ev in evidences:
+            if not getattr(ev, ok_field):
+                continue
+            ref = getattr(ev, ref_field)
+            if not ref or not _scope_ok(ev):
+                continue
+            setattr(merged, ok_field, True)
+            setattr(merged, ref_field, ref)
+            break
+
+    for meta in ("captured_at", "captured_by", "evidence_source", "evidence_reference", "source_query_or_artifact"):
+        for ev in evidences:
+            value = getattr(ev, meta)
+            if value:
+                setattr(merged, meta, value)
+                break
+
+    _lift("canary_customer_db_visible", "customer_db_reference")
+    _lift("usage_visibility_ok", "usage_reference")
+    _lift("reject_visibility_ok", "reject_reference")
+    _lift("session_visibility_ok", "session_reference")
+    _lift("unique_ip_visibility_ok", "unique_ip_reference")
+    _lift("worker_visibility_ok", "worker_reference")
+    _lift("abuse_coverage_ok", "abuse_reference")
+    _lift("final_check_report_ok", "final_check_report_reference")
+
+    rollback_ref = None
+    restore_ref = None
+    rollback_ok = False
+    for ev in evidences:
+        if not ev.rollback_or_restore_plan_ok or not _scope_ok(ev):
+            continue
+        if ev.rollback_reference:
+            rollback_ref = ev.rollback_reference
+            rollback_ok = True
+            break
+        if ev.restore_reference and not restore_ref:
+            restore_ref = ev.restore_reference
+            rollback_ok = True
+    merged.rollback_or_restore_plan_ok = rollback_ok
+    merged.rollback_reference = rollback_ref
+    merged.restore_reference = restore_ref
+
+    for count_field in ("total_connections", "accepted_connections", "total_bytes", "total_shares", "sample_window_seconds"):
+        for ev in evidences:
+            value = getattr(ev, count_field)
+            if value is not None and _scope_ok(ev):
+                setattr(merged, count_field, value)
+                break
+    for dt_field in ("last_seen_at",):
+        for ev in evidences:
+            value = getattr(ev, dt_field)
+            if value and _scope_ok(ev):
+                setattr(merged, dt_field, value)
+                break
+
+    for bool_field in (
+        "conntrack_assured",
+        "stratum_subscribe_ok",
+        "stratum_authorize_ok",
+        "stratum_set_difficulty_seen",
+        "stratum_notify_seen",
+        "forwarder_pool_seen",
+        "bridge_loopback_seen",
+    ):
+        setattr(merged, bool_field, any(getattr(ev, bool_field) and _scope_ok(ev) for ev in evidences))
+
+    return merged
+
+
 def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer_key: str, lane: str, port: int, expected_version: str, farm5_baseline_version: str, collect_live: bool = False, evidence: Phase11CanaryVisibilityEvidence | None = None) -> dict[str, object]:
     warnings: list[str] = []
     blockers: list[str] = []

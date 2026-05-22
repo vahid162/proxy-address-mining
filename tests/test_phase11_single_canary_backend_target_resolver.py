@@ -2,7 +2,7 @@ from mpf.services.phase11_single_canary_backend_target_resolver import Phase11Si
 
 
 def _report():
-    return {"request": {"customer_key": "canary-btc-001", "lane": "btc", "port": 20001, "expected_version": "0.1.179"}}
+    return {"request": {"customer_key": "canary-btc-001", "lane": "btc", "port": 20001, "expected_version": "0.1.180"}}
 
 
 class R:

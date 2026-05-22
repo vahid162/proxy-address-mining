@@ -3,6 +3,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from mpf.interfaces.cli import app
+from mpf.repositories.customer_repo import CustomerRecord
 from mpf.services import customer_read_service
 from mpf.services.phase11_canary_acceptance_review_service import (
     Phase11CanaryAcceptanceEvidence,
@@ -66,7 +67,7 @@ def _report(monkeypatch, ev: Phase11CanaryAcceptanceEvidence, **kwargs):
         customer_key=kwargs.get("customer_key", "canary-btc-001"),
         lane=kwargs.get("lane", "btc"),
         port=kwargs.get("port", 20001),
-        expected_version=kwargs.get("expected_version", "0.1.179"),
+        expected_version=kwargs.get("expected_version", "0.1.180"),
         farm5_baseline_version=kwargs.get("farm5_baseline_version", "0.1.168"),
         evidence=ev,
     )
@@ -144,7 +145,7 @@ def test_cli_json_smoke(tmp_path, monkeypatch):
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.179",
+            "0.1.180",
             "--farm5-baseline-version",
             "0.1.168",
             "--evidence-json",
@@ -167,7 +168,7 @@ def test_customer_list_read_failure_blocks_fail_closed(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.179",
+        expected_version="0.1.180",
         farm5_baseline_version="0.1.168",
         evidence=Phase11CanaryAcceptanceEvidence(),
     )
@@ -192,7 +193,7 @@ def test_cli_collect_live_review_smoke(monkeypatch):
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.179",
+            "0.1.180",
             "--farm5-baseline-version",
             "0.1.168",
             "--collect-live",
@@ -222,7 +223,7 @@ def test_cli_collect_visibility_out_of_scope_does_not_lift(monkeypatch, tmp_path
         [
             "production",
             "canary-acceptance-review",
-            "--expected-version", "0.1.179",
+            "--expected-version", "0.1.180",
             "--farm5-baseline-version", "0.1.168",
             "--collect-visibility",
             "--visibility-json", str(p),
@@ -233,6 +234,33 @@ def test_cli_collect_visibility_out_of_scope_does_not_lift(monkeypatch, tmp_path
     assert res.exit_code == 0
     assert '"final_decision": "BLOCKED"' in res.stdout
     assert '"missing_visibility:usage_counters_visibility"' in res.stdout
+
+
+def test_cli_collect_visibility_merges_multiple_artifacts(monkeypatch, tmp_path):
+    runner = CliRunner()
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    usage = tmp_path / "usage.json"
+    usage.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"usage_visibility_ok":true,"usage_reference":"usage-ref","total_connections":5}', encoding="utf-8")
+    sess = tmp_path / "sess.json"
+    sess.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"usage_visibility_ok":false,"session_visibility_ok":true,"session_reference":"session-ref","unique_ip_visibility_ok":true,"unique_ip_reference":"ip-ref"}', encoding="utf-8")
+    res = runner.invoke(
+        app,
+        [
+            "production", "canary-acceptance-review",
+            "--expected-version", "0.1.180",
+            "--farm5-baseline-version", "0.1.168",
+            "--collect-visibility",
+            "--visibility-json", str(usage),
+            "--visibility-json", str(sess),
+            "--output", "json",
+            "--config", "configs/mpf.example.yaml",
+        ],
+    )
+    assert res.exit_code == 0
+    assert '"final_decision": "BLOCKED"' in res.stdout
+    assert '"next_required_step": "reject_counters_visibility"' in res.stdout
+    assert '"missing_visibility:reject_counters_visibility"' in res.stdout
 
 
 def test_next_step_usage_when_customer_db_present_but_usage_missing(monkeypatch):
