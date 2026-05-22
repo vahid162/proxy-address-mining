@@ -149,8 +149,13 @@ def build_phase11_canary_acceptance_review_report(config: MPFConfig, *, customer
     if port != 20001:
         blockers.append("port_must_be_20001")
 
-    customer_rows = customer_read_service.list_customer_status(config, include_deleted=False, limit=1000).rows
-    active_keys = [r.customer_key for r in customer_rows]
+    customer_list = customer_read_service.list_customer_status(config, include_deleted=False, limit=1000)
+    if not customer_list.ok:
+        blockers.append("customer_list_read_failed")
+        warnings.append(f"customer_list_read_failed:{customer_list.message}")
+        active_keys: list[str] = []
+    else:
+        active_keys = [r.customer_key for r in customer_list.customers]
     if any(k != customer_key for k in active_keys):
         blockers.append("unexpected_active_customer_present")
     if customer_key not in active_keys and not evidence.canary_customer_db_visible:

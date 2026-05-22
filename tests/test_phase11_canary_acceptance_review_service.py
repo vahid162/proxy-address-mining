@@ -3,6 +3,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from mpf.interfaces.cli import app
+from mpf.services import customer_read_service
 from mpf.services.phase11_canary_acceptance_review_service import (
     Phase11CanaryAcceptanceEvidence,
     build_phase11_canary_acceptance_review_report,
@@ -59,13 +60,13 @@ def _base_evidence():
 
 def _report(monkeypatch, ev: Phase11CanaryAcceptanceEvidence, **kwargs):
     cfg = _cfg()
-    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: type("R", (), {"rows": []})())
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
     return build_phase11_canary_acceptance_review_report(
         cfg,
         customer_key=kwargs.get("customer_key", "canary-btc-001"),
         lane=kwargs.get("lane", "btc"),
         port=kwargs.get("port", 20001),
-        expected_version=kwargs.get("expected_version", "0.1.169"),
+        expected_version=kwargs.get("expected_version", "0.1.170"),
         farm5_baseline_version=kwargs.get("farm5_baseline_version", "0.1.168"),
         evidence=ev,
     )
@@ -136,14 +137,14 @@ def test_cli_json_smoke(tmp_path, monkeypatch):
     runner = CliRunner()
     p = tmp_path / "evidence.json"
     p.write_text('{"evidence_reference":"ref"}', encoding="utf-8")
-    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: type("R", (), {"rows": []})())
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
     res = runner.invoke(
         app,
         [
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.169",
+            "0.1.170",
             "--farm5-baseline-version",
             "0.1.168",
             "--evidence-json",
@@ -156,3 +157,23 @@ def test_cli_json_smoke(tmp_path, monkeypatch):
     )
     assert res.exit_code == 0
     assert '"component": "phase11_canary_acceptance_review"' in res.stdout
+
+
+def test_customer_list_read_failure_blocks_fail_closed(monkeypatch):
+    cfg = _cfg()
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=False, message="db read failed", customers=[]))
+    report = build_phase11_canary_acceptance_review_report(
+        cfg,
+        customer_key="canary-btc-001",
+        lane="btc",
+        port=20001,
+        expected_version="0.1.170",
+        farm5_baseline_version="0.1.168",
+        evidence=Phase11CanaryAcceptanceEvidence(),
+    )
+    assert report["final_decision"] == "BLOCKED"
+    assert "customer_list_read_failed" in report["blockers"]
+    assert report["mutation_performed"] is False
+    assert report["firewall_mutation_performed"] is False
+    assert report["nat_mutation_performed"] is False
+    assert report["conntrack_mutation_performed"] is False

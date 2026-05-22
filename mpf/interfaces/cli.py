@@ -2093,7 +2093,7 @@ def production_canary_acceptance_review(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.169", "--expected-version"),
+    expected_version: str = typer.Option("0.1.170", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: Path | None = typer.Option(None, "--evidence-json"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
