@@ -34,17 +34,17 @@ def _fake_proxy_doctor_report_ok():
             self.status = _Status(status)
 
     class _Report:
-        final_verdict = _Status("ok")
+        final_verdict = _Status("OK")
         checks = [
-            _Check("proxy_container_state", "ok"),
-            _Check("v2raya_ui_local_only", "ok"),
-            _Check("v2raya_ui_listener_state", "ok"),
-            _Check("backend_docker_publish_mode.btc", "ok"),
-            _Check("lane.btc.backend_listener_state", "ok"),
-            _Check("lane.btc.backend_internal_reachability", "ok"),
-            _Check("backend_docker_publish_mode.v2raya_socks", "ok"),
-            _Check("v2raya_socks_bridge_host_publish", "ok"),
-            _Check("lane.btc.forwarder_upstream_socks", "ok"),
+            _Check("proxy_container_state", "OK"),
+            _Check("v2raya_ui_local_only", "OK"),
+            _Check("v2raya_ui_listener_state", "OK"),
+            _Check("backend_docker_publish_mode.btc", "OK"),
+            _Check("lane.btc.backend_listener_state", "OK"),
+            _Check("lane.btc.backend_internal_reachability", "OK"),
+            _Check("backend_docker_publish_mode.v2raya_socks", "OK"),
+            _Check("v2raya_socks_bridge_host_publish", "OK"),
+            _Check("lane.btc.forwarder_upstream_socks", "OK"),
         ]
 
     return _Report()
@@ -62,7 +62,7 @@ def test_collect_nat_and_conntrack_with_real_farm5_syntax(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.171",
+        expected_version="0.1.172",
         farm5_baseline_version="0.1.168",
     )
     ev = rep["evidence"]
@@ -86,7 +86,7 @@ def test_proxy_doctor_key_mapping(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.171",
+        expected_version="0.1.172",
         farm5_baseline_version="0.1.168",
     )
     ev = rep["evidence"]

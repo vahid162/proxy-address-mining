@@ -12,7 +12,7 @@ from typing import Callable
 
 @dataclass(slots=True)
 class SingleCanaryRestoreBackupAdapter:
-    expected_version: str = "0.1.171"
+    expected_version: str = "0.1.172"
     env_gate_var: str = "MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP"
     backup_root: str = "/var/backups/mpf"
     iptables_save_executor: Callable[[], subprocess.CompletedProcess[str]] | None = None

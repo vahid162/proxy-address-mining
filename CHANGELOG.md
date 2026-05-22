@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.1.171
+## 0.1.172
 
-- hotfix: fix canary acceptance review customer list contract to use `CustomerList.customers` and fail closed on customer list read failure; add regression tests for runtime crash and blocked behavior.
+- hotfix: normalize Phase 11 live canary proxy evidence status mapping to canonical uppercase `HealthStatus` values so proxy evidence fields align with proxy doctor `OK` verdicts without changing NAT parsing or introducing mutation.
 
 ## 0.1.169
 - Record farm5 0.1.167 synthetic Stratum canary success evidence while keeping Phase 11 unaccepted and real onboarding forbidden.
