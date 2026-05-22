@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.183
+## 0.1.184
 
 - fix(phase11): populate read-only `live_nat_prerequisites` in manual single-canary execute path before exact restore payload rendering when NAT hook already exists, preserving fail-closed bootstrap behavior when hook is missing.
 

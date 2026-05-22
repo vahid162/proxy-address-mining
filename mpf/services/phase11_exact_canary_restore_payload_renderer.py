@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Phase11ExactCanaryRestorePayloadRenderer:
-    expected_version: str = "0.1.183"
+    expected_version: str = "0.1.184"
 
     def render(self, report: dict[str, object]) -> dict[str, object]:
         request = report.get("request", {}) if isinstance(report.get("request"), dict) else {}
@@ -37,18 +37,28 @@ class Phase11ExactCanaryRestorePayloadRenderer:
         if target_port != 60010 or backend_target.get("target_kind") != "docker_container_ipv4":
             return {"status": "blocked", "error": "single_canary_backend_target_invalid"}
 
-        payload = (
-            "# mpf:phase11_exact_single_canary_restore canary-btc-001\n"
-            "*nat\n"
-            f"-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination {target_host}:60010\n"
-            "COMMIT\n"
+        bootstrap = report.get("nat_hook_bootstrap", {}) if isinstance(report.get("nat_hook_bootstrap"), dict) else {}
+        canary_rule_exists = (nat_pre.get("canary_rule_exists") is True) or (bootstrap.get("canary_rule_exists") is True)
+
+        payload = "# mpf:phase11_exact_single_canary_restore canary-btc-001\n"
+        if not canary_rule_exists:
+            payload += (
+                "*nat\n"
+                f"-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination {target_host}:60010\n"
+                "COMMIT\n"
+            )
+        payload += (
             "*filter\n"
             ":MPFC_20001 - [0:0]\n"
             "-A MPFC_20001 -p tcp --dport 20001 -m connlimit --connlimit-above 0 -m comment --comment \"mpf:canary-btc-001:customer_connlimit_reject\" -j REJECT\n"
             "-A MPFC_20001 -p tcp --dport 20001 -m hashlimit --hashlimit-above 1/min --hashlimit-burst 1 --hashlimit-mode srcip --hashlimit-name mpf-canary-btc-001-20001 -m comment --comment \"mpf:canary-btc-001:customer_hashlimit_reject\" -j REJECT\n"
             "COMMIT\n"
         )
-        if payload.count("--dport 20001") != 3 or payload.count(f"{target_host}:60010") != 1 or "canary-btc-001" not in payload:
+        expected_dport_count = 2 if canary_rule_exists else 3
+        expected_target_count = 0 if canary_rule_exists else 1
+        if payload.count("--dport 20001") != expected_dport_count or payload.count(f"{target_host}:60010") != expected_target_count or "canary-btc-001" not in payload:
+            return {"status": "error", "error": "single_canary_payload_validation_failed"}
+        if canary_rule_exists and ("*nat" in payload or "customer_nat_redirect" in payload):
             return {"status": "error", "error": "single_canary_payload_validation_failed"}
         if any(k in payload for k in ("*mangle", "*raw", "-F", "-X", "-D", "-I", "-N MPF_NAT_PRE", "-A PREROUTING")):
             return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
