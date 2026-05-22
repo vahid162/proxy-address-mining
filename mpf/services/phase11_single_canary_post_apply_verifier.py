@@ -22,11 +22,25 @@ class Phase11SingleCanaryPostApplyVerifier:
         if hook_count != 1:
             return {"status": "blocked", "error": "single_canary_prerouting_hook_missing" if hook_count == 0 else "single_canary_duplicate_prerouting_hook"}
 
-        canary = [l for l in lines if "-A MPF_NAT_PRE" in l and "--dport 20001" in l and f"--to-destination {thost}:60010" in l and "canary-btc-001" in l]
-        if len(canary) == 0:
+        canary_port_rules = [
+            l for l in lines
+            if "-A MPF_NAT_PRE" in l and "canary-btc-001" in l and "--dport 20001" in l
+        ]
+        if len(canary_port_rules) == 0:
             return {"status": "blocked", "error": "single_canary_nat_rule_missing"}
-        if len(canary) > 1:
+        if len(canary_port_rules) > 1:
+            if any("--to-destination 127.0.0.1:60010" in l for l in canary_port_rules):
+                return {"status": "blocked", "error": "single_canary_loopback_target_forbidden"}
             return {"status": "blocked", "error": "single_canary_duplicate_rule_detected"}
+
+        canary_line = canary_port_rules[0]
+        if "--to-destination 127.0.0.1:60010" in canary_line:
+            return {"status": "blocked", "error": "single_canary_loopback_target_forbidden"}
+        if f"--to-destination {thost}:60010" not in canary_line:
+            return {"status": "blocked", "error": "single_canary_wrong_nat_target_detected"}
+        if "mpf:canary-btc-001:customer_nat_redirect" not in canary_line:
+            return {"status": "blocked", "error": "single_canary_nat_rule_missing"}
+
         if any("customer_nat_redirect" in l and "canary-btc-001" not in l for l in lines):
             return {"status": "blocked", "error": "single_canary_unrelated_customer_rule_detected"}
 

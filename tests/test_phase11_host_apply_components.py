@@ -182,3 +182,42 @@ def test_verifier_blocks_unrelated_customer_nat_reference(monkeypatch):
     out = Phase11SingleCanaryPostApplyVerifier().verify(_target_report())
     assert out["status"] == "blocked"
     assert out["error"] == "single_canary_unrelated_customer_rule_detected"
+
+
+def test_verifier_blocks_duplicate_canary_with_loopback_target(monkeypatch):
+    class R:
+        def __init__(self, rc, out): self.returncode=rc; self.stdout=out
+    def fake_run(argv, **kwargs):
+        if argv[-1] == "nat":
+            return R(0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\n-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.3:60010\n-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 127.0.0.1:60010\nCOMMIT\n")
+        return R(0, "*filter\n:MPFC_20001 - [0:0]\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_connlimit_reject\" -j REJECT\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_hashlimit_reject\" -j REJECT\nCOMMIT\n")
+    monkeypatch.setattr("subprocess.run", fake_run)
+    out = Phase11SingleCanaryPostApplyVerifier().verify(_target_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_loopback_target_forbidden"
+
+
+def test_verifier_blocks_duplicate_canary_with_wrong_target(monkeypatch):
+    class R:
+        def __init__(self, rc, out): self.returncode=rc; self.stdout=out
+    def fake_run(argv, **kwargs):
+        if argv[-1] == "nat":
+            return R(0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\n-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.3:60010\n-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.99:60010\nCOMMIT\n")
+        return R(0, "*filter\n:MPFC_20001 - [0:0]\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_connlimit_reject\" -j REJECT\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_hashlimit_reject\" -j REJECT\nCOMMIT\n")
+    monkeypatch.setattr("subprocess.run", fake_run)
+    out = Phase11SingleCanaryPostApplyVerifier().verify(_target_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_duplicate_rule_detected"
+
+
+def test_verifier_blocks_single_canary_rule_with_wrong_destination(monkeypatch):
+    class R:
+        def __init__(self, rc, out): self.returncode=rc; self.stdout=out
+    def fake_run(argv, **kwargs):
+        if argv[-1] == "nat":
+            return R(0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\n-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.99:60010\nCOMMIT\n")
+        return R(0, "*filter\n:MPFC_20001 - [0:0]\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_connlimit_reject\" -j REJECT\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_hashlimit_reject\" -j REJECT\nCOMMIT\n")
+    monkeypatch.setattr("subprocess.run", fake_run)
+    out = Phase11SingleCanaryPostApplyVerifier().verify(_target_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_wrong_nat_target_detected"
