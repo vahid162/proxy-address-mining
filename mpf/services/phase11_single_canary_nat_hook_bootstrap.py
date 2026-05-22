@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Phase11SingleCanaryNatHookBootstrapService:
-    expected_version: str = "0.1.182"
+    expected_version: str = "0.1.183"
 
     def _run(self, argv: list[str], **kwargs) -> subprocess.CompletedProcess:
         return subprocess.run(argv, shell=False, check=False, capture_output=True, **kwargs)
@@ -17,31 +17,45 @@ class Phase11SingleCanaryNatHookBootstrapService:
         lines = nat_text.splitlines()
         chain_count = sum(line.startswith(":MPF_NAT_PRE ") for line in lines)
         hook_count = sum("-A PREROUTING" in line and "-j MPF_NAT_PRE" in line for line in lines)
-        canary_lines = [line for line in lines if "canary-btc-001" in line or "--dport 20001" in line]
-        canary_exact_count = sum(
-            "-A MPF_NAT_PRE" in line
-            and "canary-btc-001" in line
-            and "--dport 20001" in line
-            and "--to-destination 127.0.0.1:60010" in line
-            for line in lines
-        )
         docker_local_publish_seen = any("DOCKER" in line and "--dport 60010" in line for line in lines)
-        unrelated_mpf_customer_nat = any(
-            ("mpf:" in line or "canary-btc-001" in line or "--dport 20001" in line)
-            and "-A MPF_NAT_PRE" not in line
-            and "DOCKER" not in line
+
+        canary_lines = [line for line in lines if "canary-btc-001" in line and "--dport 20001" in line]
+        canary_rule_count = len(canary_lines)
+        canary_in_mpf_nat_pre_count = sum("-A MPF_NAT_PRE" in line for line in canary_lines)
+        canary_loopback_target_count = sum("--to-destination 127.0.0.1:60010" in line for line in canary_lines)
+        canary_target_port_60010_count = sum("--to-destination" in line and ":60010" in line for line in canary_lines)
+        canary_target_non_loopback_60010_count = sum(
+            "--to-destination" in line and ":60010" in line and "127.0.0.1:60010" not in line
+            for line in canary_lines
+        )
+        canary_redirect_comment_count = sum("mpf:canary-btc-001:customer_nat_redirect" in line for line in canary_lines)
+
+        wrong_customer_redirect_seen = any(
+            "customer_nat_redirect" in line and "mpf:canary-btc-001:customer_nat_redirect" not in line
             for line in lines
         )
+        unrelated_mpf_customer_nat = any(
+            "mpf:" in line and "customer_nat_redirect" in line and "mpf:canary-btc-001:customer_nat_redirect" not in line
+            for line in lines
+        )
+        canary_rule_outside_mpf_nat_pre = any("-A MPF_NAT_PRE" not in line for line in canary_lines)
+
         return {
             "chain_count": chain_count,
             "chain_exists": chain_count == 1,
             "hook_count": hook_count,
             "hook_exists": hook_count == 1,
-            "canary_rule_count": len(canary_lines),
-            "canary_exact_count": canary_exact_count,
-            "canary_rule_exists": canary_exact_count == 1,
+            "canary_rule_count": canary_rule_count,
+            "canary_in_mpf_nat_pre_count": canary_in_mpf_nat_pre_count,
+            "canary_target_port_60010_count": canary_target_port_60010_count,
+            "canary_target_non_loopback_60010_count": canary_target_non_loopback_60010_count,
+            "canary_loopback_target_count": canary_loopback_target_count,
+            "canary_redirect_comment_count": canary_redirect_comment_count,
+            "canary_rule_exists": canary_target_non_loopback_60010_count == 1 and canary_in_mpf_nat_pre_count == 1 and canary_redirect_comment_count == 1,
             "docker_local_publish_seen": docker_local_publish_seen,
             "unrelated_mpf_customer_nat": unrelated_mpf_customer_nat,
+            "wrong_customer_redirect_seen": wrong_customer_redirect_seen,
+            "canary_rule_outside_mpf_nat_pre": canary_rule_outside_mpf_nat_pre,
         }
 
     def _render_bootstrap_payload(self, analysis: dict[str, object]) -> str:
@@ -141,9 +155,19 @@ class Phase11SingleCanaryNatHookBootstrapService:
             return {"status": "blocked", "error": "duplicate_nat_hook_detected", **out}
         if analysis["hook_exists"] and not analysis["chain_exists"]:
             return {"status": "blocked", "error": "unsafe_live_nat_state", **out}
-        if analysis["unrelated_mpf_customer_nat"]:
+        if analysis["unrelated_mpf_customer_nat"] or analysis["wrong_customer_redirect_seen"]:
             return {"status": "blocked", "error": "unrelated_mpf_customer_nat_detected", **out}
-        if analysis["canary_rule_count"] and analysis["canary_exact_count"] != 1:
+        if analysis["canary_rule_outside_mpf_nat_pre"]:
+            return {"status": "blocked", "error": "single_canary_conflicting_rule_detected", **out}
+        if analysis["canary_rule_count"] > 1:
+            return {"status": "blocked", "error": "single_canary_conflicting_rule_detected", **out}
+        if analysis["canary_loopback_target_count"] > 0:
+            return {"status": "blocked", "error": "single_canary_conflicting_rule_detected", **out}
+        if analysis["canary_rule_count"] == 1 and (
+            analysis["canary_in_mpf_nat_pre_count"] != 1
+            or analysis["canary_target_port_60010_count"] != 1
+            or analysis["canary_redirect_comment_count"] != 1
+        ):
             return {"status": "blocked", "error": "single_canary_conflicting_rule_detected", **out}
         if analysis["chain_exists"] and analysis["hook_exists"]:
             report["live_nat_prerequisites"] = {"mpf_nat_pre_chain_exists": True, "prerouting_hook_to_mpf_nat_pre_count": 1}

@@ -94,6 +94,114 @@ def test_firewall_adapter_does_not_override_needs_bootstrap_status(monkeypatch) 
     assert out["mutation_performed"] is False
 
 
+def test_firewall_adapter_populates_nat_prerequisites_without_bootstrap_env_when_ready(monkeypatch) -> None:
+    class AlreadyReady:
+        def run(self, report):
+            report["live_nat_prerequisites"] = {
+                "mpf_nat_pre_chain_exists": True,
+                "prerouting_hook_to_mpf_nat_pre_count": 1,
+            }
+            return {"status": "ok", "action": "already_ready", "mutation_performed": False, "production_traffic_enabled": False}
+
+    class ResolverOK:
+        def resolve(self, report):
+            return {"status": "ok", "target_host": "172.18.0.3", "target_port": 60010, "target_kind": "docker_container_ipv4"}
+
+    monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_NAT_HOOK_BOOTSTRAP", raising=False)
+    out = _FirewallAdapter(nat_hook_bootstrap=AlreadyReady(), backend_target_resolver=ResolverOK()).apply_plan(_bootstrap_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_host_apply_context_not_confirmed"
+
+
+def test_firewall_adapter_blocks_when_nat_hook_missing_without_bootstrap_env(monkeypatch) -> None:
+    class NeedsBootstrap:
+        def run(self, report):
+            return {"status": "ok", "action": "needs_bootstrap", "mutation_performed": False, "production_traffic_enabled": False}
+
+    monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_NAT_HOOK_BOOTSTRAP", raising=False)
+    out = _FirewallAdapter(nat_hook_bootstrap=NeedsBootstrap()).apply_plan(_bootstrap_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_nat_hook_bootstrap_required"
+
+
+def test_nat_hook_bootstrap_accepts_farm5_like_route_safe_canary_rule(monkeypatch) -> None:
+    nat_text = """*nat
+:MPF_NAT_PRE - [0:0]
+-A PREROUTING -j MPF_NAT_PRE
+-A MPF_NAT_PRE -p tcp -m tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.3:60010
+COMMIT
+"""
+
+    def fake_run(self, argv, **kwargs):
+        return _cp(nat_text)
+
+    monkeypatch.setattr(Phase11SingleCanaryNatHookBootstrapService, "_run", fake_run)
+    report = _bootstrap_report()
+    result = Phase11SingleCanaryNatHookBootstrapService().run(report)
+    assert result["status"] == "ok"
+    assert result["action"] == "already_ready"
+    assert result["chain_exists"] is True
+    assert result["hook_exists"] is True
+    assert report["live_nat_prerequisites"] == {"mpf_nat_pre_chain_exists": True, "prerouting_hook_to_mpf_nat_pre_count": 1}
+
+
+def test_nat_hook_bootstrap_blocks_loopback_canary_target(monkeypatch) -> None:
+    nat_text = """*nat
+:MPF_NAT_PRE - [0:0]
+-A PREROUTING -j MPF_NAT_PRE
+-A MPF_NAT_PRE -p tcp -m tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 127.0.0.1:60010
+COMMIT
+"""
+
+    monkeypatch.setattr(Phase11SingleCanaryNatHookBootstrapService, "_run", lambda self, argv, **kwargs: _cp(nat_text))
+    result = Phase11SingleCanaryNatHookBootstrapService().run(_bootstrap_report())
+    assert result["status"] == "blocked"
+    assert result["error"] == "single_canary_conflicting_rule_detected"
+
+
+def test_nat_hook_bootstrap_blocks_multiple_canary_rules(monkeypatch) -> None:
+    nat_text = """*nat
+:MPF_NAT_PRE - [0:0]
+-A PREROUTING -j MPF_NAT_PRE
+-A MPF_NAT_PRE -p tcp -m tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.3:60010
+-A MPF_NAT_PRE -p tcp -m tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.4:60010
+COMMIT
+"""
+
+    monkeypatch.setattr(Phase11SingleCanaryNatHookBootstrapService, "_run", lambda self, argv, **kwargs: _cp(nat_text))
+    result = Phase11SingleCanaryNatHookBootstrapService().run(_bootstrap_report())
+    assert result["status"] == "blocked"
+    assert result["error"] == "single_canary_conflicting_rule_detected"
+
+
+def test_nat_hook_bootstrap_blocks_canary_rule_outside_mpf_nat_pre(monkeypatch) -> None:
+    nat_text = """*nat
+:MPF_NAT_PRE - [0:0]
+-A PREROUTING -j MPF_NAT_PRE
+-A PREROUTING -p tcp -m tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.3:60010
+COMMIT
+"""
+
+    monkeypatch.setattr(Phase11SingleCanaryNatHookBootstrapService, "_run", lambda self, argv, **kwargs: _cp(nat_text))
+    result = Phase11SingleCanaryNatHookBootstrapService().run(_bootstrap_report())
+    assert result["status"] == "blocked"
+    assert result["error"] == "single_canary_conflicting_rule_detected"
+
+
+def test_nat_hook_bootstrap_blocks_wrong_customer_redirect(monkeypatch) -> None:
+    nat_text = """*nat
+:MPF_NAT_PRE - [0:0]
+-A PREROUTING -j MPF_NAT_PRE
+-A MPF_NAT_PRE -p tcp -m tcp --dport 20001 -m comment --comment "mpf:customer-x:customer_nat_redirect" -j DNAT --to-destination 172.18.0.3:60010
+COMMIT
+"""
+
+    monkeypatch.setattr(Phase11SingleCanaryNatHookBootstrapService, "_run", lambda self, argv, **kwargs: _cp(nat_text))
+    result = Phase11SingleCanaryNatHookBootstrapService().run(_bootstrap_report())
+    assert result["status"] == "blocked"
+    assert result["error"] == "unrelated_mpf_customer_nat_detected"
+
+
 class _ReadinessOK:
     def check_readiness(self, report):
         return {"status": "ok"}

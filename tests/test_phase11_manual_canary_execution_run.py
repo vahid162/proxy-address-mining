@@ -270,6 +270,18 @@ def _patch_resolver_ok(monkeypatch) -> None:
         lambda self, report: {"status": "ok", "target_host": "172.18.0.3", "target_port": 60010, "target_kind": "docker_container_ipv4"},
     )
 
+
+
+def _patch_nat_hook_ready(monkeypatch) -> None:
+    from subprocess import CompletedProcess
+
+    def fake_run(self, argv, **kwargs):
+        return CompletedProcess(argv, 0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\n-A MPF_NAT_PRE -p tcp -m tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.3:60010\nCOMMIT\n", "")
+
+    monkeypatch.setattr(
+        "mpf.services.phase11_single_canary_nat_hook_bootstrap.Phase11SingleCanaryNatHookBootstrapService._run",
+        fake_run,
+    )
 def _production_like_adapters_without_iptables_save():
     from mpf.services.phase11_manual_canary_execution_adapters import build_manual_canary_production_adapters
 
@@ -283,11 +295,18 @@ def test_execute_restore_guard_path_renderer_ok_then_host_apply_context_blocked(
     monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", raising=False)
     monkeypatch.delenv("CI", raising=False)
     _patch_resolver_ok(monkeypatch)
+    _patch_nat_hook_ready(monkeypatch)
     report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
     assert report["final_decision"] == "BLOCKED"
-    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
+    assert "single_canary_host_apply_context_not_confirmed" in report["blockers"]
+    assert report["restore_payload_renderer"]["status"] == "ok"
+    payload = report["restore_payload_renderer"]["restore_payload"]
+    assert "*filter" in payload
+    assert ":MPFC_20001 - [0:0]" in payload
+    assert "mpf:canary-btc-001:customer_connlimit_reject" in payload
+    assert "mpf:canary-btc-001:customer_hashlimit_reject" in payload
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False
@@ -301,11 +320,12 @@ def test_execute_both_guards_renderer_ok_then_missing_host_apply_executor_blocke
     monkeypatch.setenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", "allow")
     monkeypatch.delenv("CI", raising=False)
     _patch_resolver_ok(monkeypatch)
+    _patch_nat_hook_ready(monkeypatch)
     report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
     )
     assert report["final_decision"] == "BLOCKED"
-    assert "single_canary_restore_payload_not_apply_safe" in report["blockers"]
+    assert "single_canary_host_apply_execution_not_confirmed" in report["blockers"]
     assert report["mutation_performed"] is False
     assert report["customer_db_mutation_performed"] is False
     assert report["firewall_mutation_performed"] is False
