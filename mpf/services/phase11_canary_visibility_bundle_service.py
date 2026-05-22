@@ -6,7 +6,7 @@ from pathlib import Path
 
 from mpf import __version__
 from mpf.config import MPFConfig
-from mpf.services import customer_read_service, phase11_live_canary_evidence_collector_service
+from mpf.services import customer_read_service, phase11_live_canary_evidence_collector_service, phase11_canary_usage_visibility_service
 from mpf.services.phase11_canary_acceptance_review_service import Phase11CanaryAcceptanceEvidence
 
 
@@ -113,7 +113,17 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
             warnings.append(f"{name}_true_without_reference")
         return _item("MISSING", "phase9_surface_or_missing", ref, ["report-only surface does not satisfy canary source-backed visibility"], [blocker])
 
-    visibility["usage_counters_visibility"] = from_evidence("usage_visibility_ok", evidence.usage_visibility_ok, evidence.usage_reference, "missing_source_backed_canary_usage_counters")
+    usage_report = phase11_canary_usage_visibility_service.build_phase11_canary_usage_visibility_report(
+        config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live,
+        evidence=phase11_canary_usage_visibility_service.Phase11CanaryUsageVisibilityEvidence(
+            captured_at=evidence.captured_at, captured_by=evidence.captured_by, evidence_source=evidence.evidence_source, evidence_reference=evidence.evidence_reference,
+            customer_key=evidence.customer_key, lane=evidence.lane, port=evidence.port, backend_target=evidence.backend_target,
+            usage_visibility_ok=evidence.usage_visibility_ok, usage_reference=evidence.usage_reference,
+        ),
+    )
+    visibility["usage_counters_visibility"] = usage_report["usage_counters_visibility"]
+    warnings.extend(usage_report.get("warnings", []))
+    blockers.extend(usage_report.get("blockers", []))
     visibility["reject_counters_visibility"] = from_evidence("reject_visibility_ok", evidence.reject_visibility_ok, evidence.reject_reference, "missing_source_backed_canary_reject_counters")
     visibility["active_recent_sessions_visibility"] = from_evidence("session_visibility_ok", evidence.session_visibility_ok, evidence.session_reference, "missing_source_backed_canary_sessions")
     visibility["unique_ips_visibility"] = from_evidence("unique_ip_visibility_ok", evidence.unique_ip_visibility_ok, evidence.unique_ip_reference, "missing_source_backed_canary_unique_ips")
