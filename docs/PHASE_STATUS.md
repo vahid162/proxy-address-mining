@@ -2936,4 +2936,4 @@ State:
 ## Accepted server result updates
 
 - farm5 0.1.158 sync/test evidence recorded: sync OK, pytest OK, doctor/db/proxy doctor OK, plan mode non-mutating, execute-control blocked on `real_restore_backup_adapter_missing`; Current State remains unchanged and Phase 11 remains not accepted.
-- Phase 11 farm5 0.1.179 planning/readiness note: added read-only canary usage evidence capture (`mpf production canary-usage-evidence-capture`) and operator execution context guard (`mpf production operator-context`) to prevent local-peer DB-write execution as root while preserving read-only root status checks; Current State gate values remain unchanged and Phase 11 remains not accepted.
+- Phase 11 farm5 0.1.178 planning/readiness note: added read-only canary usage evidence capture (`mpf production canary-usage-evidence-capture`) and operator execution context guard (`mpf production operator-context`) to prevent local-peer DB-write execution as root while preserving read-only root status checks; Current State gate values remain unchanged and Phase 11 remains not accepted.
