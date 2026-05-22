@@ -112,6 +112,7 @@ from mpf.services import (
     phase11_manual_canary_execution_adapters,
     phase11_canary_acceptance_review_service,
     phase11_live_canary_evidence_collector_service,
+    phase11_canary_visibility_bundle_service,
 )
 
 app = typer.Typer(
@@ -2095,7 +2096,7 @@ def production_canary_evidence_collect(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.172", "--expected-version"),
+    expected_version: str = typer.Option("0.1.173", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
@@ -2115,10 +2116,12 @@ def production_canary_acceptance_review(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.172", "--expected-version"),
+    expected_version: str = typer.Option("0.1.173", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: Path | None = typer.Option(None, "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
+    collect_visibility: bool = typer.Option(False, "--collect-visibility/--no-collect-visibility"),
+    visibility_json: Path | None = typer.Option(None, "--visibility-json"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
@@ -2130,6 +2133,31 @@ def production_canary_acceptance_review(
         )
         live_ev = phase11_canary_acceptance_review_service.Phase11CanaryAcceptanceEvidence.from_dict(live_report["evidence"])
         evidence = phase11_live_canary_evidence_collector_service.merge_phase11_evidence(live_ev, evidence) if evidence else live_ev
+    if collect_visibility:
+        visibility_evidence = phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(visibility_json) if visibility_json else None
+        visibility_report = phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report(
+            cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=visibility_evidence
+        )
+        vis = visibility_report["visibility"]
+        base = evidence or phase11_canary_acceptance_review_service.Phase11CanaryAcceptanceEvidence()
+        mapping = {
+            "canary_customer_db_visibility": "canary_customer_db_visible",
+            "usage_counters_visibility": "usage_visibility_ok",
+            "reject_counters_visibility": "reject_visibility_ok",
+            "active_recent_sessions_visibility": "session_visibility_ok",
+            "unique_ips_visibility": "unique_ip_visibility_ok",
+            "unique_workers_visibility": "worker_visibility_ok",
+            "abuse_coverage_visibility": "abuse_coverage_ok",
+            "final_check_report_visibility": "final_check_report_ok",
+        }
+        for k, fld in mapping.items():
+            if vis.get(k, {}).get("status") == "PRESENT":
+                setattr(base, fld, True)
+        rr = vis.get("rollback_or_restore_plan_visibility", {})
+        if rr.get("status") == "PRESENT":
+            if not base.rollback_reference:
+                base.rollback_reference = rr.get("reference")
+        evidence = base
     report = phase11_canary_acceptance_review_service.build_phase11_canary_acceptance_review_report(
         cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, evidence=evidence
     )
@@ -2137,6 +2165,29 @@ def production_canary_acceptance_review(
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
         return
     for key in ("component", "final_decision", "final_decision_reason", "no_onboarding_authorized", "blockers", "missing_visibility_primitives", "missing_evidence_primitives", "next_required_step"):
+        typer.echo(f"{key}: {report[key]}")
+
+@production_app.command("canary-visibility-bundle")
+def production_canary_visibility_bundle(
+    customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
+    lane: str = typer.Option("btc", "--lane"),
+    port: int = typer.Option(20001, "--port"),
+    expected_version: str = typer.Option("0.1.173", "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    evidence_json: Path | None = typer.Option(None, "--evidence-json"),
+    collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    cfg = _load(config)
+    evidence = phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(evidence_json) if evidence_json else None
+    report = phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report(
+        cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=evidence
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for key in ("component", "final_decision", "blockers", "warnings", "missing_visibility_primitives", "missing_evidence_primitives", "next_required_step"):
         typer.echo(f"{key}: {report[key]}")
 @production_app.command("canary-execution-run-prep")
 def production_canary_execution_run_preparation(

@@ -66,7 +66,7 @@ def _report(monkeypatch, ev: Phase11CanaryAcceptanceEvidence, **kwargs):
         customer_key=kwargs.get("customer_key", "canary-btc-001"),
         lane=kwargs.get("lane", "btc"),
         port=kwargs.get("port", 20001),
-        expected_version=kwargs.get("expected_version", "0.1.172"),
+        expected_version=kwargs.get("expected_version", "0.1.173"),
         farm5_baseline_version=kwargs.get("farm5_baseline_version", "0.1.168"),
         evidence=ev,
     )
@@ -144,7 +144,7 @@ def test_cli_json_smoke(tmp_path, monkeypatch):
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.172",
+            "0.1.173",
             "--farm5-baseline-version",
             "0.1.168",
             "--evidence-json",
@@ -167,7 +167,7 @@ def test_customer_list_read_failure_blocks_fail_closed(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.172",
+        expected_version="0.1.173",
         farm5_baseline_version="0.1.168",
         evidence=Phase11CanaryAcceptanceEvidence(),
     )
@@ -192,7 +192,7 @@ def test_cli_collect_live_review_smoke(monkeypatch):
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.172",
+            "0.1.173",
             "--farm5-baseline-version",
             "0.1.168",
             "--collect-live",
@@ -210,3 +210,26 @@ def test_cli_collect_live_review_smoke(monkeypatch):
     assert '"firewall_mutation_performed": false' in res.stdout
     assert '"nat_mutation_performed": false' in res.stdout
     assert '"conntrack_mutation_performed": false' in res.stdout
+
+
+def test_cli_collect_visibility_out_of_scope_does_not_lift(monkeypatch, tmp_path):
+    runner = CliRunner()
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
+    p = tmp_path / "vis.json"
+    p.write_text('{"customer_key":"wrong","lane":"btc","port":20001,"usage_visibility_ok":true,"usage_reference":"ref"}', encoding="utf-8")
+    res = runner.invoke(
+        app,
+        [
+            "production",
+            "canary-acceptance-review",
+            "--expected-version", "0.1.173",
+            "--farm5-baseline-version", "0.1.168",
+            "--collect-visibility",
+            "--visibility-json", str(p),
+            "--output", "json",
+            "--config", "configs/mpf.example.yaml",
+        ],
+    )
+    assert res.exit_code == 0
+    assert '"final_decision": "BLOCKED"' in res.stdout
+    assert '"missing_visibility:usage_counters_visibility"' in res.stdout
