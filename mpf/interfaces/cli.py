@@ -110,6 +110,7 @@ from mpf.services import (
     phase11_manual_canary_execution_run_preparation_service,
     phase11_manual_canary_execution_run_service,
     phase11_manual_canary_execution_adapters,
+    phase11_canary_acceptance_review_service,
 )
 
 app = typer.Typer(
@@ -2085,6 +2086,29 @@ def production_manual_canary_execute(
         typer.echo(f"{key}: {report[key]}")
 
 
+
+
+@production_app.command("canary-acceptance-review")
+def production_canary_acceptance_review(
+    customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
+    lane: str = typer.Option("btc", "--lane"),
+    port: int = typer.Option(20001, "--port"),
+    expected_version: str = typer.Option("0.1.169", "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    evidence_json: Path | None = typer.Option(None, "--evidence-json"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    cfg = _load(config)
+    evidence = phase11_canary_acceptance_review_service.load_phase11_canary_acceptance_evidence_json(evidence_json) if evidence_json else None
+    report = phase11_canary_acceptance_review_service.build_phase11_canary_acceptance_review_report(
+        cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, evidence=evidence
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for key in ("component", "final_decision", "final_decision_reason", "no_onboarding_authorized", "blockers", "missing_visibility_primitives", "missing_evidence_primitives", "next_required_step"):
+        typer.echo(f"{key}: {report[key]}")
 @production_app.command("canary-execution-run-prep")
 def production_canary_execution_run_preparation(
     lane: str = typer.Option("btc", "--lane"),

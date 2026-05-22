@@ -6,10 +6,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.164.
-- Repository version after this PR is 0.1.168.
+- GitHub main repository version before this PR is 0.1.168.
+- Repository version after this PR is 0.1.169.
 - latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).
-- latest recorded route-safe canary NAT success evidence is 0.1.164.
+- latest recorded route-safe canary NAT success evidence is 0.1.168.
 - farm5 route-safe single-canary DNAT execution evidence is recorded and pending review.
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
@@ -30,7 +30,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Telegram remains no.
 - Keep abuse automation/UI/Telegram closed.
 - Avoid another broad docs-only loop after this evidence PR; next PR should be runtime-first acceptance/visibility work.
-- Next target: Phase 11 canary acceptance review with usage/reject/session visibility evidence.
+- Next target: resolve missing visibility primitives reported by Phase 11 canary acceptance review verifier.
 
 ## Finite Remaining Path
 

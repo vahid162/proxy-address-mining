@@ -63,6 +63,8 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 - telegram_allowed: no
 
 
+- Phase 11 farm5 0.1.169 planning/readiness note: added read-only `mpf production canary-acceptance-review` verifier to classify exact controlled canary NAT artifact (`controlled_canary_artifact_present`) and fail-closed on any additional MPF/customer references or missing visibility primitives; Current State gate values remain unchanged and Phase 11 remains not accepted.
+
 ### Phase 10 farm5 0.1.128 Sync/Test Evidence
 
 - command:
