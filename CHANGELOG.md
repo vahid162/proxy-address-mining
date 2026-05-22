@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.170
+## 0.1.171
 
 - hotfix: fix canary acceptance review customer list contract to use `CustomerList.customers` and fail closed on customer list read failure; add regression tests for runtime crash and blocked behavior.
 

@@ -111,6 +111,7 @@ from mpf.services import (
     phase11_manual_canary_execution_run_service,
     phase11_manual_canary_execution_adapters,
     phase11_canary_acceptance_review_service,
+    phase11_live_canary_evidence_collector_service,
 )
 
 app = typer.Typer(
@@ -2088,19 +2089,47 @@ def production_manual_canary_execute(
 
 
 
+
+@production_app.command("canary-evidence-collect")
+def production_canary_evidence_collect(
+    customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
+    lane: str = typer.Option("btc", "--lane"),
+    port: int = typer.Option(20001, "--port"),
+    expected_version: str = typer.Option("0.1.171", "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    cfg = _load(config)
+    report = phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(
+        cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for key in ("component", "final_decision", "blockers", "warnings", "commands_attempted", "commands_unavailable"):
+        typer.echo(f"{key}: {report[key]}")
+
 @production_app.command("canary-acceptance-review")
 def production_canary_acceptance_review(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.170", "--expected-version"),
+    expected_version: str = typer.Option("0.1.171", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: Path | None = typer.Option(None, "--evidence-json"),
+    collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     cfg = _load(config)
     evidence = phase11_canary_acceptance_review_service.load_phase11_canary_acceptance_evidence_json(evidence_json) if evidence_json else None
+    if collect_live:
+        live_report = phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(
+            cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version
+        )
+        live_ev = phase11_canary_acceptance_review_service.Phase11CanaryAcceptanceEvidence.from_dict(live_report["evidence"])
+        evidence = phase11_live_canary_evidence_collector_service.merge_phase11_evidence(live_ev, evidence) if evidence else live_ev
     report = phase11_canary_acceptance_review_service.build_phase11_canary_acceptance_review_report(
         cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, evidence=evidence
     )
