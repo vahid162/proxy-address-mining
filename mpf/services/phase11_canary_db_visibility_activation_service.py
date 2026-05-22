@@ -52,7 +52,7 @@ def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, requ
 
     if request.requested_action == "execute" and not validation_errors and not blockers and final_decision == "DB_VISIBILITY_PLAN_READY":
         if planned_action == "create_exact_canary_customer":
-            res = customer_mutation_service.create_customer(
+            res = customer_mutation_service.create_db_only_customer(
                 config,
                 CustomerCreateRequest(
                     lane=request.lane,
