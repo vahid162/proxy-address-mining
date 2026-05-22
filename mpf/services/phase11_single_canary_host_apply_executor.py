@@ -11,7 +11,7 @@ class Phase11SingleCanaryHostApplyExecutor:
     def _run(self, argv: list[str], **kwargs) -> subprocess.CompletedProcess:
         return subprocess.run(argv, shell=False, check=False, capture_output=True, **kwargs)
 
-    def _validate_payload(self, payload: str, target_host: str) -> bool:
+    def _validate_payload(self, payload: str, target_host: str, allow_filter_only: bool) -> bool:
         lines = [l.strip() for l in payload.splitlines() if l.strip()]
         rule_lines = [l for l in lines if l.startswith('-A ')]
         if any(k in payload for k in ("-A PREROUTING", "-F", "-X", "-D", "-I", "*mangle", "*raw")):
@@ -19,10 +19,16 @@ class Phase11SingleCanaryHostApplyExecutor:
         nat = [l for l in lines if l.startswith('-A MPF_NAT_PRE')]
         conn = [l for l in lines if l.startswith('-A MPFC_20001') and 'customer_connlimit_reject' in l]
         hsh = [l for l in lines if l.startswith('-A MPFC_20001') and 'customer_hashlimit_reject' in l]
-        if len(nat) != 1 or len(conn) != 1 or len(hsh) != 1:
+        if len(conn) != 1 or len(hsh) != 1:
             return False
-        nat_line = nat[0]
-        if not all(x in nat_line for x in ('--dport 20001', 'mpf:canary-btc-001:customer_nat_redirect', f'--to-destination {target_host}:60010')):
+        if len(nat) not in (0, 1):
+            return False
+        if not allow_filter_only and len(nat) != 1:
+            return False
+        if allow_filter_only and len(nat) != 0:
+            return False
+        nat_line = nat[0] if nat else None
+        if nat_line and not all(x in nat_line for x in ('--dport 20001', 'mpf:canary-btc-001:customer_nat_redirect', f'--to-destination {target_host}:60010')):
             return False
         if '--to-destination 127.0.0.1:60010' in payload:
             return False
@@ -33,7 +39,9 @@ class Phase11SingleCanaryHostApplyExecutor:
         if '--dport 20001' not in hash_line or '-j REJECT' not in hash_line or 'canary-btc-001' not in hash_line:
             return False
         dport20001 = [l for l in rule_lines if '--dport 20001' in l]
-        allowed = {nat_line, conn_line, hash_line}
+        allowed = {conn_line, hash_line}
+        if nat_line:
+            allowed.add(nat_line)
         if any(l not in allowed for l in dport20001):
             return False
         if any('canary-btc-001' in l and 'mpf:canary-btc-001:' not in l for l in rule_lines):
@@ -58,7 +66,11 @@ class Phase11SingleCanaryHostApplyExecutor:
         tport = target.get("target_port")
         if not isinstance(thost, str) or thost.startswith("127.") or tport != 60010:
             return {"status": "blocked", "error": "single_canary_backend_target_invalid"}
-        if not self._validate_payload(payload, thost):
+        live_nat_pre = report.get("live_nat_prerequisites", {}) if isinstance(report.get("live_nat_prerequisites"), dict) else {}
+        bootstrap = report.get("nat_hook_bootstrap", {}) if isinstance(report.get("nat_hook_bootstrap"), dict) else {}
+        canary_rule_exists = (live_nat_pre.get("canary_rule_exists") is True) or (bootstrap.get("canary_rule_exists") is True)
+
+        if not self._validate_payload(payload, thost, allow_filter_only=canary_rule_exists):
             return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
 
         live_nat = self._run(["iptables-save", "-t", "nat"], text=True)
@@ -68,7 +80,15 @@ class Phase11SingleCanaryHostApplyExecutor:
         chain_count = sum(l.startswith(":MPF_NAT_PRE ") for l in lines)
         hook_count = sum("-A PREROUTING" in l and "-j MPF_NAT_PRE" in l for l in lines)
         canary_count = sum("canary-btc-001" in l and "--dport 20001" in l for l in lines)
-        if chain_count != 1 or hook_count != 1 or canary_count > 0:
+        nat_payload_count = payload.count("customer_nat_redirect")
+        if nat_payload_count > 1:
+            return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
+        if canary_rule_exists and nat_payload_count != 0:
+            return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
+        if (not canary_rule_exists) and nat_payload_count != 1:
+            return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
+
+        if chain_count != 1 or hook_count != 1 or ((not canary_rule_exists) and canary_count > 0) or (canary_rule_exists and canary_count != 1):
             return {"status": "blocked", "error": "single_canary_restore_payload_not_apply_safe", "missing_primitive": "accepted_apply_safe_single_canary_payload"}
 
         before_sha = hashlib.sha256(live_nat.stdout.encode()).hexdigest()
