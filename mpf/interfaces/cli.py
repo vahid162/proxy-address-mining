@@ -2115,7 +2115,7 @@ def production_canary_usage_evidence_capture(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.179", "--expected-version"),
+    expected_version: str = typer.Option("0.1.180", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     collect_live: bool = typer.Option(True, "--collect-live/--no-collect-live"),
     write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
@@ -2139,7 +2139,7 @@ def production_canary_reject_session_ip_evidence_capture(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.179", "--expected-version"),
+    expected_version: str = typer.Option("0.1.180", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     collect_live: bool = typer.Option(True, "--collect-live/--no-collect-live"),
     write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
@@ -2162,7 +2162,7 @@ def production_canary_evidence_collect(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.179", "--expected-version"),
+    expected_version: str = typer.Option("0.1.180", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
@@ -2182,25 +2182,34 @@ def production_canary_acceptance_review(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.179", "--expected-version"),
+    expected_version: str = typer.Option("0.1.180", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: Path | None = typer.Option(None, "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
     collect_visibility: bool = typer.Option(False, "--collect-visibility/--no-collect-visibility"),
-    visibility_json: Path | None = typer.Option(None, "--visibility-json"),
+    visibility_json: list[Path] = typer.Option([], "--visibility-json"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     cfg = _load(config)
     evidence = phase11_canary_acceptance_review_service.load_phase11_canary_acceptance_evidence_json(evidence_json) if evidence_json else None
+    expected_backend_target: str | None = None
     if collect_live:
         live_report = phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(
             cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version
         )
         live_ev = phase11_canary_acceptance_review_service.Phase11CanaryAcceptanceEvidence.from_dict(live_report["evidence"])
+        expected_backend_target = live_ev.canary_nat_target
         evidence = phase11_live_canary_evidence_collector_service.merge_phase11_evidence(live_ev, evidence) if evidence else live_ev
     if collect_visibility:
-        visibility_evidence = phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(visibility_json) if visibility_json else None
+        visibility_evidences = [phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(path) for path in visibility_json]
+        visibility_evidence = phase11_canary_visibility_bundle_service.merge_phase11_canary_visibility_evidence(
+            visibility_evidences,
+            customer_key=customer_key,
+            lane=lane,
+            port=port,
+            expected_backend_target=expected_backend_target,
+        ) if visibility_evidences else None
         visibility_report = phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report(
             cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=visibility_evidence
         )
@@ -2238,7 +2247,7 @@ def production_canary_usage_visibility(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.179", "--expected-version"),
+    expected_version: str = typer.Option("0.1.180", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: Path | None = typer.Option(None, "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
@@ -2261,15 +2270,30 @@ def production_canary_visibility_bundle(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.179", "--expected-version"),
+    expected_version: str = typer.Option("0.1.180", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
-    evidence_json: Path | None = typer.Option(None, "--evidence-json"),
+    evidence_json: list[Path] = typer.Option([], "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     cfg = _load(config)
-    evidence = phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(evidence_json) if evidence_json else None
+    expected_backend_target: str | None = None
+    if collect_live:
+        live_report = phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(
+            cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version
+        )
+        expected_backend_target = phase11_canary_acceptance_review_service.Phase11CanaryAcceptanceEvidence.from_dict(
+            live_report.get("evidence", {})
+        ).canary_nat_target
+    evidences = [phase11_canary_visibility_bundle_service.load_phase11_canary_visibility_evidence_json(path) for path in evidence_json]
+    evidence = phase11_canary_visibility_bundle_service.merge_phase11_canary_visibility_evidence(
+        evidences,
+        customer_key=customer_key,
+        lane=lane,
+        port=port,
+        expected_backend_target=expected_backend_target,
+    ) if evidences else None
     report = phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report(
         cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=evidence
     )
@@ -2292,7 +2316,7 @@ def production_canary_db_visibility_activate(
     rate_per_min: int = typer.Option(120, "--rate-per-min"),
     burst: int = typer.Option(240, "--burst"),
     requested_action: str = typer.Option("plan", "--requested-action"),
-    expected_version: str = typer.Option("0.1.179", "--expected-version"),
+    expected_version: str = typer.Option("0.1.180", "--expected-version"),
     operator: str | None = typer.Option(None, "--operator"),
     reason: str | None = typer.Option(None, "--reason"),
     operator_confirmed: bool = typer.Option(False, "--operator-confirmed/--no-operator-confirmed"),
