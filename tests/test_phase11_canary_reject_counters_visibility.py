@@ -26,7 +26,7 @@ def test_missing_source_reports_missing(monkeypatch):
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
     monkeypatch.setattr("shutil.which", lambda _: "/usr/sbin/iptables")
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": ""})())
-    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.184", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.185", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["reject_evidence"]["reject_visibility_ok"] is False
     assert r["next_required_step"] == "reject_counters_visibility"
 
@@ -37,7 +37,7 @@ def test_exact_zero_counts_present(monkeypatch):
     monkeypatch.setattr("shutil.which", lambda _: "/usr/sbin/iptables")
     out = 'num  pkts bytes target prot opt in out source destination\n1 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* mpf:canary-btc-001:customer_connlimit_reject */\n2 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* mpf:canary-btc-001:customer_hashlimit_reject */\n3 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* mpf:canary-btc-001:customer_pause_reject */\n4 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* mpf:canary-btc-001:customer_block_reject */\n'
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": out})())
-    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.184", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.185", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["reject_evidence"]["reject_visibility_ok"] is True
     assert r["reject_evidence"]["total_reject_count"] == 0
     assert r["next_required_step"] == "unique_workers_visibility"
@@ -52,7 +52,7 @@ def test_cli_smoke():
 def test_mutation_flags_false(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_active()]))
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
-    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.184", farm5_baseline_version="0.1.168", collect_live=False)
+    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.185", farm5_baseline_version="0.1.168", collect_live=False)
     assert r["mutation_performed"] is False
     assert r["db_mutation_performed"] is False
     assert r["firewall_mutation_performed"] is False
@@ -67,7 +67,7 @@ def test_wrong_customer_comment_is_missing(monkeypatch):
     monkeypatch.setattr("shutil.which", lambda _: "/usr/sbin/iptables")
     out = '1 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* mpf:other:customer_connlimit_reject */\n2 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* mpf:other:customer_hashlimit_reject */\n'
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": out})())
-    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.184", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.185", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["reject_evidence"]["reject_visibility_ok"] is False
     assert r["next_required_step"] == "reject_counters_visibility"
 
@@ -78,6 +78,6 @@ def test_broad_unscoped_comments_are_missing(monkeypatch):
     monkeypatch.setattr("shutil.which", lambda _: "/usr/sbin/iptables")
     out = '1 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* customer_connlimit_reject */\n2 0 0 REJECT tcp -- * * 0.0.0.0/0 0.0.0.0/0 /* customer_hashlimit_reject */\n'
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": out})())
-    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.184", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_counters_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.185", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["reject_evidence"]["reject_visibility_ok"] is False
     assert r["next_required_step"] == "reject_counters_visibility"

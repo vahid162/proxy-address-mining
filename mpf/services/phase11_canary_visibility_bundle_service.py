@@ -116,7 +116,15 @@ def merge_phase11_canary_visibility_evidence(
         break
     _lift("session_visibility_ok", "session_reference")
     _lift("unique_ip_visibility_ok", "unique_ip_reference")
-    _lift("worker_visibility_ok", "worker_reference")
+    
+    for ev in evidences:
+        if not ev.worker_visibility_ok or not ev.worker_reference or not _scope_ok(ev):
+            continue
+        if ev.evidence_source != "live_source_backed_canary_worker_stratum":
+            continue
+        merged.worker_visibility_ok = True
+        merged.worker_reference = ev.worker_reference
+        break
     _lift("abuse_coverage_ok", "abuse_reference")
     _lift("final_check_report_ok", "final_check_report_reference")
 
@@ -233,7 +241,11 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
     visibility["reject_counters_visibility"] = from_evidence("reject_visibility_ok", evidence.reject_visibility_ok, evidence.reject_reference, "missing_source_backed_canary_reject_counters")
     visibility["active_recent_sessions_visibility"] = from_evidence("session_visibility_ok", evidence.session_visibility_ok, evidence.session_reference, "missing_source_backed_canary_sessions")
     visibility["unique_ips_visibility"] = from_evidence("unique_ip_visibility_ok", evidence.unique_ip_visibility_ok, evidence.unique_ip_reference, "missing_source_backed_canary_unique_ips")
-    visibility["unique_workers_visibility"] = from_evidence("worker_visibility_ok", evidence.worker_visibility_ok, evidence.worker_reference, "missing_source_backed_canary_unique_workers")
+    
+    if evidence.worker_visibility_ok and evidence.worker_reference and exact_scope_ok and evidence.evidence_source == "live_source_backed_canary_worker_stratum":
+        visibility["unique_workers_visibility"] = _item("PRESENT", "visibility_evidence_json", evidence.worker_reference, ["source-backed worker/stratum evidence present"], [])
+    else:
+        visibility["unique_workers_visibility"] = from_evidence("worker_visibility_ok", evidence.worker_visibility_ok, evidence.worker_reference, "missing_source_backed_canary_unique_workers")
 
     if visibility["canary_customer_db_visibility"]["status"] != "PRESENT":
         visibility["abuse_coverage_visibility"] = _item("MISSING", "phase9_abuse_visibility", None, ["canary DB visibility is required first"], ["missing_canary_customer_for_abuse_coverage"])
