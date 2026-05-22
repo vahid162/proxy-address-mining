@@ -276,7 +276,7 @@ def _patch_nat_hook_ready(monkeypatch) -> None:
     from subprocess import CompletedProcess
 
     def fake_run(self, argv, **kwargs):
-        return CompletedProcess(argv, 0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\nCOMMIT\n", "")
+        return CompletedProcess(argv, 0, "*nat\n:MPF_NAT_PRE - [0:0]\n-A PREROUTING -j MPF_NAT_PRE\n-A MPF_NAT_PRE -p tcp -m tcp --dport 20001 -m comment --comment \"mpf:canary-btc-001:customer_nat_redirect\" -j DNAT --to-destination 172.18.0.3:60010\nCOMMIT\n", "")
 
     monkeypatch.setattr(
         "mpf.services.phase11_single_canary_nat_hook_bootstrap.Phase11SingleCanaryNatHookBootstrapService._run",
@@ -295,7 +295,6 @@ def test_execute_restore_guard_path_renderer_ok_then_host_apply_context_blocked(
     monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_HOST_APPLY", raising=False)
     monkeypatch.delenv("CI", raising=False)
     _patch_resolver_ok(monkeypatch)
-    _patch_nat_hook_ready(monkeypatch)
     _patch_nat_hook_ready(monkeypatch)
     report = phase11_manual_canary_execution_run_service.build_phase11_manual_canary_execution_run_report(
         _approved_execute_request(), adapters=_production_like_adapters_without_iptables_save()
