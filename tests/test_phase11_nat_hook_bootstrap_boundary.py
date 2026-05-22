@@ -94,6 +94,36 @@ def test_firewall_adapter_does_not_override_needs_bootstrap_status(monkeypatch) 
     assert out["mutation_performed"] is False
 
 
+def test_firewall_adapter_populates_nat_prerequisites_without_bootstrap_env_when_ready(monkeypatch) -> None:
+    class AlreadyReady:
+        def run(self, report):
+            report["live_nat_prerequisites"] = {
+                "mpf_nat_pre_chain_exists": True,
+                "prerouting_hook_to_mpf_nat_pre_count": 1,
+            }
+            return {"status": "ok", "action": "already_ready", "mutation_performed": False, "production_traffic_enabled": False}
+
+    class ResolverOK:
+        def resolve(self, report):
+            return {"status": "ok", "target_host": "172.18.0.3", "target_port": 60010, "target_kind": "docker_container_ipv4"}
+
+    monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_NAT_HOOK_BOOTSTRAP", raising=False)
+    out = _FirewallAdapter(nat_hook_bootstrap=AlreadyReady(), backend_target_resolver=ResolverOK()).apply_plan(_bootstrap_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_host_apply_context_not_confirmed"
+
+
+def test_firewall_adapter_blocks_when_nat_hook_missing_without_bootstrap_env(monkeypatch) -> None:
+    class NeedsBootstrap:
+        def run(self, report):
+            return {"status": "ok", "action": "needs_bootstrap", "mutation_performed": False, "production_traffic_enabled": False}
+
+    monkeypatch.delenv("MPF_PHASE11_SINGLE_CANARY_NAT_HOOK_BOOTSTRAP", raising=False)
+    out = _FirewallAdapter(nat_hook_bootstrap=NeedsBootstrap()).apply_plan(_bootstrap_report())
+    assert out["status"] == "blocked"
+    assert out["error"] == "single_canary_nat_hook_bootstrap_required"
+
+
 class _ReadinessOK:
     def check_readiness(self, report):
         return {"status": "ok"}

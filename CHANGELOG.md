@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.183
+
+- fix(phase11): populate read-only `live_nat_prerequisites` in manual single-canary execute path before exact restore payload rendering when NAT hook already exists, preserving fail-closed bootstrap behavior when hook is missing.
+
 ## 0.1.182
 - feat(phase11): add exact controlled canary filter reject counter source in single-canary restore payload (`MPFC_20001` with `customer_connlimit_reject`/`customer_hashlimit_reject` comments) so reject visibility remains fail-closed and becomes PRESENT only when exact source exists.
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 
 from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
@@ -118,29 +117,28 @@ class _FirewallAdapter:
         if json_diff.get("customer_port") != 20001 or json_diff.get("backend_port") != 60010:
             return {"status": "blocked", "error": "firewall_diff_not_reviewed"}
 
-        if os.environ.get("MPF_PHASE11_SINGLE_CANARY_NAT_HOOK_BOOTSTRAP") == "allow":
-            bootstrapper = self.nat_hook_bootstrap or Phase11SingleCanaryNatHookBootstrapService()
-            bootstrap_result = bootstrapper.run(report)
-            report["nat_hook_bootstrap"] = bootstrap_result
-            if bootstrap_result.get("status") != "ok":
-                return bootstrap_result
-            if bootstrap_result.get("action") == "needs_bootstrap":
-                return {
-                    **bootstrap_result,
-                    "status": "blocked",
-                    "error": "single_canary_nat_hook_bootstrap_required",
-                    "missing_primitive": "accepted_safe_single_canary_nat_hook_bootstrap",
-                }
-            if bootstrap_result.get("action") == "bootstrapped":
-                return {
-                    **bootstrap_result,
-                    "status": "ok",
-                    "applied": False,
-                    "bootstrap_completed": True,
-                    "actual_canary_execution_performed": False,
-                    "production_traffic_enabled": False,
-                    "iptables_restore_used": True,
-                }
+        bootstrapper = self.nat_hook_bootstrap or Phase11SingleCanaryNatHookBootstrapService()
+        bootstrap_result = bootstrapper.run(report)
+        report["nat_hook_bootstrap"] = bootstrap_result
+        if bootstrap_result.get("status") != "ok":
+            return bootstrap_result
+        if bootstrap_result.get("action") == "needs_bootstrap":
+            return {
+                **bootstrap_result,
+                "status": "blocked",
+                "error": "single_canary_nat_hook_bootstrap_required",
+                "missing_primitive": "accepted_safe_single_canary_nat_hook_bootstrap",
+            }
+        if bootstrap_result.get("action") == "bootstrapped":
+            return {
+                **bootstrap_result,
+                "status": "ok",
+                "applied": False,
+                "bootstrap_completed": True,
+                "actual_canary_execution_performed": False,
+                "production_traffic_enabled": False,
+                "iptables_restore_used": True,
+            }
 
         resolver = self.backend_target_resolver or Phase11SingleCanaryBackendTargetResolver()
         resolve_result = resolver.resolve(report) if hasattr(resolver, "resolve") else resolver(report)
