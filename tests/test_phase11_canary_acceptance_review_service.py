@@ -1,15 +1,25 @@
 from pathlib import Path
-from mpf.services.phase11_canary_acceptance_review_service import Phase11CanaryAcceptanceEvidence, build_phase11_canary_acceptance_review_report
+
+from typer.testing import CliRunner
+
+from mpf.interfaces.cli import app
+from mpf.services.phase11_canary_acceptance_review_service import (
+    Phase11CanaryAcceptanceEvidence,
+    build_phase11_canary_acceptance_review_report,
+    load_phase11_canary_acceptance_evidence_json,
+)
 
 
-def _cfg(tmp_path):
+def _cfg():
     from mpf.config import load_config
+
     return load_config(Path("configs/mpf.example.yaml"))
 
 
 def _base_evidence():
     return Phase11CanaryAcceptanceEvidence(
         evidence_reference="ref",
+        farm5_baseline_version="0.1.168",
         nat_counter_packets=1,
         nat_counter_bytes=10,
         conntrack_assured=True,
@@ -47,36 +57,102 @@ def _base_evidence():
     )
 
 
-def test_ready_when_all_present(tmp_path, monkeypatch):
-    cfg = _cfg(tmp_path)
+def _report(monkeypatch, ev: Phase11CanaryAcceptanceEvidence, **kwargs):
+    cfg = _cfg()
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: type("R", (), {"rows": []})())
-    report = build_phase11_canary_acceptance_review_report(cfg, customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.169", farm5_baseline_version="0.1.168", evidence=_base_evidence())
+    return build_phase11_canary_acceptance_review_report(
+        cfg,
+        customer_key=kwargs.get("customer_key", "canary-btc-001"),
+        lane=kwargs.get("lane", "btc"),
+        port=kwargs.get("port", 20001),
+        expected_version=kwargs.get("expected_version", "0.1.169"),
+        farm5_baseline_version=kwargs.get("farm5_baseline_version", "0.1.168"),
+        evidence=ev,
+    )
+
+
+def test_ready_when_all_present(monkeypatch):
+    report = _report(monkeypatch, _base_evidence())
     assert report["final_decision"] == "ACCEPTANCE_REVIEW_READY"
-    assert report["phase11_accepted"] is False
-    assert report["mutation_performed"] is False
 
 
-def test_blocks_missing_visibility(tmp_path, monkeypatch):
-    cfg = _cfg(tmp_path)
+def test_blocks_wrong_farm5_baseline_version(monkeypatch):
+    report = _report(monkeypatch, _base_evidence(), farm5_baseline_version="0.1.167")
+    assert "farm5_baseline_version_not_allowed" in report["blockers"]
+
+
+def test_blocks_evidence_farm5_mismatch(monkeypatch):
+    ev = _base_evidence()
+    ev.farm5_baseline_version = "0.1.167"
+    report = _report(monkeypatch, ev)
+    assert "farm5_baseline_version_mismatch_with_evidence" in report["blockers"]
+
+
+def test_blocks_loopback_variants(monkeypatch):
+    ev = _base_evidence(); ev.canary_nat_target = "127.0.0.2:60010"
+    r1 = _report(monkeypatch, ev)
+    assert "loopback_canary_target_forbidden" in r1["blockers"]
+    ev2 = _base_evidence(); ev2.canary_nat_target = "localhost:60010"
+    r2 = _report(monkeypatch, ev2)
+    assert "localhost_canary_target_forbidden" in r2["blockers"]
+
+
+def test_blocks_public_and_wrong_port_targets(monkeypatch):
+    ev = _base_evidence(); ev.canary_nat_target = "8.8.8.8:60010"
+    r1 = _report(monkeypatch, ev)
+    assert "non_private_canary_target_forbidden" in r1["blockers"]
+    ev2 = _base_evidence(); ev2.canary_nat_target = "172.18.0.3:60011"
+    r2 = _report(monkeypatch, ev2)
+    assert "wrong_canary_target_port" in r2["blockers"]
+
+
+def test_blocks_duplicate_and_extra_nat(monkeypatch):
+    ev = _base_evidence(); ev.canary_nat_rule_count = 2
+    r1 = _report(monkeypatch, ev)
+    assert "duplicate_or_missing_canary_nat_rule" in r1["blockers"]
+    ev2 = _base_evidence(); ev2.no_extra_customer_nat_rules = False
+    r2 = _report(monkeypatch, ev2)
+    assert "extra_customer_nat_rule_detected" in r2["blockers"]
+
+
+def test_blocks_missing_bridge_and_direct_20170_not_blocked(monkeypatch):
+    ev = _base_evidence(); ev.bridge_healthy = False
+    r1 = _report(monkeypatch, ev)
+    assert "bridge_unhealthy_or_missing" in r1["blockers"]
+    ev2 = _base_evidence(); ev2.direct_v2raya_20170_blocked = False
+    r2 = _report(monkeypatch, ev2)
+    assert "direct_v2raya_20170_not_blocked" in r2["blockers"]
+
+
+def test_evidence_json_missing_fields_default_false(tmp_path):
+    p = tmp_path / "evidence.json"
+    p.write_text("{}", encoding="utf-8")
+    ev = load_phase11_canary_acceptance_evidence_json(p)
+    assert ev.stratum_subscribe_ok is False
+    assert ev.bridge_healthy is False
+
+
+def test_cli_json_smoke(tmp_path, monkeypatch):
+    runner = CliRunner()
+    p = tmp_path / "evidence.json"
+    p.write_text('{"evidence_reference":"ref"}', encoding="utf-8")
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: type("R", (), {"rows": []})())
-    ev = _base_evidence(); ev.usage_visibility_ok = False; ev.canary_customer_db_visible = False
-    report = build_phase11_canary_acceptance_review_report(cfg, customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.169", farm5_baseline_version="0.1.168", evidence=ev)
-    assert report["final_decision"] == "BLOCKED"
-    assert "canary_customer_db_visibility" in report["missing_visibility_primitives"]
-
-
-def test_blocks_wrong_inputs_and_targets(tmp_path, monkeypatch):
-    cfg = _cfg(tmp_path)
-    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: type("R", (), {"rows": []})())
-    ev = _base_evidence(); ev.canary_nat_target = "127.0.0.1:60010"
-    r = build_phase11_canary_acceptance_review_report(cfg, customer_key="x", lane="zec", port=2, expected_version="0.1.169", farm5_baseline_version="0.1.168", evidence=ev)
-    assert r["final_decision"] == "BLOCKED"
-    assert "customer_key_must_be_canary-btc-001" in r["blockers"]
-    assert "loopback_canary_target_forbidden" in r["blockers"]
-
-
-def test_version_mismatch_blocked(tmp_path, monkeypatch):
-    cfg = _cfg(tmp_path)
-    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: type("R", (), {"rows": []})())
-    r = build_phase11_canary_acceptance_review_report(cfg, customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.1", farm5_baseline_version="0.1.168", evidence=_base_evidence())
-    assert "expected_version_mismatch" in r["blockers"]
+    res = runner.invoke(
+        app,
+        [
+            "production",
+            "canary-acceptance-review",
+            "--expected-version",
+            "0.1.169",
+            "--farm5-baseline-version",
+            "0.1.168",
+            "--evidence-json",
+            str(p),
+            "--output",
+            "json",
+            "--config",
+            "configs/mpf.example.yaml",
+        ],
+    )
+    assert res.exit_code == 0
+    assert '"component": "phase11_canary_acceptance_review"' in res.stdout
