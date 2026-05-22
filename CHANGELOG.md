@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.173
+## 0.1.174
 
 - add read-only Phase 11 canary visibility bundle service/CLI and integrate optional visibility collection into acceptance review with exact-scope, source-backed PRESENT semantics.
 

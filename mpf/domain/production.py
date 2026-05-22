@@ -433,3 +433,50 @@ class ManualCanaryExecutionRunRequest:
         return {k: getattr(self, k) for k in (
             "customer_key","lane","port","name","miners","farms","maxconn","rate_per_min","burst","ips_mode","ip_whitelist","operator","reason","requested_action","expected_version","operator_confirmed","understand_canary_customer","understand_firewall_apply","reviewed_rollback","fresh_farm5_sync_confirmed","require_farm5_0_1_151_evidence","require_run_preparation_evidence","require_latest_main_sync_before_execution","require_phase_gate_pass","require_mpf_doctor_ok","require_db_status_ok","require_proxy_doctor_ok","require_no_customer_nat_baseline","require_no_customer_firewall_baseline","require_local_only_runtime_baseline","require_firewall_plan_review","require_firewall_diff_review","require_restore_point_before_apply","require_iptables_save_backup_before_apply","require_lock_before_apply","require_verify_after_apply","require_rollback_plan","require_usage_visibility_check","require_reject_visibility_check","require_session_worker_visibility_check","require_abuse_1h_coverage_check","require_conntrack_scope_review","require_post_execution_evidence_collection",
         )}
+
+
+ALLOWED_PHASE11_CANARY_DB_VISIBILITY_ACTIONS = {"plan", "execute"}
+
+
+@dataclass(slots=True)
+class Phase11CanaryDbVisibilityActivationRequest:
+    customer_key: str = "canary-btc-001"
+    lane: str = "btc"
+    port: int = 20001
+    name: str = "Phase 11 controlled canary DB visibility"
+    miners: int = 1
+    farms: int = 1
+    maxconn: int = 1
+    rate_per_min: int = 120
+    burst: int = 240
+    ips_mode: str = "any"
+    ip_whitelist: list[str] = field(default_factory=list)
+    requested_action: str = "plan"
+    expected_version: str | None = None
+    operator: str | None = None
+    reason: str | None = None
+    operator_confirmed: bool = False
+    understand_db_only_canary: bool = False
+    understand_no_firewall_or_nat: bool = False
+    reviewed_rollback: bool = False
+    fresh_farm5_sync_confirmed: bool = False
+
+    def validate(self, *, expected_repo_version: str) -> list[str]:
+        e: list[str] = []
+        if self.customer_key != "canary-btc-001": e.append("customer_key must be exactly canary-btc-001")
+        if self.lane != "btc": e.append("lane must be exactly btc")
+        if self.port != 20001: e.append("port must be exactly 20001")
+        if self.miners != 1 or self.farms != 1 or self.maxconn != 1: e.append("miners/farms/maxconn must be exactly 1")
+        if self.ips_mode != "any": e.append("ips_mode must be any")
+        if self.ip_whitelist: e.append("ip_whitelist must be empty")
+        if self.requested_action not in ALLOWED_PHASE11_CANARY_DB_VISIBILITY_ACTIONS: e.append("requested_action must be plan or execute")
+        if self.requested_action == "execute":
+            if not self.operator_confirmed: e.append("operator_confirmed must be true")
+            if not self.understand_db_only_canary: e.append("understand_db_only_canary must be true")
+            if not self.understand_no_firewall_or_nat: e.append("understand_no_firewall_or_nat must be true")
+            if not self.reviewed_rollback: e.append("reviewed_rollback must be true")
+            if not self.fresh_farm5_sync_confirmed: e.append("fresh_farm5_sync_confirmed must be true")
+            if not (self.operator and self.operator.strip()): e.append("operator is required for execute")
+            if not (self.reason and self.reason.strip()): e.append("reason is required for execute")
+            if self.expected_version != expected_repo_version: e.append(f"expected_version must be {expected_repo_version}")
+        return e
