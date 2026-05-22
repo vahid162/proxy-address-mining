@@ -233,3 +233,30 @@ def test_cli_collect_visibility_out_of_scope_does_not_lift(monkeypatch, tmp_path
     assert res.exit_code == 0
     assert '"final_decision": "BLOCKED"' in res.stdout
     assert '"missing_visibility:usage_counters_visibility"' in res.stdout
+
+
+def test_next_step_usage_when_customer_db_present_but_usage_missing(monkeypatch):
+    ev = _base_evidence()
+    ev.usage_visibility_ok = False
+    report = _report(monkeypatch, ev)
+    assert "canary_customer_db_visibility" not in report["missing_visibility_primitives"]
+    assert "usage_counters_visibility" in report["missing_visibility_primitives"]
+    assert report["next_required_step"] == "usage_counters_visibility"
+    assert "starting_with_canary_customer_db_visibility" not in report["next_required_step"]
+
+
+def test_next_step_reject_when_usage_present_and_reject_missing(monkeypatch):
+    ev = _base_evidence()
+    ev.reject_visibility_ok = False
+    report = _report(monkeypatch, ev)
+    assert report["next_required_step"] == "reject_counters_visibility"
+
+
+def test_next_step_evidence_priority_when_visibility_complete(monkeypatch):
+    ev = _base_evidence()
+    ev.conntrack_assured = False
+    ev.stratum_subscribe_ok = False
+    report = _report(monkeypatch, ev)
+    assert report["missing_visibility_primitives"] == []
+    assert "conntrack_assured" in report["missing_evidence_primitives"]
+    assert report["next_required_step"] == "conntrack_assured"

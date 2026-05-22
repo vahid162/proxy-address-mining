@@ -24,6 +24,13 @@ class Phase11CanaryVisibilityEvidence:
     customer_db_reference: str | None = None
     usage_visibility_ok: bool = False
     usage_reference: str | None = None
+    total_connections: int | None = None
+    accepted_connections: int | None = None
+    total_bytes: int | None = None
+    total_shares: int | None = None
+    last_seen_at: str | None = None
+    sample_window_seconds: int | None = None
+    source_query_or_artifact: str | None = None
     reject_visibility_ok: bool = False
     reject_reference: str | None = None
     session_visibility_ok: bool = False
@@ -119,6 +126,9 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
             captured_at=evidence.captured_at, captured_by=evidence.captured_by, evidence_source=evidence.evidence_source, evidence_reference=evidence.evidence_reference,
             customer_key=evidence.customer_key, lane=evidence.lane, port=evidence.port, backend_target=evidence.backend_target,
             usage_visibility_ok=evidence.usage_visibility_ok, usage_reference=evidence.usage_reference,
+            total_connections=evidence.total_connections, accepted_connections=evidence.accepted_connections, total_bytes=evidence.total_bytes,
+            total_shares=evidence.total_shares, last_seen_at=evidence.last_seen_at, sample_window_seconds=evidence.sample_window_seconds,
+            source_query_or_artifact=evidence.source_query_or_artifact,
         ),
     )
     visibility["usage_counters_visibility"] = usage_report["usage_counters_visibility"]

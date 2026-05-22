@@ -88,3 +88,36 @@ def test_unexpected_active_customer_blocked(monkeypatch):
     r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.177", farm5_baseline_version="0.1.168")
     assert r["visibility"]["canary_customer_db_visibility"]["status"] == "BLOCKED"
     assert "unexpected_active_customer_present" in r["blockers"]
+
+
+
+def test_usage_integration_present_with_exact_scope_and_counter(monkeypatch):
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    ev = Phase11CanaryVisibilityEvidence(
+        customer_key="canary-btc-001", lane="btc", port=20001,
+        usage_visibility_ok=True, usage_reference="usage-ref", total_connections=1,
+    )
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.177", farm5_baseline_version="0.1.168", evidence=ev)
+    assert r["visibility"]["usage_counters_visibility"]["status"] == "PRESENT"
+    assert r["visibility"]["usage_counters_visibility"]["reference"] == "usage-ref"
+    for k in ("reject_counters_visibility", "active_recent_sessions_visibility", "unique_ips_visibility", "unique_workers_visibility", "abuse_coverage_visibility", "final_check_report_visibility", "rollback_or_restore_plan_visibility"):
+        assert r["visibility"][k]["status"] != "PRESENT"
+    assert r["final_decision"] == "PARTIAL_VISIBILITY"
+
+
+def test_usage_integration_exact_scope_reference_without_counter_missing(monkeypatch):
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, usage_visibility_ok=True, usage_reference="usage-ref")
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.177", farm5_baseline_version="0.1.168", evidence=ev)
+    assert r["visibility"]["usage_counters_visibility"]["status"] == "MISSING"
+
+
+def test_usage_integration_exact_scope_counter_without_reference_missing_with_warning(monkeypatch):
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, usage_visibility_ok=True, total_connections=2)
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.177", farm5_baseline_version="0.1.168", evidence=ev)
+    assert r["visibility"]["usage_counters_visibility"]["status"] == "MISSING"
+    assert "usage_visibility_ok_true_without_reference" in r["warnings"]
