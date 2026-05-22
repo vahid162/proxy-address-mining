@@ -68,24 +68,24 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
     missing_evidence: list[str] = []
     evidence = evidence or Phase11CanaryVisibilityEvidence()
 
-    scope_ok = evidence.customer_key in (None, customer_key) and evidence.lane in (None, lane) and evidence.port in (None, port)
-    if not scope_ok:
-        blockers.append("visibility_evidence_scope_mismatch")
-
     live_ev = Phase11CanaryAcceptanceEvidence()
     if collect_live:
         live = phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version)
         live_ev = Phase11CanaryAcceptanceEvidence.from_dict(live.get("evidence", {}))
+    expected_backend_target = live_ev.canary_nat_target
 
     customer_list = customer_read_service.list_customer_status(config, include_deleted=False, limit=1000)
     active_customers = customer_list.customers if customer_list.ok else []
     active_keys = [c.customer_key for c in active_customers]
     visible = any(c.customer_key == customer_key and c.lane == lane and c.port == port for c in active_customers)
+    canary_scope_mismatch = any(c.customer_key == customer_key and (c.lane != lane or c.port != port) for c in active_customers)
     unexpected = any(c.customer_key != customer_key for c in active_customers)
 
     visibility = {}
     if unexpected:
         visibility["canary_customer_db_visibility"] = _item("BLOCKED", "customer_read_service", None, ["unexpected active customer exists"], ["unexpected_active_customer_present"])
+    elif canary_scope_mismatch:
+        visibility["canary_customer_db_visibility"] = _item("BLOCKED", "customer_read_service", f"active_customer:{customer_key}", ["active non-deleted canary row has wrong lane/port scope"], ["canary_customer_db_scope_mismatch"])
     elif visible:
         visibility["canary_customer_db_visibility"] = _item("PRESENT", "customer_read_service", f"active_customer:{customer_key}", ["active non-deleted canary row found"], [])
     else:
@@ -93,8 +93,21 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
             warnings.append("customer_list_read_failed")
         visibility["canary_customer_db_visibility"] = _item("MISSING", "customer_read_service", None, ["no active non-deleted canary row found"], ["missing_non_deleted_canary_customer"])
 
+    positive_requested = any([
+        evidence.usage_visibility_ok, evidence.reject_visibility_ok, evidence.session_visibility_ok, evidence.unique_ip_visibility_ok,
+        evidence.worker_visibility_ok, evidence.abuse_coverage_ok, evidence.final_check_report_ok, evidence.rollback_or_restore_plan_ok,
+    ])
+    exact_scope_ok = (
+        evidence.customer_key == customer_key
+        and evidence.lane == lane
+        and evidence.port == port
+        and (not evidence.backend_target or not expected_backend_target or evidence.backend_target == expected_backend_target)
+    )
+    if positive_requested and not exact_scope_ok:
+        blockers.append("visibility_evidence_scope_mismatch")
+
     def from_evidence(name: str, ok: bool, ref: str | None, blocker: str):
-        if ok and ref and scope_ok:
+        if ok and ref and exact_scope_ok:
             return _item("PRESENT", "visibility_evidence_json", ref, ["source-backed evidence present"], [])
         if ok and not ref:
             warnings.append(f"{name}_true_without_reference")
@@ -112,7 +125,7 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
         visibility["abuse_coverage_visibility"] = from_evidence("abuse_coverage_ok", evidence.abuse_coverage_ok, evidence.abuse_reference, "missing_source_backed_canary_abuse_coverage")
 
     visibility["final_check_report_visibility"] = from_evidence("final_check_report_ok", evidence.final_check_report_ok, evidence.final_check_report_reference, "missing_source_backed_canary_final_check_report")
-    if (evidence.rollback_reference or evidence.restore_reference) and scope_ok:
+    if evidence.rollback_or_restore_plan_ok and (evidence.rollback_reference or evidence.restore_reference) and exact_scope_ok:
         visibility["rollback_or_restore_plan_visibility"] = _item("PRESENT", "visibility_evidence_json", evidence.rollback_reference or evidence.restore_reference, ["concrete rollback/restore reference present"], [])
     else:
         visibility["rollback_or_restore_plan_visibility"] = _item("MISSING", "artifact_or_docs", None, ["historical text without concrete machine reference is insufficient"], ["missing_canary_rollback_or_restore_reference"])
@@ -153,7 +166,7 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
         if not runtime_evidence[k]:
             missing_evidence.append(k)
 
-    final_decision = "VISIBILITY_READY" if not missing_visibility and not missing_evidence and not blockers else ("PARTIAL_VISIBILITY" if visibility["canary_customer_db_visibility"]["status"] != "BLOCKED" else "BLOCKED")
+    final_decision = "VISIBILITY_READY" if not missing_visibility and not missing_evidence and not blockers else ("BLOCKED" if "visibility_evidence_scope_mismatch" in blockers or visibility["canary_customer_db_visibility"]["status"] == "BLOCKED" else "PARTIAL_VISIBILITY")
     next_step = missing_visibility[0] if missing_visibility else (missing_evidence[0] if missing_evidence else "none")
 
     return {

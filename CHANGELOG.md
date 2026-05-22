@@ -2,6 +2,10 @@
 
 ## 0.1.173
 
+- add read-only Phase 11 canary visibility bundle service/CLI and integrate optional visibility collection into acceptance review with exact-scope, source-backed PRESENT semantics.
+
+## 0.1.172
+
 - hotfix: normalize Phase 11 live canary proxy evidence status mapping to canonical uppercase `HealthStatus` values so proxy evidence fields align with proxy doctor `OK` verdicts without changing NAT parsing or introducing mutation.
 
 ## 0.1.169
