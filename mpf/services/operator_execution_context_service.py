@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import getpass
 import os
+import pwd
 from dataclasses import dataclass, asdict
 
 from mpf.config import MPFConfig
@@ -13,6 +14,7 @@ class OperatorExecutionContextReport:
     mode: str = "read"
     os_user: str = ""
     effective_uid: int = 0
+    env_user: str = ""
     database_url: str = ""
     database_url_is_local_peer: bool = False
     db_write_requires_os_user: str | None = None
@@ -33,7 +35,9 @@ def _is_local_peer_dsn(dsn: str) -> bool:
 
 
 def build_operator_execution_context_report(config: MPFConfig, *, mode: str = "read") -> dict[str, object]:
-    os_user = getpass.getuser()
+    effective_uid = os.geteuid()
+    effective_os_user = pwd.getpwuid(effective_uid).pw_name
+    env_user = getpass.getuser()
     db_url = config.database.url
     is_local_peer = _is_local_peer_dsn(db_url)
     warnings: list[str] = []
@@ -45,7 +49,7 @@ def build_operator_execution_context_report(config: MPFConfig, *, mode: str = "r
     cmd_prefix: str | None = None
 
     if is_local_peer:
-        can_db_write = os_user == "mpf"
+        can_db_write = effective_os_user == "mpf"
         if mode == "db-write":
             if can_db_write:
                 decision = "OK_FOR_DB_WRITE"
@@ -64,8 +68,8 @@ def build_operator_execution_context_report(config: MPFConfig, *, mode: str = "r
 
     return OperatorExecutionContextReport(
         mode=mode,
-        os_user=os_user,
-        effective_uid=os.geteuid(),
+        os_user=effective_os_user,
+        effective_uid=effective_uid,
         database_url=db_url,
         database_url_is_local_peer=is_local_peer,
         db_write_requires_os_user=requires_user,
@@ -74,4 +78,5 @@ def build_operator_execution_context_report(config: MPFConfig, *, mode: str = "r
         blockers=sorted(set(blockers)),
         recommended_command_prefix=cmd_prefix,
         final_decision=decision,
+        env_user=env_user,
     ).to_dict()
