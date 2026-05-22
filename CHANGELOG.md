@@ -2,6 +2,10 @@
 
 ## 0.1.184
 
+- fix(phase11): make exact single-canary restore payload idempotent by emitting filter-only `MPFC_20001` reject counter source when the controlled canary NAT rule already exists, avoiding duplicate NAT append.
+
+## 0.1.183
+
 - fix(phase11): populate read-only `live_nat_prerequisites` in manual single-canary execute path before exact restore payload rendering when NAT hook already exists, preserving fail-closed bootstrap behavior when hook is missing.
 
 ## 0.1.182
