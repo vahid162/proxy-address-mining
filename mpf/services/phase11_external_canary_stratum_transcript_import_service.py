@@ -13,6 +13,7 @@ from mpf.config import MPFConfig
 from mpf.services import phase11_live_canary_evidence_collector_service
 from mpf.services.phase11_canary_acceptance_review_service import Phase11CanaryAcceptanceEvidence
 from mpf.services.phase11_canary_visibility_bundle_service import Phase11CanaryVisibilityEvidence
+from mpf.services import customer_read_service
 
 MAX_RAW_LEN = 512
 MAX_MESSAGES = 64
@@ -94,8 +95,14 @@ def build_phase11_external_canary_stratum_transcript_import_report(config: MPFCo
             config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version
         )
         live_ev = Phase11CanaryAcceptanceEvidence.from_dict(live.get("evidence", {}))
+        customer_list = customer_read_service.list_customer_status(config, include_deleted=False, limit=1000)
+        active_customers = customer_list.customers if customer_list.ok else []
+        canary_db_visible = any(c.customer_key == customer_key and c.lane == lane and c.port == port for c in active_customers)
+        canary_scope_mismatch = any(c.customer_key == customer_key and (c.lane != lane or c.port != port) for c in active_customers)
+        unexpected_active = any(c.customer_key != customer_key for c in active_customers)
+
         req_checks = {
-            "canary_customer_db_visible": live_ev.canary_customer_db_visible,
+            "canary_customer_db_visible": canary_db_visible and (not canary_scope_mismatch) and (not unexpected_active),
             "canary_nat_rule_present": live_ev.canary_nat_rule_present,
             "canary_nat_rule_count_eq_1": live_ev.canary_nat_rule_count == 1,
             "canary_nat_target_present": bool(live_ev.canary_nat_target),

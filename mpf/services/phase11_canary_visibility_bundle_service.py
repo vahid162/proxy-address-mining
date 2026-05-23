@@ -253,6 +253,8 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
 
     if visibility["canary_customer_db_visibility"]["status"] != "PRESENT":
         visibility["abuse_coverage_visibility"] = _item("MISSING", "phase9_abuse_visibility", None, ["canary DB visibility is required first"], ["missing_canary_customer_for_abuse_coverage"])
+    elif evidence.evidence_source != "live_source_backed_canary_abuse_coverage":
+        visibility["abuse_coverage_visibility"] = _item("MISSING", "phase9_abuse_visibility", evidence.abuse_reference, ["docs-only or non-allowlisted abuse evidence source is insufficient"], ["missing_source_backed_canary_abuse_coverage"])
     else:
         visibility["abuse_coverage_visibility"] = from_evidence("abuse_coverage_ok", evidence.abuse_coverage_ok, evidence.abuse_reference, "missing_source_backed_canary_abuse_coverage")
 

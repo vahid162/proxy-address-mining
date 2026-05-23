@@ -2,7 +2,7 @@
 
 ## Prerequisites
 - Sync latest `main` on farm5.
-- Confirm version is `0.1.186`.
+- Confirm version is `0.1.187`.
 - Do **not** onboard real customers.
 
 ## Preflight
@@ -27,7 +27,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.186 \
+  --expected-version 0.1.187 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -66,7 +66,7 @@ mpf production manual-canary-execute \
 - plan command:
   - `mpf production manual-canary-execute --output json`
 - execute-control command:
-  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.186 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
+  - `MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP=allow mpf production manual-canary-execute --requested-action execute --customer-key canary-btc-001 --lane btc --port 20001 --miners 1 --farms 1 --maxconn 1 --expected-version 0.1.187 --operator-confirmed --i-understand-this-can-create-a-canary-customer --i-understand-this-can-apply-firewall --i-have-reviewed-rollback --i-have-fresh-farm5-sync --operator "<operator-name>" --reason "Phase 11H restore backup boundary check" --output json`
 - exact payload renderer behavior: execute path now renders deterministic exact payload for canary-btc-001/btc/20001->60010 after restore+backup+diff checks.
 - expected blocker without host-apply context guard: `single_canary_host_apply_context_not_confirmed`.
 - expected blocker with both restore-backup and host-apply context guards enabled: `accepted_single_canary_host_apply_execution_missing`.
@@ -86,7 +86,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.186 \
+  --expected-version 0.1.187 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -112,7 +112,7 @@ mpf production manual-canary-execute \
   --miners 1 \
   --farms 1 \
   --maxconn 1 \
-  --expected-version 0.1.186 \
+  --expected-version 0.1.187 \
   --operator-confirmed \
   --i-understand-this-can-create-a-canary-customer \
   --i-understand-this-can-apply-firewall \
@@ -216,7 +216,7 @@ Historical executed-evidence note (farm5 0.1.167): `--expected-version 0.1.167` 
 Run:
 
 ```bash
-mpf production canary-acceptance-review --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.186 --farm5-baseline-version 0.1.168 --output json
+mpf production canary-acceptance-review --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.187 --farm5-baseline-version 0.1.168 --output json
 ```
 
 Optional evidence JSON input (`--evidence-json /path/to/evidence.json`):
@@ -244,26 +244,26 @@ This command is read-only and non-mutating: it does not apply firewall, does not
 ## Read-only live canary evidence collector
 
 ```bash
-mpf production canary-evidence-collect --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.186 --farm5-baseline-version 0.1.168 --output json
+mpf production canary-evidence-collect --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.187 --farm5-baseline-version 0.1.168 --output json
 ```
 
 ```bash
-mpf production canary-acceptance-review --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.186 --farm5-baseline-version 0.1.168 --collect-live --output json
+mpf production canary-acceptance-review --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.187 --farm5-baseline-version 0.1.168 --collect-live --output json
 ```
 
 
 ### Phase 11 usage visibility checks
 
 ```bash
-mpf production canary-usage-visibility --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.186 --farm5-baseline-version 0.1.168 --collect-live --output json
-mpf production canary-visibility-bundle --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.186 --farm5-baseline-version 0.1.168 --collect-live --evidence-json /tmp/phase11-canary-usage-evidence.json --evidence-json /tmp/phase11-canary-reject-session-ip-evidence.json --evidence-json /tmp/phase11-canary-reject-counters-evidence.json --output json
-mpf production canary-acceptance-review --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.186 --farm5-baseline-version 0.1.168 --collect-live --collect-visibility --visibility-json /tmp/phase11-canary-usage-evidence.json --visibility-json /tmp/phase11-canary-reject-session-ip-evidence.json --visibility-json /tmp/phase11-canary-reject-counters-evidence.json --output json
+mpf production canary-usage-visibility --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.187 --farm5-baseline-version 0.1.168 --collect-live --output json
+mpf production canary-visibility-bundle --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.187 --farm5-baseline-version 0.1.168 --collect-live --evidence-json /tmp/phase11-canary-usage-evidence.json --evidence-json /tmp/phase11-canary-reject-session-ip-evidence.json --evidence-json /tmp/phase11-canary-reject-counters-evidence.json --output json
+mpf production canary-acceptance-review --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.187 --farm5-baseline-version 0.1.168 --collect-live --collect-visibility --visibility-json /tmp/phase11-canary-usage-evidence.json --visibility-json /tmp/phase11-canary-reject-session-ip-evidence.json --visibility-json /tmp/phase11-canary-reject-counters-evidence.json --output json
 # optional source-backed usage evidence json
 mpf production canary-usage-visibility --evidence-json ./canary-usage-evidence.json --output json
 ```
 
 
-mpf production canary-reject-counters-visibility --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.186 --farm5-baseline-version 0.1.168 --collect-live --write-evidence-json /tmp/phase11-canary-reject-counters-evidence.json --overwrite-evidence-json --output json
+mpf production canary-reject-counters-visibility --customer-key canary-btc-001 --lane btc --port 20001 --expected-version 0.1.187 --farm5-baseline-version 0.1.168 --collect-live --write-evidence-json /tmp/phase11-canary-reject-counters-evidence.json --overwrite-evidence-json --output json
 
 
 ## Read-only reject counter source verification (exact canary scope)

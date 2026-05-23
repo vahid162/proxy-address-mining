@@ -41,6 +41,7 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 ## Accepted Server Results
 
+- Phase 11 farm5 0.1.187 planning/readiness note: added read-only source-backed canary abuse coverage visibility evidence and hardened external transcript import collect-live canary DB validation to use exact-scope customer_read_service checks; Current State remains unchanged and Phase 11 remains not accepted.
 - Phase 11 farm5 0.1.186 planning/readiness note: added source-backed external Stratum transcript import for canary worker visibility evidence (to handle farm5 self/public-IP hairpin limitation) and integrated it into visibility bundle/acceptance review without opening any runtime gate; Current State remains unchanged and Phase 11 remains not accepted.
 ### Phase 11 farm5 0.1.147 Sync/Test Evidence
 

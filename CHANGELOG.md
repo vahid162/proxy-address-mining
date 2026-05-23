@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.187
+- feat(phase11): add source-backed canary abuse coverage visibility command/evidence and harden external transcript --collect-live canary DB validation via customer_read_service exact-scope checks.
+
+
 ## 0.1.186
 - feat(phase11): add source-backed `mpf production canary-external-stratum-transcript-import` for fail-closed external transcript evidence import and visibility/acceptance integration.
 - fix(phase11): correct forwarder pool evidence classification to avoid requiring worker names in forwarder logs.
