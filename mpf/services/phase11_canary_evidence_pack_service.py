@@ -240,8 +240,33 @@ def build_phase11_canary_evidence_pack_report(config: MPFConfig, **kwargs: objec
         skipped_files.append({"file": FILES["worker"], "status": "SKIPPED", "reason": "worker_probe_skipped_or_missing_inputs"})
 
     _collector("abuse", FILES["abuse"], lambda: phase11_canary_abuse_coverage_visibility_service.build_phase11_canary_abuse_coverage_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live), "generated_evidence")
-    _collector("final_check", FILES["final_check"], lambda: phase11_canary_final_check_report_visibility_service.build_phase11_canary_final_check_report_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live), "generated_evidence")
-    _collector("rollback", FILES["rollback"], lambda: phase11_canary_rollback_restore_visibility_service.build_phase11_canary_rollback_restore_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live), "generated_evidence")
+
+    merged_pre_final = phase11_canary_visibility_bundle_service.merge_phase11_canary_visibility_evidence(
+        visibility_evs, customer_key=customer_key, lane=lane, port=port, expected_backend_target=str(backend_target) if backend_target else None
+    )
+    final_check_report = _collector(
+        "final_check",
+        FILES["final_check"],
+        lambda: phase11_canary_final_check_report_visibility_service.build_phase11_canary_final_check_report_visibility_report(
+            config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=merged_pre_final
+        ),
+    )
+    if isinstance(final_check_report, dict) and final_check_report.get("final_decision") == "READY" and final_check_report.get("final_check_report_ok") is True and final_check_report.get("final_check_report_reference"):
+        ev = final_check_report.get("generated_evidence")
+        if isinstance(ev, dict):
+            visibility_evs.append(phase11_canary_visibility_bundle_service.Phase11CanaryVisibilityEvidence.from_dict(ev))
+
+    rollback_report = _collector(
+        "rollback",
+        FILES["rollback"],
+        lambda: phase11_canary_rollback_restore_visibility_service.build_phase11_canary_rollback_restore_visibility_report(
+            config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live
+        ),
+    )
+    if isinstance(rollback_report, dict) and rollback_report.get("final_decision") == "READY" and rollback_report.get("rollback_or_restore_plan_ok") is True and (rollback_report.get("rollback_reference") or rollback_report.get("restore_reference")):
+        ev = rollback_report.get("generated_evidence")
+        if isinstance(ev, dict):
+            visibility_evs.append(phase11_canary_visibility_bundle_service.Phase11CanaryVisibilityEvidence.from_dict(ev))
 
     merged = phase11_canary_visibility_bundle_service.merge_phase11_canary_visibility_evidence(
         visibility_evs, customer_key=customer_key, lane=lane, port=port, expected_backend_target=str(backend_target) if backend_target else None

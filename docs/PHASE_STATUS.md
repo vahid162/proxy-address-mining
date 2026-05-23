@@ -2,6 +2,8 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.194): canary evidence-pack now derives final-check and rollback/restore visibility from merged source-backed evidence when exact-scope prerequisites are READY; this does not change Current State gates or authorize production/onboarding/apply.
+
 This file is the authoritative phase gate for humans and AI coding agents. It must be checked before changing code, scripts, deployment files, services, jobs, tests, migrations, or documentation.
 
 ## Current State
