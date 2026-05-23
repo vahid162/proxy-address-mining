@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+
+from mpf import __version__
 from typing import Callable
 
 
 @dataclass(slots=True)
 class SingleCanaryHostApplyPrimitive:
-    expected_version: str = "0.1.188"
+    expected_version: str = __version__
     host_apply_executor: Callable[[dict[str, object], str], dict[str, object]] | object | None = None
     post_apply_verifier: Callable[[dict[str, object]], dict[str, object]] | object | None = None
 

@@ -3,10 +3,12 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 
+from mpf import __version__
+
 
 @dataclass(slots=True)
 class Phase11ExactCanaryRestorePayloadRenderer:
-    expected_version: str = "0.1.188"
+    expected_version: str = __version__
 
     def render(self, report: dict[str, object]) -> dict[str, object]:
         request = report.get("request", {}) if isinstance(report.get("request"), dict) else {}

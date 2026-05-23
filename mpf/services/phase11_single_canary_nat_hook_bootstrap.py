@@ -5,10 +5,12 @@ import os
 import subprocess
 from dataclasses import dataclass
 
+from mpf import __version__
+
 
 @dataclass(slots=True)
 class Phase11SingleCanaryNatHookBootstrapService:
-    expected_version: str = "0.1.188"
+    expected_version: str = __version__
 
     def _run(self, argv: list[str], **kwargs) -> subprocess.CompletedProcess:
         return subprocess.run(argv, shell=False, check=False, capture_output=True, **kwargs)
