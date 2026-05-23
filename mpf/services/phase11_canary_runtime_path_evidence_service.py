@@ -57,19 +57,34 @@ def _classify_conntrack(text: str, *, port: int, backend_target: str | None, sou
     return False, blockers or ["missing_conntrack_assured_canary_flow"]
 
 
-def _classify_forwarder(text: str, *, source_ip: str | None, source_port: int | None, backend_target: str, pool_host: str, pool_port: int) -> tuple[bool, list[str]]:
+def _classify_forwarder(text: str, *, source_ip: str | None, source_port: int | None, backend_target: str, pool_host: str, pool_port: int) -> tuple[bool, list[str], dict[str, object]]:
+    diagnostics: dict[str, object] = {
+        "forwarder_log_lines_sampled": 0,
+        "forwarder_pool_host_seen": False,
+        "forwarder_backend_target_seen": False,
+        "forwarder_endpoint_seen": False,
+        "forwarder_correlation_mode": "exact_same_line",
+    }
     endpoint = f"{source_ip}:{source_port}" if source_ip and source_port else None
     if source_ip and not source_port:
-        return False, ["forwarder_source_endpoint_mismatch"]
+        diagnostics["forwarder_endpoint_seen"] = False
+        return False, ["forwarder_source_endpoint_mismatch"], diagnostics
     if not text.strip():
-        return False, ["forwarder_log_read_failed"]
-    for ln in text.splitlines():
+        return False, ["forwarder_log_read_failed"], diagnostics
+    lines = text.splitlines()
+    diagnostics["forwarder_log_lines_sampled"] = len(lines)
+    for ln in lines:
         has_backend = backend_target in ln
         has_pool = f"{pool_host}:{pool_port}" in ln
         has_endpoint = endpoint in ln if endpoint else False
+        diagnostics["forwarder_pool_host_seen"] = bool(diagnostics["forwarder_pool_host_seen"] or has_pool)
+        diagnostics["forwarder_backend_target_seen"] = bool(diagnostics["forwarder_backend_target_seen"] or has_backend)
+        diagnostics["forwarder_endpoint_seen"] = bool(diagnostics["forwarder_endpoint_seen"] or has_endpoint)
         if has_backend and has_pool and (has_endpoint or endpoint is None):
-            return True, []
-    return False, ["missing_forwarder_pool_correlation"]
+            return True, [], diagnostics
+    if diagnostics["forwarder_pool_host_seen"] and diagnostics["forwarder_backend_target_seen"]:
+        return False, ["forwarder_pool_and_backend_seen_without_correlation"], diagnostics
+    return False, ["missing_forwarder_pool_correlation"], diagnostics
 
 
 def _classify_bridge(text: str, *, backend_target: str, bridge_target: str) -> tuple[bool, list[str]]:
@@ -128,13 +143,19 @@ def build_phase11_canary_runtime_path_evidence_report(config: MPFConfig, **kwarg
         source_parts.append("docker logs --tail 300 mpf-v2raya-socks-bridge")
 
     c_ok, c_b = _classify_conntrack(conntrack_text, port=port, backend_target=backend_target, source_ip=source_ip if isinstance(source_ip, str) else None, source_port=int(source_port) if isinstance(source_port, int) else None)
-    f_ok, f_b = _classify_forwarder(forwarder_text, source_ip=source_ip if isinstance(source_ip, str) else None, source_port=int(source_port) if isinstance(source_port, int) else None, backend_target=backend_target, pool_host=pool_host, pool_port=pool_port)
+    f_ok, f_b, f_diag = _classify_forwarder(forwarder_text, source_ip=source_ip if isinstance(source_ip, str) else None, source_port=int(source_port) if isinstance(source_port, int) else None, backend_target=backend_target, pool_host=pool_host, pool_port=pool_port)
     b_ok, b_b = _classify_bridge(bridge_text, backend_target=backend_target, bridge_target=bridge_target)
     blockers.extend(c_b + f_b + b_b)
 
     ref = f"runtime_path:{customer_key}:{lane}:{port}:{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
-    ev = Phase11CanaryVisibilityEvidence(captured_at=datetime.now(UTC).isoformat(), captured_by=getpass.getuser(), evidence_source=ALLOWED_SOURCE, evidence_reference=ref, customer_key=customer_key, lane=lane, port=port, backend_target=backend_target, conntrack_assured=c_ok, forwarder_pool_seen=f_ok, bridge_loopback_seen=b_ok, source_query_or_artifact=",".join(source_parts))
-    return {"component":"phase11_canary_runtime_path_evidence","expected_version":expected_version,"repository_version":__version__,"farm5_baseline_version":farm5_baseline_version,"customer_key":customer_key,"lane":lane,"public_port":port,"backend_target":backend_target,"mutation_performed":False,"db_mutation_performed":False,"firewall_mutation_performed":False,"nat_mutation_performed":False,"conntrack_mutation_performed":False,"docker_mutation_performed":False,"production_traffic_enabled":False,"phase11_accepted":False,"limited_onboarding_allowed":False,"no_onboarding_authorized":True,"generated_evidence":asdict(ev),"blockers":sorted(set(blockers)),"final_decision":"RUNTIME_PATH_EVIDENCE_READY" if (c_ok and f_ok and b_ok and not blockers) else "BLOCKED"}
+    source_query = ",".join(source_parts)
+    ev = Phase11CanaryVisibilityEvidence(captured_at=datetime.now(UTC).isoformat(), captured_by=getpass.getuser(), evidence_source=ALLOWED_SOURCE, evidence_reference=ref, customer_key=customer_key, lane=lane, port=port, backend_target=backend_target, conntrack_assured=c_ok, forwarder_pool_seen=f_ok, bridge_loopback_seen=b_ok, source_query_or_artifact=source_query)
+    diagnostics = {
+        **f_diag,
+        "forwarder_endpoint_seen": f_diag.get("forwarder_endpoint_seen", False),
+        "source_query_or_artifact": source_query,
+    }
+    return {"component":"phase11_canary_runtime_path_evidence","expected_version":expected_version,"repository_version":__version__,"farm5_baseline_version":farm5_baseline_version,"customer_key":customer_key,"lane":lane,"public_port":port,"backend_target":backend_target,"mutation_performed":False,"db_mutation_performed":False,"firewall_mutation_performed":False,"nat_mutation_performed":False,"conntrack_mutation_performed":False,"docker_mutation_performed":False,"production_traffic_enabled":False,"phase11_accepted":False,"limited_onboarding_allowed":False,"no_onboarding_authorized":True,"generated_evidence":asdict(ev),"diagnostics":diagnostics,"blockers":sorted(set(blockers)),"final_decision":"RUNTIME_PATH_EVIDENCE_READY" if (c_ok and f_ok and b_ok and not blockers) else "BLOCKED"}
 
 
 def write_runtime_path_evidence_json(*, report: dict[str, object], path: Path, overwrite: bool = False) -> None:

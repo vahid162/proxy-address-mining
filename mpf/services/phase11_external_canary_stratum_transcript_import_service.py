@@ -51,7 +51,7 @@ def _classify_forwarder_pool_seen(*, source_ip: str | None, source_port: int | N
 
 
 def build_phase11_external_canary_stratum_transcript_import_report(config: MPFConfig, *, customer_key: str, lane: str, port: int, expected_version: str, farm5_baseline_version: str, transcript_json: Path, collect_live: bool = False) -> dict[str, object]:
-    raw_obj = json.loads(transcript_json.read_text(encoding="utf-8"))
+    raw_obj = json.loads(transcript_json.read_text(encoding="utf-8-sig"))
     blockers: list[str] = []
     warnings: list[str] = []
 

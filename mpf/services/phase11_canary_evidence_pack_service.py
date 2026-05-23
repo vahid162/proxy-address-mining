@@ -178,9 +178,16 @@ def build_phase11_canary_evidence_pack_report(config: MPFConfig, **kwargs: objec
             skipped_files.append({"file": filename, "status": "FAILED", "reason": f"{name}_failed"})
             return None
 
-    _collector("usage_evidence", FILES["usage_evidence"], lambda: phase11_canary_usage_evidence_capture_service.build_phase11_canary_usage_evidence_capture_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live))
-    _collector("usage_visibility", FILES["usage_visibility"], lambda: phase11_canary_usage_visibility_service.build_phase11_canary_usage_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live), "generated_evidence")
-    _collector("reject_session_ip", FILES["reject_evidence"], lambda: phase11_canary_reject_session_ip_evidence_capture_service.build_phase11_canary_reject_session_ip_evidence_capture_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live))
+    usage_capture = _collector("usage_evidence", FILES["usage_evidence"], lambda: phase11_canary_usage_evidence_capture_service.build_phase11_canary_usage_evidence_capture_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live))
+    usage_visibility_input = None
+    if usage_capture and isinstance(usage_capture.get("usage_evidence"), dict):
+        usage_visibility_input = phase11_canary_usage_visibility_service.Phase11CanaryUsageVisibilityEvidence.from_dict(usage_capture["usage_evidence"])
+    _collector("usage_visibility", FILES["usage_visibility"], lambda: phase11_canary_usage_visibility_service.build_phase11_canary_usage_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=usage_visibility_input), "generated_evidence")
+    reject_session_ip = _collector("reject_session_ip", FILES["reject_evidence"], lambda: phase11_canary_reject_session_ip_evidence_capture_service.build_phase11_canary_reject_session_ip_evidence_capture_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live))
+    if reject_session_ip and isinstance(reject_session_ip.get("generated_evidence"), dict):
+        visibility_evs.append(phase11_canary_visibility_bundle_service.Phase11CanaryVisibilityEvidence.from_dict(reject_session_ip["generated_evidence"]))
+    elif reject_session_ip:
+        skipped_files.append({"file": FILES["reject_evidence"], "status": "SKIPPED", "reason": "session_ip_source_backed_evidence_not_available_yet"})
     _collector("reject_visibility", FILES["reject_visibility"], lambda: phase11_canary_reject_counters_visibility_service.build_phase11_canary_reject_counters_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live), "generated_evidence")
 
     transcript_paths = [Path(p) for p in (kwargs.get("external_stratum_transcript_json") or [])]

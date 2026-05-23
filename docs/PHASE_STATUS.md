@@ -2955,3 +2955,4 @@ State:
 - 2026-05-23 (farm5, v0.1.188 planning/readiness): added source-backed canary final-check-report visibility and rollback/restore-plan visibility artifacts; acceptance remains BLOCKED pending conntrack_assured/forwarder_pool_seen/bridge_loopback_seen evidence.
 
 - 0.1.191: Added read-only `mpf production canary-evidence-pack` planning/readiness evidence orchestration. Phase 11 remains not accepted and Current State gate values unchanged.
+- 0.1.192: Phase 11 planning/readiness wiring update for canary evidence-pack visibility artifact integration, UTF-8 BOM tolerant external transcript import, and forwarder diagnostics hardening; Current State unchanged, Phase 11 remains not accepted, production_traffic remains none, customer_onboarding_allowed remains db_only, abuse_automation_allowed remains no, ui/telegram remain no.
