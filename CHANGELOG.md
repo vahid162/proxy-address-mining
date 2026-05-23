@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.195
+- fix(phase11): support NAT-aware conntrack proof and multiline forwarder local-port correlation for canary runtime path evidence while preserving fail-closed Phase 11 gates.
+
 ## 0.1.194
 - fix(phase11): build final check and rollback visibility from merged evidence pack state with source-backed READY evidence gating and fail-closed acceptance mapping.
 
