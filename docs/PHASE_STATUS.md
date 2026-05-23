@@ -73,7 +73,7 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 - Phase 11 farm5 0.1.181 planning/readiness note: added read-only canary reject counters visibility capture (`mpf production canary-reject-counters-visibility`) with exact canary-scoped source requirement and evidence JSON merge compatibility; Current State remains unchanged and Phase 11 remains not accepted.
 - Phase 11 farm5 0.1.182 planning/readiness note: extended exact controlled single-canary restore payload scope to include canary-only filter reject counter source (`MPFC_20001` with `mpf:canary-btc-001:customer_connlimit_reject` and `mpf:canary-btc-001:customer_hashlimit_reject`) so reject visibility stays fail-closed and becomes PRESENT only with exact source-backed counters; Current State remains unchanged and Phase 11 remains not accepted.
 - Phase 11 farm5 0.1.183 hotfix planning/readiness note: populated read-only `live_nat_prerequisites` during controlled single-canary execute path before exact restore payload rendering when NAT hook prerequisites already exist, preserving fail-closed bootstrap-required behavior when hook is missing; Current State remains unchanged and Phase 11 remains not accepted.
-- Phase 11 farm5 0.1.184 hotfix planning/readiness note: exact single-canary restore payload rendering is idempotent when the controlled canary NAT rule already exists by emitting filter-only source (`MPFC_20001` connlimit/hashlimit reject rules) and avoiding duplicate NAT append; Current State remains unchanged and Phase 11 remains not accepted.
+- Phase 11 farm5 0.1.185 hotfix planning/readiness note: exact single-canary restore payload rendering is idempotent when the controlled canary NAT rule already exists by emitting filter-only source (`MPFC_20001` connlimit/hashlimit reject rules) and avoiding duplicate NAT append; Current State remains unchanged and Phase 11 remains not accepted.
 
 ### Phase 10 farm5 0.1.128 Sync/Test Evidence
 
@@ -2942,3 +2942,6 @@ State:
 
 - farm5 0.1.158 sync/test evidence recorded: sync OK, pytest OK, doctor/db/proxy doctor OK, plan mode non-mutating, execute-control blocked on `real_restore_backup_adapter_missing`; Current State remains unchanged and Phase 11 remains not accepted.
 - Phase 11 farm5 0.1.178 planning/readiness note: added read-only canary usage evidence capture (`mpf production canary-usage-evidence-capture`) and operator execution context guard (`mpf production operator-context`) to prevent local-peer DB-write execution as root while preserving read-only root status checks; Current State gate values remain unchanged and Phase 11 remains not accepted.
+
+
+- Phase 11 farm5 0.1.185 planning/readiness note: added source-backed canary worker/Stratum evidence capture for unique worker visibility and Stratum subscribe/authorize/notify evidence; Current State unchanged; Phase 11 not accepted; production traffic none; customer onboarding db_only; abuse automation/UI/Telegram closed.

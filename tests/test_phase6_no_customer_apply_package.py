@@ -8,7 +8,7 @@ from mpf.config import load_config
 from mpf.interfaces.cli import app
 from mpf.services.firewall_no_customer_apply_package_service import build_no_customer_apply_package_report
 
-EXPECTED_VERSION = "0.1.184"
+EXPECTED_VERSION = "0.1.185"
 
 
 def example_config_path() -> Path:

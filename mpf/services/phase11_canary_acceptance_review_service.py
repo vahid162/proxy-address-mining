@@ -218,6 +218,14 @@ def build_phase11_canary_acceptance_review_report(config: MPFConfig, *, customer
     ]:
         if not flag:
             missing_evidence.append(key)
+    if evidence.stratum_subscribe_ok and evidence.stratum_authorize_ok and not evidence.stratum_notify_seen:
+        warnings.append("stratum_notify_not_observed")
+    if evidence.stratum_subscribe_ok and evidence.stratum_authorize_ok and not evidence.stratum_set_difficulty_seen:
+        warnings.append("stratum_set_difficulty_not_observed")
+    if not evidence.forwarder_pool_seen:
+        warnings.append("forwarder_pool_seen_not_proven")
+    if not evidence.bridge_loopback_seen:
+        warnings.append("bridge_loopback_seen_not_proven")
 
     vis_map = {
         "usage_counters_visibility": evidence.usage_visibility_ok,

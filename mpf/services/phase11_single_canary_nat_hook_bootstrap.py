@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Phase11SingleCanaryNatHookBootstrapService:
-    expected_version: str = "0.1.184"
+    expected_version: str = "0.1.185"
 
     def _run(self, argv: list[str], **kwargs) -> subprocess.CompletedProcess:
         return subprocess.run(argv, shell=False, check=False, capture_output=True, **kwargs)

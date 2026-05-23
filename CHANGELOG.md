@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.184
+## 0.1.185
 
 - fix(phase11): make exact single-canary restore payload idempotent by emitting filter-only `MPFC_20001` reject counter source when the controlled canary NAT rule already exists, avoiding duplicate NAT append.
 
