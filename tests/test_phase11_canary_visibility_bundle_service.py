@@ -240,3 +240,39 @@ def test_worker_visibility_source_allowlist_fail_closed():
     ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="bogus_source", worker_visibility_ok=True, worker_reference="bad-ref")
     r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.188", farm5_baseline_version="0.1.168", evidence=ev)
     assert r["visibility"]["unique_workers_visibility"]["status"] != "PRESENT"
+
+def test_final_check_merge_source_preservation(monkeypatch):
+    c = CustomerRecord(id=1, customer_key="canary-btc-001", name="x", lane="btc", port=20001, status="active", activation_mode=None, expires_at=None, deleted_at=None)
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[c]))
+    usage = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_canary_usage", usage_visibility_ok=True, usage_reference="u", total_connections=1)
+    worker = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_external_canary_stratum_transcript", worker_visibility_ok=True, worker_reference="w")
+    abuse = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_canary_abuse_coverage", abuse_coverage_ok=True, abuse_reference="a")
+    final_check = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_canary_final_check_report", final_check_report_ok=True, final_check_report_reference="f")
+    merged = merge_phase11_canary_visibility_evidence([usage, worker, abuse, final_check], customer_key="canary-btc-001", lane="btc", port=20001)
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.188", farm5_baseline_version="0.1.168", evidence=merged)
+    assert r["visibility"]["final_check_report_visibility"]["status"] == "PRESENT"
+    assert r["visibility"]["unique_workers_visibility"]["status"] == "PRESENT"
+    assert r["visibility"]["abuse_coverage_visibility"]["status"] == "PRESENT"
+
+
+def test_final_check_bogus_source_not_present(monkeypatch):
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, final_check_report_ok=True, final_check_report_reference="f", final_check_evidence_source="bogus")
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.188", farm5_baseline_version="0.1.168", evidence=ev)
+    assert r["visibility"]["final_check_report_visibility"]["status"] != "PRESENT"
+
+
+def test_rollback_merge_source_preservation(monkeypatch):
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
+    usage = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_canary_usage", usage_visibility_ok=True, usage_reference="u", total_connections=1)
+    rb = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_canary_rollback_restore_plan", rollback_or_restore_plan_ok=True, rollback_reference="rb")
+    merged = merge_phase11_canary_visibility_evidence([usage, rb], customer_key="canary-btc-001", lane="btc", port=20001)
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.188", farm5_baseline_version="0.1.168", evidence=merged)
+    assert r["visibility"]["rollback_or_restore_plan_visibility"]["status"] == "PRESENT"
+
+
+def test_rollback_bogus_source_not_present(monkeypatch):
+    monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[]))
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, rollback_or_restore_plan_ok=True, rollback_reference="rb", rollback_restore_evidence_source="bogus")
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.188", farm5_baseline_version="0.1.168", evidence=ev)
+    assert r["visibility"]["rollback_or_restore_plan_visibility"]["status"] != "PRESENT"

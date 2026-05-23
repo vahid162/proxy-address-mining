@@ -342,3 +342,17 @@ def test_cli_collect_visibility_with_reject_evidence_advances_to_unique_workers(
     assert '"missing_visibility:unique_ips_visibility"' not in res.stdout
     assert '"phase11_accepted": false' in res.stdout
     assert '"production_traffic_enabled": false' in res.stdout
+
+def test_acceptance_review_visibility_complete_but_runtime_missing(monkeypatch):
+    ev = _base_evidence()
+    ev.final_check_report_ok = True
+    ev.rollback_reference = "canary_rollback_restore_plan:canary-btc-001:btc:20001:abc"
+    ev.conntrack_assured = False
+    ev.forwarder_pool_seen = False
+    ev.bridge_loopback_seen = False
+    report = _report(monkeypatch, ev)
+    assert report["missing_visibility_primitives"] == []
+    assert report["final_decision"] == "BLOCKED"
+    assert report["phase11_accepted"] is False
+    assert report["limited_onboarding_allowed"] is False
+    assert report["no_onboarding_authorized"] is True

@@ -44,9 +44,11 @@ class Phase11CanaryVisibilityEvidence:
     abuse_evidence_source: str | None = None
     final_check_report_ok: bool = False
     final_check_report_reference: str | None = None
+    final_check_evidence_source: str | None = None
     rollback_or_restore_plan_ok: bool = False
     rollback_reference: str | None = None
     restore_reference: str | None = None
+    rollback_restore_evidence_source: str | None = None
     conntrack_assured: bool = False
     stratum_subscribe_ok: bool = False
     stratum_authorize_ok: bool = False
@@ -143,6 +145,7 @@ def merge_phase11_canary_visibility_evidence(
             continue
         merged.final_check_report_ok = True
         merged.final_check_report_reference = ev.final_check_report_reference
+        merged.final_check_evidence_source = ev.evidence_source
         break
 
     rollback_ref = None
@@ -151,13 +154,19 @@ def merge_phase11_canary_visibility_evidence(
     for ev in evidences:
         if not ev.rollback_or_restore_plan_ok or not _scope_ok(ev):
             continue
+        if ev.evidence_source != "live_source_backed_canary_rollback_restore_plan":
+            continue
+        if not (ev.rollback_reference or ev.restore_reference):
+            continue
         if ev.rollback_reference:
             rollback_ref = ev.rollback_reference
             rollback_ok = True
+            merged.rollback_restore_evidence_source = ev.evidence_source
             break
         if ev.restore_reference and not restore_ref:
             restore_ref = ev.restore_reference
             rollback_ok = True
+            merged.rollback_restore_evidence_source = ev.evidence_source
     merged.rollback_or_restore_plan_ok = rollback_ok
     merged.rollback_reference = rollback_ref
     merged.restore_reference = restore_ref
@@ -274,11 +283,11 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
     else:
         visibility["abuse_coverage_visibility"] = from_evidence("abuse_coverage_ok", evidence.abuse_coverage_ok, evidence.abuse_reference, "missing_source_backed_canary_abuse_coverage")
 
-    if evidence.evidence_source == "live_source_backed_canary_final_check_report":
+    if evidence.final_check_evidence_source == "live_source_backed_canary_final_check_report":
         visibility["final_check_report_visibility"] = from_evidence("final_check_report_ok", evidence.final_check_report_ok, evidence.final_check_report_reference, "missing_source_backed_canary_final_check_report")
     else:
         visibility["final_check_report_visibility"] = _item("MISSING", "phase9_surface_or_missing", evidence.final_check_report_reference, ["docs-only or non-allowlisted final check source is insufficient"], ["missing_source_backed_canary_final_check_report"])
-    if evidence.rollback_or_restore_plan_ok and (evidence.rollback_reference or evidence.restore_reference) and exact_scope_ok and evidence.evidence_source == "live_source_backed_canary_rollback_restore_plan":
+    if evidence.rollback_or_restore_plan_ok and (evidence.rollback_reference or evidence.restore_reference) and exact_scope_ok and evidence.rollback_restore_evidence_source == "live_source_backed_canary_rollback_restore_plan":
         visibility["rollback_or_restore_plan_visibility"] = _item("PRESENT", "visibility_evidence_json", evidence.rollback_reference or evidence.restore_reference, ["concrete rollback/restore reference present"], [])
     else:
         visibility["rollback_or_restore_plan_visibility"] = _item("MISSING", "artifact_or_docs", None, ["historical text without concrete machine reference is insufficient"], ["missing_canary_rollback_or_restore_reference"])

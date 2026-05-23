@@ -1,31 +1,149 @@
 from __future__ import annotations
-import hashlib, json
+
+import hashlib
+import json
 from pathlib import Path
+
 from mpf import __version__
 from mpf.config import MPFConfig
 from mpf.services import phase11_live_canary_evidence_collector_service
 from mpf.services.phase11_canary_acceptance_review_service import Phase11CanaryAcceptanceEvidence
-ALLOWED_SOURCE='live_source_backed_canary_rollback_restore_plan'
+from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
 
-def build_phase11_canary_rollback_restore_visibility_report(config:MPFConfig,*,customer_key:str,lane:str,port:int,expected_version:str,farm5_baseline_version:str,collect_live:bool=False)->dict[str,object]:
-    blockers=[]
-    live=Phase11CanaryAcceptanceEvidence()
+ALLOWED_SOURCE = "live_source_backed_canary_rollback_restore_plan"
+
+
+def _render_restore_artifact(expected_version: str) -> dict[str, object]:
+    renderer = Phase11ExactCanaryRestorePayloadRenderer(expected_version=expected_version)
+    render_input = {
+        "scope": {"single_canary_only": True},
+        "request": {
+            "requested_action": "execute",
+            "expected_version": expected_version,
+            "customer_key": "canary-btc-001",
+            "lane": "btc",
+            "port": 20001,
+        },
+        "live_nat_prerequisites": {
+            "mpf_nat_pre_chain_exists": True,
+            "prerouting_hook_to_mpf_nat_pre_count": 1,
+            "canary_rule_exists": True,
+        },
+        "single_canary_backend_target": {
+            "target_host": "172.18.0.3",
+            "target_port": 60010,
+            "target_kind": "docker_container_ipv4",
+        },
+    }
+    return renderer.render(render_input)
+
+
+def build_phase11_canary_rollback_restore_visibility_report(
+    config: MPFConfig,
+    *,
+    customer_key: str,
+    lane: str,
+    port: int,
+    expected_version: str,
+    farm5_baseline_version: str,
+    collect_live: bool = False,
+) -> dict[str, object]:
+    blockers: list[str] = []
+    live = Phase11CanaryAcceptanceEvidence()
     if collect_live:
-        live=Phase11CanaryAcceptanceEvidence.from_dict(phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(config,customer_key=customer_key,lane=lane,port=port,expected_version=expected_version,farm5_baseline_version=farm5_baseline_version).get('evidence',{}))
-    if expected_version!=__version__: blockers.append('expected_version_mismatch')
-    if (customer_key,lane,port)!=("canary-btc-001","btc",20001): blockers.append('canary_scope_mismatch')
-    if not live.canary_nat_rule_present: blockers.append('missing_canary_nat_rule')
-    if not live.mpf_nat_pre_exists: blockers.append('missing_mpf_nat_pre')
-    if not live.prerouting_hook_present: blockers.append('missing_prerouting_hook')
-    if not live.canary_nat_target or not live.canary_nat_target.endswith(':60010'): blockers.append('backend_target_mismatch')
-    ok=not blockers
-    ref=None
-    if ok:
-        h=hashlib.sha256(f'{customer_key}:{lane}:{port}:{live.canary_nat_target}'.encode()).hexdigest()[:12]
-        ref=f'canary_rollback_restore_plan:{customer_key}:{lane}:{port}:{h}'
-    return {"component":"phase11_canary_rollback_restore_visibility","expected_version":expected_version,"repository_version":__version__,"farm5_baseline_version":farm5_baseline_version,"customer_key":customer_key,"lane":lane,"public_port":port,"backend_target":live.canary_nat_target,"rollback_or_restore_plan_ok":ok,"rollback_reference":ref,"evidence_source":ALLOWED_SOURCE,"final_decision":"READY" if ok else "BLOCKED","restore_payload_renderer_present":ok,"restore_command_rendered_artifact_only":ok,"mutation_performed":False,"firewall_mutation_performed":False,"nat_mutation_performed":False,"conntrack_mutation_performed":False,"docker_mutation_performed":False,"db_mutation_performed":False,"blockers":sorted(set(blockers))}
+        live = Phase11CanaryAcceptanceEvidence.from_dict(
+            phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report(
+                config,
+                customer_key=customer_key,
+                lane=lane,
+                port=port,
+                expected_version=expected_version,
+                farm5_baseline_version=farm5_baseline_version,
+            ).get("evidence", {})
+        )
 
-def write_rollback_restore_visibility_evidence_json(*,report:dict[str,object],path:Path,overwrite:bool=False)->None:
-    if path.exists() and not overwrite: raise FileExistsError(path)
-    ev={"customer_key":report["customer_key"],"lane":report["lane"],"port":report["public_port"],"backend_target":report.get("backend_target"),"evidence_source":report["evidence_source"],"rollback_or_restore_plan_ok":report["rollback_or_restore_plan_ok"],"rollback_reference":report.get("rollback_reference"),"mutation_performed":False,"firewall_mutation_performed":False,"nat_mutation_performed":False,"conntrack_mutation_performed":False,"docker_mutation_performed":False,"db_mutation_performed":False}
-    path.write_text(json.dumps(ev,indent=2),encoding='utf-8')
+    if expected_version != __version__:
+        blockers.append("expected_version_mismatch")
+    if (customer_key, lane, port) != ("canary-btc-001", "btc", 20001):
+        blockers.append("canary_scope_mismatch")
+    if not live.canary_nat_rule_present:
+        blockers.append("missing_canary_nat_rule")
+    if not live.mpf_nat_pre_exists:
+        blockers.append("missing_mpf_nat_pre")
+    if not live.prerouting_hook_present:
+        blockers.append("missing_prerouting_hook")
+    if not live.canary_nat_target:
+        blockers.append("missing_backend_target")
+    elif live.canary_nat_target != "172.18.0.3:60010" and not live.canary_nat_target.endswith(":60010"):
+        blockers.append("backend_target_mismatch")
+
+    renderer_available = True
+    artifact = None
+    render_result: dict[str, object] | None = None
+    try:
+        render_result = _render_restore_artifact(expected_version)
+    except Exception:
+        renderer_available = False
+        blockers.append("restore_payload_renderer_unavailable")
+
+    if renderer_available:
+        if not isinstance(render_result, dict) or render_result.get("status") != "ok":
+            blockers.append("restore_artifact_render_failed")
+        else:
+            payload = render_result.get("restore_payload")
+            if not isinstance(payload, str) or "canary-btc-001" not in payload or "--dport 20001" not in payload:
+                blockers.append("restore_artifact_scope_mismatch")
+            else:
+                artifact = payload
+
+    rollback_reference = None
+    ok = not blockers and bool(artifact)
+    if ok and artifact is not None:
+        artifact_hash = hashlib.sha256(artifact.encode("utf-8")).hexdigest()[:12]
+        rollback_reference = f"canary_rollback_restore_plan:{customer_key}:{lane}:{port}:{artifact_hash}"
+
+    return {
+        "component": "phase11_canary_rollback_restore_visibility",
+        "expected_version": expected_version,
+        "repository_version": __version__,
+        "farm5_baseline_version": farm5_baseline_version,
+        "customer_key": customer_key,
+        "lane": lane,
+        "public_port": port,
+        "backend_target": live.canary_nat_target,
+        "rollback_or_restore_plan_ok": ok,
+        "rollback_reference": rollback_reference,
+        "evidence_source": ALLOWED_SOURCE,
+        "final_decision": "READY" if ok else "BLOCKED",
+        "restore_payload_renderer_present": renderer_available,
+        "restore_command_rendered_artifact_only": bool(artifact),
+        "rendered_restore_payload_sha256": hashlib.sha256(artifact.encode("utf-8")).hexdigest() if artifact else None,
+        "mutation_performed": False,
+        "firewall_mutation_performed": False,
+        "nat_mutation_performed": False,
+        "conntrack_mutation_performed": False,
+        "docker_mutation_performed": False,
+        "db_mutation_performed": False,
+        "blockers": sorted(set(blockers)),
+    }
+
+
+def write_rollback_restore_visibility_evidence_json(*, report: dict[str, object], path: Path, overwrite: bool = False) -> None:
+    if path.exists() and not overwrite:
+        raise FileExistsError(path)
+    ev = {
+        "customer_key": report["customer_key"],
+        "lane": report["lane"],
+        "port": report["public_port"],
+        "backend_target": report.get("backend_target"),
+        "evidence_source": report["evidence_source"],
+        "rollback_or_restore_plan_ok": report["rollback_or_restore_plan_ok"],
+        "rollback_reference": report.get("rollback_reference"),
+        "mutation_performed": False,
+        "firewall_mutation_performed": False,
+        "nat_mutation_performed": False,
+        "conntrack_mutation_performed": False,
+        "docker_mutation_performed": False,
+        "db_mutation_performed": False,
+    }
+    path.write_text(json.dumps(ev, indent=2), encoding="utf-8")
