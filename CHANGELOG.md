@@ -289,3 +289,6 @@
 
 ## Historical entries before 0.1.85
 - Retained in git history; this changelog remains headed by the active release chain and the Phase 6+ safety/roadmap record.
+
+## 0.1.191
+- add read-only Phase 11 canary evidence pack observation runner and CLI orchestration.

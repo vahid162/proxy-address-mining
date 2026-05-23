@@ -67,7 +67,7 @@ def _report(monkeypatch, ev: Phase11CanaryAcceptanceEvidence, **kwargs):
         customer_key=kwargs.get("customer_key", "canary-btc-001"),
         lane=kwargs.get("lane", "btc"),
         port=kwargs.get("port", 20001),
-        expected_version=kwargs.get("expected_version", "0.1.190"),
+        expected_version=kwargs.get("expected_version", "0.1.191"),
         farm5_baseline_version=kwargs.get("farm5_baseline_version", "0.1.168"),
         evidence=ev,
     )
@@ -145,7 +145,7 @@ def test_cli_json_smoke(tmp_path, monkeypatch):
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.190",
+            "0.1.191",
             "--farm5-baseline-version",
             "0.1.168",
             "--evidence-json",
@@ -168,7 +168,7 @@ def test_customer_list_read_failure_blocks_fail_closed(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.190",
+        expected_version="0.1.191",
         farm5_baseline_version="0.1.168",
         evidence=Phase11CanaryAcceptanceEvidence(),
     )
@@ -193,7 +193,7 @@ def test_cli_collect_live_review_smoke(monkeypatch):
             "production",
             "canary-acceptance-review",
             "--expected-version",
-            "0.1.190",
+            "0.1.191",
             "--farm5-baseline-version",
             "0.1.168",
             "--collect-live",
@@ -223,7 +223,7 @@ def test_cli_collect_visibility_out_of_scope_does_not_lift(monkeypatch, tmp_path
         [
             "production",
             "canary-acceptance-review",
-            "--expected-version", "0.1.190",
+            "--expected-version", "0.1.191",
             "--farm5-baseline-version", "0.1.168",
             "--collect-visibility",
             "--visibility-json", str(p),
@@ -248,7 +248,7 @@ def test_cli_collect_visibility_merges_multiple_artifacts(monkeypatch, tmp_path)
         app,
         [
             "production", "canary-acceptance-review",
-            "--expected-version", "0.1.190",
+            "--expected-version", "0.1.191",
             "--farm5-baseline-version", "0.1.168",
             "--collect-visibility",
             "--visibility-json", str(usage),
@@ -279,7 +279,7 @@ def test_cli_collect_visibility_wrong_backend_not_lifted_with_collect_live(monke
         app,
         [
             "production", "canary-acceptance-review",
-            "--expected-version", "0.1.190",
+            "--expected-version", "0.1.191",
             "--farm5-baseline-version", "0.1.168",
             "--collect-live",
             "--collect-visibility",
@@ -332,7 +332,7 @@ def test_cli_collect_visibility_with_reject_evidence_advances_to_unique_workers(
     sess.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","session_visibility_ok":true,"session_reference":"session-ref","unique_ip_visibility_ok":true,"unique_ip_reference":"ip-ref"}', encoding="utf-8")
     reject = tmp_path / "reject.json"
     reject.write_text('{"customer_key":"canary-btc-001","lane":"btc","port":20001,"backend_target":"172.18.0.3:60010","evidence_source":"live_source_backed_canary_reject_counters","reject_visibility_ok":true,"reject_reference":"iptables_filter_counter:canary-btc-001:btc:20001:abcd"}', encoding="utf-8")
-    res = runner.invoke(app,["production","canary-acceptance-review","--expected-version","0.1.190","--farm5-baseline-version","0.1.168","--collect-visibility","--visibility-json",str(usage),"--visibility-json",str(sess),"--visibility-json",str(reject),"--output","json","--config","configs/mpf.example.yaml"])
+    res = runner.invoke(app,["production","canary-acceptance-review","--expected-version","0.1.191","--farm5-baseline-version","0.1.168","--collect-visibility","--visibility-json",str(usage),"--visibility-json",str(sess),"--visibility-json",str(reject),"--output","json","--config","configs/mpf.example.yaml"])
     assert res.exit_code == 0
     assert '"final_decision": "BLOCKED"' in res.stdout
     assert '"next_required_step": "unique_workers_visibility"' in res.stdout
