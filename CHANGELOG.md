@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.194
+- fix(phase11): build final check and rollback visibility from merged evidence pack state with source-backed READY evidence gating and fail-closed acceptance mapping.
+
 ## 0.1.193
 - fix(phase11): merge PRESENT usage visibility evidence into canary evidence-pack visibility bundle while preserving fail-closed scope checks and no-mutation safety flags.
 

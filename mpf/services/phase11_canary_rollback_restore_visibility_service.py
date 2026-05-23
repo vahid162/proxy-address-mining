@@ -97,10 +97,33 @@ def build_phase11_canary_rollback_restore_visibility_report(
                 artifact = payload
 
     rollback_reference = None
+    restore_reference = None
     ok = not blockers and bool(artifact)
     if ok and artifact is not None:
         artifact_hash = hashlib.sha256(artifact.encode("utf-8")).hexdigest()[:12]
         rollback_reference = f"canary_rollback_restore_plan:{customer_key}:{lane}:{port}:{artifact_hash}"
+        restore_reference = rollback_reference
+
+    generated_evidence = None
+    if ok and (rollback_reference or restore_reference):
+        generated_evidence = {
+            "customer_key": customer_key,
+            "lane": lane,
+            "port": port,
+            "backend_target": live.canary_nat_target,
+            "evidence_source": ALLOWED_SOURCE,
+            "evidence_reference": rollback_reference or restore_reference,
+            "rollback_or_restore_plan_ok": True,
+            "rollback_reference": rollback_reference,
+            "restore_reference": restore_reference,
+            "source_query_or_artifact": hashlib.sha256(artifact.encode("utf-8")).hexdigest() if artifact else "rollback-restore-visibility.json",
+            "mutation_performed": False,
+            "firewall_mutation_performed": False,
+            "nat_mutation_performed": False,
+            "conntrack_mutation_performed": False,
+            "docker_mutation_performed": False,
+            "db_mutation_performed": False,
+        }
 
     return {
         "component": "phase11_canary_rollback_restore_visibility",
@@ -113,6 +136,7 @@ def build_phase11_canary_rollback_restore_visibility_report(
         "backend_target": live.canary_nat_target,
         "rollback_or_restore_plan_ok": ok,
         "rollback_reference": rollback_reference,
+        "restore_reference": restore_reference,
         "evidence_source": ALLOWED_SOURCE,
         "final_decision": "READY" if ok else "BLOCKED",
         "restore_payload_renderer_present": renderer_available,
@@ -125,6 +149,7 @@ def build_phase11_canary_rollback_restore_visibility_report(
         "docker_mutation_performed": False,
         "db_mutation_performed": False,
         "blockers": sorted(set(blockers)),
+        "generated_evidence": generated_evidence,
     }
 
 

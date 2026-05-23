@@ -30,7 +30,7 @@ def test_missing_source_not_present(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_active()]))
     monkeypatch.setattr("shutil.which", lambda _: None)
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
-    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.193", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.194", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["reject_evidence"]["reject_visibility_ok"] is False
     assert "missing_source_backed_canary_reject_counters" in r["blockers"]
 
@@ -40,7 +40,7 @@ def test_conntrack_empty_can_set_session_ip_but_not_reject(monkeypatch):
     monkeypatch.setattr("shutil.which", lambda _: "/usr/sbin/conntrack")
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": ""})())
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
-    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.193", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.194", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["reject_evidence"]["reject_visibility_ok"] is False
     assert r["session_ip_evidence"]["session_visibility_ok"] is True
     assert r["session_ip_evidence"]["unique_ip_visibility_ok"] is True
@@ -55,7 +55,7 @@ def test_broad_backend_dport_not_counted_for_unique_ips(monkeypatch):
     out = "tcp 6 100 ESTABLISHED src=8.8.8.8 dst=172.18.0.3 sport=3344 dport=60010 [ASSURED]"
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": out})())
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
-    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.193", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.194", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["session_ip_evidence"]["unique_ip_count"] == 0
 
 
@@ -65,7 +65,7 @@ def test_private_src_not_counted_as_unique_customer_ip(monkeypatch):
     out = "tcp 6 100 ESTABLISHED src=172.18.0.22 dst=1.1.1.1 sport=3456 dport=20001 [ASSURED]"
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": out})())
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
-    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.193", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.194", farm5_baseline_version="0.1.168", collect_live=True)
     assert r["session_ip_evidence"]["unique_ip_count"] == 0
 
 
@@ -74,7 +74,7 @@ def test_explicit_reject_evidence_json_can_lift_in_bundle(tmp_path, monkeypatch)
     monkeypatch.setattr("shutil.which", lambda _: "/usr/sbin/conntrack")
     monkeypatch.setattr("subprocess.run", lambda *a, **k: type("R", (), {"returncode": 0, "stdout": ""})())
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
-    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.193", farm5_baseline_version="0.1.168", collect_live=True)
+    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.194", farm5_baseline_version="0.1.168", collect_live=True)
     p = tmp_path / "ev.json"
     write_reject_session_ip_evidence_json(report=r, path=p)
     txt = p.read_text(encoding="utf-8")
@@ -92,7 +92,7 @@ def test_explicit_reject_evidence_json_can_lift_in_bundle(tmp_path, monkeypatch)
 def test_mutation_flags_false(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: customer_read_service.CustomerList(ok=True, message="ok", customers=[_active()]))
     monkeypatch.setattr("mpf.services.phase11_live_canary_evidence_collector_service.build_phase11_live_canary_evidence_collector_report", lambda *a, **k: _live_ok())
-    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.193", farm5_baseline_version="0.1.168", collect_live=False)
+    r = build_phase11_canary_reject_session_ip_evidence_capture_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.194", farm5_baseline_version="0.1.168", collect_live=False)
     assert r["mutation_performed"] is False
     assert r["db_mutation_performed"] is False
     assert r["firewall_mutation_performed"] is False
