@@ -182,7 +182,36 @@ def build_phase11_canary_evidence_pack_report(config: MPFConfig, **kwargs: objec
     usage_visibility_input = None
     if usage_capture and isinstance(usage_capture.get("usage_evidence"), dict):
         usage_visibility_input = phase11_canary_usage_visibility_service.Phase11CanaryUsageVisibilityEvidence.from_dict(usage_capture["usage_evidence"])
-    _collector("usage_visibility", FILES["usage_visibility"], lambda: phase11_canary_usage_visibility_service.build_phase11_canary_usage_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=usage_visibility_input), "generated_evidence")
+    usage_visibility_report = _collector("usage_visibility", FILES["usage_visibility"], lambda: phase11_canary_usage_visibility_service.build_phase11_canary_usage_visibility_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live, evidence=usage_visibility_input), "generated_evidence")
+    if usage_visibility_report and usage_visibility_input is not None:
+        usage_vis = usage_visibility_report.get("usage_counters_visibility", {})
+        scope_ok = (
+            usage_visibility_input.customer_key == customer_key
+            and usage_visibility_input.lane == lane
+            and usage_visibility_input.port == port
+            and (not usage_visibility_input.backend_target or not backend_target or usage_visibility_input.backend_target == str(backend_target))
+        )
+        if isinstance(usage_vis, dict) and usage_vis.get("status") == "PRESENT" and scope_ok:
+            usage_reference = usage_visibility_input.evidence_reference or usage_visibility_input.usage_reference
+            visibility_evs.append(
+                phase11_canary_visibility_bundle_service.Phase11CanaryVisibilityEvidence(
+                    customer_key=usage_visibility_input.customer_key,
+                    lane=usage_visibility_input.lane,
+                    port=usage_visibility_input.port,
+                    backend_target=usage_visibility_input.backend_target,
+                    evidence_source="live_source_backed_canary_usage",
+                    evidence_reference=usage_reference,
+                    usage_visibility_ok=True,
+                    usage_reference=usage_visibility_input.usage_reference,
+                    total_bytes=usage_visibility_input.total_bytes,
+                    total_connections=usage_visibility_input.total_connections,
+                    accepted_connections=usage_visibility_input.accepted_connections,
+                    total_shares=usage_visibility_input.total_shares,
+                    last_seen_at=usage_visibility_input.last_seen_at,
+                    sample_window_seconds=usage_visibility_input.sample_window_seconds,
+                    source_query_or_artifact=usage_visibility_input.source_query_or_artifact,
+                )
+            )
     reject_session_ip = _collector("reject_session_ip", FILES["reject_evidence"], lambda: phase11_canary_reject_session_ip_evidence_capture_service.build_phase11_canary_reject_session_ip_evidence_capture_report(config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, collect_live=collect_live))
     if reject_session_ip and isinstance(reject_session_ip.get("generated_evidence"), dict):
         visibility_evs.append(phase11_canary_visibility_bundle_service.Phase11CanaryVisibilityEvidence.from_dict(reject_session_ip["generated_evidence"]))
