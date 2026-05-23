@@ -284,3 +284,19 @@ def test_runtime_primitives_wrong_source_not_lifted():
     assert merged.conntrack_assured is False
     assert merged.forwarder_pool_seen is False
     assert merged.bridge_loopback_seen is False
+
+
+def test_runtime_primitives_missing_reference_not_lifted():
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_canary_runtime_path", source_query_or_artifact="artifact", conntrack_assured=True, forwarder_pool_seen=True, bridge_loopback_seen=True)
+    merged = merge_phase11_canary_visibility_evidence([ev], customer_key="canary-btc-001", lane="btc", port=20001, expected_backend_target="172.18.0.3:60010")
+    assert merged.conntrack_assured is False
+    assert merged.forwarder_pool_seen is False
+    assert merged.bridge_loopback_seen is False
+
+
+def test_runtime_primitives_missing_artifact_not_lifted():
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="live_source_backed_canary_runtime_path", evidence_reference="ref", conntrack_assured=True, forwarder_pool_seen=True, bridge_loopback_seen=True)
+    merged = merge_phase11_canary_visibility_evidence([ev], customer_key="canary-btc-001", lane="btc", port=20001, expected_backend_target="172.18.0.3:60010")
+    assert merged.conntrack_assured is False
+    assert merged.forwarder_pool_seen is False
+    assert merged.bridge_loopback_seen is False

@@ -16,12 +16,18 @@ from mpf.services.phase11_canary_visibility_bundle_service import Phase11CanaryV
 ALLOWED_SOURCE = "live_source_backed_canary_runtime_path"
 
 
-def _read_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8")
+def _read_file(path: Path) -> tuple[bool, str]:
+    try:
+        return True, path.read_text(encoding="utf-8")
+    except (FileNotFoundError, PermissionError, OSError, UnicodeDecodeError):
+        return False, ""
 
 
 def _run(cmd: list[str]) -> tuple[bool, str]:
-    cp = subprocess.run(cmd, check=False, capture_output=True, text=True)
+    try:
+        cp = subprocess.run(cmd, check=False, capture_output=True, text=True)
+    except (FileNotFoundError, PermissionError, subprocess.SubprocessError, OSError):
+        return False, ""
     if cp.returncode != 0:
         return False, ""
     return True, f"{cp.stdout}\n{cp.stderr}"
@@ -70,7 +76,7 @@ def _classify_bridge(text: str, *, backend_target: str, bridge_target: str) -> t
     if not text.strip():
         return False, ["bridge_log_read_failed"]
     for ln in text.splitlines():
-        if bridge_target in ln and "127.0.0.1:20170" in ln and (backend_target.split(":")[0] in ln or "mpf-v2raya:22070" in ln):
+        if bridge_target in ln and "127.0.0.1:20170" in ln and backend_target.split(":")[0] in ln:
             return True, []
     return False, ["missing_bridge_loopback_correlation"]
 
@@ -94,19 +100,28 @@ def build_phase11_canary_runtime_path_evidence_report(config: MPFConfig, **kwarg
 
     conntrack_text = ""; forwarder_text = ""; bridge_text = ""; source_parts = []
     if kwargs.get("conntrack_file"):
-        conntrack_text = _read_file(Path(str(kwargs["conntrack_file"]))); source_parts.append(f"conntrack_file:{kwargs['conntrack_file']}")
+        ok, conntrack_text = _read_file(Path(str(kwargs["conntrack_file"])))
+        if not ok:
+            blockers.append("conntrack_read_failed")
+        source_parts.append(f"conntrack_file:{kwargs['conntrack_file']}")
     elif collect_live:
         ok, out = _run(["conntrack", "-L", "-p", "tcp"]); conntrack_text = out
         if not ok: blockers.append("conntrack_read_failed")
         source_parts.append("conntrack -L -p tcp")
     if kwargs.get("forwarder_log_file"):
-        forwarder_text = _read_file(Path(str(kwargs["forwarder_log_file"]))); source_parts.append(f"forwarder_log_file:{kwargs['forwarder_log_file']}")
+        ok, forwarder_text = _read_file(Path(str(kwargs["forwarder_log_file"])))
+        if not ok:
+            blockers.append("forwarder_log_read_failed")
+        source_parts.append(f"forwarder_log_file:{kwargs['forwarder_log_file']}")
     elif collect_live:
         ok, out = _run(["docker", "logs", "--tail", "300", "mpf-forwarder-btc"]); forwarder_text = out
         if not ok: blockers.append("forwarder_log_read_failed")
         source_parts.append("docker logs --tail 300 mpf-forwarder-btc")
     if kwargs.get("bridge_log_file"):
-        bridge_text = _read_file(Path(str(kwargs["bridge_log_file"]))); source_parts.append(f"bridge_log_file:{kwargs['bridge_log_file']}")
+        ok, bridge_text = _read_file(Path(str(kwargs["bridge_log_file"])))
+        if not ok:
+            blockers.append("bridge_log_read_failed")
+        source_parts.append(f"bridge_log_file:{kwargs['bridge_log_file']}")
     elif collect_live:
         ok, out = _run(["docker", "logs", "--tail", "300", "mpf-v2raya-socks-bridge"]); bridge_text = out
         if not ok: blockers.append("bridge_log_read_failed")
