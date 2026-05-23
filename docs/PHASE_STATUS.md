@@ -41,6 +41,7 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 
 ## Accepted Server Results
 
+- Phase 11 farm5 0.1.186 planning/readiness note: added source-backed external Stratum transcript import for canary worker visibility evidence (to handle farm5 self/public-IP hairpin limitation) and integrated it into visibility bundle/acceptance review without opening any runtime gate; Current State remains unchanged and Phase 11 remains not accepted.
 ### Phase 11 farm5 0.1.147 Sync/Test Evidence
 
 - Phase 11D manual canary customer acceptance package evidence recorded (`docs/PHASE_11_FARM5_0_1_147_SYNC_TEST_EVIDENCE.md`).
@@ -74,6 +75,8 @@ Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/t
 - Phase 11 farm5 0.1.182 planning/readiness note: extended exact controlled single-canary restore payload scope to include canary-only filter reject counter source (`MPFC_20001` with `mpf:canary-btc-001:customer_connlimit_reject` and `mpf:canary-btc-001:customer_hashlimit_reject`) so reject visibility stays fail-closed and becomes PRESENT only with exact source-backed counters; Current State remains unchanged and Phase 11 remains not accepted.
 - Phase 11 farm5 0.1.183 hotfix planning/readiness note: populated read-only `live_nat_prerequisites` during controlled single-canary execute path before exact restore payload rendering when NAT hook prerequisites already exist, preserving fail-closed bootstrap-required behavior when hook is missing; Current State remains unchanged and Phase 11 remains not accepted.
 - Phase 11 farm5 0.1.185 hotfix planning/readiness note: exact single-canary restore payload rendering is idempotent when the controlled canary NAT rule already exists by emitting filter-only source (`MPFC_20001` connlimit/hashlimit reject rules) and avoiding duplicate NAT append; Current State remains unchanged and Phase 11 remains not accepted.
+- Phase 11 farm5 0.1.185 corrective planning/readiness note: 0.1.185 introduced canary worker/Stratum evidence capture, but farm5 self/public-IP capture can remain blocked by host hairpin/self-connect behavior; Current State remains unchanged and Phase 11 remains not accepted.
+- Phase 11 farm5 0.1.186 planning/readiness note: added external canary Stratum transcript import to convert proven external transcript evidence into source-backed machine-readable visibility evidence without opening runtime gates; Current State remains unchanged and Phase 11 remains not accepted.
 
 ### Phase 10 farm5 0.1.128 Sync/Test Evidence
 

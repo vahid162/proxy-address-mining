@@ -120,10 +120,11 @@ def merge_phase11_canary_visibility_evidence(
     for ev in evidences:
         if not ev.worker_visibility_ok or not ev.worker_reference or not _scope_ok(ev):
             continue
-        if ev.evidence_source != "live_source_backed_canary_worker_stratum":
+        if ev.evidence_source not in {"live_source_backed_canary_worker_stratum", "live_source_backed_external_canary_stratum_transcript"}:
             continue
         merged.worker_visibility_ok = True
         merged.worker_reference = ev.worker_reference
+        merged.evidence_source = ev.evidence_source
         break
     _lift("abuse_coverage_ok", "abuse_reference")
     _lift("final_check_report_ok", "final_check_report_reference")
@@ -242,10 +243,13 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
     visibility["active_recent_sessions_visibility"] = from_evidence("session_visibility_ok", evidence.session_visibility_ok, evidence.session_reference, "missing_source_backed_canary_sessions")
     visibility["unique_ips_visibility"] = from_evidence("unique_ip_visibility_ok", evidence.unique_ip_visibility_ok, evidence.unique_ip_reference, "missing_source_backed_canary_unique_ips")
     
-    if evidence.worker_visibility_ok and evidence.worker_reference and exact_scope_ok and evidence.evidence_source == "live_source_backed_canary_worker_stratum":
+    allowed_worker_sources = {"live_source_backed_canary_worker_stratum", "live_source_backed_external_canary_stratum_transcript"}
+    if evidence.worker_visibility_ok and evidence.worker_reference and exact_scope_ok and evidence.evidence_source in allowed_worker_sources:
         visibility["unique_workers_visibility"] = _item("PRESENT", "visibility_evidence_json", evidence.worker_reference, ["source-backed worker/stratum evidence present"], [])
     else:
-        visibility["unique_workers_visibility"] = from_evidence("worker_visibility_ok", evidence.worker_visibility_ok, evidence.worker_reference, "missing_source_backed_canary_unique_workers")
+        if evidence.worker_visibility_ok and evidence.worker_reference and exact_scope_ok and evidence.evidence_source not in allowed_worker_sources:
+            warnings.append("unique_workers_visibility_source_not_allowed")
+        visibility["unique_workers_visibility"] = _item("MISSING", "phase9_surface_or_missing", evidence.worker_reference, ["report-only surface does not satisfy canary source-backed visibility"], ["missing_source_backed_canary_unique_workers"])
 
     if visibility["canary_customer_db_visibility"]["status"] != "PRESENT":
         visibility["abuse_coverage_visibility"] = _item("MISSING", "phase9_abuse_visibility", None, ["canary DB visibility is required first"], ["missing_canary_customer_for_abuse_coverage"])
