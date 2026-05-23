@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.188
+- add source-backed Phase 11 canary final check report visibility command and evidence export
+- add source-backed Phase 11 canary rollback/restore plan visibility command and evidence export
+
 ## 0.1.187
 - feat(phase11): add source-backed canary abuse coverage visibility command/evidence and harden external transcript --collect-live canary DB validation via customer_read_service exact-scope checks.
 
