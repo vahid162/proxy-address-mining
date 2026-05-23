@@ -120,7 +120,7 @@ def merge_phase11_canary_visibility_evidence(
     for ev in evidences:
         if not ev.worker_visibility_ok or not ev.worker_reference or not _scope_ok(ev):
             continue
-        if ev.evidence_source != "live_source_backed_canary_worker_stratum":
+        if ev.evidence_source not in {"live_source_backed_canary_worker_stratum", "live_source_backed_external_canary_stratum_transcript"}:
             continue
         merged.worker_visibility_ok = True
         merged.worker_reference = ev.worker_reference
