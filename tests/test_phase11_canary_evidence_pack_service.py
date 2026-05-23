@@ -147,3 +147,58 @@ def test_cli_smoke(tmp_path, monkeypatch):
     assert res.exit_code == 0
     manifest = json.loads((tmp_path / "pack" / "manifest.json").read_text())
     assert manifest["mutation_performed"] is False
+
+def test_acceptance_mapping_from_bundle_present(tmp_path, monkeypatch):
+    _patch_defaults(monkeypatch)
+    monkeypatch.setattr("mpf.services.phase11_canary_runtime_path_evidence_service.build_phase11_canary_runtime_path_evidence_report", lambda *a, **k: {"generated_evidence": {"customer_key": "canary-btc-001", "lane": "btc", "port": 20001, "evidence_source": "live_source_backed_canary_runtime_path", "evidence_reference": "runtime-ref", "source_query_or_artifact": "q", "conntrack_assured": True, "forwarder_pool_seen": True, "bridge_loopback_seen": True, "stratum_subscribe_ok": True, "stratum_authorize_ok": True, "stratum_set_difficulty_seen": True, "stratum_notify_seen": True}, "blockers": [], "final_decision": "RUNTIME_PATH_EVIDENCE_READY"})
+    captured = {}
+    def _accept(*a, **k):
+        ev = k["evidence"]
+        captured.update({
+            "usage": ev.usage_visibility_ok, "reject": ev.reject_visibility_ok, "session": ev.session_visibility_ok,
+            "ip": ev.unique_ip_visibility_ok, "worker": ev.worker_visibility_ok, "abuse": ev.abuse_coverage_ok,
+            "final": ev.final_check_report_ok, "rollback": ev.rollback_reference, "source": ev.evidence_source,
+        })
+        return {"final_decision": "ACCEPTANCE_REVIEW_READY", "next_required_step": None}
+    monkeypatch.setattr("mpf.services.phase11_canary_acceptance_review_service.build_phase11_canary_acceptance_review_report", _accept)
+    def _bundle(*a, **k):
+        return {"final_decision":"VISIBILITY_READY","missing_visibility_primitives":[],"missing_evidence_primitives":[],"visibility":{
+            "canary_customer_db_visibility":{"status":"PRESENT"},"usage_counters_visibility":{"status":"PRESENT"},"reject_counters_visibility":{"status":"PRESENT"},
+            "active_recent_sessions_visibility":{"status":"PRESENT"},"unique_ips_visibility":{"status":"PRESENT"},"unique_workers_visibility":{"status":"PRESENT"},
+            "abuse_coverage_visibility":{"status":"PRESENT"},"final_check_report_visibility":{"status":"PRESENT"},"rollback_or_restore_plan_visibility":{"status":"PRESENT","reference":"rollback:ok"},
+        }}
+    monkeypatch.setattr("mpf.services.phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report", _bundle)
+    r = build_phase11_canary_evidence_pack_report(_cfg(), out_dir=tmp_path/"o", sleep_fn=lambda *_: None)
+    assert r["visibility_bundle_final_decision"] == "VISIBILITY_READY"
+    assert r["acceptance_review_final_decision"] == "ACCEPTANCE_REVIEW_READY"
+    assert captured["usage"] and captured["reject"] and captured["session"] and captured["ip"] and captured["worker"] and captured["abuse"] and captured["final"]
+    assert captured["rollback"] == "rollback:ok"
+    assert r["phase11_accepted"] is False and r["limited_onboarding_allowed"] is False and r["no_onboarding_authorized"] is True
+
+
+def test_incomplete_visibility_remains_blocked(tmp_path, monkeypatch):
+    _patch_defaults(monkeypatch)
+    monkeypatch.setattr("mpf.services.phase11_canary_runtime_path_evidence_service.build_phase11_canary_runtime_path_evidence_report", lambda *a, **k: {"generated_evidence": {"customer_key":"canary-btc-001","lane":"btc","port":20001}, "blockers": ["missing_conntrack_assured_canary_flow"], "final_decision":"BLOCKED"})
+    monkeypatch.setattr("mpf.services.phase11_canary_acceptance_review_service.build_phase11_canary_acceptance_review_report", lambda *a, **k: {"final_decision":"BLOCKED","next_required_step":"usage_counters_visibility"})
+    monkeypatch.setattr("mpf.services.phase11_canary_visibility_bundle_service.build_phase11_canary_visibility_bundle_report", lambda *a, **k: {"final_decision":"BLOCKED","missing_visibility_primitives":["usage_counters_visibility"],"missing_evidence_primitives":["conntrack_assured"],"visibility":{"usage_counters_visibility":{"status":"MISSING"}}})
+    r = build_phase11_canary_evidence_pack_report(_cfg(), out_dir=tmp_path/"o", sleep_fn=lambda *_: None)
+    assert r["acceptance_review_final_decision"] == "BLOCKED"
+    assert "usage_counters_visibility" in r["missing_visibility_primitives"]
+
+
+def test_overwrite_removes_dynamic_transcript_only(tmp_path, monkeypatch):
+    _patch_defaults(monkeypatch)
+    monkeypatch.setattr("mpf.services.phase11_canary_runtime_path_evidence_service.build_phase11_canary_runtime_path_evidence_report", lambda *a, **k: {"generated_evidence": {"customer_key":"canary-btc-001","lane":"btc","port":20001}, "blockers": ["missing_conntrack_assured_canary_flow"], "final_decision":"BLOCKED"})
+    out = tmp_path / "out"; out.mkdir()
+    (out / "manifest.json").write_text("x")
+    (out / "external-stratum-transcript-import-2.json").write_text("x")
+    (out / "external-stratum-transcript-import-99.json").write_text("x")
+    (out / "random.txt").write_text("x")
+    (out / ".keep").write_text("x")
+    (out / "nested").mkdir()
+    build_phase11_canary_evidence_pack_report(_cfg(), out_dir=out, overwrite_out_dir=True, sleep_fn=lambda *_: None)
+    assert (out / "random.txt").exists()
+    assert (out / ".keep").exists()
+    assert (out / "nested").exists()
+    assert not (out / "external-stratum-transcript-import-2.json").exists()
+    assert not (out / "external-stratum-transcript-import-99.json").exists()

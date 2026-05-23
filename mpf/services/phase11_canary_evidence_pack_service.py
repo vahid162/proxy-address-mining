@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -55,6 +56,11 @@ def _safe_prepare_out_dir(out_dir: Path, overwrite: bool) -> None:
         for name in set(FILES.values()):
             f = p / name
             if f.exists() and f.is_file():
+                f.unlink()
+        for f in p.iterdir():
+            if not f.is_file():
+                continue
+            if re.fullmatch(r"external-stratum-transcript-import-[0-9]+\.json", f.name):
                 f.unlink()
 
 
@@ -212,6 +218,31 @@ def build_phase11_canary_evidence_pack_report(config: MPFConfig, **kwargs: objec
 
     for k in ("conntrack_assured", "forwarder_pool_seen", "bridge_loopback_seen", "stratum_subscribe_ok", "stratum_authorize_ok", "stratum_set_difficulty_seen", "stratum_notify_seen"):
         setattr(acceptance_ev, k, getattr(merged, k, False))
+
+    vis = bundle.get("visibility", {}) if isinstance(bundle.get("visibility"), dict) else {}
+    def _present(name: str) -> bool:
+        item = vis.get(name, {})
+        return isinstance(item, dict) and item.get("status") == "PRESENT"
+
+    acceptance_ev.canary_customer_db_visible = _present("canary_customer_db_visibility")
+    acceptance_ev.usage_visibility_ok = _present("usage_counters_visibility")
+    acceptance_ev.reject_visibility_ok = _present("reject_counters_visibility")
+    acceptance_ev.session_visibility_ok = _present("active_recent_sessions_visibility")
+    acceptance_ev.unique_ip_visibility_ok = _present("unique_ips_visibility")
+    acceptance_ev.worker_visibility_ok = _present("unique_workers_visibility")
+    acceptance_ev.abuse_coverage_ok = _present("abuse_coverage_visibility")
+    acceptance_ev.final_check_report_ok = _present("final_check_report_visibility")
+    rr = vis.get("rollback_or_restore_plan_visibility", {})
+    if isinstance(rr, dict) and rr.get("status") == "PRESENT":
+        ref = rr.get("reference")
+        if isinstance(ref, str) and ref:
+            if ref.startswith("rollback"):
+                acceptance_ev.rollback_reference = ref
+            else:
+                acceptance_ev.restore_reference = ref
+
+    acceptance_ev.evidence_source = merged.evidence_source or acceptance_ev.evidence_source
+    acceptance_ev.evidence_reference = merged.evidence_reference or acceptance_ev.evidence_reference
 
     ar = phase11_canary_acceptance_review_service.build_phase11_canary_acceptance_review_report(
         config, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, evidence=acceptance_ev
