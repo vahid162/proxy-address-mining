@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.196
+- docs(phase11): record farm5 0.1.195 live canary evidence-pack showing runtime path, visibility bundle, and acceptance-review readiness while preserving closed production/onboarding gates.
+
 ## 0.1.195
 - fix(phase11): support NAT-aware conntrack proof and multiline forwarder local-port correlation for canary runtime path evidence while preserving fail-closed Phase 11 gates.
 
