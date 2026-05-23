@@ -131,8 +131,6 @@ def build_phase11_canary_runtime_path_evidence_report(config: MPFConfig, **kwarg
     f_ok, f_b = _classify_forwarder(forwarder_text, source_ip=source_ip if isinstance(source_ip, str) else None, source_port=int(source_port) if isinstance(source_port, int) else None, backend_target=backend_target, pool_host=pool_host, pool_port=pool_port)
     b_ok, b_b = _classify_bridge(bridge_text, backend_target=backend_target, bridge_target=bridge_target)
     blockers.extend(c_b + f_b + b_b)
-    if blockers:
-        c_ok = f_ok = b_ok = False
 
     ref = f"runtime_path:{customer_key}:{lane}:{port}:{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
     ev = Phase11CanaryVisibilityEvidence(captured_at=datetime.now(UTC).isoformat(), captured_by=getpass.getuser(), evidence_source=ALLOWED_SOURCE, evidence_reference=ref, customer_key=customer_key, lane=lane, port=port, backend_target=backend_target, conntrack_assured=c_ok, forwarder_pool_seen=f_ok, bridge_loopback_seen=b_ok, source_query_or_artifact=",".join(source_parts))

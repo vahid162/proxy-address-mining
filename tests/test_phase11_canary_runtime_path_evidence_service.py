@@ -12,7 +12,7 @@ def _cfg():
 
 
 def _base_kwargs(**overrides):
-    d=dict(customer_key='canary-btc-001',lane='btc',port=20001,expected_version='0.1.189',farm5_baseline_version='0.1.168',source_ip='1.1.1.1',source_port=50000,pool_host='bitcoin.viabtc.io',pool_port=3333,backend_target='172.18.0.3:60010',bridge_target='127.0.0.1:20170',collect_live=False)
+    d=dict(customer_key='canary-btc-001',lane='btc',port=20001,expected_version='0.1.190',farm5_baseline_version='0.1.168',source_ip='1.1.1.1',source_port=50000,pool_host='bitcoin.viabtc.io',pool_port=3333,backend_target='172.18.0.3:60010',bridge_target='127.0.0.1:20170',collect_live=False)
     d.update(overrides)
     return d
 
@@ -89,6 +89,49 @@ def test_bridge_negative_cases(tmp_path):
         b=tmp_path/'b.txt'; b.write_text(txt)
         r=build_phase11_canary_runtime_path_evidence_report(_cfg(), **_base_kwargs(conntrack_file=c,forwarder_log_file=f,bridge_log_file=b))
         assert r['final_decision']=='BLOCKED'
+
+
+
+def test_partial_bridge_preserved_when_others_missing(tmp_path):
+    c=tmp_path/'c.txt'; f=tmp_path/'f.txt'; b=tmp_path/'b.txt'
+    c.write_text('tcp src=1.1.1.1 sport=50000 dport=20001 src=172.18.0.3 dport=50000\n')
+    f.write_text('startup done\n')
+    b.write_text('172.18.0.3:60010 -> mpf-v2raya:22070 -> 127.0.0.1:20170\n')
+    r=build_phase11_canary_runtime_path_evidence_report(_cfg(), **_base_kwargs(conntrack_file=c,forwarder_log_file=f,bridge_log_file=b))
+    ev=r['generated_evidence']
+    assert r['final_decision']=='BLOCKED'
+    assert ev['bridge_loopback_seen'] is True
+    assert ev['conntrack_assured'] is False
+    assert ev['forwarder_pool_seen'] is False
+    assert 'missing_conntrack_assured_canary_flow' in r['blockers']
+    assert 'missing_forwarder_pool_correlation' in r['blockers']
+    assert 'missing_bridge_loopback_correlation' not in r['blockers']
+
+
+def test_partial_conntrack_preserved_when_others_missing(tmp_path):
+    c=tmp_path/'c.txt'; f=tmp_path/'f.txt'; b=tmp_path/'b.txt'
+    c.write_text('tcp 6 431999 ESTABLISHED src=1.1.1.1 dst=2.2.2.2 sport=50000 dport=20001 [ASSURED] src=172.18.0.3 dst=1.1.1.1 sport=60010 dport=50000\n')
+    f.write_text('startup done\n')
+    b.write_text('bridge startup ok\n')
+    r=build_phase11_canary_runtime_path_evidence_report(_cfg(), **_base_kwargs(conntrack_file=c,forwarder_log_file=f,bridge_log_file=b))
+    ev=r['generated_evidence']
+    assert ev['conntrack_assured'] is True
+    assert ev['forwarder_pool_seen'] is False
+    assert ev['bridge_loopback_seen'] is False
+    assert r['final_decision']=='BLOCKED'
+
+
+def test_partial_forwarder_preserved_when_others_missing(tmp_path):
+    c=tmp_path/'c.txt'; f=tmp_path/'f.txt'; b=tmp_path/'b.txt'
+    c.write_text('tcp src=1.1.1.1 sport=50000 dport=20001 src=172.18.0.3 dport=50000\n')
+    f.write_text('1.1.1.1:50000 -> 172.18.0.3:60010 -> bitcoin.viabtc.io:3333\n')
+    b.write_text('bridge startup ok\n')
+    r=build_phase11_canary_runtime_path_evidence_report(_cfg(), **_base_kwargs(conntrack_file=c,forwarder_log_file=f,bridge_log_file=b))
+    ev=r['generated_evidence']
+    assert ev['conntrack_assured'] is False
+    assert ev['forwarder_pool_seen'] is True
+    assert ev['bridge_loopback_seen'] is False
+    assert r['final_decision']=='BLOCKED'
 
 
 def test_live_command_failure_no_crash(monkeypatch):
