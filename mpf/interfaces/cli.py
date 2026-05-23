@@ -2203,6 +2203,15 @@ def production_canary_evidence_collect(
 
 
 
+def _print_output(report: dict[str, object], output: str) -> None:
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for k in ("component", "final_decision", "blockers", "warnings"):
+        if k in report:
+            typer.echo(f"{k}: {report[k]}")
+
+
 @production_app.command("canary-worker-stratum-evidence-capture")
 def production_canary_worker_stratum_evidence_capture(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
