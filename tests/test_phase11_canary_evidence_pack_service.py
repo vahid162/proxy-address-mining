@@ -1,4 +1,5 @@
 from __future__ import annotations
+from mpf import __version__
 
 import json
 from pathlib import Path
@@ -30,7 +31,7 @@ def _patch_defaults(monkeypatch):
 def test_manifest_safety(tmp_path, monkeypatch):
     _patch_defaults(monkeypatch)
     monkeypatch.setattr("mpf.services.phase11_canary_runtime_path_evidence_service.build_phase11_canary_runtime_path_evidence_report", lambda *a, **k: {"generated_evidence": {"customer_key": "canary-btc-001", "lane": "btc", "port": 20001}, "blockers": ["missing_conntrack_assured_canary_flow"], "final_decision": "BLOCKED"})
-    r = build_phase11_canary_evidence_pack_report(_cfg(), out_dir=tmp_path / "o", collect_live=True, expected_version="0.1.194", farm5_baseline_version="0.1.168", sleep_fn=lambda *_: None)
+    r = build_phase11_canary_evidence_pack_report(_cfg(), out_dir=tmp_path / "o", collect_live=True, expected_version=__version__, farm5_baseline_version="0.1.168", sleep_fn=lambda *_: None)
     assert r["mutation_performed"] is False and r["phase11_accepted"] is False and r["limited_onboarding_allowed"] is False and r["no_onboarding_authorized"] is True
 
 

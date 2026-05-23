@@ -1,3 +1,4 @@
+from mpf import __version__
 from pathlib import Path
 from typer.testing import CliRunner
 import subprocess
@@ -12,7 +13,7 @@ def _cfg():
 
 
 def _base_kwargs(**overrides):
-    d=dict(customer_key='canary-btc-001',lane='btc',port=20001,expected_version='0.1.194',farm5_baseline_version='0.1.168',source_ip='1.1.1.1',source_port=50000,pool_host='bitcoin.viabtc.io',pool_port=3333,backend_target='172.18.0.3:60010',bridge_target='127.0.0.1:20170',collect_live=False)
+    d=dict(customer_key='canary-btc-001',lane='btc',port=20001,expected_version=__version__,farm5_baseline_version='0.1.168',source_ip='1.1.1.1',source_port=50000,pool_host='bitcoin.viabtc.io',pool_port=3333,backend_target='172.18.0.3:60010',bridge_target='127.0.0.1:20170',collect_live=False)
     d.update(overrides)
     return d
 
@@ -147,3 +148,30 @@ def test_cli_smoke_runtime_path():
     runner=CliRunner()
     res=runner.invoke(app,['production','canary-runtime-path-evidence','--output','json','--config','configs/mpf.example.yaml'])
     assert res.exit_code==0
+
+def test_conntrack_nat_aware_public_port_backend_assured(tmp_path):
+    c=tmp_path/'c.txt'; c.write_text('tcp 6 299 ESTABLISHED src=5.114.247.50 dst=85.198.11.110 sport=9175 dport=20001 src=172.18.0.3 dst=5.114.247.50 sport=60010 dport=9175 [ASSURED] mark=0 use=1\n')
+    r=build_phase11_canary_runtime_path_evidence_report(_cfg(), **_base_kwargs(expected_version=__version__, source_ip='10.46.16.226', source_port=62063, conntrack_file=c, forwarder_log_file=tmp_path/'f.txt', bridge_log_file=tmp_path/'b.txt'))
+    assert r['generated_evidence']['conntrack_assured'] is True
+    assert 'conntrack_source_endpoint_mismatch' not in r['blockers']
+    assert r['diagnostics']['conntrack_source_endpoint_mismatch_tolerated'] is True
+    assert r['diagnostics']['conntrack_correlation_mode'] == 'nat_aware_public_port_backend'
+
+def test_forwarder_multiline_local_ephemeral_port_correlation(tmp_path):
+    c=tmp_path/'c.txt'; b=tmp_path/'b.txt'; f=tmp_path/'f.txt'
+    c.write_text('tcp 6 299 ESTABLISHED src=5.114.247.50 dst=85.198.11.110 sport=9175 dport=20001 src=172.18.0.3 dst=5.114.247.50 sport=60010 dport=9175 [ASSURED]\n')
+    b.write_text('172.18.0.3:60010 -> mpf-v2raya:22070 -> 127.0.0.1:20170\n')
+    f.write_text('[tcp] 127.0.0.1:45691 - 127.0.0.1:60010\n[tcp] 127.0.0.1:45691 <-> bitcoin.viabtc.io:3333\n[tcp] 127.0.0.1:45691 >-< bitcoin.viabtc.io:3333\n')
+    r=build_phase11_canary_runtime_path_evidence_report(_cfg(), **_base_kwargs(expected_version=__version__, conntrack_file=c, forwarder_log_file=f, bridge_log_file=b))
+    assert r['generated_evidence']['forwarder_pool_seen'] is True
+    assert r['diagnostics']['forwarder_correlation_mode'] == 'multiline_local_ephemeral_port'
+    assert '45691' in r['diagnostics']['forwarder_matched_local_ports_sample']
+
+def test_forwarder_seen_without_matching_local_port_remains_blocked(tmp_path):
+    c=tmp_path/'c.txt'; b=tmp_path/'b.txt'; f=tmp_path/'f.txt'
+    c.write_text('tcp 6 299 ESTABLISHED src=1.1.1.1 dst=2.2.2.2 sport=50000 dport=20001 src=172.18.0.3 dst=1.1.1.1 sport=60010 dport=50000 [ASSURED]\n')
+    b.write_text('172.18.0.3:60010 -> mpf-v2raya:22070 -> 127.0.0.1:20170\n')
+    f.write_text('[tcp] 127.0.0.1:11111 - 127.0.0.1:60010\n[tcp] 127.0.0.1:22222 <-> bitcoin.viabtc.io:3333\n')
+    r=build_phase11_canary_runtime_path_evidence_report(_cfg(), **_base_kwargs(expected_version=__version__, conntrack_file=c, forwarder_log_file=f, bridge_log_file=b))
+    assert r['generated_evidence']['forwarder_pool_seen'] is False
+    assert 'forwarder_pool_and_backend_seen_without_correlation' in r['blockers']
