@@ -4,8 +4,6 @@
 - feat(phase11): add source-backed `mpf production canary-external-stratum-transcript-import` for fail-closed external transcript evidence import and visibility/acceptance integration.
 - fix(phase11): correct forwarder pool evidence classification to avoid requiring worker names in forwarder logs.
 
-# Changelog
-
 ## 0.1.185
 - Corrective note: 0.1.185 also introduced canary worker/Stratum evidence capture (PR #199); this history is retained alongside restore-payload notes.
 

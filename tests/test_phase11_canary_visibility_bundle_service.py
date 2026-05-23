@@ -234,3 +234,9 @@ def test_reject_evidence_source_mismatch_not_lifted():
     ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="conntrack", reject_visibility_ok=True, reject_reference="r")
     merged = merge_phase11_canary_visibility_evidence([ev], customer_key="canary-btc-001", lane="btc", port=20001)
     assert merged.reject_visibility_ok is False
+
+
+def test_worker_visibility_source_allowlist_fail_closed():
+    ev = Phase11CanaryVisibilityEvidence(customer_key="canary-btc-001", lane="btc", port=20001, evidence_source="bogus_source", worker_visibility_ok=True, worker_reference="bad-ref")
+    r = build_phase11_canary_visibility_bundle_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.186", farm5_baseline_version="0.1.168", evidence=ev)
+    assert r["visibility"]["unique_workers_visibility"]["status"] != "PRESENT"
