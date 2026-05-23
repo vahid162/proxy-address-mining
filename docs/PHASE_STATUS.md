@@ -2953,3 +2953,5 @@ State:
 - Phase 11 farm5 0.1.185 planning/readiness note: added source-backed canary worker/Stratum evidence capture for unique worker visibility and Stratum subscribe/authorize/notify evidence; Current State unchanged; Phase 11 not accepted; production traffic none; customer onboarding db_only; abuse automation/UI/Telegram closed.
 
 - 2026-05-23 (farm5, v0.1.188 planning/readiness): added source-backed canary final-check-report visibility and rollback/restore-plan visibility artifacts; acceptance remains BLOCKED pending conntrack_assured/forwarder_pool_seen/bridge_loopback_seen evidence.
+
+- 0.1.191: Added read-only `mpf production canary-evidence-pack` planning/readiness evidence orchestration. Phase 11 remains not accepted and Current State gate values unchanged.
