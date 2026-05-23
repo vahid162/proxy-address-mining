@@ -116,7 +116,7 @@ from mpf.services import (
     phase11_canary_final_check_report_visibility_service,
     phase11_canary_rollback_restore_visibility_service,
     phase11_canary_usage_visibility_service,
-    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service,
+    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
 )
@@ -2117,7 +2117,7 @@ def production_canary_usage_evidence_capture(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     collect_live: bool = typer.Option(True, "--collect-live/--no-collect-live"),
     write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
@@ -2141,7 +2141,7 @@ def production_canary_reject_session_ip_evidence_capture(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     collect_live: bool = typer.Option(True, "--collect-live/--no-collect-live"),
     write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
@@ -2166,7 +2166,7 @@ def production_canary_reject_counters_visibility(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     collect_live: bool = typer.Option(True, "--collect-live/--no-collect-live"),
     write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
@@ -2188,7 +2188,7 @@ def production_canary_evidence_collect(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
@@ -2219,7 +2219,7 @@ def production_canary_worker_stratum_evidence_capture(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     connect_host: str = typer.Option(..., "--connect-host"),
     connect_port: int = typer.Option(20001, "--connect-port"),
@@ -2250,7 +2250,7 @@ def production_canary_external_stratum_transcript_import(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     transcript_json: Path = typer.Option(..., "--transcript-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
@@ -2273,7 +2273,7 @@ def production_canary_abuse_coverage_visibility(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
     write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
@@ -2295,7 +2295,7 @@ def production_canary_final_check_report_visibility(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: list[Path] = typer.Option([], "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
@@ -2318,7 +2318,7 @@ def production_canary_rollback_restore_visibility(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
     write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
@@ -2337,7 +2337,7 @@ def production_canary_acceptance_review(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: Path | None = typer.Option(None, "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
@@ -2407,7 +2407,7 @@ def production_canary_usage_visibility(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: Path | None = typer.Option(None, "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
@@ -2425,12 +2425,50 @@ def production_canary_usage_visibility(
     for key in ("component", "final_decision", "blockers", "warnings", "next_required_step"):
         typer.echo(f"{key}: {report[key]}")
 
+
+@production_app.command("canary-runtime-path-evidence")
+def production_canary_runtime_path_evidence(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
+    lane: str = typer.Option("btc", "--lane"),
+    port: int = typer.Option(20001, "--port"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    source_ip: str | None = typer.Option(None, "--source-ip"),
+    source_port: int | None = typer.Option(None, "--source-port"),
+    pool_host: str = typer.Option("bitcoin.viabtc.io", "--pool-host"),
+    pool_port: int = typer.Option(3333, "--pool-port"),
+    backend_target: str | None = typer.Option(None, "--backend-target"),
+    bridge_target: str = typer.Option("127.0.0.1:20170", "--bridge-target"),
+    collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
+    conntrack_file: Path | None = typer.Option(None, "--conntrack-file"),
+    forwarder_log_file: Path | None = typer.Option(None, "--forwarder-log-file"),
+    bridge_log_file: Path | None = typer.Option(None, "--bridge-log-file"),
+    write_evidence_json: Path | None = typer.Option(None, "--write-evidence-json"),
+    overwrite_evidence_json: bool = typer.Option(False, "--overwrite-evidence-json"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    cfg = _load(config)
+    report = phase11_canary_runtime_path_evidence_service.build_phase11_canary_runtime_path_evidence_report(
+        cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version,
+        source_ip=source_ip, source_port=source_port, pool_host=pool_host, pool_port=pool_port, backend_target=backend_target, bridge_target=bridge_target,
+        collect_live=collect_live, conntrack_file=conntrack_file, forwarder_log_file=forwarder_log_file, bridge_log_file=bridge_log_file,
+    )
+    if write_evidence_json is not None:
+        phase11_canary_runtime_path_evidence_service.write_runtime_path_evidence_json(report=report, path=write_evidence_json, overwrite=overwrite_evidence_json)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, sort_keys=True)); return
+    typer.echo(f"component: {report.get('component')}")
+    typer.echo(f"final_decision: {report.get('final_decision')}")
+    typer.echo(f"backend_target: {report.get('backend_target')}")
+    typer.echo(f"blockers: {', '.join(report.get('blockers', [])) if report.get('blockers') else '-'}")
+
 @production_app.command("canary-visibility-bundle")
 def production_canary_visibility_bundle(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
     lane: str = typer.Option("btc", "--lane"),
     port: int = typer.Option(20001, "--port"),
-    expected_version: str = typer.Option("0.1.188", "--expected-version"),
+    expected_version: str = typer.Option("0.1.189", "--expected-version"),
     farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
     evidence_json: list[Path] = typer.Option([], "--evidence-json"),
     collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),

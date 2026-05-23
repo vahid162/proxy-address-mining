@@ -62,7 +62,7 @@ def test_collect_nat_and_conntrack_with_real_farm5_syntax(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.188",
+        expected_version="0.1.189",
         farm5_baseline_version="0.1.168",
     )
     ev = rep["evidence"]
@@ -86,7 +86,7 @@ def test_proxy_doctor_key_mapping(monkeypatch):
         customer_key="canary-btc-001",
         lane="btc",
         port=20001,
-        expected_version="0.1.188",
+        expected_version="0.1.189",
         farm5_baseline_version="0.1.168",
     )
     ev = rep["evidence"]

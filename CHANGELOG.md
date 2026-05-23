@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.189
+
+- add source-backed read-only Phase 11 canary runtime path evidence classifiers for conntrack, forwarder-pool, and bridge-loopback evidence.
+
 ## 0.1.188
 - add source-backed Phase 11 canary final check report visibility command and evidence export
 - add source-backed Phase 11 canary rollback/restore plan visibility command and evidence export

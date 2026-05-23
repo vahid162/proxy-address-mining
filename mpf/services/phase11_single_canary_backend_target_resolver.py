@@ -6,10 +6,12 @@ import socket
 import subprocess
 from dataclasses import dataclass
 
+from mpf import __version__
+
 
 @dataclass(slots=True)
 class Phase11SingleCanaryBackendTargetResolver:
-    expected_version: str = "0.1.188"
+    expected_version: str = __version__
     container_name: str = "mpf-forwarder-btc"
     docker_network: str = "mpf-proxy-internal"
     customer_key: str = "canary-btc-001"

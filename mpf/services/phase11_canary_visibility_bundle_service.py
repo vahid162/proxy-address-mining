@@ -7,6 +7,8 @@ from pathlib import Path
 from mpf import __version__
 from mpf.config import MPFConfig
 from mpf.services import customer_read_service, phase11_live_canary_evidence_collector_service, phase11_canary_usage_visibility_service
+
+_RUNTIME_PATH_SOURCE_ALLOWLIST = {"live_source_backed_canary_runtime_path"}
 from mpf.services.phase11_canary_acceptance_review_service import Phase11CanaryAcceptanceEvidence
 
 
@@ -184,16 +186,22 @@ def merge_phase11_canary_visibility_evidence(
                 setattr(merged, dt_field, value)
                 break
 
-    for bool_field in (
-        "conntrack_assured",
-        "stratum_subscribe_ok",
-        "stratum_authorize_ok",
-        "stratum_set_difficulty_seen",
-        "stratum_notify_seen",
-        "forwarder_pool_seen",
-        "bridge_loopback_seen",
-    ):
+    for bool_field in ("stratum_subscribe_ok", "stratum_authorize_ok", "stratum_set_difficulty_seen", "stratum_notify_seen"):
         setattr(merged, bool_field, any(getattr(ev, bool_field) and _scope_ok(ev) for ev in evidences))
+
+    for bool_field in ("conntrack_assured", "forwarder_pool_seen", "bridge_loopback_seen"):
+        setattr(
+            merged,
+            bool_field,
+            any(
+                getattr(ev, bool_field)
+                and _scope_ok(ev)
+                and ev.evidence_source in _RUNTIME_PATH_SOURCE_ALLOWLIST
+                and bool(ev.evidence_reference)
+                and bool(ev.source_query_or_artifact)
+                for ev in evidences
+            ),
+        )
 
     return merged
 

@@ -5,6 +5,8 @@ import os
 import socket
 import subprocess
 from dataclasses import dataclass
+
+from mpf import __version__
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -12,7 +14,7 @@ from typing import Callable
 
 @dataclass(slots=True)
 class SingleCanaryRestoreBackupAdapter:
-    expected_version: str = "0.1.188"
+    expected_version: str = __version__
     env_gate_var: str = "MPF_PHASE11_SINGLE_CANARY_RESTORE_BACKUP"
     backup_root: str = "/var/backups/mpf"
     iptables_save_executor: Callable[[], subprocess.CompletedProcess[str]] | None = None
