@@ -12,7 +12,7 @@ def _cfg():
 
 
 def _base_kwargs(**overrides):
-    d=dict(customer_key='canary-btc-001',lane='btc',port=20001,expected_version='0.1.191',farm5_baseline_version='0.1.168',source_ip='1.1.1.1',source_port=50000,pool_host='bitcoin.viabtc.io',pool_port=3333,backend_target='172.18.0.3:60010',bridge_target='127.0.0.1:20170',collect_live=False)
+    d=dict(customer_key='canary-btc-001',lane='btc',port=20001,expected_version='0.1.192',farm5_baseline_version='0.1.168',source_ip='1.1.1.1',source_port=50000,pool_host='bitcoin.viabtc.io',pool_port=3333,backend_target='172.18.0.3:60010',bridge_target='127.0.0.1:20170',collect_live=False)
     d.update(overrides)
     return d
 

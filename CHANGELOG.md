@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.192
+
+- fix(phase11): wire canary evidence-pack generated source-backed artifacts into visibility services/bundle (usage, session/IP, final-check, rollback/restore), add UTF-8 BOM transcript import tolerance, and improve forwarder correlation diagnostics while keeping Phase 11 fail-closed.
+
 ## 0.1.190
 
 - fix(phase11): preserve independently proven runtime path evidence primitives while keeping canary runtime-path final decision blocked until all required evidence is present.
