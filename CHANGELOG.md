@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.190
+
+- fix(phase11): preserve independently proven runtime path evidence primitives while keeping canary runtime-path final decision blocked until all required evidence is present.
+
 ## 0.1.189
 
 - add source-backed read-only Phase 11 canary runtime path evidence classifiers for conntrack, forwarder-pool, and bridge-loopback evidence.
