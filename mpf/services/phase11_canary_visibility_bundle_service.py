@@ -136,7 +136,14 @@ def merge_phase11_canary_visibility_evidence(
         merged.abuse_reference = ev.abuse_reference
         merged.abuse_evidence_source = ev.evidence_source
         break
-    _lift("final_check_report_ok", "final_check_report_reference")
+    for ev in evidences:
+        if not ev.final_check_report_ok or not ev.final_check_report_reference or not _scope_ok(ev):
+            continue
+        if ev.evidence_source != "live_source_backed_canary_final_check_report":
+            continue
+        merged.final_check_report_ok = True
+        merged.final_check_report_reference = ev.final_check_report_reference
+        break
 
     rollback_ref = None
     restore_ref = None
@@ -267,8 +274,11 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
     else:
         visibility["abuse_coverage_visibility"] = from_evidence("abuse_coverage_ok", evidence.abuse_coverage_ok, evidence.abuse_reference, "missing_source_backed_canary_abuse_coverage")
 
-    visibility["final_check_report_visibility"] = from_evidence("final_check_report_ok", evidence.final_check_report_ok, evidence.final_check_report_reference, "missing_source_backed_canary_final_check_report")
-    if evidence.rollback_or_restore_plan_ok and (evidence.rollback_reference or evidence.restore_reference) and exact_scope_ok:
+    if evidence.evidence_source == "live_source_backed_canary_final_check_report":
+        visibility["final_check_report_visibility"] = from_evidence("final_check_report_ok", evidence.final_check_report_ok, evidence.final_check_report_reference, "missing_source_backed_canary_final_check_report")
+    else:
+        visibility["final_check_report_visibility"] = _item("MISSING", "phase9_surface_or_missing", evidence.final_check_report_reference, ["docs-only or non-allowlisted final check source is insufficient"], ["missing_source_backed_canary_final_check_report"])
+    if evidence.rollback_or_restore_plan_ok and (evidence.rollback_reference or evidence.restore_reference) and exact_scope_ok and evidence.evidence_source == "live_source_backed_canary_rollback_restore_plan":
         visibility["rollback_or_restore_plan_visibility"] = _item("PRESENT", "visibility_evidence_json", evidence.rollback_reference or evidence.restore_reference, ["concrete rollback/restore reference present"], [])
     else:
         visibility["rollback_or_restore_plan_visibility"] = _item("MISSING", "artifact_or_docs", None, ["historical text without concrete machine reference is insufficient"], ["missing_canary_rollback_or_restore_reference"])
