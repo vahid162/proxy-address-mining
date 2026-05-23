@@ -41,6 +41,7 @@ class Phase11CanaryVisibilityEvidence:
     worker_reference: str | None = None
     abuse_coverage_ok: bool = False
     abuse_reference: str | None = None
+    abuse_evidence_source: str | None = None
     final_check_report_ok: bool = False
     final_check_report_reference: str | None = None
     rollback_or_restore_plan_ok: bool = False
@@ -126,7 +127,15 @@ def merge_phase11_canary_visibility_evidence(
         merged.worker_reference = ev.worker_reference
         merged.evidence_source = ev.evidence_source
         break
-    _lift("abuse_coverage_ok", "abuse_reference")
+    for ev in evidences:
+        if not ev.abuse_coverage_ok or not ev.abuse_reference or not _scope_ok(ev):
+            continue
+        if ev.evidence_source != "live_source_backed_canary_abuse_coverage":
+            continue
+        merged.abuse_coverage_ok = True
+        merged.abuse_reference = ev.abuse_reference
+        merged.abuse_evidence_source = ev.evidence_source
+        break
     _lift("final_check_report_ok", "final_check_report_reference")
 
     rollback_ref = None
@@ -253,7 +262,7 @@ def build_phase11_canary_visibility_bundle_report(config: MPFConfig, *, customer
 
     if visibility["canary_customer_db_visibility"]["status"] != "PRESENT":
         visibility["abuse_coverage_visibility"] = _item("MISSING", "phase9_abuse_visibility", None, ["canary DB visibility is required first"], ["missing_canary_customer_for_abuse_coverage"])
-    elif evidence.evidence_source != "live_source_backed_canary_abuse_coverage":
+    elif evidence.abuse_evidence_source != "live_source_backed_canary_abuse_coverage":
         visibility["abuse_coverage_visibility"] = _item("MISSING", "phase9_abuse_visibility", evidence.abuse_reference, ["docs-only or non-allowlisted abuse evidence source is insufficient"], ["missing_source_backed_canary_abuse_coverage"])
     else:
         visibility["abuse_coverage_visibility"] = from_evidence("abuse_coverage_ok", evidence.abuse_coverage_ok, evidence.abuse_reference, "missing_source_backed_canary_abuse_coverage")
