@@ -200,7 +200,7 @@ def build_phase11_canary_worker_stratum_evidence_capture_report(config: MPFConfi
         "generated_evidence": asdict(evidence),
         "blockers": sorted(set(blockers)),
         "warnings": sorted(set(warnings)),
-        "final_decision": "WORKER_STRATUM_EVIDENCE_READY" if worker_visibility_ok else "BLOCKED",
+        "final_decision": "WORKER_STRATUM_EVIDENCE_READY" if (worker_visibility_ok and not blockers) else "BLOCKED",
     }
 
 

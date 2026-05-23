@@ -211,6 +211,10 @@ def build_phase11_canary_acceptance_review_report(config: MPFConfig, *, customer
         (evidence.conntrack_assured, "conntrack_assured"),
         (evidence.stratum_subscribe_ok, "stratum_subscribe_ok"),
         (evidence.stratum_authorize_ok, "stratum_authorize_ok"),
+        (evidence.stratum_set_difficulty_seen, "stratum_set_difficulty_seen"),
+        (evidence.stratum_notify_seen, "stratum_notify_seen"),
+        (evidence.forwarder_pool_seen, "forwarder_pool_seen"),
+        (evidence.bridge_loopback_seen, "bridge_loopback_seen"),
     ]:
         if not flag:
             missing_evidence.append(key)

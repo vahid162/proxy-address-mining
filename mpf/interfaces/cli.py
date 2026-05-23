@@ -2289,6 +2289,11 @@ def production_canary_acceptance_review(
         if rr.get("status") == "PRESENT":
             if not base.rollback_reference:
                 base.rollback_reference = rr.get("reference")
+        runtime = visibility_report.get("runtime_evidence", {})
+        if isinstance(runtime, dict):
+            for fld in ("conntrack_assured", "stratum_subscribe_ok", "stratum_authorize_ok", "stratum_set_difficulty_seen", "stratum_notify_seen", "forwarder_pool_seen", "bridge_loopback_seen"):
+                if runtime.get(fld) is True:
+                    setattr(base, fld, True)
         evidence = base
     report = phase11_canary_acceptance_review_service.build_phase11_canary_acceptance_review_report(
         cfg, customer_key=customer_key, lane=lane, port=port, expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, evidence=evidence
