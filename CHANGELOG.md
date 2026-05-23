@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.193
+- fix(phase11): merge PRESENT usage visibility evidence into canary evidence-pack visibility bundle while preserving fail-closed scope checks and no-mutation safety flags.
+
 ## 0.1.192
 
 - fix(phase11): wire canary evidence-pack generated source-backed artifacts into visibility services/bundle (usage, session/IP, final-check, rollback/restore), add UTF-8 BOM transcript import tolerance, and improve forwarder correlation diagnostics while keeping Phase 11 fail-closed.
