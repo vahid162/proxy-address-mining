@@ -5,7 +5,6 @@ from dataclasses import dataclass
 
 from mpf import __version__
 
-_ALLOWED_EXPECTED_VERSIONS = {__version__, "0.1.198"}
 from typing import Callable
 
 
@@ -22,7 +21,7 @@ class SingleCanaryHostApplyPrimitive:
         if request.get("lane") != "btc": return {"status": "blocked", "error": "wrong_lane"}
         if request.get("port") != 20001: return {"status": "blocked", "error": "wrong_customer_port"}
         if report.get("scope", {}).get("single_canary_only") is not True: return {"status": "blocked", "error": "non_single_canary_scope"}
-        if request.get("expected_version") not in _ALLOWED_EXPECTED_VERSIONS: return {"status": "blocked", "error": "wrong_expected_version"}
+        if request.get("expected_version") != __version__: return {"status": "blocked", "error": "wrong_expected_version"}
         for flag in ("operator_confirmed", "understand_canary_customer", "understand_firewall_apply", "reviewed_rollback", "fresh_farm5_sync_confirmed"):
             if request.get(flag) is not True: return {"status": "blocked", "error": f"missing_{flag}"}
 

@@ -6,35 +6,27 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 ## Current Position
 
-- GitHub main repository version before this PR is 0.1.168.
-- Repository version after this PR is 0.1.197.
-- latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).
-- latest recorded route-safe canary NAT success evidence remains 0.1.164; farm5 0.1.168 sync confirms the controlled canary NAT artifact is still present.
-- farm5 route-safe single-canary DNAT execution evidence is recorded and pending review.
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
-- Phase 11D actual execution remains not accepted.
-- Keep Phase 11 not accepted.
-- Phase 11 remains not accepted.
-- production traffic remains none.
-- production traffic remains none in current state.
-- firewall apply remains no in current state.
-- firewall apply remains no except future explicit single-canary operator-approved run path.
-- customer onboarding remains db_only in current state.
-- customer onboarding remains db_only except future explicit canary run path.
-- Keep limited real customer onboarding forbidden.
-- limited real customer onboarding remains forbidden until evidence review accepts the canary.
-- abuse automation remains no.
-- UI remains no.
-- Telegram remains no.
-- Keep abuse automation/UI/Telegram closed.
-- Avoid another broad docs-only loop after this evidence PR; next PR should be runtime-first acceptance/visibility work.
-- Next target: resolve missing visibility primitives reported by Phase 11 canary acceptance review verifier.
 - Repository version after this PR is 0.1.199.
 - farm5 0.1.198 limited-onboarding-gate evidence is recorded.
 - next intended server step after 0.1.199 sync is running `mpf production limited-onboarding-execution-gate`.
 - real customer onboarding remains blocked until a separate Phase 11E single-customer execution PR is merged, synced, tested, and explicitly updates Current State.
+- production traffic remains none.
+- firewall apply remains no.
+- customer onboarding remains db_only.
+- customer onboarding remains db_only except future explicit canary run path. (historical compatibility anchor)
+- abuse automation remains no.
+- UI remains no.
+- Telegram remains no.
+- firewall apply remains no except future explicit single-canary operator-approved run path. (historical compatibility anchor)
+- latest recorded route-safe canary NAT success evidence remains 0.1.164; farm5 0.1.168 sync confirms the controlled canary NAT artifact is still present. (historical compatibility anchor)
+- latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded). (historical compatibility anchor)
+- GitHub main repository version before this PR is 0.1.168. (historical compatibility anchor)
+- Repository version after this PR is 0.1.197. (historical compatibility anchor)
+- Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded. (historical compatibility anchor)
+- Phase 11D actual execution remains not accepted. (historical compatibility anchor)
+- Phase 11 remains not accepted. (historical compatibility anchor)
 
 ## Finite Remaining Path
 

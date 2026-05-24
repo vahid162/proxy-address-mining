@@ -135,3 +135,33 @@ def test_cli_limited_onboarding_execution_gate_json_smoke(tmp_path):
 def test_cli_limited_onboarding_execution_gate_human_smoke(tmp_path):
     p = _write(tmp_path, _base()); r = CliRunner().invoke(app, ["production", "limited-onboarding-execution-gate", "--expected-version", __version__, "--farm5-baseline-version", "0.1.168", "--limited-onboarding-gate-json", str(p), "--candidate-customer-key", "limited-btc-001", "--candidate-lane", "btc", "--candidate-public-port", "20101", "--candidate-backend-target", "172.18.0.3:60010", "--candidate-description", "desc", "--operator", "vahid", "--reason", "ok", "--operator-confirmed", "--i-understand-this-does-not-onboard-customer", "--i-understand-no-firewall-apply-yet", "--i-understand-no-production-traffic-yet", "--i-understand-next-pr-must-execute-controlled-single-customer", "--i-confirm-rollback-plan-required", "--i-confirm-restart-test-required", "--i-confirm-abuse-1h-coverage-required", "--output", "human", "--config", "configs/mpf.example.yaml"])
     assert r.exit_code == 0 and "final_decision:" in r.stdout
+
+
+def test_blocks_expected_version_mismatch(tmp_path):
+    r = _call(_write(tmp_path, _base()), expected_version="0.1.198")
+    assert r["final_decision"] == "BLOCKED"
+    assert r["phase11e_execution_gate_ready"] is False
+    assert r["phase11e_execution_allowed"] is False
+    assert r["customer_created"] is False
+    assert r["mutation_performed"] is False
+    assert r["db_mutation_performed"] is False
+    assert r["firewall_mutation_performed"] is False
+    assert r["nat_mutation_performed"] is False
+    assert r["conntrack_mutation_performed"] is False
+    assert r["docker_mutation_performed"] is False
+    assert "expected_version_mismatch" in r["blockers"]
+
+
+def test_blocks_farm5_baseline_version_mismatch(tmp_path):
+    r = _call(_write(tmp_path, _base()), farm5_baseline_version="0.1.167")
+    assert r["final_decision"] == "BLOCKED"
+    assert r["phase11e_execution_gate_ready"] is False
+    assert r["phase11e_execution_allowed"] is False
+    assert r["customer_created"] is False
+    assert r["mutation_performed"] is False
+    assert r["db_mutation_performed"] is False
+    assert r["firewall_mutation_performed"] is False
+    assert r["nat_mutation_performed"] is False
+    assert r["conntrack_mutation_performed"] is False
+    assert r["docker_mutation_performed"] is False
+    assert "farm5_baseline_version_mismatch" in r["blockers"]
