@@ -13,6 +13,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence.
 - after 0.1.206 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101.
 - then Stratum transcript evidence and visibility bundle.
+- real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
 - production/miner traffic remains blocked.
 - DB activation remains blocked.
 - abuse 1h and restart/container-order evidence remain required before limited production acceptance.
