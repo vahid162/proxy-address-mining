@@ -118,7 +118,7 @@ from mpf.services import (
     phase11_canary_usage_visibility_service,
     phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service, phase11_limited_onboarding_gate_service, phase11_limited_onboarding_execution_gate_service,
     phase11_single_customer_staging_service,
-    phase11_single_customer_firewall_plan_gate_service, phase11_single_customer_firewall_apply_gate_service, phase11_single_customer_firewall_apply_execution_service, phase11_single_customer_post_apply_evidence_service,
+    phase11_single_customer_firewall_plan_gate_service, phase11_single_customer_firewall_apply_gate_service, phase11_single_customer_firewall_apply_execution_service, phase11_single_customer_post_apply_evidence_service, phase11_single_customer_runtime_path_evidence_service, phase11_single_customer_stratum_transcript_evidence_service, phase11_single_customer_visibility_bundle_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -2750,6 +2750,45 @@ def production_single_customer_post_apply_evidence(
     if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
     for key in ("component","final_decision","post_apply_evidence_ready","controlled_apply_recorded","next_required_step","blockers"):
         typer.echo(f"{key}: {report.get(key)}")
+
+
+@production_app.command("single-customer-runtime-path-evidence")
+def production_single_customer_runtime_path_evidence(
+    expected_version: str = typer.Option("0.1.206", "--expected-version"),
+    post_apply_evidence_json: Path = typer.Option(..., "--post-apply-evidence-json"),
+    post_apply_evidence_json_sha256: str = typer.Option(..., "--post-apply-evidence-json-sha256"),
+    operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed"),
+    i_understand_runtime_evidence_only: bool = typer.Option(False, "--i-understand-runtime-evidence-only"),
+    i_understand_no_production_traffic_acceptance: bool = typer.Option(False, "--i-understand-no-production-traffic-acceptance"),
+    i_understand_no_miner_traffic_acceptance: bool = typer.Option(False, "--i-understand-no-miner-traffic-acceptance"),
+    i_understand_no_db_activation: bool = typer.Option(False, "--i-understand-no-db-activation"),
+    i_confirm_stratum_transcript_required: bool = typer.Option(False, "--i-confirm-stratum-transcript-required"),
+    i_confirm_visibility_bundle_required: bool = typer.Option(False, "--i-confirm-visibility-bundle-required"),
+    i_confirm_abuse_1h_required_before_customer_traffic: bool = typer.Option(False, "--i-confirm-abuse-1h-required-before-customer-traffic"),
+    i_confirm_restart_container_order_required_before_limited_acceptance: bool = typer.Option(False, "--i-confirm-restart-container-order-required-before-limited-acceptance"),
+    live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file"),
+    conntrack_snapshot_file: Path | None = typer.Option(None, "--conntrack-snapshot-file"),
+    forwarder_log_file: Path | None = typer.Option(None, "--forwarder-log-file"),
+    bridge_log_file: Path | None = typer.Option(None, "--bridge-log-file"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_single_customer_runtime_path_evidence_service.build_phase11_single_customer_runtime_path_evidence_report(_load(config), expected_version=expected_version, post_apply_evidence_json=post_apply_evidence_json, post_apply_evidence_json_sha256=post_apply_evidence_json_sha256, operator=operator, reason=reason, operator_confirmed=operator_confirmed, i_understand_runtime_evidence_only=i_understand_runtime_evidence_only, i_understand_no_production_traffic_acceptance=i_understand_no_production_traffic_acceptance, i_understand_no_miner_traffic_acceptance=i_understand_no_miner_traffic_acceptance, i_understand_no_db_activation=i_understand_no_db_activation, i_confirm_stratum_transcript_required=i_confirm_stratum_transcript_required, i_confirm_visibility_bundle_required=i_confirm_visibility_bundle_required, i_confirm_abuse_1h_required_before_customer_traffic=i_confirm_abuse_1h_required_before_customer_traffic, i_confirm_restart_container_order_required_before_limited_acceptance=i_confirm_restart_container_order_required_before_limited_acceptance, live_snapshot_file=live_snapshot_file, conntrack_snapshot_file=conntrack_snapshot_file, forwarder_log_file=forwarder_log_file, bridge_log_file=bridge_log_file)
+    if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component","final_decision","runtime_path_evidence_ready","next_required_step","blockers"): typer.echo(f"{key}: {report.get(key)}")
+
+@production_app.command("single-customer-stratum-transcript-evidence")
+def production_single_customer_stratum_transcript_evidence(transcript_json: Path = typer.Option(..., "--transcript-json"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    report = phase11_single_customer_stratum_transcript_evidence_service.build_phase11_single_customer_stratum_transcript_evidence_report(_load(config), transcript_json=transcript_json)
+    if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component","final_decision","stratum_transcript_ready","blockers"): typer.echo(f"{key}: {report.get(key)}")
+
+@production_app.command("single-customer-visibility-bundle")
+def production_single_customer_visibility_bundle(runtime_path_evidence_json: Path = typer.Option(..., "--runtime-path-evidence-json"), runtime_path_evidence_json_sha256: str | None = typer.Option(None, "--runtime-path-evidence-json-sha256"), stratum_transcript_evidence_json: Path = typer.Option(..., "--stratum-transcript-evidence-json"), stratum_transcript_evidence_json_sha256: str | None = typer.Option(None, "--stratum-transcript-evidence-json-sha256"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    report = phase11_single_customer_visibility_bundle_service.build_phase11_single_customer_visibility_bundle_report(_load(config), runtime_path_evidence_json=runtime_path_evidence_json, runtime_path_evidence_json_sha256=runtime_path_evidence_json_sha256, stratum_transcript_evidence_json=stratum_transcript_evidence_json, stratum_transcript_evidence_json_sha256=stratum_transcript_evidence_json_sha256)
+    if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component","final_decision","visibility_bundle_ready","next_required_step","blockers"): typer.echo(f"{key}: {report.get(key)}")
 
 @production_app.command("canary-evidence-pack")
 def production_canary_evidence_pack(

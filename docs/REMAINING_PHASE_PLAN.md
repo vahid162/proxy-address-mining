@@ -8,23 +8,16 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Repository version after this PR is 0.1.205.
-- farm5 0.1.204 controlled apply execution evidence is recorded.
-- 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path evidence.
-- next intended step is running `mpf production single-customer-post-apply-evidence` on farm5 after 0.1.205 sync and full pytest.
-- production/miner traffic remains blocked.
-- abuse 1h and restart/container-order evidence remain required.
-- Actual server execution still requires farm5 sync/test plus explicit operator execution evidence.
-- Production/miner traffic remains blocked until post-apply runtime evidence and later acceptance PR.
-- farm5 0.1.200 single-customer DB-only staging evidence is recorded.
-- farm5 0.1.201 sync exposed a test isolation issue after real DB-only staging created limited-btc-001.
-- farm5 0.1.202 sync/test and firewall plan gate evidence are recorded.
-- After 0.1.205 sync and full pytest, run `mpf production single-customer-post-apply-evidence` to classify the recorded apply evidence on farm5.
-- If post-apply evidence is READY, the next PR is runtime path evidence for 20101, Stratum transcript evidence, and visibility bundle.
-- Production/miner traffic remains blocked.
-- Abuse 1h coverage and restart/container-order evidence remain required before limited production acceptance.
-- non-mutating post-apply evidence classifier was added to prepare the next runtime evidence PR while keeping gates closed.
+- Repository version after this PR is 0.1.206.
+- post-apply evidence READY is recorded from farm5 0.1.205.
+- 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence.
+- after 0.1.206 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101.
+- then Stratum transcript evidence and visibility bundle.
 - real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
+- production/miner traffic remains blocked.
+- DB activation remains blocked.
+- abuse 1h and restart/container-order evidence remain required before limited production acceptance.
+- farm5 0.1.200 single-customer DB-only staging evidence is recorded.
 - production traffic remains none.
 - firewall apply remains no.
 - customer onboarding remains db_only.
@@ -174,10 +167,5 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 - After 0.1.197 merge/sync, next intended server step is running `mpf production canary-acceptance-decision` on farm5 against `/tmp/phase11-canary-evidence-pack-0.1.195-live` and recording result evidence.
 - Phase 11E limited onboarding remains blocked until this Phase 11D canary acceptance decision is executed and recorded on farm5.
 
-
-
-
 0.1.202 planning/readiness: farm5 0.1.201 sync exposed a Phase 11 single-customer staging test isolation issue after real DB-only staging created limited-btc-001; test isolation fix + docs/version-only update, no runtime gate changes.
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
-
-

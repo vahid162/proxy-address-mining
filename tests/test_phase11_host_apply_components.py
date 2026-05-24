@@ -147,7 +147,7 @@ def test_executor_accepts_real_renderer_payload(monkeypatch):
         "scope": {"single_canary_only": True},
         "request": {
             "requested_action": "execute",
-            "expected_version": "0.1.205",
+            "expected_version": "0.1.206",
             "customer_key": "canary-btc-001",
             "lane": "btc",
             "port": 20001,
