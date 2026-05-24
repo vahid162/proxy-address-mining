@@ -116,7 +116,7 @@ from mpf.services import (
     phase11_canary_final_check_report_visibility_service,
     phase11_canary_rollback_restore_visibility_service,
     phase11_canary_usage_visibility_service,
-    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service,
+    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service, phase11_limited_onboarding_gate_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -2464,6 +2464,33 @@ def production_canary_acceptance_decision(
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
     for key in ("component", "final_decision", "phase11d_canary_accepted", "phase11_accepted", "limited_onboarding_allowed", "production_traffic_enabled", "no_onboarding_authorized", "next_required_step", "blockers"):
+        typer.echo(f"{key}: {report.get(key)}")
+
+
+@production_app.command("limited-onboarding-gate")
+def production_limited_onboarding_gate(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    canary_acceptance_decision_json: Path = typer.Option(..., "--canary-acceptance-decision-json"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed"),
+    i_understand_no_real_customer_onboarding_yet: bool = typer.Option(False, "--i-understand-no-real-customer-onboarding-yet"),
+    i_understand_no_production_traffic_yet: bool = typer.Option(False, "--i-understand-no-production-traffic-yet"),
+    i_understand_phase11e_requires_separate_execution_gate: bool = typer.Option(False, "--i-understand-phase11e-requires-separate-execution-gate"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_limited_onboarding_gate_service.build_phase11_limited_onboarding_gate_report(
+        _load(config), expected_version=expected_version, farm5_baseline_version=farm5_baseline_version,
+        canary_acceptance_decision_json=canary_acceptance_decision_json, operator=operator, reason=reason,
+        operator_confirmed=operator_confirmed, i_understand_no_real_customer_onboarding_yet=i_understand_no_real_customer_onboarding_yet,
+        i_understand_no_production_traffic_yet=i_understand_no_production_traffic_yet,
+        i_understand_phase11e_requires_separate_execution_gate=i_understand_phase11e_requires_separate_execution_gate,
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component", "final_decision", "phase11d_canary_accepted", "phase11e_gate_ready", "phase11e_execution_allowed", "phase11_accepted", "limited_onboarding_allowed", "production_traffic_enabled", "no_onboarding_authorized", "next_required_step", "blockers"):
         typer.echo(f"{key}: {report.get(key)}")
 
 @production_app.command("canary-evidence-pack")
