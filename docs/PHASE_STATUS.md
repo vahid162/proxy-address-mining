@@ -2984,3 +2984,6 @@ State:
 
 
 
+
+
+- 0.1.207 planning/readiness: recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating runtime probe diagnostics for limited-btc-001 / 20101 while keeping production/miner/acceptance gates closed.

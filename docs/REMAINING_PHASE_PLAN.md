@@ -37,6 +37,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
 - Phase 11D actual execution remains not accepted.
 - Phase 11 remains not accepted.
+- Repository version after this PR is 0.1.207.
+- Runtime-path evidence attempt for 20101 is recorded as BLOCKED due missing ASSURED conntrack signal.
+- Forwarder and bridge signals are present/partial.
+- after 0.1.207 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101.
+- Next intended farm5 step after sync/test is controlled runtime probe diagnostics and stronger runtime/Stratum evidence collection.
+- Production/miner traffic remains blocked.
+- DB activation remains blocked.
+- Abuse 1h and restart/container-order evidence remain required before limited production acceptance.
 
 ## Finite Remaining Path
 
@@ -169,3 +177,11 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 
 0.1.202 planning/readiness: farm5 0.1.201 sync exposed a Phase 11 single-customer staging test isolation issue after real DB-only staging created limited-btc-001; test isolation fix + docs/version-only update, no runtime gate changes.
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
+
+
+- Repository version target after this PR: 0.1.207.
+- Runtime-path evidence attempt for limited-btc-001/20101 recorded as BLOCKED (missing ASSURED conntrack signal).
+- Forwarder/bridge signals were present; runtime acceptance remains blocked.
+- Next intended step: controlled runtime probe diagnostics and stronger runtime/Stratum evidence collection.
+- Production/miner traffic remains blocked; DB activation remains blocked.
+- Abuse 1h and restart/container-order evidence remain required before limited production acceptance.
