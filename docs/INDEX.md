@@ -1,3 +1,4 @@
+Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
 # Documentation Index
 
 Status: active documentation map
@@ -649,3 +650,7 @@ Current Phase 11 evidence docs include:
 
 - docs/PHASE_11_FARM5_0_1_202_FIREWALL_PLAN_GATE_EVIDENCE.md
 - docs/PHASE_11E_SINGLE_CUSTOMER_FIREWALL_APPLY_GATE.md
+
+
+- docs/PHASE_11_FARM5_0_1_203_FIREWALL_APPLY_GATE_EVIDENCE.md
+- docs/PHASE_11E_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTION.md

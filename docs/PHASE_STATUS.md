@@ -1,3 +1,4 @@
+Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
 # PHASE STATUS
 
 Status: Active project control file
@@ -2978,3 +2979,7 @@ State:
 
 0.1.202 planning/readiness: isolated the Phase 11E single-customer staging create-failure test from real farm5 DB state after DB-only staging while preserving closed apply/traffic gates.
 0.1.201 planning/readiness: recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
+
+
+- docs/PHASE_11_FARM5_0_1_203_FIREWALL_APPLY_GATE_EVIDENCE.md
+- docs/PHASE_11E_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTION.md
