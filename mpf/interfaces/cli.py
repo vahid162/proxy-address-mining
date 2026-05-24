@@ -118,6 +118,7 @@ from mpf.services import (
     phase11_canary_usage_visibility_service,
     phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service, phase11_limited_onboarding_gate_service, phase11_limited_onboarding_execution_gate_service,
     phase11_single_customer_staging_service,
+    phase11_single_customer_firewall_plan_gate_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -2581,6 +2582,50 @@ def production_single_customer_staging(
     for key in ("component", "final_decision", "mode", "candidate_customer_key", "candidate_lane", "candidate_public_port", "phase11e_single_customer_staging_ready", "phase11e_db_staging_allowed", "customer_created", "customer_updated", "db_mutation_performed", "firewall_mutation_performed", "nat_mutation_performed", "production_traffic_enabled", "limited_onboarding_allowed", "mutation_performed", "next_required_step", "blockers"):
         typer.echo(f"{key}: {report.get(key)}")
 
+
+
+@production_app.command("single-customer-firewall-plan-gate")
+def production_single_customer_firewall_plan_gate(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    staging_execute_json: Path = typer.Option(..., "--staging-execute-json"),
+    candidate_customer_key: str = typer.Option("limited-btc-001", "--candidate-customer-key"),
+    candidate_lane: str = typer.Option("btc", "--candidate-lane"),
+    candidate_public_port: int = typer.Option(20101, "--candidate-public-port"),
+    candidate_backend_target: str = typer.Option("172.18.0.3:60010", "--candidate-backend-target"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed"),
+    i_understand_plan_only: bool = typer.Option(False, "--i-understand-plan-only"),
+    i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"),
+    i_understand_no_nat_apply: bool = typer.Option(False, "--i-understand-no-nat-apply"),
+    i_understand_no_production_traffic: bool = typer.Option(False, "--i-understand-no-production-traffic"),
+    i_understand_no_miner_traffic_yet: bool = typer.Option(False, "--i-understand-no-miner-traffic-yet"),
+    i_confirm_restore_point_required_before_apply: bool = typer.Option(False, "--i-confirm-restore-point-required-before-apply"),
+    i_confirm_lock_required_before_apply: bool = typer.Option(False, "--i-confirm-lock-required-before-apply"),
+    i_confirm_rollback_plan_required_before_apply: bool = typer.Option(False, "--i-confirm-rollback-plan-required-before-apply"),
+    i_confirm_restart_test_required_before_traffic: bool = typer.Option(False, "--i-confirm-restart-test-required-before-traffic"),
+    i_confirm_abuse_1h_required_before_traffic: bool = typer.Option(False, "--i-confirm-abuse-1h-required-before-traffic"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_single_customer_firewall_plan_gate_service.build_phase11_single_customer_firewall_plan_gate_report(
+        _load(config), expected_version=expected_version, farm5_baseline_version=farm5_baseline_version, staging_execute_json=staging_execute_json,
+        candidate_customer_key=candidate_customer_key, candidate_lane=candidate_lane, candidate_public_port=candidate_public_port,
+        candidate_backend_target=candidate_backend_target, operator=operator, reason=reason, operator_confirmed=operator_confirmed,
+        i_understand_plan_only=i_understand_plan_only, i_understand_no_firewall_apply=i_understand_no_firewall_apply,
+        i_understand_no_nat_apply=i_understand_no_nat_apply, i_understand_no_production_traffic=i_understand_no_production_traffic,
+        i_understand_no_miner_traffic_yet=i_understand_no_miner_traffic_yet,
+        i_confirm_restore_point_required_before_apply=i_confirm_restore_point_required_before_apply,
+        i_confirm_lock_required_before_apply=i_confirm_lock_required_before_apply,
+        i_confirm_rollback_plan_required_before_apply=i_confirm_rollback_plan_required_before_apply,
+        i_confirm_restart_test_required_before_traffic=i_confirm_restart_test_required_before_traffic,
+        i_confirm_abuse_1h_required_before_traffic=i_confirm_abuse_1h_required_before_traffic,
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component", "final_decision", "candidate_customer_key", "candidate_public_port", "phase11e_firewall_plan_gate_ready", "firewall_plan_generated", "firewall_apply_allowed", "nat_apply_allowed", "iptables_restore_authorized", "production_traffic_enabled", "miner_traffic_allowed", "mutation_performed", "next_required_step", "blockers"):
+        typer.echo(f"{key}: {report.get(key)}")
 @production_app.command("canary-evidence-pack")
 def production_canary_evidence_pack(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),

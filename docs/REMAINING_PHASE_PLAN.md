@@ -8,11 +8,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Repository version after this PR is 0.1.200.
-- farm5 0.1.199 limited-onboarding-execution-gate evidence is recorded.
-- next intended server step after 0.1.200 sync is running `mpf production single-customer-staging --mode plan`.
-- if plan is ready, the next server step is `mpf production single-customer-staging --mode execute-db-only`.
-- real customer traffic remains blocked until a separate firewall/NAT plan/apply gate PR is merged, synced, tested, and explicitly updates Current State.
+- Repository version after this PR is 0.1.201.
+- farm5 0.1.200 single-customer DB-only staging evidence is recorded.
+- next intended server step after 0.1.201 sync is running `mpf production single-customer-firewall-plan-gate`.
+- real customer traffic remains blocked until a separate firewall/NAT apply gate PR is merged, synced, tested, and explicitly updates Current State.
 - production traffic remains none.
 - firewall apply remains no.
 - customer onboarding remains db_only.
@@ -165,4 +164,4 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 
 
 
-0.1.200 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
+0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
