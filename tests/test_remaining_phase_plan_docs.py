@@ -11,8 +11,10 @@ def test_current_position_updates() -> None:
     assert "- Current accepted phase is Phase 10." in current
     assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
     assert "- Repository version after this PR is 0.1.206." in current
-    assert "- farm5 0.1.200 single-customer DB-only staging evidence is recorded." in current
-    assert "- After 0.1.206 sync and full pytest, run `mpf production single-customer-post-apply-evidence` to classify the recorded apply evidence on farm5." in current
+    assert "- post-apply evidence READY is recorded from farm5 0.1.205." in current
+    assert "- 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence." in current
+    assert "- after 0.1.206 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101." in current
+    assert "- then Stratum transcript evidence and visibility bundle." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no." in current
     assert "- customer onboarding remains db_only." in current
