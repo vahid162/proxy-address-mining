@@ -10,9 +10,9 @@ def test_current_position_updates() -> None:
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
     assert "- Current accepted phase is Phase 10." in current
     assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
-    assert "- Repository version after this PR is 0.1.200." in current
-    assert "- farm5 0.1.199 limited-onboarding-execution-gate evidence is recorded." in current
-    assert "- next intended server step after 0.1.200 sync is running `mpf production single-customer-staging --mode plan`." in current
+    assert "- Repository version after this PR is 0.1.201." in current
+    assert "- farm5 0.1.200 single-customer DB-only staging evidence is recorded." in current
+    assert "- next intended server step after 0.1.201 sync is running `mpf production single-customer-firewall-plan-gate`." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no." in current
     assert "- customer onboarding remains db_only." in current
@@ -40,4 +40,4 @@ def test_ai_phase10_task_marks_acceptance() -> None:
 
 def test_phase11_non_accepted_and_gates_closed() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
-    assert "real customer traffic remains blocked until a separate firewall/NAT plan/apply gate PR is merged, synced, tested, and explicitly updates Current State." in t
+    assert "real customer traffic remains blocked until a separate firewall/NAT apply gate PR is merged, synced, tested, and explicitly updates Current State." in t

@@ -2,6 +2,8 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.201): recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
+
 Phase 11 planning/readiness note (0.1.200): recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package while preserving closed firewall/NAT/production gates.
 
 Phase 11 planning/readiness note (0.1.199): recorded farm5 0.1.198 limited-onboarding-gate readiness evidence and added non-mutating Phase 11E limited onboarding execution gate package.
@@ -2971,4 +2973,4 @@ State:
 - 0.1.192: Phase 11 planning/readiness wiring update for canary evidence-pack visibility artifact integration, UTF-8 BOM tolerant external transcript import, and forwarder diagnostics hardening; Current State unchanged, Phase 11 remains not accepted, production_traffic remains none, customer_onboarding_allowed remains db_only, abuse_automation_allowed remains no, ui/telegram remain no.
 
 
-0.1.200 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
+0.1.201 planning/readiness: recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
