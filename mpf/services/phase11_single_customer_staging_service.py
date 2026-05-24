@@ -23,6 +23,8 @@ def build_phase11_single_customer_staging_report(config: MPFConfig, **kwargs: ob
     candidate_public_port = kwargs.get("candidate_public_port")
     candidate_backend_target = str(kwargs.get("candidate_backend_target", "")).strip()
     candidate_description = str(kwargs.get("candidate_description", "")).strip()
+    operator = str(kwargs.get("operator", "")).strip()
+    reason = str(kwargs.get("reason", "")).strip()
 
     if expected_version != __version__:
         blockers.append("expected_version_mismatch")
@@ -41,7 +43,7 @@ def build_phase11_single_customer_staging_report(config: MPFConfig, **kwargs: ob
     if not candidate_description:
         blockers.append("candidate_description_missing")
 
-    if kwargs.get("operator_confirmed") is not True:
+    if kwargs.get("operator_confirmed") is not True or not operator or not reason:
         blockers.append("operator_not_confirmed")
     if kwargs.get("i_understand_db_only_staging") is not True:
         blockers.append("db_only_boundary_not_confirmed")
@@ -92,11 +94,7 @@ def build_phase11_single_customer_staging_report(config: MPFConfig, **kwargs: ob
     if not blockers:
         customers = customer_read_service.list_customer_status(config, include_deleted=False, limit=5000)
         if not customers.ok:
-            if mode == "execute-db-only":
-                blockers.append("db_staging_service_error")
-            else:
-                rows = []
-                warnings.append("db_staging_service_error")
+            blockers.append("db_staging_service_error")
         else:
             rows = customers.customers
             existing_key = [r for r in rows if r.customer_key == "limited-btc-001"]
@@ -132,7 +130,8 @@ def build_phase11_single_customer_staging_report(config: MPFConfig, **kwargs: ob
 
     blockers = sorted(set(blockers))
     ready = not blockers
-    allowed = ready and mode == "execute-db-only"
+    idempotent_existing = bool(staging_plan.get("customer_exists") is True and staging_plan.get("action") == "idempotent")
+    allowed = ready and mode == "execute-db-only" and (customer_created or idempotent_existing)
     return {
         "component": "phase11_single_customer_staging", "expected_version": expected_version, "repository_version": __version__, "mode": mode,
         "candidate_customer_key": candidate_customer_key, "candidate_lane": candidate_lane, "candidate_public_port": candidate_public_port,

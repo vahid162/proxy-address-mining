@@ -1,14 +1,15 @@
 from __future__ import annotations
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from typer.testing import CliRunner
 
 from mpf import __version__
 from mpf.config import load_config
 from mpf.interfaces.cli import app
 from mpf.services.phase11_single_customer_staging_service import build_phase11_single_customer_staging_report
-from mpf.services import customer_read_service
-
+from mpf.services import customer_read_service, customer_mutation_service
+from mpf.repositories.customer_write_repo import CustomerMutationResult
 
 def _cfg(): return load_config(Path('configs/mpf.example.yaml'))
 
@@ -21,18 +22,29 @@ def _write(tmp_path,d): p=tmp_path/'g.json'; p.write_text(json.dumps(d)); return
 def _kwargs(p):
     return dict(expected_version=__version__,farm5_baseline_version='0.1.168',execution_gate_json=p,candidate_customer_key='limited-btc-001',candidate_lane='btc',candidate_public_port=20101,candidate_backend_target='172.18.0.3:60010',candidate_description='x',operator='vahid',reason='ok',mode='plan',operator_confirmed=True,i_understand_db_only_staging=True,i_understand_no_firewall_apply=True,i_understand_no_nat_apply=True,i_understand_no_production_traffic=True,i_understand_single_customer_limit=True,i_confirm_port_not_live_until_firewall_gate=True,i_confirm_rollback_plan_required=True,i_confirm_restart_test_required_before_traffic=True,i_confirm_abuse_1h_required_before_traffic=True)
 
-
-def test_plan_ready_from_valid_execution_gate(tmp_path):
+def test_plan_ready_from_valid_execution_gate(tmp_path, monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[]))
     r=build_phase11_single_customer_staging_report(_cfg(),**_kwargs(_write(tmp_path,_gate())))
     assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_STAGING_PLAN_READY'
+    assert r['db_mutation_performed'] is False and r['phase11e_db_staging_allowed'] is False
 
-def test_execute_db_only_creates_one_limited_customer_when_allowed(tmp_path):
+def test_execute_db_only_creates_one_limited_customer_when_allowed(tmp_path, monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[]))
+    called={"n":0}
+    monkeypatch.setattr(customer_mutation_service,'create_db_only_customer',lambda *a,**k:(called.__setitem__('n',called['n']+1) or CustomerMutationResult(ok=True,message='OK',customer_key='limited-btc-001')))
     kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; r=build_phase11_single_customer_staging_report(_cfg(),**kw)
-    assert r['final_decision'] in {'PHASE11_SINGLE_CUSTOMER_DB_STAGING_EXECUTED','BLOCKED'}
+    assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_DB_STAGING_EXECUTED'
+    assert r['phase11e_db_staging_allowed'] is True and r['db_mutation_performed'] is True
+    assert r['firewall_mutation_performed'] is False and r['nat_mutation_performed'] is False
+    assert r['production_traffic_enabled'] is False and r['limited_onboarding_allowed'] is False
+    assert called['n']==1
 
-def test_execute_db_only_idempotent_when_exact_customer_exists(tmp_path):
-    kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; build_phase11_single_customer_staging_report(_cfg(),**kw); r=build_phase11_single_customer_staging_report(_cfg(),**kw)
-    assert r['firewall_mutation_performed'] is False
+def test_execute_db_only_idempotent_when_exact_customer_exists(tmp_path, monkeypatch):
+    row=SimpleNamespace(id=10,customer_key='limited-btc-001',lane='btc',port=20101)
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[row]))
+    kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; r=build_phase11_single_customer_staging_report(_cfg(),**kw)
+    assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_DB_STAGING_EXECUTED'
+    assert r['customer_created'] is False and r['db_mutation_performed'] is False
 
 def test_blocks_missing_execution_gate_json(tmp_path): assert 'execution_gate_json_missing' in build_phase11_single_customer_staging_report(_cfg(),**_kwargs(tmp_path/'x')).get('blockers',[])
 def test_blocks_invalid_execution_gate_json(tmp_path): p=tmp_path/'x.json'; p.write_text('{'); assert 'execution_gate_json_invalid' in build_phase11_single_customer_staging_report(_cfg(),**_kwargs(p)).get('blockers',[])
@@ -48,6 +60,8 @@ def test_blocks_wrong_port(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['
 def test_blocks_wrong_backend_target(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['candidate_backend_target']='x'; assert 'candidate_backend_target_invalid' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
 def test_blocks_missing_description(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['candidate_description']=''; assert 'candidate_description_missing' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
 def test_blocks_without_operator_confirmation(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['operator_confirmed']=False; assert 'operator_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
+def test_blocks_empty_operator(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['operator']=''; assert 'operator_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
+def test_blocks_empty_reason(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['reason']=''; assert 'operator_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
 def test_blocks_without_db_only_boundary_confirmation(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['i_understand_db_only_staging']=False; assert 'db_only_boundary_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
 def test_blocks_without_no_firewall_confirmation(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['i_understand_no_firewall_apply']=False; assert 'no_firewall_apply_boundary_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
 def test_blocks_without_no_nat_confirmation(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['i_understand_no_nat_apply']=False; assert 'no_nat_apply_boundary_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
@@ -57,8 +71,40 @@ def test_blocks_without_port_not_live_confirmation(tmp_path): kw=_kwargs(_write(
 def test_blocks_without_rollback_requirement_confirmation(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['i_confirm_rollback_plan_required']=False; assert 'rollback_plan_requirement_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
 def test_blocks_without_restart_requirement_confirmation(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['i_confirm_restart_test_required_before_traffic']=False; assert 'restart_test_requirement_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
 def test_blocks_without_abuse_1h_requirement_confirmation(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['i_confirm_abuse_1h_required_before_traffic']=False; assert 'abuse_1h_requirement_not_confirmed' in build_phase11_single_customer_staging_report(_cfg(),**kw)['blockers']
-def test_blocks_candidate_port_collision(tmp_path): assert True
-def test_blocks_candidate_conflict_existing_customer(tmp_path): assert True
+
+def test_blocks_candidate_port_collision(tmp_path, monkeypatch):
+    row=SimpleNamespace(id=2,customer_key='other',lane='btc',port=20101)
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[row]))
+    r=build_phase11_single_customer_staging_report(_cfg(),**_kwargs(_write(tmp_path,_gate())))
+    assert 'candidate_port_collision' in r['blockers']
+
+def test_blocks_candidate_conflict_existing_customer(tmp_path, monkeypatch):
+    row=SimpleNamespace(id=3,customer_key='limited-btc-001',lane='zec',port=20101)
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[row]))
+    r=build_phase11_single_customer_staging_report(_cfg(),**_kwargs(_write(tmp_path,_gate())))
+    assert 'candidate_conflicts_with_existing_customer' in r['blockers']
+
+def test_blocks_db_read_failure_in_plan_mode(tmp_path, monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=False,message='err',customers=[]))
+    r=build_phase11_single_customer_staging_report(_cfg(),**_kwargs(_write(tmp_path,_gate())))
+    assert 'db_staging_service_error' in r['blockers'] and r['final_decision']=='BLOCKED'
+
+def test_blocks_db_read_failure_in_execute_mode(tmp_path, monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=False,message='err',customers=[]))
+    kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; r=build_phase11_single_customer_staging_report(_cfg(),**kw)
+    assert 'db_staging_service_error' in r['blockers'] and r['final_decision']=='BLOCKED'
+
+def test_execute_db_only_blocks_when_create_service_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(customer_mutation_service,'create_db_only_customer',lambda *a,**k: CustomerMutationResult(ok=False,message='fail',customer_key='limited-btc-001'))
+    kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; r=build_phase11_single_customer_staging_report(_cfg(),**kw)
+    assert 'db_staging_service_error' in r['blockers'] and r['final_decision']=='BLOCKED'
+
+def test_plan_mode_never_calls_create_db_only_customer(tmp_path, monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[]))
+    monkeypatch.setattr(customer_mutation_service,'create_db_only_customer',lambda *a,**k: (_ for _ in ()).throw(AssertionError('must not call create')))
+    r=build_phase11_single_customer_staging_report(_cfg(),**_kwargs(_write(tmp_path,_gate())))
+    assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_STAGING_PLAN_READY'
+
 def test_execute_db_only_does_not_create_firewall_apply_job(tmp_path): kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; r=build_phase11_single_customer_staging_report(_cfg(),**kw); assert r['firewall_mutation_performed'] is False
 def test_execute_db_only_does_not_mutate_canary_customer(tmp_path): c=customer_read_service.show_customer(_cfg(), customer_key='canary-btc-001'); kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; build_phase11_single_customer_staging_report(_cfg(),**kw); c2=customer_read_service.show_customer(_cfg(), customer_key='canary-btc-001'); assert (c.customer.port if c.customer else None)==(c2.customer.port if c2.customer else None)
 
