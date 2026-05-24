@@ -8,9 +8,10 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Repository version after this PR is 0.1.201.
+- Repository version after this PR is 0.1.202.
 - farm5 0.1.200 single-customer DB-only staging evidence is recorded.
-- next intended server step after 0.1.201 sync is running `mpf production single-customer-firewall-plan-gate`.
+- farm5 0.1.201 sync exposed a test isolation issue after real DB-only staging created limited-btc-001.
+- next intended server step after 0.1.202 sync is rerunning full pytest, then running `mpf production single-customer-firewall-plan-gate` only if tests pass.
 - real customer traffic remains blocked until a separate firewall/NAT apply gate PR is merged, synced, tested, and explicitly updates Current State.
 - production traffic remains none.
 - firewall apply remains no.
@@ -164,4 +165,5 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 
 
 
+0.1.202 planning/readiness: farm5 0.1.201 sync exposed a Phase 11 single-customer staging test isolation issue after real DB-only staging created limited-btc-001; test isolation fix + docs/version-only update, no runtime gate changes.
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
