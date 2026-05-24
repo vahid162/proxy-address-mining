@@ -2982,3 +2982,5 @@ State:
 0.1.201 planning/readiness: recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
 
 
+
+Phase 11 planning/readiness note (0.1.206): records farm5 0.1.205 post-apply evidence READY and adds read-only single-customer runtime path + Stratum transcript + visibility bundle evidence classifiers for limited-btc-001/20101 while all activation gates remain closed.
