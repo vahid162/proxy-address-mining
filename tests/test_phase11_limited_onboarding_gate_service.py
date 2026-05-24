@@ -76,3 +76,17 @@ def test_cli_limited_onboarding_gate_json_smoke(tmp_path):
 def test_cli_limited_onboarding_gate_human_smoke(tmp_path):
     p=_write(tmp_path,_base()); r=CliRunner().invoke(app,['production','limited-onboarding-gate','--expected-version',__version__,'--farm5-baseline-version','0.1.168','--canary-acceptance-decision-json',str(p),'--operator','vahid','--reason','ok','--operator-confirmed','--i-understand-no-real-customer-onboarding-yet','--i-understand-no-production-traffic-yet','--i-understand-phase11e-requires-separate-execution-gate','--output','human','--config','configs/mpf.example.yaml'])
     assert r.exit_code==0 and 'final_decision:' in r.stdout
+
+
+def test_blocks_expected_version_mismatch(tmp_path):
+    r = _call(_write(tmp_path, _base()), expected_version="0.1.197")
+    assert r["final_decision"] == "BLOCKED"
+    assert r["phase11e_gate_ready"] is False
+    assert "expected_version_mismatch" in r["blockers"]
+
+
+def test_blocks_farm5_baseline_version_mismatch(tmp_path):
+    r = _call(_write(tmp_path, _base()), farm5_baseline_version="0.1.167")
+    assert r["final_decision"] == "BLOCKED"
+    assert r["phase11e_gate_ready"] is False
+    assert "farm5_baseline_version_mismatch" in r["blockers"]

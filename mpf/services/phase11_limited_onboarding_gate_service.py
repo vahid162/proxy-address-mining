@@ -74,6 +74,11 @@ def build_phase11_limited_onboarding_gate_report(config: MPFConfig, **kwargs: ob
         if any(summary.get(k) != v for k, v in req_summary.items()):
             blockers.append("canary_acceptance_evidence_summary_incomplete")
 
+    if expected_version != __version__:
+        blockers.append("expected_version_mismatch")
+    if farm5_baseline_version != "0.1.168":
+        blockers.append("farm5_baseline_version_mismatch")
+
     if not operator or not reason or kwargs.get("operator_confirmed") is not True:
         blockers.append("operator_not_confirmed")
     if kwargs.get("i_understand_no_real_customer_onboarding_yet") is not True:
@@ -84,7 +89,7 @@ def build_phase11_limited_onboarding_gate_report(config: MPFConfig, **kwargs: ob
         blockers.append("phase11e_separate_execution_gate_not_confirmed")
 
     blockers = sorted(set(blockers))
-    ready = not blockers and expected_version == __version__ and farm5_baseline_version == "0.1.168"
+    ready = not blockers
 
     return {
         "component": "phase11_limited_onboarding_gate",
