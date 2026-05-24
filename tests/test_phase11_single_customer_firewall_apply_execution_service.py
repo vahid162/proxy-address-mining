@@ -57,6 +57,7 @@ def test_24_missing_rb_file(tmp_path,monkeypatch): assert 'rollback_artifact_fil
 def test_25_missing_restore(tmp_path,monkeypatch): assert 'restore_point_missing' in _run(tmp_path,monkeypatch,execute=True,restore_point_path=tmp_path/'x')['blockers']
 def test_26_missing_lock(tmp_path,monkeypatch): assert 'operator_lock_missing' in _run(tmp_path,monkeypatch,execute=True,operator_lock_id='')['blockers']
 def test_27_exec_order(tmp_path,monkeypatch):
+    monkeypatch.delenv('CI', raising=False)
     monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
     calls=[]
     def f(cmd,**k): calls.append(cmd); return SimpleNamespace(returncode=0,stdout=_post())
@@ -66,18 +67,21 @@ def test_27_exec_order(tmp_path,monkeypatch):
     assert len(calls)>=2
     assert calls[0][0:2]==['iptables-restore','--test'] and calls[1][0:2]==['iptables-restore','--noflush']
 def test_28_exec_success_needs_post_verify(tmp_path,monkeypatch):
+    monkeypatch.delenv('CI', raising=False)
     monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
     seq=[SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=_post())]
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
     r=_run(tmp_path,monkeypatch,execute=True)
     assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTED_PENDING_REVIEW', r.get('blockers')
 def test_29_exec_apply_fail(tmp_path,monkeypatch):
+    monkeypatch.delenv('CI', raising=False)
     monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
     seq=[SimpleNamespace(returncode=1,stdout='')]
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
     r=_run(tmp_path,monkeypatch,execute=True)
     assert r['final_decision']=='FAILED_APPLY_EXECUTION', r.get('blockers')
 def test_30_post_verify_fail(tmp_path,monkeypatch):
+    monkeypatch.delenv('CI', raising=False)
     monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
     seq=[SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=_post(False))]
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
