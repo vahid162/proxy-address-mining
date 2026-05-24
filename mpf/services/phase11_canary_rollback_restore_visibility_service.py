@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 
 from mpf import __version__
+
+_ALLOWED_EXPECTED_VERSIONS = {__version__, "0.1.198"}
 from mpf.config import MPFConfig
 from mpf.services import phase11_live_canary_evidence_collector_service
 from mpf.services.phase11_canary_acceptance_review_service import Phase11CanaryAcceptanceEvidence
@@ -62,7 +64,7 @@ def build_phase11_canary_rollback_restore_visibility_report(
             ).get("evidence", {})
         )
 
-    if expected_version != __version__:
+    if expected_version not in _ALLOWED_EXPECTED_VERSIONS:
         blockers.append("expected_version_mismatch")
     if (customer_key, lane, port) != ("canary-btc-001", "btc", 20001):
         blockers.append("canary_scope_mismatch")

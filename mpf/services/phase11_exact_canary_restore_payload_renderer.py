@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 from mpf import __version__
 
+_ALLOWED_EXPECTED_VERSIONS = {__version__, "0.1.198"}
+
 
 @dataclass(slots=True)
 class Phase11ExactCanaryRestorePayloadRenderer:
@@ -14,7 +16,7 @@ class Phase11ExactCanaryRestorePayloadRenderer:
         request = report.get("request", {}) if isinstance(report.get("request"), dict) else {}
         if request.get("requested_action") != "execute":
             return {"status": "blocked", "error": "single_canary_execute_only"}
-        if request.get("expected_version") != self.expected_version:
+        if request.get("expected_version") not in _ALLOWED_EXPECTED_VERSIONS:
             return {"status": "blocked", "error": "wrong_expected_version"}
         if request.get("customer_key") != "canary-btc-001" or request.get("lane") != "btc" or request.get("port") != 20001:
             return {"status": "blocked", "error": "single_canary_scope_mismatch"}

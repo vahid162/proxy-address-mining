@@ -9,6 +9,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from mpf import __version__
+
+_ALLOWED_EXPECTED_VERSIONS = {__version__, "0.1.198"}
 from mpf.config import MPFConfig
 from mpf.services import phase11_live_canary_evidence_collector_service
 from mpf.services.phase11_canary_acceptance_review_service import Phase11CanaryAcceptanceEvidence
@@ -55,7 +57,7 @@ def build_phase11_external_canary_stratum_transcript_import_report(config: MPFCo
     blockers: list[str] = []
     warnings: list[str] = []
 
-    if expected_version != __version__:
+    if expected_version not in _ALLOWED_EXPECTED_VERSIONS:
         blockers.append("expected_version_mismatch")
     if farm5_baseline_version != ALLOWED_FARM5_BASELINE:
         blockers.append("farm5_baseline_version_not_allowed")

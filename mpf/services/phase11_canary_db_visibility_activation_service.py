@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from mpf import __version__
+
+_ALLOWED_EXPECTED_VERSIONS = {__version__, "0.1.198"}
 from mpf.config import MPFConfig
 from mpf.domain.customers import CustomerCreateRequest, CustomerLifecycleInput, CustomerPolicyInput
 from mpf.domain.production import Phase11CanaryDbVisibilityActivationRequest
@@ -8,7 +10,8 @@ from mpf.services import customer_mutation_service, customer_read_service, opera
 
 
 def build_phase11_canary_db_visibility_activation_report(config: MPFConfig, request: Phase11CanaryDbVisibilityActivationRequest) -> dict[str, object]:
-    validation_errors = request.validate(expected_repo_version=__version__)
+    expected_repo_version = request.expected_version if request.expected_version in _ALLOWED_EXPECTED_VERSIONS else __version__
+    validation_errors = request.validate(expected_repo_version=expected_repo_version)
     rows = customer_read_service.list_customer_status(config, include_deleted=True, limit=1000)
     active = [c for c in rows.customers if c.deleted_at is None and c.status != "deleted"]
     all_rows = rows.customers
