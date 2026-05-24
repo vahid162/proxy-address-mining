@@ -8,16 +8,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- GitHub main repository version before this PR is 0.1.168.
-- Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
-- Phase 11D actual execution remains not accepted.
-- Phase 11 remains not accepted.
 - Repository version after this PR is 0.1.207.
-- Repository version after this PR is 0.1.197.
-- customer onboarding remains db_only except future explicit canary run path.
-- latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).
-- latest recorded route-safe canary NAT success evidence remains 0.1.164; farm5 0.1.168 sync confirms the controlled canary NAT artifact is still present.
-- firewall apply remains no except future explicit single-canary operator-approved run path.
 - post-apply evidence READY is recorded from farm5 0.1.205.
 - 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence.
 - Runtime-path evidence attempt for 20101 is recorded as BLOCKED due missing ASSURED conntrack signal.
@@ -167,5 +158,3 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 
 0.1.202 planning/readiness: farm5 0.1.201 sync exposed a Phase 11 single-customer staging test isolation issue after real DB-only staging created limited-btc-001; test isolation fix + docs/version-only update, no runtime gate changes.
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
-
-

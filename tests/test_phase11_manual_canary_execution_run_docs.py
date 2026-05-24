@@ -9,13 +9,9 @@ def test_docs_and_readme_updates() -> None:
     assert 'Actual canary execution has not been performed or accepted.' in r
 
     rp = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')
-    assert 'GitHub main repository version before this PR is 0.1.168.' in rp
-    assert 'Repository version after this PR is 0.1.197.' in rp
-    assert 'latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).' in rp
     assert 'Current blocker before this PR: single_canary_restore_payload_renderer_missing.' in rp
     assert 'single_canary_host_apply_context_not_confirmed' in rp
     assert 'accepted_single_canary_host_apply_execution_missing' in rp
-    assert 'Phase 11 remains not accepted.' in rp
 
 
 def test_runbook_exists_with_exact_command() -> None:
