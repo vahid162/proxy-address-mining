@@ -58,6 +58,32 @@ def test_blocks_if_loopback_canary_target(tmp_path,monkeypatch): assert 'live_ca
 def test_blocks_if_missing_canary_comment(tmp_path,monkeypatch): assert 'live_canary_20001_artifact_missing_or_ambiguous' in _run(tmp_path,monkeypatch,live_snapshot_file=_snap(tmp_path,_live().replace(' -m comment --comment "mpf:canary-btc-001:customer_nat_redirect"',''),'x8.txt'))['blockers']
 def test_collect_live_unauthorized_phase_blocks(tmp_path,monkeypatch): monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service._phase_snapshot_read_authorized',lambda:False); assert 'live_snapshot_read_not_authorized' in _run(tmp_path,monkeypatch,live_snapshot_file=None,collect_live=True,live_snapshot_reader=lambda:_live())['blockers']
 def test_collect_live_subprocess_failure_blocks(tmp_path,monkeypatch): monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service._phase_snapshot_read_authorized',lambda:True); monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service.subprocess.run',lambda *a,**k: SimpleNamespace(returncode=1,stdout='')); assert 'live_firewall_read_failed' in _run(tmp_path,monkeypatch,live_snapshot_file=None,collect_live=True,live_snapshot_reader=None)['blockers']
+def test_collect_live_uses_timeout_and_check_false(tmp_path,monkeypatch):
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service._phase_snapshot_read_authorized',lambda:True)
+    called={}
+    def _fake_run(*args,**kwargs):
+        called['timeout']=kwargs.get('timeout'); called['check']=kwargs.get('check')
+        return SimpleNamespace(returncode=0,stdout=_live())
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service.subprocess.run',_fake_run)
+    r=_run(tmp_path,monkeypatch,live_snapshot_file=None,collect_live=True,live_snapshot_reader=None)
+    assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_FIREWALL_APPLY_GATE_READY'
+    assert called['timeout']==5 and called['check'] is False
+def test_collect_live_authorized_from_current_state_block(tmp_path,monkeypatch):
+    phase='''x\n## Current State\n```text\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\n```\nmore'''
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service._PHASE_STATUS_PATH',tmp_path/'ps.md')
+    (tmp_path/'ps.md').write_text(phase)
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service.subprocess.run',lambda *a,**k: SimpleNamespace(returncode=0,stdout=_live()))
+    r=_run(tmp_path,monkeypatch,live_snapshot_file=None,collect_live=True,live_snapshot_reader=None)
+    assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_FIREWALL_APPLY_GATE_READY'
+def test_collect_live_blocks_if_only_historical_has_values(tmp_path,monkeypatch):
+    phase='''## Current State\n```text\nproduction_traffic: enabled\n```\n\nhistory live_snapshot_read_allowed: iptables_save_read_only firewall_apply_allowed: no abuse_automation_allowed: no customer_onboarding_allowed: db_only ui_allowed: no telegram_allowed: no production_traffic: none'''
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service._PHASE_STATUS_PATH',tmp_path/'ps2.md')
+    (tmp_path/'ps2.md').write_text(phase)
+    assert 'live_snapshot_read_not_authorized' in _run(tmp_path,monkeypatch,live_snapshot_file=None,collect_live=True,live_snapshot_reader=lambda:_live())['blockers']
+def test_collect_live_blocks_if_current_state_malformed(tmp_path,monkeypatch):
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service._PHASE_STATUS_PATH',tmp_path/'ps3.md')
+    (tmp_path/'ps3.md').write_text('## Current State\nproduction_traffic: none')
+    assert 'live_snapshot_read_not_authorized' in _run(tmp_path,monkeypatch,live_snapshot_file=None,collect_live=True,live_snapshot_reader=lambda:_live())['blockers']
 def test_output_never_authorizes_iptables_restore(tmp_path,monkeypatch): assert _run(tmp_path,monkeypatch)['iptables_restore_authorized'] is False
 def test_output_never_allows_firewall_or_nat_apply(tmp_path,monkeypatch): r=_run(tmp_path,monkeypatch); assert r['firewall_apply_allowed'] is False and r['nat_apply_allowed'] is False
 def test_output_never_allows_production_or_miner_traffic(tmp_path,monkeypatch): r=_run(tmp_path,monkeypatch); assert r['production_traffic_enabled'] is False and r['miner_traffic_allowed'] is False

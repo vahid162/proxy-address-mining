@@ -10,15 +10,15 @@ from mpf.config import MPFConfig
 from mpf.services import customer_read_service
 
 _PHASE_STATUS_PATH = Path("docs/PHASE_STATUS.md")
-_REQUIRED_PHASE_FLAGS = (
-    "live_snapshot_read_allowed: iptables_save_read_only",
-    "production_traffic: none",
-    "firewall_apply_allowed: no",
-    "abuse_automation_allowed: no",
-    "customer_onboarding_allowed: db_only",
-    "ui_allowed: no",
-    "telegram_allowed: no",
-)
+_REQUIRED_PHASE_FLAGS = {
+    "live_snapshot_read_allowed": "iptables_save_read_only",
+    "production_traffic": "none",
+    "firewall_apply_allowed": "no",
+    "abuse_automation_allowed": "no",
+    "customer_onboarding_allowed": "db_only",
+    "ui_allowed": "no",
+    "telegram_allowed": "no",
+}
 
 
 def _sha256_bytes(data: bytes) -> str:
@@ -68,7 +68,22 @@ def _phase_snapshot_read_authorized() -> bool:
         text = _PHASE_STATUS_PATH.read_text(encoding="utf-8")
     except Exception:
         return False
-    return all(flag in text for flag in _REQUIRED_PHASE_FLAGS)
+
+    try:
+        current_state_section = text.split("## Current State", 1)[1]
+        after_open = current_state_section.split("```text", 1)[1]
+        block = after_open.split("```", 1)[0]
+    except Exception:
+        return False
+
+    parsed: dict[str, str] = {}
+    for line in block.splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        parsed[key.strip()] = value.strip()
+
+    return all(parsed.get(k) == v for k, v in _REQUIRED_PHASE_FLAGS.items())
 
 
 def _read_live_snapshot(live_snapshot_file: Path | None, collect_live: bool, snapshot_reader=None) -> str:
