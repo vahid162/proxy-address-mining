@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.200
+- feat(phase11): record farm5 0.1.199 limited onboarding execution-gate evidence and add controlled single-customer DB-only staging package while preserving closed firewall/NAT/production gates.
+
 ## 0.1.199
 - feat(phase11): record farm5 0.1.198 limited onboarding readiness evidence and add non-mutating Phase 11E limited onboarding execution gate package while preserving closed production/onboarding gates.
 
