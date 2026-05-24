@@ -2,6 +2,7 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.207): recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating runtime probe diagnostics for limited-btc-001 / 20101 while keeping production/miner/acceptance gates closed.
 Phase 11 planning/readiness note (0.1.206): records farm5 0.1.205 post-apply evidence READY and adds read-only single-customer runtime path + Stratum transcript + visibility bundle evidence classifiers for limited-btc-001/20101 while all activation gates remain closed.
 Phase 11 planning/readiness note (0.1.205): recorded farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence for limited-btc-001/20101 and added non-mutating post-apply evidence classifier while keeping global gates closed.
 Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
@@ -2981,6 +2982,8 @@ State:
 
 0.1.202 planning/readiness: isolated the Phase 11E single-customer staging create-failure test from real farm5 DB state after DB-only staging while preserving closed apply/traffic gates.
 0.1.201 planning/readiness: recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
+
+
 
 
 

@@ -1,3 +1,4 @@
+Phase 11 planning/readiness note (0.1.207): recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating single-customer runtime probe diagnostics while keeping production/miner/acceptance gates closed.
 Phase 11 planning/readiness note (0.1.205): recorded farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence for limited-btc-001/20101 and added non-mutating post-apply evidence classifier while keeping global gates closed.
 Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
 # Documentation Index

@@ -1,9 +1,10 @@
 # Changelog
 
+## 0.1.207
+- Add Phase 11E single-customer runtime probe diagnostics and record 0.1.206 runtime-path BLOCKED evidence.
+
 ## 0.1.206
 - Add Phase 11E single-customer runtime path, Stratum transcript, and visibility bundle evidence classifiers and CLI (read-only).
-# Changelog
-
 ## 0.1.205
 - record farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence
 - add non-mutating post-apply evidence classifier service + CLI + tests

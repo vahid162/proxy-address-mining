@@ -8,35 +8,24 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Repository version after this PR is 0.1.206.
+- Repository version after this PR is 0.1.207.
 - post-apply evidence READY is recorded from farm5 0.1.205.
 - 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence.
-- after 0.1.206 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101.
+- Runtime-path evidence attempt for 20101 is recorded as BLOCKED due missing ASSURED conntrack signal.
+- Forwarder and bridge signals are present/partial.
+- after 0.1.207 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101.
+- Next intended farm5 step after sync/test is controlled runtime probe diagnostics and stronger runtime/Stratum evidence collection.
 - then Stratum transcript evidence and visibility bundle.
 - real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
-- production/miner traffic remains blocked.
-- DB activation remains blocked.
-- abuse 1h and restart/container-order evidence remain required before limited production acceptance.
-- farm5 0.1.200 single-customer DB-only staging evidence is recorded.
 - production traffic remains none.
 - firewall apply remains no.
 - customer onboarding remains db_only.
 - abuse automation remains no.
 - UI remains no.
 - Telegram remains no.
-
-### Historical anchors (non-current)
-
-- 0.1.199 flow pointed to `mpf production limited-onboarding-execution-gate` before this PR.
-- customer onboarding remains db_only except future explicit canary run path.
-- firewall apply remains no except future explicit single-canary operator-approved run path.
-- latest recorded route-safe canary NAT success evidence remains 0.1.164; farm5 0.1.168 sync confirms the controlled canary NAT artifact is still present.
-- latest recorded farm5 sync evidence is 0.1.167 (synthetic Stratum canary success evidence recorded).
-- GitHub main repository version before this PR is 0.1.168.
-- Repository version after this PR is 0.1.197. (historical compatibility anchor)
-- Phase 11D manual canary execution gate package is implemented and farm5 evidence is recorded.
-- Phase 11D actual execution remains not accepted.
-- Phase 11 remains not accepted.
+- Production/miner traffic remains blocked.
+- DB activation remains blocked.
+- Abuse 1h and restart/container-order evidence remain required before limited production acceptance.
 
 ## Finite Remaining Path
 
