@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.198
+- feat(phase11): record farm5 0.1.197 controlled canary acceptance decision evidence and add non-mutating Phase 11E limited onboarding gate readiness command while preserving closed production/onboarding gates.
+
 ## 0.1.197
 - feat(phase11): add non-mutating operator-controlled canary acceptance decision gate for exact farm5 0.1.195 evidence-pack validation while preserving closed Phase 11 production/onboarding gates.
 

@@ -2,6 +2,8 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.198): recorded farm5 0.1.197 controlled canary acceptance decision evidence and added non-mutating Phase 11E limited onboarding gate/readiness command.
+
 Phase 11 planning/readiness note (0.1.197): added non-mutating Phase 11D controlled canary acceptance decision gate (`mpf production canary-acceptance-decision`) for exact farm5 0.1.195 evidence-pack + archive sha/operator-confirmation validation; this does not change Current State gates and does not record farm5 execution evidence yet.
 
 Phase 11 planning/readiness note (0.1.196): recorded farm5 0.1.195 live canary evidence-pack readiness (`docs/PHASE_11_FARM5_0_1_195_LIVE_CANARY_EVIDENCE_PACK.md`) confirming runtime-path/visibility/acceptance-review READY for exact controlled canary scope while preserving closed production/onboarding/apply gates and non-mutating flags.

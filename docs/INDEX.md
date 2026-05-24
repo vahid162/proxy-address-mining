@@ -634,3 +634,6 @@ Current Phase 11 evidence docs include:
 ## Phase 11 Docs/Evidence Additions
 
 - `docs/PHASE_11D_CANARY_ACCEPTANCE_DECISION_GATE.md`
+
+- docs/PHASE_11_FARM5_0_1_197_CANARY_ACCEPTANCE_DECISION_EVIDENCE.md
+- docs/PHASE_11E_LIMITED_ONBOARDING_GATE.md
