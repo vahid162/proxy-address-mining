@@ -109,7 +109,7 @@ def build_phase11_single_customer_firewall_plan_gate_report(config: MPFConfig, *
                 if s.lane != "btc" or s.port != 20101:
                     blockers.append("staged_customer_scope_mismatch")
                 status = str(getattr(s, "status", "")).strip().lower()
-                if status not in {"paused", "active", "trial"}:
+                if status != "paused":
                     blockers.append("staged_customer_not_safe_status")
             if port_conflicts:
                 blockers.append("candidate_port_collision")

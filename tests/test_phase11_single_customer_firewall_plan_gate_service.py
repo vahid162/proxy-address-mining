@@ -57,3 +57,18 @@ def test_output_never_allows_firewall_or_nat_apply(tmp_path,monkeypatch): monkey
 def test_output_never_allows_production_or_miner_traffic(tmp_path,monkeypatch): monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged())); r=build_phase11_single_customer_firewall_plan_gate_report(_cfg(),**_kw(_w(tmp_path,_stage()))); assert r['production_traffic_enabled'] is False and r['miner_traffic_allowed'] is False
 def test_cli_single_customer_firewall_plan_gate_json_smoke(tmp_path,monkeypatch): monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged())); p=_w(tmp_path,_stage()); r=CliRunner().invoke(app,['production','single-customer-firewall-plan-gate','--staging-execute-json',str(p),'--operator','vahid','--reason','ok','--operator-confirmed','--i-understand-plan-only','--i-understand-no-firewall-apply','--i-understand-no-nat-apply','--i-understand-no-production-traffic','--i-understand-no-miner-traffic-yet','--i-confirm-restore-point-required-before-apply','--i-confirm-lock-required-before-apply','--i-confirm-rollback-plan-required-before-apply','--i-confirm-restart-test-required-before-traffic','--i-confirm-abuse-1h-required-before-traffic','--output','json','--config','configs/mpf.example.yaml']); assert r.exit_code==0
 def test_cli_single_customer_firewall_plan_gate_human_smoke(tmp_path,monkeypatch): monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged())); p=_w(tmp_path,_stage()); r=CliRunner().invoke(app,['production','single-customer-firewall-plan-gate','--staging-execute-json',str(p),'--operator','vahid','--reason','ok','--operator-confirmed','--i-understand-plan-only','--i-understand-no-firewall-apply','--i-understand-no-nat-apply','--i-understand-no-production-traffic','--i-understand-no-miner-traffic-yet','--i-confirm-restore-point-required-before-apply','--i-confirm-lock-required-before-apply','--i-confirm-rollback-plan-required-before-apply','--i-confirm-restart-test-required-before-traffic','--i-confirm-abuse-1h-required-before-traffic','--output','human','--config','configs/mpf.example.yaml']); assert r.exit_code==0
+
+def test_blocks_staged_customer_active_status(tmp_path,monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged(status='active')))
+    r=build_phase11_single_customer_firewall_plan_gate_report(_cfg(),**_kw(_w(tmp_path,_stage())))
+    assert r['final_decision']=='BLOCKED' and 'staged_customer_not_safe_status' in r['blockers']
+
+def test_blocks_staged_customer_trial_status(tmp_path,monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged(status='trial')))
+    r=build_phase11_single_customer_firewall_plan_gate_report(_cfg(),**_kw(_w(tmp_path,_stage())))
+    assert r['final_decision']=='BLOCKED' and 'staged_customer_not_safe_status' in r['blockers']
+
+def test_accepts_only_paused_staged_customer_status(tmp_path,monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged(status='paused')))
+    r=build_phase11_single_customer_firewall_plan_gate_report(_cfg(),**_kw(_w(tmp_path,_stage())))
+    assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_FIREWALL_PLAN_GATE_READY'
