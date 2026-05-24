@@ -11,7 +11,7 @@ from mpf.services.phase8_farm5_dry_run_evidence_collection_service import (
     build_phase8_farm5_dry_run_evidence_collection_report,
 )
 
-EXPECTED_VERSION = "0.1.202"
+EXPECTED_VERSION = "0.1.203"
 
 
 def cfg():
