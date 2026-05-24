@@ -68,7 +68,7 @@ def test_blocks_if_acceptance_review_not_ready(tmp_path):
     d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'acceptance-review.json').read_text()); j['final_decision']='BLOCKED'; (d/'acceptance-review.json').write_text(json.dumps(j)); rep=_call(d); assert 'acceptance_review_not_ready' in rep['blockers']
 
 def test_blocks_if_any_mutation_or_authorization_flag_true(tmp_path):
-    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'manifest.json').read_text()); j['phase11_accepted']=True; (d/'manifest.json').write_text(json.dumps(j)); rep=_call(d); assert 'evidence_mutation_flag_detected' in rep['blockers']
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'manifest.json').read_text()); j['phase11_accepted']=True; (d/'manifest.json').write_text(json.dumps(j)); rep=_call(d); assert 'evidence_authorization_flag_detected' in rep['blockers']
 
 def test_blocks_if_required_runtime_primitive_missing(tmp_path):
     d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'runtime-path-evidence.json').read_text()); j['generated_evidence']['conntrack_assured']=False; (d/'runtime-path-evidence.json').write_text(json.dumps(j)); rep=_call(d); assert 'canary_runtime_primitive_missing' in rep['blockers']
@@ -83,3 +83,37 @@ def test_cli_canary_acceptance_decision_json_smoke(tmp_path):
 def test_cli_canary_acceptance_decision_human_smoke(tmp_path):
     d=tmp_path/'pack'; _write_pack(d); r=CliRunner().invoke(app,['production','canary-acceptance-decision','--evidence-pack-dir',str(d),'--operator','op','--reason','ok','--operator-confirmed','--i-have-reviewed-evidence-pack','--i-confirm-no-real-customer-onboarding','--i-confirm-no-production-traffic-authorized','--i-confirm-phase11-not-final-accepted','--output','human','--config','configs/mpf.example.yaml'])
     assert r.exit_code==0 and 'final_decision:' in r.stdout
+
+
+def test_blocks_authorization_flag_open(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'manifest.json').read_text()); j['production_traffic_enabled']=True; (d/'manifest.json').write_text(json.dumps(j)); rep=_call(d); assert 'evidence_authorization_flag_detected' in rep['blockers']
+
+def test_blocks_firewall_mutation_flag(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'manifest.json').read_text()); j['firewall_mutation_performed']=True; (d/'manifest.json').write_text(json.dumps(j)); rep=_call(d); assert 'evidence_mutation_flag_detected' in rep['blockers']
+
+def test_blocks_nat_mutation_flag(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'manifest.json').read_text()); j['nat_mutation_performed']=True; (d/'manifest.json').write_text(json.dumps(j)); rep=_call(d); assert 'evidence_mutation_flag_detected' in rep['blockers']
+
+def test_blocks_runtime_wrong_customer_key(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'runtime-path-evidence.json').read_text()); j['generated_evidence']['customer_key']='bad'; (d/'runtime-path-evidence.json').write_text(json.dumps(j)); rep=_call(d); assert 'canary_runtime_primitive_missing' in rep['blockers']
+
+def test_blocks_runtime_wrong_backend_target(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'runtime-path-evidence.json').read_text()); j['generated_evidence']['backend_target']='1.1.1.1:60010'; (d/'runtime-path-evidence.json').write_text(json.dumps(j)); rep=_call(d); assert 'canary_runtime_primitive_missing' in rep['blockers']
+
+def test_blocks_runtime_missing_evidence_reference(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'runtime-path-evidence.json').read_text()); j['generated_evidence']['evidence_reference']=''; (d/'runtime-path-evidence.json').write_text(json.dumps(j)); rep=_call(d); assert 'canary_runtime_primitive_missing' in rep['blockers']
+
+def test_blocks_visibility_missing_primitives(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'visibility-bundle.json').read_text()); j['missing_visibility_primitives']=['x']; (d/'visibility-bundle.json').write_text(json.dumps(j)); rep=_call(d); assert 'visibility_bundle_not_ready' in rep['blockers']
+
+def test_blocks_visibility_next_step_not_none(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'visibility-bundle.json').read_text()); j['next_required_step']='x'; (d/'visibility-bundle.json').write_text(json.dumps(j)); rep=_call(d); assert 'visibility_bundle_not_ready' in rep['blockers']
+
+def test_blocks_acceptance_missing_controlled_canary_artifact(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'acceptance-review.json').read_text()); j['controlled_canary_artifact_present']=False; (d/'acceptance-review.json').write_text(json.dumps(j)); rep=_call(d); assert 'acceptance_review_not_ready' in rep['blockers']
+
+def test_blocks_acceptance_wrong_phase_gate_strict_result(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'acceptance-review.json').read_text()); j['current_phase_gate_strict_result']='BAD'; (d/'acceptance-review.json').write_text(json.dumps(j)); rep=_call(d); assert 'acceptance_review_not_ready' in rep['blockers']
+
+def test_blocks_acceptance_wrong_final_decision_reason(tmp_path):
+    d=tmp_path/'pack'; _write_pack(d); j=json.loads((d/'acceptance-review.json').read_text()); j['final_decision_reason']='bad'; (d/'acceptance-review.json').write_text(json.dumps(j)); rep=_call(d); assert 'acceptance_review_not_ready' in rep['blockers']

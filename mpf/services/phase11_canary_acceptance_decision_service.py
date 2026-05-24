@@ -7,12 +7,15 @@ from pathlib import Path
 from mpf import __version__
 from mpf.config import MPFConfig
 
-_REQUIRED_FILES = [
-    "manifest.json",
-    "runtime-path-evidence.json",
-    "visibility-bundle.json",
-    "acceptance-review.json",
-]
+_REQUIRED_FILES = ["manifest.json", "runtime-path-evidence.json", "visibility-bundle.json", "acceptance-review.json"]
+_MUTATION_FLAGS = (
+    "mutation_performed",
+    "firewall_mutation_performed",
+    "nat_mutation_performed",
+    "conntrack_mutation_performed",
+    "docker_mutation_performed",
+    "db_mutation_performed",
+)
 
 
 def _get(d: dict[str, object], path: str) -> object:
@@ -22,10 +25,6 @@ def _get(d: dict[str, object], path: str) -> object:
             return None
         cur = cur[p]
     return cur
-
-
-def _is_false(v: object) -> bool:
-    return v is False
 
 
 def build_phase11_canary_acceptance_decision_report(config: MPFConfig, **kwargs: object) -> dict[str, object]:
@@ -47,7 +46,6 @@ def build_phase11_canary_acceptance_decision_report(config: MPFConfig, **kwargs:
 
     if not (customer_key == "canary-btc-001" and lane == "btc" and port == 20001 and backend_target == "172.18.0.3:60010" and expected_version == __version__ and farm5_baseline_version == "0.1.168"):
         blockers.append("canary_acceptance_scope_mismatch")
-
     if not evidence_pack_dir.exists() or not evidence_pack_dir.is_dir():
         blockers.append("evidence_pack_dir_missing")
 
@@ -93,7 +91,7 @@ def build_phase11_canary_acceptance_decision_report(config: MPFConfig, **kwargs:
     review = parsed.get("acceptance-review.json", {})
 
     if parsed:
-        manifest_ok = (
+        if not (
             (manifest.get("expected_version") == "0.1.195" or manifest.get("evidence_repository_version") == "0.1.195")
             and manifest.get("repository_version") == "0.1.195"
             and manifest.get("farm5_baseline_version") == "0.1.168"
@@ -109,27 +107,60 @@ def build_phase11_canary_acceptance_decision_report(config: MPFConfig, **kwargs:
             and manifest.get("next_required_step") == "none"
             and manifest.get("failed_collectors") == []
             and manifest.get("skipped_files") == []
-        )
-        if not manifest_ok:
+        ):
             blockers.append("manifest_not_ready")
 
-        if not (runtime.get("final_decision") == "RUNTIME_PATH_EVIDENCE_READY" and runtime.get("blockers") == []):
+        if not (
+            runtime.get("final_decision") == "RUNTIME_PATH_EVIDENCE_READY"
+            and runtime.get("blockers") == []
+        ):
             blockers.append("runtime_path_not_ready")
-        if not (vis.get("final_decision") == "VISIBILITY_READY" and vis.get("blockers") == [] and vis.get("warnings") == []):
+
+        if not (
+            vis.get("final_decision") == "VISIBILITY_READY"
+            and vis.get("blockers") == []
+            and vis.get("warnings") == []
+            and vis.get("missing_visibility_primitives") == []
+            and vis.get("missing_evidence_primitives") == []
+            and vis.get("next_required_step") == "none"
+        ):
             blockers.append("visibility_bundle_not_ready")
-        if not (review.get("final_decision") == "ACCEPTANCE_REVIEW_READY" and review.get("blockers") == [] and review.get("warnings") == []):
+
+        if not (
+            review.get("final_decision") == "ACCEPTANCE_REVIEW_READY"
+            and review.get("final_decision_reason") == "all required gates satisfied"
+            and review.get("blockers") == []
+            and review.get("warnings") == []
+            and review.get("missing_visibility_primitives") == []
+            and review.get("missing_evidence_primitives") == []
+            and review.get("next_required_step") == "none"
+            and review.get("controlled_canary_artifact_present") is True
+            and review.get("current_phase_gate_strict_result") == "CRITICAL_EXPECTED_FOR_CANARY_ARTIFACT"
+        ):
             blockers.append("acceptance_review_not_ready")
 
         for obj in (manifest, runtime, vis, review):
-            if any(obj.get(k) is True for k in ("mutation_performed", "production_traffic_enabled", "phase11_accepted", "limited_onboarding_allowed")) or obj.get("no_onboarding_authorized") is not True:
-                if "evidence_mutation_flag_detected" not in blockers:
-                    blockers.append("evidence_mutation_flag_detected")
+            if any(obj.get(k) is True for k in _MUTATION_FLAGS):
+                blockers.append("evidence_mutation_flag_detected")
+                break
+        for obj in (manifest, runtime, vis, review):
+            if obj.get("production_traffic_enabled") is True or obj.get("phase11_accepted") is True or obj.get("limited_onboarding_allowed") is True or obj.get("no_onboarding_authorized") is not True:
+                blockers.append("evidence_authorization_flag_detected")
                 break
 
         rt = runtime.get("generated_evidence", {}) if isinstance(runtime.get("generated_evidence"), dict) else {}
-        if not all(rt.get(k) is True for k in ("conntrack_assured", "forwarder_pool_seen", "bridge_loopback_seen")):
-            blockers.append("canary_runtime_primitive_missing")
-        if not rt.get("evidence_reference") or not rt.get("source_query_or_artifact") or rt.get("evidence_source") != "live_source_backed_canary_runtime_path":
+        if not (
+            rt.get("customer_key") == "canary-btc-001"
+            and rt.get("lane") == "btc"
+            and rt.get("port") == 20001
+            and rt.get("backend_target") == "172.18.0.3:60010"
+            and rt.get("evidence_source") == "live_source_backed_canary_runtime_path"
+            and bool(rt.get("evidence_reference"))
+            and bool(rt.get("source_query_or_artifact"))
+            and rt.get("conntrack_assured") is True
+            and rt.get("forwarder_pool_seen") is True
+            and rt.get("bridge_loopback_seen") is True
+        ):
             blockers.append("canary_runtime_primitive_missing")
 
         rv = vis.get("runtime_evidence", {}) if isinstance(vis.get("runtime_evidence"), dict) else {}
@@ -141,7 +172,7 @@ def build_phase11_canary_acceptance_decision_report(config: MPFConfig, **kwargs:
             blockers.append("acceptance_safety_flag_open")
 
     blockers = sorted(set(blockers))
-    accepted = len(blockers) == 0
+    accepted = not blockers
     return {
         "component": "phase11_canary_acceptance_decision",
         "expected_version": expected_version,
