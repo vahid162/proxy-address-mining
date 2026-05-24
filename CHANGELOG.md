@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.204
+- add controlled single-customer firewall apply execution package/execute path with strict guards.
+
+
 ## 0.1.203
 - feat(phase11): record farm5 0.1.202 sync/test and firewall plan gate evidence and add non-mutating single-customer firewall apply gate package while preserving closed apply/traffic gates.
 

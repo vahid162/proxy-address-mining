@@ -8,11 +8,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Repository version after this PR is 0.1.203.
+- Repository version after this PR is 0.1.204.
+- 0.1.204 adds a controlled single-customer firewall apply execution path/package (dry-run default).
+- Actual server execution still requires farm5 sync/test plus explicit operator execution evidence.
+- Production/miner traffic remains blocked until post-apply runtime evidence and later acceptance PR.
 - farm5 0.1.200 single-customer DB-only staging evidence is recorded.
 - farm5 0.1.201 sync exposed a test isolation issue after real DB-only staging created limited-btc-001.
 - farm5 0.1.202 sync/test and firewall plan gate evidence are recorded.
-- next intended server step after 0.1.203 sync is rerunning full pytest, then running `mpf production single-customer-firewall-apply-gate` only if tests pass.
+- After 0.1.204 sync and full pytest, the next intended server step is running dry-run/package command `mpf production single-customer-firewall-apply-execute --no-execute`. Actual host mutation still requires pre-apply snapshot file, rollback artifact file, restore point path, operator lock id, exact apply-gate JSON file hash, explicit operator flags, required environment variables, `--execute`, and post-apply verification.
 - real customer traffic remains blocked until a separate firewall/NAT apply execution PR is merged, synced, tested, and explicitly updates Current State.
 - production traffic remains none.
 - firewall apply remains no.
@@ -168,3 +171,5 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 
 0.1.202 planning/readiness: farm5 0.1.201 sync exposed a Phase 11 single-customer staging test isolation issue after real DB-only staging created limited-btc-001; test isolation fix + docs/version-only update, no runtime gate changes.
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
+
+
