@@ -1,8 +1,8 @@
-Phase 11 planning/readiness note (0.1.205): recorded farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence for limited-btc-001/20101 and added non-mutating post-apply evidence classifier while keeping global gates closed.
 # PHASE STATUS
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.205): recorded farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence for limited-btc-001/20101 and added non-mutating post-apply evidence classifier while keeping global gates closed.
 Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
 Phase 11 planning/readiness note (0.1.203): recorded farm5 0.1.202 sync/test and single-customer firewall/NAT plan gate evidence and added non-mutating single-customer firewall apply gate package while preserving closed apply/traffic gates.
 Phase 11 planning/readiness note (0.1.202): isolated the Phase 11E single-customer staging create-failure test from real farm5 DB state after DB-only staging while preserving closed apply/traffic gates.

@@ -12,7 +12,7 @@ def test_current_position_updates() -> None:
     assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
     assert "- Repository version after this PR is 0.1.205." in current
     assert "- farm5 0.1.200 single-customer DB-only staging evidence is recorded." in current
-    assert "- After 0.1.205 sync and full pytest, the next intended server step is running dry-run/package command `mpf production single-customer-firewall-apply-execute --no-execute`. Actual host mutation still requires pre-apply snapshot file, rollback artifact file, restore point path, operator lock id, exact apply-gate JSON file hash, explicit operator flags, required environment variables, `--execute`, and post-apply verification." in current
+    assert "- After 0.1.205 sync and full pytest, run `mpf production single-customer-post-apply-evidence` to classify the recorded apply evidence on farm5." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no." in current
     assert "- customer onboarding remains db_only." in current
@@ -40,4 +40,4 @@ def test_ai_phase10_task_marks_acceptance() -> None:
 
 def test_phase11_non_accepted_and_gates_closed() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
-    assert "real customer traffic remains blocked until a separate firewall/NAT apply execution PR is merged, synced, tested, and explicitly updates Current State." in t
+    assert "real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR." in t
