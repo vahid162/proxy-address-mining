@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.205
+- record farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence
+- add non-mutating post-apply evidence classifier service + CLI + tests
+
 ## 0.1.204
 - add controlled single-customer firewall apply execution package/execute path with strict guards.
 

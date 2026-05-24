@@ -118,7 +118,7 @@ from mpf.services import (
     phase11_canary_usage_visibility_service,
     phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service, phase11_limited_onboarding_gate_service, phase11_limited_onboarding_execution_gate_service,
     phase11_single_customer_staging_service,
-    phase11_single_customer_firewall_plan_gate_service, phase11_single_customer_firewall_apply_gate_service, phase11_single_customer_firewall_apply_execution_service,
+    phase11_single_customer_firewall_plan_gate_service, phase11_single_customer_firewall_apply_gate_service, phase11_single_customer_firewall_apply_execution_service, phase11_single_customer_post_apply_evidence_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -2711,6 +2711,46 @@ def production_single_customer_firewall_apply_execute(
     if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
     for key in ("component","final_decision","apply_execution_ready","execute_requested","firewall_apply_execution_allowed","iptables_restore_authorized","mutation_performed","generated_apply_payload_sha256","next_required_step","blockers"):
         typer.echo(f"{key}: {report.get(key)}")
+
+
+@production_app.command("single-customer-post-apply-evidence")
+def production_single_customer_post_apply_evidence(
+    expected_version: str = typer.Option("0.1.205", "--expected-version"),
+    execution_json: Path = typer.Option(..., "--execution-json"),
+    execution_json_sha256: str = typer.Option("bd8f3900db3d3fb2647ead8cec47c870f4cd00ebaf52b68bc329a065a65b880b", "--execution-json-sha256"),
+    pre_apply_snapshot_file: Path = typer.Option(..., "--pre-apply-snapshot-file"),
+    pre_apply_snapshot_sha256: str = typer.Option("3a493643f796f10f37443152e99adda928f30c82067fc98a4a748f52d2767494", "--pre-apply-snapshot-sha256"),
+    post_apply_snapshot_file: Path = typer.Option(..., "--post-apply-snapshot-file"),
+    post_apply_snapshot_sha256: str = typer.Option("c6330a80954f7268ccec311750751b45464c84c2efd627509d1ecee274eec27b", "--post-apply-snapshot-sha256"),
+    apply_gate_json: Path = typer.Option(..., "--apply-gate-json"),
+    apply_gate_json_sha256: str = typer.Option("500978bf2b156a5da6a1b299e41d346cadf2b20b15280212c607c51c9a307b1a", "--apply-gate-json-sha256"),
+    plan_gate_json: Path = typer.Option(..., "--plan-gate-json"),
+    plan_gate_json_sha256: str = typer.Option("0893d1d63b7cb7f60a3473ad9f922c3f65bc9b3e6ff8d5b84aecfa701d45c438", "--plan-gate-json-sha256"),
+    candidate_customer_key: str = typer.Option("limited-btc-001", "--candidate-customer-key"),
+    candidate_lane: str = typer.Option("btc", "--candidate-lane"),
+    candidate_public_port: int = typer.Option(20101, "--candidate-public-port"),
+    candidate_backend_target: str = typer.Option("172.18.0.3:60010", "--candidate-backend-target"),
+    operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed"),
+    i_understand_post_apply_evidence_only: bool = typer.Option(False, "--i-understand-post-apply-evidence-only"),
+    i_understand_no_additional_firewall_apply: bool = typer.Option(False, "--i-understand-no-additional-firewall-apply"),
+    i_understand_no_production_traffic_acceptance: bool = typer.Option(False, "--i-understand-no-production-traffic-acceptance"),
+    i_understand_no_miner_traffic_acceptance: bool = typer.Option(False, "--i-understand-no-miner-traffic-acceptance"),
+    i_confirm_runtime_path_evidence_required_next: bool = typer.Option(False, "--i-confirm-runtime-path-evidence-required-next"),
+    i_confirm_stratum_transcript_required_next: bool = typer.Option(False, "--i-confirm-stratum-transcript-required-next"),
+    i_confirm_visibility_bundle_required_next: bool = typer.Option(False, "--i-confirm-visibility-bundle-required-next"),
+    i_confirm_abuse_1h_required_before_customer_traffic: bool = typer.Option(False, "--i-confirm-abuse-1h-required-before-customer-traffic"),
+    i_confirm_restart_container_order_required_before_limited_acceptance: bool = typer.Option(False, "--i-confirm-restart-container-order-required-before-limited-acceptance"),
+    live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file"),
+    collect_live: bool = typer.Option(False, "--collect-live/--no-collect-live"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_single_customer_post_apply_evidence_service.build_phase11_single_customer_post_apply_evidence_report(_load(config), expected_version=expected_version, execution_json=execution_json, execution_json_sha256=execution_json_sha256, pre_apply_snapshot_file=pre_apply_snapshot_file, pre_apply_snapshot_sha256=pre_apply_snapshot_sha256, post_apply_snapshot_file=post_apply_snapshot_file, post_apply_snapshot_sha256=post_apply_snapshot_sha256, apply_gate_json=apply_gate_json, apply_gate_json_sha256=apply_gate_json_sha256, plan_gate_json=plan_gate_json, plan_gate_json_sha256=plan_gate_json_sha256, candidate_customer_key=candidate_customer_key, candidate_lane=candidate_lane, candidate_public_port=candidate_public_port, candidate_backend_target=candidate_backend_target, operator=operator, reason=reason, operator_confirmed=operator_confirmed, i_understand_post_apply_evidence_only=i_understand_post_apply_evidence_only, i_understand_no_additional_firewall_apply=i_understand_no_additional_firewall_apply, i_understand_no_production_traffic_acceptance=i_understand_no_production_traffic_acceptance, i_understand_no_miner_traffic_acceptance=i_understand_no_miner_traffic_acceptance, i_confirm_runtime_path_evidence_required_next=i_confirm_runtime_path_evidence_required_next, i_confirm_stratum_transcript_required_next=i_confirm_stratum_transcript_required_next, i_confirm_visibility_bundle_required_next=i_confirm_visibility_bundle_required_next, i_confirm_abuse_1h_required_before_customer_traffic=i_confirm_abuse_1h_required_before_customer_traffic, i_confirm_restart_container_order_required_before_limited_acceptance=i_confirm_restart_container_order_required_before_limited_acceptance, live_snapshot_file=live_snapshot_file, collect_live=collect_live)
+    if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component","final_decision","post_apply_evidence_ready","controlled_apply_recorded","next_required_step","blockers"):
+        typer.echo(f"{key}: {report.get(key)}")
+
 @production_app.command("canary-evidence-pack")
 def production_canary_evidence_pack(
     customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
