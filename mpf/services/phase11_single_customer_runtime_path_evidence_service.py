@@ -63,23 +63,41 @@ def build_phase11_single_customer_runtime_path_evidence_report(config: MPFConfig
         if _sha256(post_apply_json) != str(kwargs.get("post_apply_evidence_json_sha256", "")):
             blockers.append("post_apply_evidence_json_hash_mismatch")
         try:
-            post = json.loads(post_apply_json.read_text(encoding="utf-8"))
+            loaded = json.loads(post_apply_json.read_text(encoding="utf-8"))
         except Exception:
-            post = {}
+            loaded = None
             blockers.append("post_apply_evidence_json_invalid")
+        if loaded is not None and not isinstance(loaded, dict):
+            blockers.append("post_apply_evidence_json_invalid")
+            post = {}
+        else:
+            post = loaded or {}
 
     if post:
         if post.get("final_decision") != "PHASE11_SINGLE_CUSTOMER_POST_APPLY_EVIDENCE_READY":
             blockers.append("post_apply_evidence_not_ready")
         if post.get("controlled_apply_recorded") is not True:
-            blockers.append("controlled_apply_not_recorded")
-        for flag in ("production_traffic_enabled", "miner_traffic_allowed", "phase11_accepted", "db_activation_allowed"):
+            blockers.append("post_apply_evidence_not_ready")
+        if (
+            post.get("candidate_customer_key") != EXPECTED["customer_key"]
+            or post.get("candidate_lane") != EXPECTED["lane"]
+            or post.get("candidate_public_port") != EXPECTED["public_port"]
+            or post.get("candidate_backend_target") != EXPECTED["backend_target"]
+        ):
+            blockers.append("post_apply_evidence_scope_mismatch")
+        if post.get("blockers") != [] or post.get("warnings") != []:
+            blockers.append("post_apply_evidence_safety_boundary_open")
+        for flag in ("production_traffic_enabled", "miner_traffic_allowed", "phase11_accepted", "db_activation_allowed", "mutation_performed"):
             if post.get(flag) is not False:
-                blockers.append(f"post_apply_{flag}_must_be_false")
+                blockers.append("post_apply_evidence_safety_boundary_open")
+                break
         if post.get("has_20101_chain") is not True or post.get("has_20101_ref") is not True:
-            blockers.append("post_apply_20101_artifact_missing")
+            blockers.append("post_apply_evidence_not_ready")
 
-    db = customer_read_service.list_customer_status(config, include_deleted=False, limit=5000)
+    try:
+        db = customer_read_service.list_customer_status(config, include_deleted=False, limit=5000)
+    except Exception:
+        db = customer_read_service.CustomerList(ok=False, message="exception", customers=[])
     if not db.ok:
         blockers.append("db_read_failed")
     else:

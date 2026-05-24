@@ -2785,8 +2785,8 @@ def production_single_customer_stratum_transcript_evidence(transcript_json: Path
     for key in ("component","final_decision","stratum_transcript_ready","blockers"): typer.echo(f"{key}: {report.get(key)}")
 
 @production_app.command("single-customer-visibility-bundle")
-def production_single_customer_visibility_bundle(runtime_path_evidence_json: Path = typer.Option(..., "--runtime-path-evidence-json"), stratum_transcript_evidence_json: Path = typer.Option(..., "--stratum-transcript-evidence-json"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
-    report = phase11_single_customer_visibility_bundle_service.build_phase11_single_customer_visibility_bundle_report(_load(config), runtime_path_evidence_json=runtime_path_evidence_json, stratum_transcript_evidence_json=stratum_transcript_evidence_json)
+def production_single_customer_visibility_bundle(runtime_path_evidence_json: Path = typer.Option(..., "--runtime-path-evidence-json"), runtime_path_evidence_json_sha256: str | None = typer.Option(None, "--runtime-path-evidence-json-sha256"), stratum_transcript_evidence_json: Path = typer.Option(..., "--stratum-transcript-evidence-json"), stratum_transcript_evidence_json_sha256: str | None = typer.Option(None, "--stratum-transcript-evidence-json-sha256"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    report = phase11_single_customer_visibility_bundle_service.build_phase11_single_customer_visibility_bundle_report(_load(config), runtime_path_evidence_json=runtime_path_evidence_json, runtime_path_evidence_json_sha256=runtime_path_evidence_json_sha256, stratum_transcript_evidence_json=stratum_transcript_evidence_json, stratum_transcript_evidence_json_sha256=stratum_transcript_evidence_json_sha256)
     if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
     for key in ("component","final_decision","visibility_bundle_ready","next_required_step","blockers"): typer.echo(f"{key}: {report.get(key)}")
 

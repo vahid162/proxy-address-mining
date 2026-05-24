@@ -9,24 +9,15 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
 - Repository version after this PR is 0.1.206.
-- Repository version after this PR is 0.1.205.
-- farm5 0.1.204 controlled apply execution evidence is recorded.
-- 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path evidence.
-- next intended step is running `mpf production single-customer-post-apply-evidence` on farm5 after 0.1.205 sync and full pytest.
-- production/miner traffic remains blocked.
-- abuse 1h and restart/container-order evidence remain required.
-- Actual server execution still requires farm5 sync/test plus explicit operator execution evidence.
-- Production/miner traffic remains blocked until post-apply runtime evidence and later acceptance PR.
-- farm5 0.1.200 single-customer DB-only staging evidence is recorded.
+- post-apply evidence READY is recorded from farm5 0.1.205.
+- 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence.
 - After 0.1.206 sync and full pytest, run `mpf production single-customer-post-apply-evidence` to classify the recorded apply evidence on farm5.
-- farm5 0.1.201 sync exposed a test isolation issue after real DB-only staging created limited-btc-001.
-- farm5 0.1.202 sync/test and firewall plan gate evidence are recorded.
-- After 0.1.205 sync and full pytest, run `mpf production single-customer-post-apply-evidence` to classify the recorded apply evidence on farm5.
-- If post-apply evidence is READY, the next PR is runtime path evidence for 20101, Stratum transcript evidence, and visibility bundle.
-- Production/miner traffic remains blocked.
-- Abuse 1h coverage and restart/container-order evidence remain required before limited production acceptance.
-- non-mutating post-apply evidence classifier was added to prepare the next runtime evidence PR while keeping gates closed.
-- real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
+- after 0.1.206 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101.
+- then Stratum transcript evidence and visibility bundle.
+- production/miner traffic remains blocked.
+- DB activation remains blocked.
+- abuse 1h and restart/container-order evidence remain required before limited production acceptance.
+- farm5 0.1.200 single-customer DB-only staging evidence is recorded.
 - production traffic remains none.
 - firewall apply remains no.
 - customer onboarding remains db_only.
@@ -188,3 +179,4 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 - Post-apply evidence READY is recorded (farm5 0.1.205).
 - Next intended farm5 step after sync/test: runtime path evidence collection/classification for 20101.
 - Real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
+- real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
