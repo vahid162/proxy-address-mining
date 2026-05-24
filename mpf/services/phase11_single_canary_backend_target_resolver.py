@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from mpf import __version__
 
 
+
 @dataclass(slots=True)
 class Phase11SingleCanaryBackendTargetResolver:
     expected_version: str = __version__
@@ -56,7 +57,7 @@ class Phase11SingleCanaryBackendTargetResolver:
         req = report.get("request", {}) if isinstance(report.get("request"), dict) else {}
         if req.get("customer_key") != self.customer_key or req.get("lane") != self.lane or req.get("port") != self.customer_port:
             return {"status": "blocked", "error": "single_canary_scope_mismatch"}
-        if req.get("expected_version") != self.expected_version:
+        if req.get("expected_version") != __version__:
             return {"status": "blocked", "error": "wrong_expected_version"}
 
         inspect = self._run(["docker", "inspect", self.container_name])

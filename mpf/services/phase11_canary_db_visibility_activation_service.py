@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from mpf import __version__
+
 from mpf.config import MPFConfig
 from mpf.domain.customers import CustomerCreateRequest, CustomerLifecycleInput, CustomerPolicyInput
 from mpf.domain.production import Phase11CanaryDbVisibilityActivationRequest

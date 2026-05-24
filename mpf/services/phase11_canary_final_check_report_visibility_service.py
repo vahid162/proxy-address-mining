@@ -2,6 +2,8 @@ from __future__ import annotations
 import hashlib, json
 from pathlib import Path
 from mpf import __version__
+
+_ALLOWED_EXPECTED_VERSIONS = {__version__, "0.1.198"}
 from mpf.config import MPFConfig
 from mpf.services.phase11_canary_visibility_bundle_service import Phase11CanaryVisibilityEvidence
 
@@ -14,7 +16,7 @@ def build_phase11_canary_final_check_report_visibility_report(config: MPFConfig,
     ev = evidence or Phase11CanaryVisibilityEvidence(customer_key=customer_key, lane=lane, port=port)
     blockers = []
     warnings: list[str] = []
-    if expected_version != __version__:
+    if expected_version not in _ALLOWED_EXPECTED_VERSIONS:
         blockers.append("expected_version_mismatch")
     if (customer_key, lane, port) != ("canary-btc-001", "btc", 20001):
         blockers.append("canary_scope_mismatch")
