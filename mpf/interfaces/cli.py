@@ -116,7 +116,7 @@ from mpf.services import (
     phase11_canary_final_check_report_visibility_service,
     phase11_canary_rollback_restore_visibility_service,
     phase11_canary_usage_visibility_service,
-    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service,
+    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -2428,6 +2428,43 @@ def production_canary_usage_visibility(
 
 
 
+
+
+@production_app.command("canary-acceptance-decision")
+def production_canary_acceptance_decision(
+    customer_key: str = typer.Option("canary-btc-001", "--customer-key"),
+    lane: str = typer.Option("btc", "--lane"),
+    port: int = typer.Option(20001, "--port"),
+    backend_target: str = typer.Option("172.18.0.3:60010", "--backend-target"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    evidence_pack_dir: Path = typer.Option(..., "--evidence-pack-dir"),
+    evidence_archive_path: Path | None = typer.Option(None, "--evidence-archive-path"),
+    expected_archive_sha256: str | None = typer.Option(None, "--expected-archive-sha256"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed"),
+    i_have_reviewed_evidence_pack: bool = typer.Option(False, "--i-have-reviewed-evidence-pack"),
+    i_confirm_no_real_customer_onboarding: bool = typer.Option(False, "--i-confirm-no-real-customer-onboarding"),
+    i_confirm_no_production_traffic_authorized: bool = typer.Option(False, "--i-confirm-no-production-traffic-authorized"),
+    i_confirm_phase11_not_final_accepted: bool = typer.Option(False, "--i-confirm-phase11-not-final-accepted"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_canary_acceptance_decision_service.build_phase11_canary_acceptance_decision_report(
+        _load(config), customer_key=customer_key, lane=lane, port=port, backend_target=backend_target,
+        expected_version=expected_version, farm5_baseline_version=farm5_baseline_version,
+        evidence_pack_dir=evidence_pack_dir, evidence_archive_path=evidence_archive_path,
+        expected_archive_sha256=expected_archive_sha256, operator=operator, reason=reason,
+        operator_confirmed=operator_confirmed, i_have_reviewed_evidence_pack=i_have_reviewed_evidence_pack,
+        i_confirm_no_real_customer_onboarding=i_confirm_no_real_customer_onboarding,
+        i_confirm_no_production_traffic_authorized=i_confirm_no_production_traffic_authorized,
+        i_confirm_phase11_not_final_accepted=i_confirm_phase11_not_final_accepted,
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component", "final_decision", "phase11d_canary_accepted", "phase11_accepted", "limited_onboarding_allowed", "production_traffic_enabled", "no_onboarding_authorized", "next_required_step", "blockers"):
+        typer.echo(f"{key}: {report.get(key)}")
 
 @production_app.command("canary-evidence-pack")
 def production_canary_evidence_pack(
