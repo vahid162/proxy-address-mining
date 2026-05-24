@@ -42,6 +42,7 @@ def test_execute_db_only_creates_one_limited_customer_when_allowed(tmp_path, mon
 def test_execute_db_only_idempotent_when_exact_customer_exists(tmp_path, monkeypatch):
     row=SimpleNamespace(id=10,customer_key='limited-btc-001',lane='btc',port=20101)
     monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[row]))
+    monkeypatch.setattr(customer_mutation_service,'create_db_only_customer',lambda *a,**k: (_ for _ in ()).throw(AssertionError('must not call create')))
     kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; r=build_phase11_single_customer_staging_report(_cfg(),**kw)
     assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_DB_STAGING_EXECUTED'
     assert r['customer_created'] is False and r['db_mutation_performed'] is False
@@ -95,9 +96,18 @@ def test_blocks_db_read_failure_in_execute_mode(tmp_path, monkeypatch):
     assert 'db_staging_service_error' in r['blockers'] and r['final_decision']=='BLOCKED'
 
 def test_execute_db_only_blocks_when_create_service_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[]))
     monkeypatch.setattr(customer_mutation_service,'create_db_only_customer',lambda *a,**k: CustomerMutationResult(ok=False,message='fail',customer_key='limited-btc-001'))
     kw=_kwargs(_write(tmp_path,_gate())); kw['mode']='execute-db-only'; r=build_phase11_single_customer_staging_report(_cfg(),**kw)
-    assert 'db_staging_service_error' in r['blockers'] and r['final_decision']=='BLOCKED'
+    assert r['final_decision']=='BLOCKED'
+    assert 'db_staging_service_error' in r['blockers']
+    assert r['customer_created'] is False
+    assert r['db_mutation_performed'] is False
+    assert r['mutation_performed'] is False
+    assert r['firewall_mutation_performed'] is False
+    assert r['nat_mutation_performed'] is False
+    assert r['production_traffic_enabled'] is False
+    assert r['limited_onboarding_allowed'] is False
 
 def test_plan_mode_never_calls_create_db_only_customer(tmp_path, monkeypatch):
     monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k: customer_read_service.CustomerList(ok=True,message='ok',customers=[]))
