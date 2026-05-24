@@ -11,7 +11,6 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Repository version after this PR is 0.1.206.
 - post-apply evidence READY is recorded from farm5 0.1.205.
 - 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence.
-- After 0.1.206 sync and full pytest, run `mpf production single-customer-post-apply-evidence` to classify the recorded apply evidence on farm5.
 - after 0.1.206 sync and full pytest, next intended farm5 step is runtime path evidence collection/classification for 20101.
 - then Stratum transcript evidence and visibility bundle.
 - production/miner traffic remains blocked.
@@ -167,16 +166,5 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 - After 0.1.197 merge/sync, next intended server step is running `mpf production canary-acceptance-decision` on farm5 against `/tmp/phase11-canary-evidence-pack-0.1.195-live` and recording result evidence.
 - Phase 11E limited onboarding remains blocked until this Phase 11D canary acceptance decision is executed and recorded on farm5.
 
-
-
-
 0.1.202 planning/readiness: farm5 0.1.201 sync exposed a Phase 11 single-customer staging test isolation issue after real DB-only staging created limited-btc-001; test isolation fix + docs/version-only update, no runtime gate changes.
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
-
-
-
-- Current Position: repository version after this PR is 0.1.206.
-- Post-apply evidence READY is recorded (farm5 0.1.205).
-- Next intended farm5 step after sync/test: runtime path evidence collection/classification for 20101.
-- Real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
-- real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
