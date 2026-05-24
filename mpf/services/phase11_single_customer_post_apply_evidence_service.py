@@ -36,7 +36,10 @@ def _read_json_file(path: Path, missing_blocker: str, invalid_blocker: str, bloc
     except Exception:
         blockers.append(invalid_blocker)
         return None
-    return data if isinstance(data, dict) else None
+    if not isinstance(data, dict):
+        blockers.append(invalid_blocker)
+        return None
+    return data
 
 
 def _parse_snapshot(snapshot: str) -> dict[str, object]:
