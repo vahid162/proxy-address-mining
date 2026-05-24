@@ -10,9 +10,9 @@ def test_current_position_updates() -> None:
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
     assert "- Current accepted phase is Phase 10." in current
     assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
-    assert "- Repository version after this PR is 0.1.202." in current
+    assert "- Repository version after this PR is 0.1.203." in current
     assert "- farm5 0.1.200 single-customer DB-only staging evidence is recorded." in current
-    assert "- next intended server step after 0.1.202 sync is rerunning full pytest, then running `mpf production single-customer-firewall-plan-gate` only if tests pass." in current
+    assert "- next intended server step after 0.1.203 sync is rerunning full pytest, then running `mpf production single-customer-firewall-apply-gate` only if tests pass." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no." in current
     assert "- customer onboarding remains db_only." in current

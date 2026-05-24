@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.203
+- feat(phase11): record farm5 0.1.202 sync/test and firewall plan gate evidence and add non-mutating single-customer firewall apply gate package while preserving closed apply/traffic gates.
+
 ## 0.1.202
 - test(phase11): isolate single-customer staging create-failure test from real farm5 DB state after DB-only staging while preserving closed firewall/NAT/traffic gates.
 
