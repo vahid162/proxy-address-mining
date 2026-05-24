@@ -40,4 +40,4 @@ def test_ai_phase10_task_marks_acceptance() -> None:
 
 def test_phase11_non_accepted_and_gates_closed() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
-    assert "real customer traffic remains blocked until a separate firewall/NAT apply gate PR is merged, synced, tested, and explicitly updates Current State." in t
+    assert "real customer traffic remains blocked until a separate firewall/NAT apply execution PR is merged, synced, tested, and explicitly updates Current State." in t

@@ -42,6 +42,13 @@ Purpose: non-mutating apply-gate package readiness report only.
 - abuse 1h coverage evidence before customer traffic
 - restart/container-order evidence before limited production acceptance
 
+
+## live snapshot safety checks
+- The apply gate verifies the existing 20001 controlled canary artifact read-only.
+- It must not modify or remove the 20001 canary artifact.
+- It must block if 20101 is already live before the future apply execution PR.
+- It must block if live snapshot read is not authorized by PHASE_STATUS.
+
 ## expected positive output
 - `final_decision: PHASE11_SINGLE_CUSTOMER_FIREWALL_APPLY_GATE_READY`
 - `phase11e_firewall_apply_gate_ready: true`

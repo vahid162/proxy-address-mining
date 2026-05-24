@@ -13,7 +13,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - farm5 0.1.201 sync exposed a test isolation issue after real DB-only staging created limited-btc-001.
 - farm5 0.1.202 sync/test and firewall plan gate evidence are recorded.
 - next intended server step after 0.1.203 sync is rerunning full pytest, then running `mpf production single-customer-firewall-apply-gate` only if tests pass.
-- real customer traffic remains blocked until a separate firewall/NAT apply gate PR is merged, synced, tested, and explicitly updates Current State.
+- real customer traffic remains blocked until a separate firewall/NAT apply execution PR is merged, synced, tested, and explicitly updates Current State.
 - production traffic remains none.
 - firewall apply remains no.
 - customer onboarding remains db_only.

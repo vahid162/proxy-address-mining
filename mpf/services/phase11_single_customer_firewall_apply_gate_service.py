@@ -9,6 +9,17 @@ from mpf import __version__
 from mpf.config import MPFConfig
 from mpf.services import customer_read_service
 
+_PHASE_STATUS_PATH = Path("docs/PHASE_STATUS.md")
+_REQUIRED_PHASE_FLAGS = (
+    "live_snapshot_read_allowed: iptables_save_read_only",
+    "production_traffic: none",
+    "firewall_apply_allowed: no",
+    "abuse_automation_allowed: no",
+    "customer_onboarding_allowed: db_only",
+    "ui_allowed: no",
+    "telegram_allowed: no",
+)
+
 
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -52,15 +63,66 @@ def _blocked_report(**k: object) -> dict[str, object]:
     }
 
 
+def _phase_snapshot_read_authorized() -> bool:
+    try:
+        text = _PHASE_STATUS_PATH.read_text(encoding="utf-8")
+    except Exception:
+        return False
+    return all(flag in text for flag in _REQUIRED_PHASE_FLAGS)
+
+
 def _read_live_snapshot(live_snapshot_file: Path | None, collect_live: bool, snapshot_reader=None) -> str:
     if live_snapshot_file is not None:
         return live_snapshot_file.read_text(encoding="utf-8")
     if not collect_live:
         raise ValueError("live_firewall_snapshot_missing")
+    if not _phase_snapshot_read_authorized():
+        raise ValueError("live_snapshot_read_not_authorized")
     if snapshot_reader is not None:
         return str(snapshot_reader())
-    cp = subprocess.run(["iptables-save"], capture_output=True, text=True, check=True)
+    cp = subprocess.run(["iptables-save"], capture_output=True, text=True, check=False, timeout=5)
+    if cp.returncode != 0:
+        raise RuntimeError("iptables-save failed")
     return cp.stdout
+
+
+def _parse_live_snapshot(snapshot_text: str) -> tuple[dict[str, object], list[str]]:
+    blockers: list[str] = []
+    lines = snapshot_text.splitlines()
+
+    has_nat_chain = ":MPF_NAT_PRE" in snapshot_text
+    has_canary_chain = ":MPFC_20001" in snapshot_text
+
+    canary_nat_rules = [
+        line for line in lines
+        if "MPF_NAT_PRE" in line and "--dport 20001" in line and "-j DNAT" in line
+    ]
+    exact_target_rules = [line for line in canary_nat_rules if "--to-destination 172.18.0.3:60010" in line]
+    loopback_rules = [line for line in canary_nat_rules if "--to-destination 127.0.0.1:60010" in line]
+    has_canary_comment = any("mpf:canary-btc-001:customer_nat_redirect" in line for line in canary_nat_rules)
+    has_limited_ref = "limited-btc-001" in snapshot_text
+    has_chain_20101 = "MPFC_20101" in snapshot_text
+    has_dnat_20101 = any("--dport 20101" in line and "-j DNAT" in line for line in lines)
+
+    canary_exact_ok = has_nat_chain and has_canary_chain and len(canary_nat_rules) == 1 and len(exact_target_rules) == 1 and not loopback_rules and has_canary_comment
+    if not canary_exact_ok:
+        blockers.append("live_canary_20001_artifact_missing_or_ambiguous")
+    if has_chain_20101 or has_dnat_20101:
+        blockers.append("live_20101_rule_already_exists")
+    if has_limited_ref:
+        blockers.append("live_firewall_unexpected_limited_customer_reference")
+
+    return {
+        "canary_nat_chain_present": has_nat_chain,
+        "canary_customer_chain_present": has_canary_chain,
+        "canary_20001_nat_rule_count": len(canary_nat_rules),
+        "canary_20001_exact_target_rule_count": len(exact_target_rules),
+        "canary_20001_loopback_rule_count": len(loopback_rules),
+        "canary_comment_present": has_canary_comment,
+        "limited_20101_chain_present": has_chain_20101,
+        "limited_20101_dnat_present": has_dnat_20101,
+        "limited_customer_reference_present": has_limited_ref,
+    }, blockers
 
 
 def build_phase11_single_customer_firewall_apply_gate_report(config: MPFConfig, **kwargs: object) -> dict[str, object]:
@@ -169,14 +231,12 @@ def build_phase11_single_customer_firewall_apply_gate_report(config: MPFConfig, 
             blockers.append("live_firewall_read_failed")
             snap = ""
         if snap:
-            has_canary = "MPFC_20001" in snap and "--dport 20001" in snap
-            has_chain_20101 = "MPFC_20101" in snap
-            has_dnat_20101 = "--dport 20101" in snap
-            has_limited_ref = "limited-btc-001" in snap
-            live_summary = {"snapshot_source": "file" if live_snapshot_file else "live", "canary_20001_present": has_canary, "limited_20101_chain_present": has_chain_20101, "limited_20101_dnat_present": has_dnat_20101, "limited_customer_reference_present": has_limited_ref}
-            if has_chain_20101 or has_dnat_20101: blockers.append("live_20101_rule_already_exists")
-            if not has_canary: blockers.append("live_canary_20001_artifact_missing_or_ambiguous")
-            if has_limited_ref: blockers.append("live_firewall_unexpected_limited_customer_reference")
+            parsed_summary, parsed_blockers = _parse_live_snapshot(snap)
+            live_summary = {
+                "snapshot_source": "file" if live_snapshot_file else "live",
+                **parsed_summary,
+            }
+            blockers.extend(parsed_blockers)
 
     if blockers:
         return _blocked_report(expected_version=expected_version, candidate_customer_key=candidate_customer_key, candidate_lane=candidate_lane, candidate_public_port=candidate_public_port, candidate_backend_target=candidate_backend_target, blockers=blockers, firewall_plan_gate_json_sha256=plan_gate_hash, plan_summary_sha256=plan_summary_hash, live_firewall_summary=live_summary)
