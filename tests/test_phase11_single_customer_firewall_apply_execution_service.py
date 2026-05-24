@@ -61,23 +61,28 @@ def test_27_exec_order(tmp_path,monkeypatch):
     calls=[]
     def f(cmd,**k): calls.append(cmd); return SimpleNamespace(returncode=0,stdout=_post())
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',f)
-    _run(tmp_path,monkeypatch,execute=True)
+    r=_run(tmp_path,monkeypatch,execute=True)
+    assert r['final_decision']!='BLOCKED', r.get('blockers')
+    assert len(calls)>=2
     assert calls[0][0:2]==['iptables-restore','--test'] and calls[1][0:2]==['iptables-restore','--noflush']
 def test_28_exec_success_needs_post_verify(tmp_path,monkeypatch):
     monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
     seq=[SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=_post())]
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
-    assert _run(tmp_path,monkeypatch,execute=True)['final_decision']=='PHASE11_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTED_PENDING_REVIEW'
+    r=_run(tmp_path,monkeypatch,execute=True)
+    assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTED_PENDING_REVIEW', r.get('blockers')
 def test_29_exec_apply_fail(tmp_path,monkeypatch):
     monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
     seq=[SimpleNamespace(returncode=1,stdout='')]
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
-    assert _run(tmp_path,monkeypatch,execute=True)['final_decision']=='FAILED_APPLY_EXECUTION'
+    r=_run(tmp_path,monkeypatch,execute=True)
+    assert r['final_decision']=='FAILED_APPLY_EXECUTION', r.get('blockers')
 def test_30_post_verify_fail(tmp_path,monkeypatch):
     monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
     seq=[SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=_post(False))]
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
-    assert _run(tmp_path,monkeypatch,execute=True)['final_decision']=='FAILED_POST_APPLY_VERIFICATION'
+    r=_run(tmp_path,monkeypatch,execute=True)
+    assert r['final_decision']=='FAILED_POST_APPLY_VERIFICATION', r.get('blockers')
 def test_31_cli_json(tmp_path,monkeypatch):
     monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged())); g=_write(tmp_path,'g.json',json.dumps(_gate())); pre=_write(tmp_path,'pre.txt',_pre()); rb=_write(tmp_path,'rb.txt','x'); rs=tmp_path/'rp'; rs.mkdir();
     r=CliRunner().invoke(app,['production','single-customer-firewall-apply-execute','--apply-gate-json',str(g),'--operator','vahid','--reason','ok','--operator-confirmed','--i-understand-single-customer-apply-execution','--i-understand-firewall-nat-apply-will-mutate-host-in-execute-mode','--i-understand-no-production-traffic-acceptance','--i-understand-no-miner-traffic-acceptance','--i-confirm-pre-apply-snapshot-taken','--i-confirm-restore-point-created','--i-confirm-operator-lock-acquired','--i-confirm-rollback-artifact-created','--i-confirm-canary-20001-must-be-preserved','--i-confirm-post-apply-verification-required','--i-confirm-runtime-path-evidence-required-after-apply','--i-confirm-abuse-1h-evidence-required-before-customer-traffic','--i-confirm-restart-container-order-evidence-required-before-limited-acceptance','--pre-apply-snapshot-file',str(pre),'--rollback-artifact-file',str(rb),'--restore-point-path',str(rs),'--operator-lock-id','lock-1','--live-snapshot-file',str(pre),'--output','json','--config','configs/mpf.example.yaml']); assert r.exit_code==0
