@@ -12,7 +12,7 @@ def test_current_position_updates() -> None:
     assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
     assert "- Repository version after this PR is 0.1.204." in current
     assert "- farm5 0.1.200 single-customer DB-only staging evidence is recorded." in current
-    assert "- next intended server step after 0.1.204 sync is rerunning full pytest, then running `mpf production single-customer-firewall-apply-gate` only if tests pass." in current
+    assert "- After 0.1.204 sync and full pytest, the next intended server step is running dry-run/package command `mpf production single-customer-firewall-apply-execute --no-execute`. Actual host mutation still requires pre-apply snapshot file, rollback artifact file, restore point path, operator lock id, exact apply-gate JSON file hash, explicit operator flags, required environment variables, `--execute`, and post-apply verification." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no." in current
     assert "- customer onboarding remains db_only." in current

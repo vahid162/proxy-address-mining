@@ -33,6 +33,8 @@ def _parse_post_apply(snapshot: str) -> dict[str, object]:
     canary_nat = [l for l in lines if "MPF_NAT_PRE" in l and "--dport 20001" in l and "-j DNAT" in l]
     dnat_20101 = [l for l in lines if "MPF_NAT_PRE" in l and "--dport 20101" in l and "-j DNAT" in l]
     unrelated = [l for l in lines if "-A MPF_NAT_PRE" in l and "mpf:" in l and "limited-btc-001" not in l and "canary-btc-001" not in l]
+    connlimit_rules = [l for l in lines if "-A MPFC_20101" in l and "--dport 20101" in l and "mpf:limited-btc-001:customer_connlimit_reject" in l and "-j REJECT" in l]
+    hashlimit_rules = [l for l in lines if "-A MPFC_20101" in l and "--dport 20101" in l and "mpf:limited-btc-001:customer_hashlimit_reject" in l and "-j REJECT" in l]
     return {
         "mpf_nat_pre_exists": ":MPF_NAT_PRE" in snapshot,
         "mpfc_20001_exists": ":MPFC_20001" in snapshot,
@@ -41,6 +43,9 @@ def _parse_post_apply(snapshot: str) -> dict[str, object]:
         "dnat_20101_exact_target_count": len([l for l in dnat_20101 if "--to-destination 172.18.0.3:60010" in l and "mpf:limited-btc-001:customer_nat_redirect" in l]),
         "dnat_20101_loopback_count": len([l for l in dnat_20101 if "--to-destination 127.0.0.1:" in l]),
         "unrelated_customer_nat_rule_count": len(unrelated),
+        "limited_20101_connlimit_reject_rule_count": len(connlimit_rules),
+        "limited_20101_hashlimit_reject_rule_count": len(hashlimit_rules),
+        "limited_20101_filter_primitives_verified": len(connlimit_rules) == 1 and len(hashlimit_rules) == 1,
     }
 
 
@@ -273,7 +278,7 @@ def build_phase11_single_customer_firewall_apply_execution_report(config: MPFCon
     if post_cp.returncode != 0:
         return {**result, "apply_execution_ready": True, "firewall_apply_execution_allowed": False, "iptables_restore_authorized": False, "mutation_performed": False, "partial_apply_possible": True, "blockers": ["FAILED_POST_APPLY_VERIFICATION"], "warnings": [], "final_decision": "FAILED_POST_APPLY_VERIFICATION"}
     post = _parse_post_apply(post_cp.stdout)
-    ok = post["mpf_nat_pre_exists"] and post["mpfc_20001_exists"] and post["mpfc_20101_exists"] and post["canary_20001_exact_artifact_preserved"] and post["dnat_20101_exact_target_count"] == 1 and post["dnat_20101_loopback_count"] == 0 and post["unrelated_customer_nat_rule_count"] == 0
+    ok = post["mpf_nat_pre_exists"] and post["mpfc_20001_exists"] and post["mpfc_20101_exists"] and post["canary_20001_exact_artifact_preserved"] and post["dnat_20101_exact_target_count"] == 1 and post["dnat_20101_loopback_count"] == 0 and post["unrelated_customer_nat_rule_count"] == 0 and post["limited_20101_connlimit_reject_rule_count"] == 1 and post["limited_20101_hashlimit_reject_rule_count"] == 1 and post["limited_20101_filter_primitives_verified"] is True
     if not ok:
         return {**result, "apply_execution_ready": True, "firewall_apply_execution_allowed": False, "iptables_restore_authorized": False, "mutation_performed": False, "partial_apply_possible": True, "post_apply_verification": post, "blockers": ["FAILED_POST_APPLY_VERIFICATION"], "warnings": [], "final_decision": "FAILED_POST_APPLY_VERIFICATION"}
 

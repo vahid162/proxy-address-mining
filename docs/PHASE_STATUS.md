@@ -2981,4 +2981,3 @@ State:
 0.1.201 planning/readiness: recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
 
 
-- docs/PHASE_11E_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTION.md

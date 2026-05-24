@@ -16,3 +16,9 @@ Execute example needs env vars:
 Required pre-apply artifacts: pre-apply snapshot, restore point, operator lock, rollback artifact.
 Required post-apply evidence: post-apply snapshot, 20101 verify, canary-preservation verify, runtime-path evidence.
 Rollback/review is mandatory on any failure or partial-apply suspicion. Production/miner traffic remains not accepted until post-apply runtime evidence PR.
+
+
+Boundary clarification (0.1.204):
+- This package primarily validates/applies exact 20101 NAT redirect and preserves existing 20001 canary artifact.
+- MPFC_20101 rules are scoped customer filter primitives unless/until a later verified hook/enforcement step proves traffic-path attachment.
+- This PR does not claim full filter-enforcement acceptance without explicit post-apply hook/path evidence.

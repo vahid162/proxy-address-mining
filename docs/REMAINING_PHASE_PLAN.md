@@ -15,7 +15,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - farm5 0.1.200 single-customer DB-only staging evidence is recorded.
 - farm5 0.1.201 sync exposed a test isolation issue after real DB-only staging created limited-btc-001.
 - farm5 0.1.202 sync/test and firewall plan gate evidence are recorded.
-- next intended server step after 0.1.204 sync is rerunning full pytest, then running `mpf production single-customer-firewall-apply-gate` only if tests pass.
+- After 0.1.204 sync and full pytest, the next intended server step is running dry-run/package command `mpf production single-customer-firewall-apply-execute --no-execute`. Actual host mutation still requires pre-apply snapshot file, rollback artifact file, restore point path, operator lock id, exact apply-gate JSON file hash, explicit operator flags, required environment variables, `--execute`, and post-apply verification.
 - real customer traffic remains blocked until a separate firewall/NAT apply execution PR is merged, synced, tested, and explicitly updates Current State.
 - production traffic remains none.
 - firewall apply remains no.
@@ -173,4 +173,3 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
 
 
-- docs/PHASE_11E_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTION.md

@@ -14,7 +14,7 @@ def _rows(*r): return customer_read_service.CustomerList(ok=True,message='ok',cu
 def _staged(status='paused',lane='btc',port=20101,key='limited-btc-001'): return SimpleNamespace(customer_key=key,lane=lane,port=port,status=status)
 def _pre(): return '*nat\n:MPF_NAT_PRE - [0:0]\n-A MPF_NAT_PRE -p tcp -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" --dport 20001 -j DNAT --to-destination 172.18.0.3:60010\n*filter\n:MPFC_20001 - [0:0]\n'
 def _post(ok=True,extra=''):
-    base='*nat\n:MPF_NAT_PRE - [0:0]\n-A MPF_NAT_PRE -p tcp -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" --dport 20001 -j DNAT --to-destination 172.18.0.3:60010\n-A MPF_NAT_PRE -p tcp -m comment --comment "mpf:limited-btc-001:customer_nat_redirect" --dport 20101 -j DNAT --to-destination 172.18.0.3:60010\n*filter\n:MPFC_20001 - [0:0]\n:MPFC_20101 - [0:0]\n'
+    base='*nat\n:MPF_NAT_PRE - [0:0]\n-A MPF_NAT_PRE -p tcp -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" --dport 20001 -j DNAT --to-destination 172.18.0.3:60010\n-A MPF_NAT_PRE -p tcp -m comment --comment "mpf:limited-btc-001:customer_nat_redirect" --dport 20101 -j DNAT --to-destination 172.18.0.3:60010\n*filter\n:MPFC_20001 - [0:0]\n :MPFC_20101 - [0:0]\n-A MPFC_20101 -p tcp --dport 20101 -m connlimit --connlimit-above 120 -m comment --comment "mpf:limited-btc-001:customer_connlimit_reject" -j REJECT\n-A MPFC_20101 -p tcp --dport 20101 -m hashlimit --hashlimit-above 40/sec --hashlimit-burst 80 --hashlimit-mode srcip --hashlimit-name mpf_20101 -m comment --comment "mpf:limited-btc-001:customer_hashlimit_reject" -j REJECT\n'
     if not ok: base='*nat\n:MPF_NAT_PRE - [0:0]\n*filter\n:MPFC_20001 - [0:0]\n'
     return base+extra
 
@@ -93,3 +93,19 @@ def test_31_cli_json(tmp_path,monkeypatch):
 def test_32_cli_human(tmp_path,monkeypatch):
     monkeypatch.setattr(customer_read_service,'list_customer_status',lambda *a,**k:_rows(_staged())); g=_write(tmp_path,'g2.json',json.dumps(_gate())); pre=_write(tmp_path,'pre2.txt',_pre()); rb=_write(tmp_path,'rb2.txt','x'); rs=tmp_path/'rp2'; rs.mkdir();
     r=CliRunner().invoke(app,['production','single-customer-firewall-apply-execute','--apply-gate-json',str(g),'--operator','vahid','--reason','ok','--operator-confirmed','--i-understand-single-customer-apply-execution','--i-understand-firewall-nat-apply-will-mutate-host-in-execute-mode','--i-understand-no-production-traffic-acceptance','--i-understand-no-miner-traffic-acceptance','--i-confirm-pre-apply-snapshot-taken','--i-confirm-restore-point-created','--i-confirm-operator-lock-acquired','--i-confirm-rollback-artifact-created','--i-confirm-canary-20001-must-be-preserved','--i-confirm-post-apply-verification-required','--i-confirm-runtime-path-evidence-required-after-apply','--i-confirm-abuse-1h-evidence-required-before-customer-traffic','--i-confirm-restart-container-order-evidence-required-before-limited-acceptance','--pre-apply-snapshot-file',str(pre),'--rollback-artifact-file',str(rb),'--restore-point-path',str(rs),'--operator-lock-id','lock-1','--live-snapshot-file',str(pre),'--output','human','--config','configs/mpf.example.yaml']); assert r.exit_code==0
+
+def test_33_post_verify_fail_missing_connlimit(tmp_path,monkeypatch):
+    monkeypatch.delenv('CI', raising=False)
+    monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
+    bad=_post().replace('mpf:limited-btc-001:customer_connlimit_reject','x')
+    seq=[SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=bad)]
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
+    assert _run(tmp_path,monkeypatch,execute=True)['final_decision']=='FAILED_POST_APPLY_VERIFICATION'
+
+def test_34_post_verify_fail_missing_hashlimit(tmp_path,monkeypatch):
+    monkeypatch.delenv('CI', raising=False)
+    monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_EXECUTION','allow'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_TARGET','limited-btc-001:btc:20101:172.18.0.3:60010'); monkeypatch.setenv('MPF_PHASE11_SINGLE_CUSTOMER_APPLY_I_UNDERSTAND_HOST_FIREWALL_MUTATION','allow')
+    bad=_post().replace('mpf:limited-btc-001:customer_hashlimit_reject','x')
+    seq=[SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=''),SimpleNamespace(returncode=0,stdout=bad)]
+    monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_execution_service.subprocess.run',lambda *a,**k: seq.pop(0))
+    assert _run(tmp_path,monkeypatch,execute=True)['final_decision']=='FAILED_POST_APPLY_VERIFICATION'
