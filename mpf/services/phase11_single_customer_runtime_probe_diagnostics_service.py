@@ -28,7 +28,8 @@ def _read(path: Path | None) -> str:
 
 def _check_hash(path: Path | None, expected: str | None, missing: str, mismatch: str, blockers: list[str]) -> None:
     if path is None or not path.exists():
-        blockers.append(missing); return
+        blockers.append(missing)
+        return
     if expected and _sha256(path) != expected:
         blockers.append(mismatch)
 
@@ -53,9 +54,9 @@ def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFCo
         "i_confirm_abuse_1h_required_before_customer_traffic": "abuse_1h_required_not_confirmed",
         "i_confirm_restart_container_order_required_before_limited_acceptance": "restart_container_order_required_not_confirmed",
     }
-    for f, b in confirmations.items():
-        if kwargs.get(f) is not True:
-            blockers.append(b)
+    for field, blocker in confirmations.items():
+        if kwargs.get(field) is not True:
+            blockers.append(blocker)
 
     if (candidate_customer_key, candidate_lane, candidate_public_port, candidate_backend_target) != (
         EXPECTED["customer_key"], EXPECTED["lane"], EXPECTED["public_port"], EXPECTED["backend_target"]
@@ -111,12 +112,18 @@ def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFCo
     if live and live.exists():
         try:
             cls = _parse_snapshot(live.read_text(encoding="utf-8"))
-            if int(cls.get("dnat_20101_exact_target_count", 0)) == 0: blockers.append("live_snapshot_missing_20101")
-            if not cls.get("has_canary_20001"): blockers.append("live_snapshot_missing_canary_20001")
-            if int(cls.get("dnat_20101_exact_target_count", 0)) > 1: blockers.append("live_snapshot_duplicate_20101")
-            if int(cls.get("dnat_20101_loopback_count", 0)) > 0: blockers.append("live_snapshot_loopback_20101")
-            if int(cls.get("unrelated_customer_nat_rule_count", 0)) > 0: blockers.append("live_snapshot_unrelated_customer_nat")
-            if cls.get("limited_20101_filter_primitives_verified") is not True: blockers.append("live_snapshot_invalid")
+            if int(cls.get("dnat_20101_exact_target_count", 0)) == 0:
+                blockers.append("live_snapshot_missing_20101")
+            if not cls.get("has_canary_20001"):
+                blockers.append("live_snapshot_missing_canary_20001")
+            if int(cls.get("dnat_20101_exact_target_count", 0)) > 1:
+                blockers.append("live_snapshot_duplicate_20101")
+            if int(cls.get("dnat_20101_loopback_count", 0)) > 0:
+                blockers.append("live_snapshot_loopback_20101")
+            if int(cls.get("unrelated_customer_nat_rule_count", 0)) > 0:
+                blockers.append("live_snapshot_unrelated_customer_nat")
+            if cls.get("limited_20101_filter_primitives_verified") is not True:
+                blockers.append("live_snapshot_invalid")
         except Exception:
             blockers.append("live_snapshot_invalid")
 
@@ -135,13 +142,29 @@ def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFCo
     forwarder_backend_seen = ("127.0.0.1:60010" in fwd_text) or ("172.18.0.3:60010" in fwd_text)
     bridge_loopback_seen = (("127.0.0.1:20170" in br_text and "172.18.0.3" in br_text) or ("172.18.0.3:60010" in br_text))
 
-    probe_ready = not blockers
+    if not conntrack_assured_seen and not conntrack_20101_unreplied_seen and not conntrack_backend_nat_seen:
+        blockers.append("missing_conntrack_probe_signal")
+    if conntrack_assured_seen and not forwarder_pool_seen:
+        blockers.append("missing_forwarder_probe_signal")
+    if not forwarder_pool_seen and not forwarder_backend_seen:
+        blockers.append("missing_forwarder_probe_signal")
+    if not bridge_loopback_seen:
+        blockers.append("missing_bridge_probe_signal")
+
+    blockers = sorted(set(blockers))
+    base_valid = not blockers
+    meaningful_signal = conntrack_assured_seen or conntrack_20101_unreplied_seen or conntrack_backend_nat_seen or forwarder_pool_seen or forwarder_backend_seen or bridge_loopback_seen
+    probe_ready = base_valid and meaningful_signal
+
     if probe_ready and not conntrack_assured_seen:
         final = "PHASE11_SINGLE_CUSTOMER_RUNTIME_PROBE_DIAGNOSTICS_READY_BLOCKED_RUNTIME"
     elif probe_ready and conntrack_assured_seen and forwarder_pool_seen and bridge_loopback_seen:
         final = "PHASE11_SINGLE_CUSTOMER_RUNTIME_PROBE_DIAGNOSTICS_READY_ASSURED_CANDIDATE"
     else:
         final = "BLOCKED"
+        if not blockers:
+            blockers = ["missing_probe_diagnostics_signal"]
+            probe_ready = False
 
     return {
         "component": "phase11_single_customer_runtime_probe_diagnostics",
@@ -166,7 +189,7 @@ def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFCo
         "phase11_accepted": False,
         "db_activation_allowed": False,
         "mutation_performed": False,
-        "blockers": sorted(set(blockers)),
+        "blockers": blockers,
         "warnings": [],
         "next_required_step": "collect_stronger_runtime_probe_evidence" if probe_ready else "none",
         "final_decision": final,

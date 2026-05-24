@@ -49,3 +49,10 @@ Runtime classifier executed with expected version `0.1.206` and post-apply evide
 - no Phase 11 acceptance
 - no additional firewall apply
 - next step: controlled runtime probe diagnostics and stronger conntrack/runtime evidence collection
+
+
+## Diagnostics/acceptance boundary
+- SYN_SENT/UNREPLIED is useful diagnostics evidence but not runtime acceptance.
+- ASSURED candidate still does not activate runtime path by itself; runtime-path evidence classifier remains the acceptance classifier.
+- The diagnostics service never sets `runtime_path_evidence_ready` to true.
+- Production/miner traffic remains blocked.

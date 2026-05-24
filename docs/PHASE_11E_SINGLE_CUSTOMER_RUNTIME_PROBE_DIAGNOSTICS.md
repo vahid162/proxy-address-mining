@@ -58,3 +58,9 @@ SYN_SENT/UNREPLIED is attempted path/probe evidence only and is **not** runtime 
 
 ## Next operator step
 Collect stronger runtime evidence (external probe or controlled Stratum transcript) that produces ASSURED conntrack evidence.
+
+## Safety semantics
+- This diagnostics service never sets `runtime_path_evidence_ready` to true.
+- SYN_SENT/UNREPLIED is useful diagnostics evidence only; it is not runtime acceptance.
+- ASSURED candidate output does not activate runtime path by itself; runtime-path evidence classifier remains the acceptance classifier.
+- Production/miner traffic remains blocked and DB activation remains blocked.
