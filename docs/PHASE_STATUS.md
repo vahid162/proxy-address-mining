@@ -2,6 +2,8 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.197): added non-mutating Phase 11D controlled canary acceptance decision gate (`mpf production canary-acceptance-decision`) for exact farm5 0.1.195 evidence-pack + archive sha/operator-confirmation validation; this does not change Current State gates and does not record farm5 execution evidence yet.
+
 Phase 11 planning/readiness note (0.1.195): canary runtime-path evidence now supports NAT-aware conntrack proof and multiline forwarder local ephemeral port correlation for source-backed canary runtime classification; this does not change Current State gates or authorize production/onboarding/apply.
 
 Phase 11 planning/readiness note (0.1.196): recorded farm5 0.1.195 live canary evidence-pack readiness (`docs/PHASE_11_FARM5_0_1_195_LIVE_CANARY_EVIDENCE_PACK.md`) confirming runtime-path/visibility/acceptance-review READY for exact controlled canary scope while preserving closed production/onboarding/apply gates and non-mutating flags.

@@ -629,3 +629,8 @@ Current Phase 11 evidence docs include:
 - `docs/PHASE_11D_MANUAL_CANARY_EXECUTION_RUN_PREPARATION.md` (Phase 11D preparation package, non-authorizing)
 
 - `docs/PHASE_11D_ACTUAL_MANUAL_CANARY_EXECUTION_RUN_PACKAGE.md`
+
+
+## Phase 11 Docs/Evidence Additions
+
+- `docs/PHASE_11D_CANARY_ACCEPTANCE_DECISION_GATE.md`

@@ -157,3 +157,6 @@ Repository version after this PR is 0.1.129. (historical)
 Current roadmap ordering remains the Finite Remaining Path above. These anchors do not reopen Phase 6, Phase 7, Phase 8, firewall apply, production traffic, abuse automation, worker enforcement, UI, or Telegram.
 - Repository version after this PR is 0.1.196.
 - After usage evidence capture/validation, next target is `reject_counters_visibility`.
+
+- After 0.1.197 merge/sync, next intended server step is running `mpf production canary-acceptance-decision` on farm5 against `/tmp/phase11-canary-evidence-pack-0.1.195-live` and recording result evidence.
+- Phase 11E limited onboarding remains blocked until this Phase 11D canary acceptance decision is executed and recorded on farm5.

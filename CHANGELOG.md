@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.197
+- feat(phase11): add non-mutating operator-controlled canary acceptance decision gate for exact farm5 0.1.195 evidence-pack validation while preserving closed Phase 11 production/onboarding gates.
+
 ## 0.1.196
 - docs(phase11): record farm5 0.1.195 live canary evidence-pack showing runtime path, visibility bundle, and acceptance-review readiness while preserving closed production/onboarding gates.
 
