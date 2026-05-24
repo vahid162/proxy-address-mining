@@ -116,7 +116,7 @@ from mpf.services import (
     phase11_canary_final_check_report_visibility_service,
     phase11_canary_rollback_restore_visibility_service,
     phase11_canary_usage_visibility_service,
-    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service, phase11_limited_onboarding_gate_service,
+    phase11_canary_usage_evidence_capture_service, phase11_canary_reject_session_ip_evidence_capture_service, phase11_canary_reject_counters_visibility_service, phase11_canary_worker_stratum_evidence_capture_service, phase11_external_canary_stratum_transcript_import_service, phase11_canary_abuse_coverage_visibility_service, phase11_canary_runtime_path_evidence_service, phase11_canary_acceptance_decision_service, phase11_limited_onboarding_gate_service, phase11_limited_onboarding_execution_gate_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -2491,6 +2491,50 @@ def production_limited_onboarding_gate(
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
     for key in ("component", "final_decision", "phase11d_canary_accepted", "phase11e_gate_ready", "phase11e_execution_allowed", "phase11_accepted", "limited_onboarding_allowed", "production_traffic_enabled", "no_onboarding_authorized", "next_required_step", "blockers"):
+        typer.echo(f"{key}: {report.get(key)}")
+
+
+
+@production_app.command("limited-onboarding-execution-gate")
+def production_limited_onboarding_execution_gate(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    farm5_baseline_version: str = typer.Option("0.1.168", "--farm5-baseline-version"),
+    limited_onboarding_gate_json: Path = typer.Option(..., "--limited-onboarding-gate-json"),
+    candidate_customer_key: str = typer.Option(..., "--candidate-customer-key"),
+    candidate_lane: str = typer.Option("btc", "--candidate-lane"),
+    candidate_public_port: int = typer.Option(..., "--candidate-public-port"),
+    candidate_backend_target: str = typer.Option("172.18.0.3:60010", "--candidate-backend-target"),
+    candidate_description: str = typer.Option(..., "--candidate-description"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed"),
+    i_understand_this_does_not_onboard_customer: bool = typer.Option(False, "--i-understand-this-does-not-onboard-customer"),
+    i_understand_no_firewall_apply_yet: bool = typer.Option(False, "--i-understand-no-firewall-apply-yet"),
+    i_understand_no_production_traffic_yet: bool = typer.Option(False, "--i-understand-no-production-traffic-yet"),
+    i_understand_next_pr_must_execute_controlled_single_customer: bool = typer.Option(False, "--i-understand-next-pr-must-execute-controlled-single-customer"),
+    i_confirm_rollback_plan_required: bool = typer.Option(False, "--i-confirm-rollback-plan-required"),
+    i_confirm_restart_test_required: bool = typer.Option(False, "--i-confirm-restart-test-required"),
+    i_confirm_abuse_1h_coverage_required: bool = typer.Option(False, "--i-confirm-abuse-1h-coverage-required"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_limited_onboarding_execution_gate_service.build_phase11_limited_onboarding_execution_gate_report(
+        _load(config), expected_version=expected_version, farm5_baseline_version=farm5_baseline_version,
+        limited_onboarding_gate_json=limited_onboarding_gate_json, candidate_customer_key=candidate_customer_key,
+        candidate_lane=candidate_lane, candidate_public_port=candidate_public_port,
+        candidate_backend_target=candidate_backend_target, candidate_description=candidate_description,
+        operator=operator, reason=reason, operator_confirmed=operator_confirmed,
+        i_understand_this_does_not_onboard_customer=i_understand_this_does_not_onboard_customer,
+        i_understand_no_firewall_apply_yet=i_understand_no_firewall_apply_yet,
+        i_understand_no_production_traffic_yet=i_understand_no_production_traffic_yet,
+        i_understand_next_pr_must_execute_controlled_single_customer=i_understand_next_pr_must_execute_controlled_single_customer,
+        i_confirm_rollback_plan_required=i_confirm_rollback_plan_required,
+        i_confirm_restart_test_required=i_confirm_restart_test_required,
+        i_confirm_abuse_1h_coverage_required=i_confirm_abuse_1h_coverage_required,
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component", "final_decision", "phase11e_execution_gate_ready", "phase11e_execution_allowed", "candidate_customer_key", "candidate_lane", "candidate_public_port", "customer_created", "limited_onboarding_allowed", "production_traffic_enabled", "mutation_performed", "next_required_step", "blockers"):
         typer.echo(f"{key}: {report.get(key)}")
 
 @production_app.command("canary-evidence-pack")
