@@ -1,4 +1,3 @@
-Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
 # Remaining Phase Plan
 
 Status: planning reference aligned to docs/PHASE_STATUS.md.
@@ -9,11 +8,14 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Repository version after this PR is 0.1.203.
+- Repository version after this PR is 0.1.204.
+- 0.1.204 adds a controlled single-customer firewall apply execution path/package (dry-run default).
+- Actual server execution still requires farm5 sync/test plus explicit operator execution evidence.
+- Production/miner traffic remains blocked until post-apply runtime evidence and later acceptance PR.
 - farm5 0.1.200 single-customer DB-only staging evidence is recorded.
 - farm5 0.1.201 sync exposed a test isolation issue after real DB-only staging created limited-btc-001.
 - farm5 0.1.202 sync/test and firewall plan gate evidence are recorded.
-- next intended server step after 0.1.203 sync is rerunning full pytest, then running `mpf production single-customer-firewall-apply-gate` only if tests pass.
+- next intended server step after 0.1.204 sync is rerunning full pytest, then running `mpf production single-customer-firewall-apply-gate` only if tests pass.
 - real customer traffic remains blocked until a separate firewall/NAT apply execution PR is merged, synced, tested, and explicitly updates Current State.
 - production traffic remains none.
 - firewall apply remains no.
@@ -171,5 +173,4 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
 
 
-- docs/PHASE_11_FARM5_0_1_203_FIREWALL_APPLY_GATE_EVIDENCE.md
 - docs/PHASE_11E_SINGLE_CUSTOMER_FIREWALL_APPLY_EXECUTION.md
