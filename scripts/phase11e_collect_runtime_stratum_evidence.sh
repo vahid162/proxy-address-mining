@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-EXPECTED_VERSION="0.1.213"
+EXPECTED_VERSION="0.1.214"
 FORWARDER_CONTAINER="mpf-forwarder-btc"
 BRIDGE_CONTAINER="mpf-v2raya-socks-bridge"
 OUT_DIR=""
 WAIT_FOR_TRANSCRIPT_SECONDS=300
 CAPTURE_DELAY_SECONDS=0
+CONNTRACK_REPEAT_COUNT=1
+CONNTRACK_REPEAT_DELAY_SECONDS=2
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -21,6 +23,8 @@ while [[ $# -gt 0 ]]; do
     --expected-version) EXPECTED_VERSION="$2"; shift 2 ;;
     --wait-for-transcript-seconds) WAIT_FOR_TRANSCRIPT_SECONDS="$2"; shift 2 ;;
     --capture-delay-seconds) CAPTURE_DELAY_SECONDS="$2"; shift 2 ;;
+    --conntrack-repeat-count) CONNTRACK_REPEAT_COUNT="$2"; shift 2 ;;
+    --conntrack-repeat-delay-seconds) CONNTRACK_REPEAT_DELAY_SECONDS="$2"; shift 2 ;;
     *) echo "Unknown arg: $1"; exit 2 ;;
   esac
 done
@@ -91,7 +95,16 @@ if [[ "$GATE_DECISION" == BLOCKED_* ]]; then
 fi
 [[ "$GATE_DECISION" == "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS" || "$GATE_DECISION" == "PASS_NO_CUSTOMER_ARTIFACTS" ]] || { write_manifest; echo "CRITICAL: blocked by artifact gate: $GATE_DECISION"; exit 1; }
 
-conntrack -L > "$OUT_DIR/conntrack.txt"
+: > "$OUT_DIR/conntrack.txt"
+for ((r=1; r<=CONNTRACK_REPEAT_COUNT; r++)); do
+  if (( CONNTRACK_REPEAT_COUNT > 1 )); then
+    printf '===== conntrack snapshot %s/%s at %s =====\n' "$r" "$CONNTRACK_REPEAT_COUNT" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$OUT_DIR/conntrack.txt"
+  fi
+  conntrack -L >> "$OUT_DIR/conntrack.txt"
+  if (( r < CONNTRACK_REPEAT_COUNT )); then
+    sleep "$CONNTRACK_REPEAT_DELAY_SECONDS"
+  fi
+done
 if ! docker logs --since 15m "$FORWARDER_CONTAINER" > "$OUT_DIR/forwarder.log" 2>&1; then
   printf 'ERROR: docker logs collection failed for %s\n' "$FORWARDER_CONTAINER" >> "$OUT_DIR/forwarder.log"
 fi

@@ -2,6 +2,7 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.214): aligned single-customer runtime-path evidence classifier with captured forwarder/bridge artifacts and added optional repeated conntrack capture while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.213): fixed Phase 11E runtime/Stratum evidence helper log capture and single-customer Stratum transcript expected-version drift while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.212): hardened external Stratum probe timeout handling to produce valid fail-closed transcript output instead of traceback while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.211): fixed current phase safety gate expected-version drift by deriving the artifact gate expected version from VERSION while keeping all production/miner/activation gates closed.
@@ -2988,6 +2989,4 @@ State:
 
 0.1.202 planning/readiness: isolated the Phase 11E single-customer staging create-failure test from real farm5 DB state after DB-only staging while preserving closed apply/traffic gates.
 0.1.201 planning/readiness: recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
-
-
 
