@@ -1,7 +1,9 @@
+
 # Remaining Phase Plan
 
 Status: planning reference aligned to docs/PHASE_STATUS.md.
 
+Current Position update (0.1.219): repository version is 0.1.219; runtime path READY; stratum transcript READY; visibility bundle READY at 0.1.218; abuse 1h and restart/container-order readiness still required; limited acceptance decision still required; production/miner traffic remains blocked.
 docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any runtime gate by itself.
 
 ## Current Position

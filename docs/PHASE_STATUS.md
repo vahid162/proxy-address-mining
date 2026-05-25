@@ -2,6 +2,7 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.219): added single-customer abuse 1h and restart/container-order readiness gates plus a non-activating limited acceptance precheck while recording 0.1.218 visibility evidence and keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.218): stabilized remaining Phase 6/8 expected-version assertions after visibility bundle version alignment while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.217): stabilized Phase 11 canary expected-version tests after visibility bundle version alignment while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.216): aligned single-customer visibility bundle expected-version handling and recorded 0.1.215 reclassified runtime/Stratum visibility evidence while keeping all production/miner/activation gates closed.
