@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.218
+
+- fix(test): align remaining Phase 6/8 expected-version assertions with package version and keep CI green after version bump.
+
+## 0.1.217
+
+- test(phase11): align canary/rollback/renderer/backend-target tests with current repository version to avoid stale expected-version blockers in CI.
+
+## 0.1.216
+
+- fix(phase11): align single-customer visibility bundle default `expected_version` to package version (`__version__`) and keep readiness semantics/gates unchanged (abuse and restart readiness remain false; production/miner/activation flags remain false).
+- fix(phase11): pass `--expected-version "$EXPECTED_VERSION"` from the Phase 11E runtime/Stratum helper into `single-customer-visibility-bundle`.
+- docs(phase11): record farm5 0.1.215 reclassified runtime/Stratum/visibility READY evidence while keeping all production/miner/activation gates closed.
+
 ## 0.1.215
 
 - fix(phase11): detect conntrack ASSURED runtime signal in real tuple order by using line-based NAT-aware matching for `dport=20101` + `172.18.0.3` + `sport=60010`.

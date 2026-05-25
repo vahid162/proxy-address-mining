@@ -27,3 +27,19 @@ def test_helper_uses_forwarder_btc_and_captures_stderr_logs() -> None:
     assert 'docker logs --since 15m "$FORWARDER_CONTAINER" > "$OUT_DIR/forwarder.log" 2>&1' in t
     assert 'docker logs --since 15m "$BRIDGE_CONTAINER" > "$OUT_DIR/bridge.log" 2>&1' in t
     assert 'FORWARDER_CONTAINER="mpf-forwarder"' not in t
+
+
+def test_helper_passes_expected_version_to_visibility_bundle() -> None:
+    t = Path('scripts/phase11e_collect_runtime_stratum_evidence.sh').read_text(encoding='utf-8')
+    assert 'single-customer-visibility-bundle --expected-version "$EXPECTED_VERSION"' in t
+
+
+def test_helper_derives_expected_version_from_version_file() -> None:
+    t = Path('scripts/phase11e_collect_runtime_stratum_evidence.sh').read_text(encoding='utf-8')
+    assert 'EXPECTED_VERSION="0.1.216"' not in t
+    assert 'EXPECTED_VERSION="0.1.218"' not in t
+    assert 'VERSION_FILE="$REPO_ROOT/VERSION"' in t
+    assert 'CRITICAL: VERSION file missing or empty: $VERSION_FILE' in t
+    assert "EXPECTED_VERSION=\"$(tr -d" in t
+    assert "< \"$VERSION_FILE\")\"" in t
+    assert 'CRITICAL: expected version is empty after reading VERSION' in t

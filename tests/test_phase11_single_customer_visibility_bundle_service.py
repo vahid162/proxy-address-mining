@@ -2,6 +2,7 @@ import hashlib, json
 from pathlib import Path
 from typer.testing import CliRunner
 
+from mpf import __version__
 from mpf.config import load_config
 from mpf.interfaces.cli import app
 from mpf.services import phase11_single_customer_visibility_bundle_service as svc
@@ -42,3 +43,23 @@ def test_cli_smoke(tmp_path):
     assert r.exit_code==0
     rh=CliRunner().invoke(app,['production','single-customer-visibility-bundle','--runtime-path-evidence-json',str(rp),'--stratum-transcript-evidence-json',str(sp),'--output','human','--config','configs/mpf.example.yaml'])
     assert rh.exit_code==0
+
+
+def test_default_expected_version_matches_package_version(tmp_path):
+    rp=_w(tmp_path/'r.json',_runtime()); sp=_w(tmp_path/'s.json',_stratum())
+    report=svc.build_phase11_single_customer_visibility_bundle_report(_cfg(),runtime_path_evidence_json=rp,stratum_transcript_evidence_json=sp)
+    assert report['expected_version']==__version__
+
+
+def test_expected_version_override_and_safety_flags(tmp_path):
+    rp=_w(tmp_path/'r.json',_runtime()); sp=_w(tmp_path/'s.json',_stratum())
+    report=svc.build_phase11_single_customer_visibility_bundle_report(_cfg(),runtime_path_evidence_json=rp,stratum_transcript_evidence_json=sp,expected_version='9.9.9')
+    assert report['expected_version']=='9.9.9'
+    assert report['visibility_bundle_ready'] is True
+    assert report['abuse_1h_coverage_ready'] is False
+    assert report['restart_container_order_ready'] is False
+    assert report['production_traffic_enabled'] is False
+    assert report['miner_traffic_allowed'] is False
+    assert report['phase11_accepted'] is False
+    assert report['db_activation_allowed'] is False
+    assert report['mutation_performed'] is False

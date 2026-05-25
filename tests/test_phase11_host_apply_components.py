@@ -1,3 +1,4 @@
+from mpf import __version__
 from mpf.services.phase11_single_canary_host_apply_executor import Phase11SingleCanaryHostApplyExecutor
 from mpf.services.phase11_single_canary_post_apply_verifier import Phase11SingleCanaryPostApplyVerifier
 from mpf.services.phase11_exact_canary_restore_payload_renderer import Phase11ExactCanaryRestorePayloadRenderer
@@ -147,7 +148,7 @@ def test_executor_accepts_real_renderer_payload(monkeypatch):
         "scope": {"single_canary_only": True},
         "request": {
             "requested_action": "execute",
-            "expected_version": "0.1.215",
+            "expected_version": __version__,
             "customer_key": "canary-btc-001",
             "lane": "btc",
             "port": 20001,
