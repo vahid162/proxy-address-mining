@@ -37,7 +37,7 @@ def _base(expected_version: str, customer_key: str, lane: str, port: int, backen
 def build_phase11_single_customer_stratum_transcript_evidence_report(config: MPFConfig, **kwargs: object) -> dict[str, object]:
     del config
     blockers: list[str] = []
-    expected_version = str(kwargs.get("expected_version", "0.1.206"))
+    expected_version = str(kwargs.get("expected_version", __version__))
     customer_key = str(kwargs.get("candidate_customer_key", EXPECTED["customer_key"]))
     lane = str(kwargs.get("candidate_lane", EXPECTED["lane"]))
     port = int(kwargs.get("candidate_public_port", EXPECTED["public_port"]))
