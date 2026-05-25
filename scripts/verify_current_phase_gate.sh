@@ -82,7 +82,11 @@ else
   : > "$IP6TABLES_SAVE_FILE"
 fi
 
-gate_json="$(mpf production current-controlled-artifact-gate --expected-version 0.1.209 --iptables-save-file "$IPTABLES_SAVE_FILE" --ip6tables-save-file "$IP6TABLES_SAVE_FILE" --output json)"
+VERSION_FILE="${REPO_ROOT}/VERSION"
+[ -f "$VERSION_FILE" ] || fail "VERSION file missing at ${VERSION_FILE}"
+EXPECTED_VERSION="$(tr -d "[:space:]" < "$VERSION_FILE")"
+[ -n "$EXPECTED_VERSION" ] || fail "VERSION file is empty at ${VERSION_FILE}"
+gate_json="$(mpf production current-controlled-artifact-gate --expected-version "$EXPECTED_VERSION" --iptables-save-file "$IPTABLES_SAVE_FILE" --ip6tables-save-file "$IP6TABLES_SAVE_FILE" --output json)"
 printf '%s
 ' "$gate_json"
 gate_decision="$(printf '%s' "$gate_json" | python -c 'import json,sys;print(json.load(sys.stdin).get("final_decision",""))')"

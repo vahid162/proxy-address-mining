@@ -57,3 +57,13 @@ def test_sync_phase_gate_regression_note_for_pr117() -> None:
     assert "PR #117" in text
     assert "Phase 7 accepted / Phase 8 planning/readiness" in text
     assert "must not reject" in text
+
+
+def test_verify_current_phase_gate_uses_version_file_for_expected_version() -> None:
+    text = Path("scripts/verify_current_phase_gate.sh").read_text(encoding="utf-8")
+
+    assert "--expected-version 0.1.209" not in text
+    assert "--expected-version 0.1.210" not in text
+    assert 'VERSION_FILE="${REPO_ROOT}/VERSION"' in text
+    assert 'EXPECTED_VERSION="$(tr -d "[:space:]" < "$VERSION_FILE")"' in text
+    assert 'current-controlled-artifact-gate --expected-version "$EXPECTED_VERSION"' in text

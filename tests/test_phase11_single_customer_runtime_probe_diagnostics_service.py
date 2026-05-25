@@ -51,7 +51,7 @@ def _run(tmp: Path, monkeypatch, patch_db: bool = True, **overrides):
     post_obj = overrides.pop("post_obj", None)
     post, livef, connf, fwdf, bridgef = _files(tmp, conn=conn, fwd=fwd, bridge=bridge, live=live, post_obj=post_obj)
     kw = dict(
-        expected_version="0.1.210", post_apply_evidence_json=post, post_apply_evidence_json_sha256=_sha(post),
+        expected_version="0.1.211", post_apply_evidence_json=post, post_apply_evidence_json_sha256=_sha(post),
         live_snapshot_file=livef, live_snapshot_sha256=_sha(livef), conntrack_snapshot_file=connf, conntrack_snapshot_sha256=_sha(connf),
         forwarder_log_file=fwdf, forwarder_log_sha256=_sha(fwdf), bridge_log_file=bridgef, bridge_log_sha256=_sha(bridgef),
         operator="op", reason="r", operator_confirmed=True, i_understand_probe_diagnostics_only=True,
@@ -147,7 +147,7 @@ def test_cli_smoke_json_human_and_hash_options(tmp_path, monkeypatch):
     monkeypatch.setattr(customer_read_service, "list_customer_status", lambda *a, **k: _rows(_row()))
     post, livef, connf, fwdf, brf = _files(tmp_path, conn="tcp SYN_SENT dport=20101 [UNREPLIED] src=172.18.0.3 sport=60010", fwd="limited-btc-001 20101 172.18.0.3:60010", bridge="127.0.0.1:20170 172.18.0.3")
     base = [
-        "production", "single-customer-runtime-probe-diagnostics", "--expected-version", "0.1.210", "--post-apply-evidence-json", str(post),
+        "production", "single-customer-runtime-probe-diagnostics", "--expected-version", "0.1.211", "--post-apply-evidence-json", str(post),
         "--post-apply-evidence-json-sha256", _sha(post), "--live-snapshot-file", str(livef), "--live-snapshot-sha256", _sha(livef),
         "--conntrack-snapshot-file", str(connf), "--conntrack-snapshot-sha256", _sha(connf), "--forwarder-log-file", str(fwdf),
         "--forwarder-log-sha256", _sha(fwdf), "--bridge-log-file", str(brf), "--bridge-log-sha256", _sha(brf), "--operator", "x", "--reason", "y",
