@@ -10,10 +10,10 @@ def test_current_position_updates() -> None:
     current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
     assert "- Current accepted phase is Phase 10." in current
     assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
-    assert "- Repository version after this PR is 0.1.208." in current
+    assert "- Repository version after this PR is 0.1.209." in current
     assert "- post-apply evidence READY is recorded from farm5 0.1.205." in current
     assert "- 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence." in current
-    assert "- after 0.1.208 sync and full pytest, next intended farm5 step is long-lived external Stratum + runtime evidence collection/classification for 20101." in current
+    assert "- after 0.1.209 sync and full pytest, next intended farm5 step is long-lived external Stratum + runtime evidence collection/classification for 20101." in current
     assert "- then Stratum transcript evidence and visibility bundle." in current
     assert "- production traffic remains none." in current
     assert "- firewall apply remains no." in current
