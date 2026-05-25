@@ -1,3 +1,4 @@
+from mpf import __version__
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -7,7 +8,7 @@ from mpf.interfaces.cli import app
 from mpf.services.phase8_controlled_worker_dry_run_service import build_phase8_controlled_worker_dry_run_report
 
 
-EXPECTED_VERSION = "0.1.216"
+EXPECTED_VERSION = __version__
 
 
 def cfg_path() -> Path:

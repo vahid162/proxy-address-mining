@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.218
+
+- fix(test): align remaining Phase 6/8 expected-version assertions with package version and keep CI green after version bump.
+
 ## 0.1.217
 
 - test(phase11): align canary/rollback/renderer/backend-target tests with current repository version to avoid stale expected-version blockers in CI.
