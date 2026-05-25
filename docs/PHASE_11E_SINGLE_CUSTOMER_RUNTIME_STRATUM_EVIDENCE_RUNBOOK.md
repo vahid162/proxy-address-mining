@@ -30,7 +30,7 @@ bash scripts/verify_current_phase_gate.sh
 ```
 
 Expected:
-- version `0.1.211`
+- version `0.1.212`
 - accepted phase still Phase 10
 - working phase still Phase 11 planning/readiness
 - closed production/miner/customer activation gates
@@ -66,7 +66,7 @@ scp /tmp/limited-btc-001-20101-transcript.json root@<farm5-public-ip>:/tmp/limit
 
 ```bash
 cd /opt/mpf-py-src
-sudo scripts/phase11e_collect_runtime_stratum_evidence.sh   --operator vahid   --reason "phase11e external runtime stratum evidence collection"   --post-apply-evidence-json /tmp/phase11-single-customer-post-apply-evidence-0.1.205.json   --post-apply-evidence-json-sha256 19ef5602af8ad36267ce34c3ca21e660e32d8970b0a81d69bc80b8a206d41ead   --transcript-json /tmp/limited-btc-001-20101-transcript.json   --wait-for-transcript-seconds 300   --capture-delay-seconds 0   --expected-version 0.1.211
+sudo scripts/phase11e_collect_runtime_stratum_evidence.sh   --operator vahid   --reason "phase11e external runtime stratum evidence collection"   --post-apply-evidence-json /tmp/phase11-single-customer-post-apply-evidence-0.1.205.json   --post-apply-evidence-json-sha256 19ef5602af8ad36267ce34c3ca21e660e32d8970b0a81d69bc80b8a206d41ead   --transcript-json /tmp/limited-btc-001-20101-transcript.json   --wait-for-transcript-seconds 300   --capture-delay-seconds 0   --expected-version 0.1.212
 ```
 
 ### Step 5) Review evidence output on farm5
@@ -89,7 +89,7 @@ Transcript JSON classifier contract:
 
 ## Operator checklist (must all be YES)
 
-- [ ] Version is `0.1.211`.
+- [ ] Version is `0.1.212`.
 - [ ] Current phase gate remains Phase 10 accepted / Phase 11 planning.
 - [ ] Probe was external (outside farm5, no hairpin/self path).
 - [ ] Probe remained running while farm5 evidence helper captured runtime artifacts.
@@ -100,3 +100,14 @@ Transcript JSON classifier contract:
 - [ ] Phase 11 acceptance is still not claimed in this step.
 
 This runbook does not authorize or perform production activation.
+
+
+## Troubleshooting: `BLOCKED_NO_STRATUM_RESPONSE`
+
+Meaning:
+- External TCP connect succeeded, but no line-delimited Stratum response arrived before `--ready-timeout-seconds`.
+
+Operator action:
+- Do **not** run the farm5 helper yet.
+- Send the probe JSON transcript plus full probe stdout/stderr output for review.
+- Possible causes include backend not answering Stratum, routing/forwarder bridge issue, pool upstream not responding, wrong worker path, or script/protocol mismatch.
