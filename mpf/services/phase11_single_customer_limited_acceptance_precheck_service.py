@@ -3,15 +3,16 @@ import hashlib, json
 from pathlib import Path
 from mpf import __version__
 from mpf.config import MPFConfig
-
 KEYS=['expected_version','repository_version','candidate_customer_key','candidate_lane','candidate_public_port','candidate_backend_target','visibility_bundle_sha256']
+SAFE_FLAGS=['production_traffic_enabled','miner_traffic_allowed','abuse_automation_enabled','phase11_accepted','db_activation_allowed','mutation_performed']
 
 def _sha(p:Path): return hashlib.sha256(p.read_bytes()).hexdigest()
 def _load(p:Path,b:list[str],m:str,i:str):
     if not p.exists() or not p.is_file(): b.append(m); return None
     try:o=json.loads(p.read_text())
     except Exception: b.append(i); return None
-    return o if isinstance(o,dict) else None
+    if not isinstance(o,dict): b.append(i); return None
+    return o
 
 def build_phase11_single_customer_limited_acceptance_precheck_report(config: MPFConfig, **kwargs: object)->dict[str,object]:
     del config; b=[]
@@ -20,11 +21,18 @@ def build_phase11_single_customer_limited_acceptance_precheck_report(config: MPF
         if kwargs.get(c) is not True: b.append(f'missing_confirmation:{c}')
     vp=Path(str(kwargs.get('visibility_bundle_json',''))); ap=Path(str(kwargs.get('abuse_1h_readiness_json',''))); rp=Path(str(kwargs.get('restart_container_order_readiness_json','')))
     v=_load(vp,b,'visibility_bundle_missing','visibility_bundle_invalid'); a=_load(ap,b,'abuse_readiness_missing','abuse_readiness_invalid'); r=_load(rp,b,'restart_readiness_missing','restart_readiness_invalid')
-    for obj,p,n in [(v,vp,kwargs.get('visibility_bundle_json_sha256')),(a,ap,kwargs.get('abuse_1h_readiness_json_sha256')),(r,rp,kwargs.get('restart_container_order_readiness_json_sha256'))]:
-        if obj is not None and n is not None and _sha(p)!=str(n): b.append('sha256_mismatch')
+    for obj,p,n,tag in [(v,vp,kwargs.get('visibility_bundle_json_sha256'),'visibility'),(a,ap,kwargs.get('abuse_1h_readiness_json_sha256'),'abuse'),(r,rp,kwargs.get('restart_container_order_readiness_json_sha256'),'restart')]:
+        if obj is not None and n is not None and _sha(p)!=str(n): b.append(f'{tag}_sha256_mismatch')
+    if any(x is None for x in (v,a,r)): b.append('required_input_missing_or_invalid')
     if v is not None and (v.get('final_decision')!='PHASE11_SINGLE_CUSTOMER_VISIBILITY_BUNDLE_READY' or v.get('visibility_bundle_ready') is not True): b.append('visibility_bundle_not_ready')
-    if a is not None and a.get('abuse_1h_coverage_ready') is not True: b.append('abuse_1h_not_ready')
-    if r is not None and r.get('restart_container_order_ready') is not True: b.append('restart_container_order_not_ready')
+    if a is not None:
+        if a.get('abuse_1h_coverage_ready') is not True: b.append('abuse_1h_not_ready')
+        for f in SAFE_FLAGS:
+            if a.get(f) is not False: b.append('abuse_readiness_safety_boundary_open'); break
+    if r is not None:
+        if r.get('restart_container_order_ready') is not True: b.append('restart_container_order_not_ready')
+        for f in SAFE_FLAGS:
+            if r.get(f) is not False: b.append('restart_readiness_safety_boundary_open'); break
     if all(isinstance(x,dict) for x in (v,a,r)):
         for k in KEYS:
             vals={v.get(k),a.get(k),r.get(k)}

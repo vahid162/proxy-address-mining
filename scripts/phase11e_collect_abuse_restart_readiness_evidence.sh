@@ -17,12 +17,15 @@ docker ps > "$OUT_DIR/docker-ps.txt" 2>&1 || true
 if [[ -f "$REPO_ROOT/docker-compose.yml" || -f "$REPO_ROOT/compose.yml" ]]; then docker compose ps > "$OUT_DIR/docker-compose-ps.txt" 2>&1 || true; fi
 mpf production single-customer-abuse-1h-readiness --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-abuse-readiness-only --i-understand-no-abuse-automation-enable --i-understand-no-hard-block-automation --i-understand-no-production-traffic-acceptance --i-understand-no-miner-traffic-acceptance --i-understand-no-db-activation --output json > "$OUT_DIR/abuse-1h-readiness.json"
 mpf production single-customer-restart-container-order-readiness --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-restart-readiness-only --i-understand-no-restart-performed-by-classifier --i-understand-no-production-traffic-acceptance --i-understand-no-miner-traffic-acceptance --i-understand-no-db-activation --output json > "$OUT_DIR/restart-container-order-readiness.json"
-python - <<'PY' "$OUT_DIR"
-import json,sys,os
+EXPECTED_VERSION="$EXPECTED_VERSION" VIS="$VIS" VIS_SHA="$VIS_SHA" python - <<'PY' "$OUT_DIR"
+import json,sys,os,datetime
 out=sys.argv[1]
+expected_version=os.environ.get('EXPECTED_VERSION')
+visibility_bundle_json=os.environ.get('VIS')
+visibility_bundle_sha256=os.environ.get('VIS_SHA')
 a=json.load(open(os.path.join(out,'abuse-1h-readiness.json')))
 r=json.load(open(os.path.join(out,'restart-container-order-readiness.json')))
-manifest={'expected_version':None,'abuse_readiness':a.get('final_decision'),'restart_container_order_readiness':r.get('final_decision'),'limited_acceptance_precheck':'BLOCKED','final_summary':{'abuse':'READY' if a.get('abuse_1h_coverage_ready') else 'BLOCKED','restart':'READY' if r.get('restart_container_order_ready') else 'BLOCKED','precheck':'BLOCKED'}}
+manifest={'expected_version': expected_version,'generated_at': datetime.datetime.utcnow().isoformat()+'Z', 'visibility_bundle_json': visibility_bundle_json, 'visibility_bundle_sha256': visibility_bundle_sha256, 'note':'this helper currently produces BLOCKED readiness unless external abuse/restart evidence files are added in later steps', 'abuse_readiness':a.get('final_decision'),'restart_container_order_readiness':r.get('final_decision'),'limited_acceptance_precheck':'BLOCKED','final_summary':{'abuse':'READY' if a.get('abuse_1h_coverage_ready') else 'BLOCKED','restart':'READY' if r.get('restart_container_order_ready') else 'BLOCKED','precheck':'BLOCKED'}}
 json.dump(manifest,open(os.path.join(out,'manifest.json'),'w'),indent=2)
 PY
 ( cd "$OUT_DIR" && sha256sum * > sha256-manifest.txt )
