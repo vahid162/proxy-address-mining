@@ -2780,7 +2780,7 @@ def production_single_customer_runtime_path_evidence(
 
 @production_app.command("single-customer-runtime-probe-diagnostics")
 def production_single_customer_runtime_probe_diagnostics(
-    expected_version: str = typer.Option("0.1.207", "--expected-version"),
+    expected_version: str = typer.Option("0.1.208", "--expected-version"),
     post_apply_evidence_json: Path = typer.Option(..., "--post-apply-evidence-json"),
     post_apply_evidence_json_sha256: str = typer.Option(..., "--post-apply-evidence-json-sha256"),
     runtime_path_evidence_json: Path | None = typer.Option(None, "--runtime-path-evidence-json"),

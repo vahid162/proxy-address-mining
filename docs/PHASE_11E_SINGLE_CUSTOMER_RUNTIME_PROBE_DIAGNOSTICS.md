@@ -24,7 +24,7 @@ Provide a non-mutating diagnostics classifier for limited-btc-001 runtime probe 
 ## Command example
 ```bash
 mpf production single-customer-runtime-probe-diagnostics \
-  --expected-version 0.1.207 \
+  --expected-version 0.1.208 \
   --post-apply-evidence-json /tmp/phase11-single-customer-post-apply-evidence-0.1.205.json \
   --post-apply-evidence-json-sha256 19ef5602af8ad36267ce34c3ca21e660e32d8970b0a81d69bc80b8a206d41ead \
   --live-snapshot-file "$RTE_DIR/live-iptables-save.txt" \
