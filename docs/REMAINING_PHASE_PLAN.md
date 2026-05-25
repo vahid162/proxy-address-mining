@@ -8,12 +8,12 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 
 - Current accepted phase is Phase 10.
 - Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness.
-- Repository version after this PR is 0.1.214.
+- Repository version after this PR is 0.1.215.
 - post-apply evidence READY is recorded from farm5 0.1.205.
 - 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence.
 - Runtime-path evidence attempt for 20101 is recorded as BLOCKED due missing ASSURED conntrack signal.
 - Forwarder and bridge signals are present/partial.
-- after 0.1.214 sync and full pytest, next intended farm5 step is long-lived external Stratum + runtime evidence collection/classification for 20101.
+- after 0.1.215 sync and full pytest, next intended farm5 step is long-lived external Stratum + runtime evidence collection/classification for 20101.
 - Next intended farm5 step after sync/test is controlled runtime probe diagnostics and stronger runtime/Stratum evidence collection.
 - then Stratum transcript evidence and visibility bundle.
 - real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR.
@@ -160,4 +160,4 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
 
 
-- Phase 11E 0.1.214: use `mpf production current-controlled-artifact-gate` and `scripts/phase11e_collect_runtime_stratum_evidence.sh` for fail-closed evidence collection only (no activation).
+- Phase 11E 0.1.215: use `mpf production current-controlled-artifact-gate` and `scripts/phase11e_collect_runtime_stratum_evidence.sh` for fail-closed evidence collection only (no activation).

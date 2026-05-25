@@ -73,9 +73,22 @@ def test_syn_unreplied_ready_blocked_runtime(tmp_path, monkeypatch):
 
 
 def test_assured_ready_candidate(tmp_path, monkeypatch):
-    r = _run(tmp_path, monkeypatch, conn="tcp ASSURED dport=20101 src=172.18.0.3 sport=60010")
+    r = _run(tmp_path, monkeypatch, conn="tcp 6 431985 ESTABLISHED src=78.39.52.226 dst=85.198.11.110 sport=14603 dport=20101 src=172.18.0.3 dst=78.39.52.226 sport=60010 dport=14603 [ASSURED] mark=0 use=1")
     assert r["final_decision"] == "PHASE11_SINGLE_CUSTOMER_RUNTIME_PROBE_DIAGNOSTICS_READY_ASSURED_CANDIDATE"
     assert r["probe_diagnostics_ready"] is True and r["runtime_path_evidence_ready"] is False and r["blockers"] == []
+    assert r["conntrack_assured_seen"] is True
+
+
+def test_ssh_assured_line_does_not_count(tmp_path, monkeypatch):
+    r = _run(tmp_path, monkeypatch, conn="tcp 6 431985 ESTABLISHED src=1.1.1.1 dst=2.2.2.2 sport=53111 dport=22 [ASSURED] mark=0 use=1")
+    assert r["conntrack_assured_seen"] is False
+    assert "missing_conntrack_probe_signal" in r["blockers"]
+
+
+def test_pool_egress_assured_line_without_20101_and_backend_tuple_does_not_count(tmp_path, monkeypatch):
+    r = _run(tmp_path, monkeypatch, conn="tcp 6 100 ESTABLISHED src=172.18.0.2 dst=3.3.3.3 sport=48000 dport=3333 [ASSURED] mark=0 use=1")
+    assert r["conntrack_assured_seen"] is False
+    assert "missing_conntrack_probe_signal" in r["blockers"]
 
 
 def test_assured_missing_forwarder_blocked(tmp_path, monkeypatch):
