@@ -70,22 +70,30 @@ else
 fi
 
 section 'MPF CUSTOMER FIREWALL SAFETY'
-if command -v iptables-save >/dev/null 2>&1; then
-  if iptables-save | grep -Eiq 'MPF|MPFBTC|MPFC_|MPFO_'; then
-    echo 'CRITICAL: MPF/customer references found in iptables-save during current gate verification'
-    iptables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_' || true
-    exit 1
-  fi
-  echo 'OK: no MPF/customer IPv4 firewall references detected'
+IPTABLES_SAVE_FILE="$(mktemp)"
+IP6TABLES_SAVE_FILE="$(mktemp)"
+trap 'rm -f "$IPTABLES_SAVE_FILE" "$IP6TABLES_SAVE_FILE"' EXIT
+
+command -v iptables-save >/dev/null 2>&1 || fail 'iptables-save not found'
+iptables-save > "$IPTABLES_SAVE_FILE"
+if command -v ip6tables-save >/dev/null 2>&1; then
+  ip6tables-save > "$IP6TABLES_SAVE_FILE"
+else
+  : > "$IP6TABLES_SAVE_FILE"
 fi
 
-if command -v ip6tables-save >/dev/null 2>&1; then
-  if ip6tables-save | grep -Eiq 'MPF|MPFBTC|MPFC_|MPFO_'; then
-    echo 'CRITICAL: MPF/customer references found in ip6tables-save during current gate verification'
-    ip6tables-save | grep -Ei 'MPF|MPFBTC|MPFC_|MPFO_' || true
-    exit 1
-  fi
-  echo 'OK: no MPF/customer IPv6 firewall references detected'
+gate_json="$(mpf production current-controlled-artifact-gate --expected-version 0.1.209 --iptables-save-file "$IPTABLES_SAVE_FILE" --ip6tables-save-file "$IP6TABLES_SAVE_FILE" --output json)"
+printf '%s
+' "$gate_json"
+gate_decision="$(printf '%s' "$gate_json" | python -c 'import json,sys;print(json.load(sys.stdin).get("final_decision",""))')"
+unknown_count="$(printf '%s' "$gate_json" | python -c 'import json,sys;print(len(json.load(sys.stdin).get("unknown_mpf_artifacts",[])))')"
+echo "artifact_gate_final_decision: $gate_decision"
+echo "artifact_gate_unknown_mpf_artifacts: $unknown_count"
+if [[ "$gate_decision" == BLOCKED_* ]]; then
+  fail "controlled artifact gate blocked: $gate_decision"
+fi
+if [[ "$gate_decision" == "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS" ]]; then
+  echo 'OK_WITH_CONTROLLED_PHASE11_ARTIFACTS: known controlled canary/limited artifacts are present and require review before runtime evidence collection.'
 fi
 
 section 'DOCKER LOCAL PUBLISH NAT REFERENCES'

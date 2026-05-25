@@ -663,3 +663,5 @@ Current Phase 11 evidence docs include:
 - docs/PHASE_11E_SINGLE_CUSTOMER_VISIBILITY_BUNDLE.md
 
 Current Phase 11E operator runbook: `docs/PHASE_11E_SINGLE_CUSTOMER_RUNTIME_STRATUM_EVIDENCE_RUNBOOK.md` (evidence collection only, non-authorizing).
+
+- `scripts/phase11e_collect_runtime_stratum_evidence.sh` — fail-closed Phase 11E synchronized runtime/Stratum evidence helper.

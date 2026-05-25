@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.209
+- Add controlled artifact gate classifier + CLI, update phase gate verifier, and add fail-closed Phase 11E runtime/Stratum evidence helper.
+
+
 ## 0.1.208
 - Add fail-closed Phase 11E runbook for collecting single-customer runtime + external Stratum evidence for limited-btc-001 / 20101 while keeping production/miner/activation gates closed.
 
