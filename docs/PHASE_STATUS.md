@@ -1,3 +1,4 @@
+Phase 11 planning/readiness note (0.1.219): added single-customer abuse 1h and restart/container-order readiness gates plus a non-activating limited acceptance precheck while recording 0.1.218 visibility evidence and keeping all production/miner/activation gates closed.
 # PHASE STATUS
 
 Status: Active project control file

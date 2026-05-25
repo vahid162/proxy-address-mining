@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.219
+- Add Phase 11E non-mutating abuse/restart readiness classifiers, limited acceptance precheck, helper script, and evidence/runbook docs.
+
+
 ## 0.1.218
 
 - fix(test): align remaining Phase 6/8 expected-version assertions with package version and keep CI green after version bump.
