@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.212
+
+- Hardened `scripts/phase11e_external_stratum_probe.py` timeout handling to avoid Python 3.12 `OSError` traceback from timeout-affected file reads; now fail-closed writes valid blocked transcript JSON (`BLOCKED_NO_STRATUM_RESPONSE`) and exits non-zero when no Stratum response arrives before ready-timeout.
+- Added/updated probe tests for recv-buffer timeout behavior, blocked transcript JSON path, useful transcript path signaling, and no `makefile(...).readline()` timeout-sensitive usage.
+- Updated Phase 11E runbook troubleshooting and phase status planning/readiness note while keeping all production/activation gates closed.
+
 ## 0.1.211
 - fix(phase11): derive current phase gate expected version from `VERSION` in `scripts/verify_current_phase_gate.sh` to prevent hardcoded drift while keeping all production/miner/activation gates closed.
 
