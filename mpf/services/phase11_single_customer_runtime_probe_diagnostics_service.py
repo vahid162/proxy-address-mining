@@ -36,7 +36,7 @@ def _check_hash(path: Path | None, expected: str | None, missing: str, mismatch:
 
 def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFConfig, **kwargs: object) -> dict[str, object]:
     blockers: list[str] = []
-    expected_version = str(kwargs.get("expected_version", "0.1.207"))
+    expected_version = str(kwargs.get("expected_version", "0.1.208"))
     candidate_customer_key = str(kwargs.get("candidate_customer_key", EXPECTED["customer_key"]))
     candidate_lane = str(kwargs.get("candidate_lane", EXPECTED["lane"]))
     candidate_public_port = int(kwargs.get("candidate_public_port", EXPECTED["public_port"]))
