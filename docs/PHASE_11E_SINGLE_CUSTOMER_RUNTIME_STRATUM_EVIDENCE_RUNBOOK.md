@@ -30,7 +30,7 @@ bash scripts/verify_current_phase_gate.sh
 ```
 
 Expected:
-- version `0.1.210`
+- version `0.1.211`
 - accepted phase still Phase 10
 - working phase still Phase 11 planning/readiness
 - closed production/miner/customer activation gates
@@ -66,7 +66,7 @@ scp /tmp/limited-btc-001-20101-transcript.json root@<farm5-public-ip>:/tmp/limit
 
 ```bash
 cd /opt/mpf-py-src
-sudo scripts/phase11e_collect_runtime_stratum_evidence.sh   --operator vahid   --reason "phase11e external runtime stratum evidence collection"   --post-apply-evidence-json /tmp/phase11-single-customer-post-apply-evidence-0.1.205.json   --post-apply-evidence-json-sha256 19ef5602af8ad36267ce34c3ca21e660e32d8970b0a81d69bc80b8a206d41ead   --transcript-json /tmp/limited-btc-001-20101-transcript.json   --wait-for-transcript-seconds 300   --capture-delay-seconds 0   --expected-version 0.1.210
+sudo scripts/phase11e_collect_runtime_stratum_evidence.sh   --operator vahid   --reason "phase11e external runtime stratum evidence collection"   --post-apply-evidence-json /tmp/phase11-single-customer-post-apply-evidence-0.1.205.json   --post-apply-evidence-json-sha256 19ef5602af8ad36267ce34c3ca21e660e32d8970b0a81d69bc80b8a206d41ead   --transcript-json /tmp/limited-btc-001-20101-transcript.json   --wait-for-transcript-seconds 300   --capture-delay-seconds 0   --expected-version 0.1.211
 ```
 
 ### Step 5) Review evidence output on farm5
@@ -89,7 +89,7 @@ Transcript JSON classifier contract:
 
 ## Operator checklist (must all be YES)
 
-- [ ] Version is `0.1.210`.
+- [ ] Version is `0.1.211`.
 - [ ] Current phase gate remains Phase 10 accepted / Phase 11 planning.
 - [ ] Probe was external (outside farm5, no hairpin/self path).
 - [ ] Probe remained running while farm5 evidence helper captured runtime artifacts.
