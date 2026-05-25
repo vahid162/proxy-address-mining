@@ -3,7 +3,7 @@
 Status: Active project control file
 
 Phase 11 planning/readiness note (0.1.211): fixed current phase safety gate expected-version drift by deriving the artifact gate expected version from VERSION while keeping all production/miner/activation gates closed.
-Phase 11 planning/readiness note (0.1.211): added a stdlib-only external Stratum probe and timing-safe Phase 11E runtime/Stratum evidence helper workflow for limited-btc-001/20101 while keeping all production/miner/activation gates closed.
+Phase 11 planning/readiness note (0.1.210): added a stdlib-only external Stratum probe and timing-safe Phase 11E runtime/Stratum evidence helper workflow for limited-btc-001/20101 while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.209): added controlled artifact-aware current phase gate and fail-closed runtime/stratum evidence helper while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.208): added a fail-closed Phase 11E runbook for single-customer runtime + external Stratum evidence collection for limited-btc-001/20101 and kept all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.207): recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating runtime probe diagnostics for limited-btc-001 / 20101 while keeping production/miner/acceptance gates closed.
