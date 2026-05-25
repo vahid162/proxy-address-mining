@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-EXPECTED_VERSION="0.1.214"
+EXPECTED_VERSION="0.1.215"
 FORWARDER_CONTAINER="mpf-forwarder-btc"
 BRIDGE_CONTAINER="mpf-v2raya-socks-bridge"
 OUT_DIR=""

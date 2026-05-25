@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.1.214
+## 0.1.215
 
-- fix(phase11): align single-customer runtime-path evidence forwarder classifier with source-backed backend/pool artifacts (no customer-key string dependency in raw forwarder logs).
-- chore(phase11): add optional repeated conntrack capture flags to runtime Stratum evidence helper for improved ASSURED collection without activation/apply/mutation.
-- docs(phase11): record 0.1.214 planning note and runbook guidance (Windows external probe success + optional repeated conntrack capture) while keeping all gates closed.
+- fix(phase11): detect conntrack ASSURED runtime signal in real tuple order by using line-based NAT-aware matching for `dport=20101` + `172.18.0.3` + `sport=60010`.
+- test(phase11): add regression coverage for real conntrack ESTABLISHED tuple order and reject unrelated SSH/pool ASSURED lines.
+- docs(phase11): record 0.1.215 planning/readiness note and keep all production/miner/activation gates closed.
 
 ## 0.1.211
 - fix(phase11): derive current phase gate expected version from `VERSION` in `scripts/verify_current_phase_gate.sh` to prevent hardcoded drift while keeping all production/miner/activation gates closed.

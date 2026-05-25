@@ -129,9 +129,19 @@ def build_phase11_single_customer_runtime_path_evidence_report(config: MPFConfig
     conntrack_text = _read(kwargs.get("conntrack_snapshot_file"))
     forwarder_text = _read(kwargs.get("forwarder_log_file"))
     bridge_text = _read(kwargs.get("bridge_log_file"))
-    conn_assured_seen = bool(re.search(r"ASSURED.*(dport=20101|sport=20101|172\.18\.0\.3.*sport=60010)", conntrack_text))
+    conn_lines = conntrack_text.splitlines()
+    conn_assured_seen = any(
+        ("ASSURED" in line)
+        and ("dport=20101" in line)
+        and ("172.18.0.3" in line)
+        and ("sport=60010" in line)
+        for line in conn_lines
+    )
     conntrack_20101_unreplied_seen = bool(re.search(r"(SYN_SENT|UNREPLIED).*(dport=20101)", conntrack_text))
-    conntrack_backend_nat_seen = bool(re.search(r"dport=20101.*172\.18\.0\.3.*sport=60010", conntrack_text))
+    conntrack_backend_nat_seen = any(
+        ("dport=20101" in line) and ("172.18.0.3" in line) and ("sport=60010" in line)
+        for line in conn_lines
+    )
     conn_ok = conn_assured_seen
     fwd_ok = ("172.18.0.3:60010" in forwarder_text) or ("<->" in forwarder_text and "bitcoin.viabtc.io:3333" in forwarder_text)
     bridge_ok = ("127.0.0.1:20170" in bridge_text and "172.18.0.3" in bridge_text) or ("172.18.0.3:60010" in bridge_text)

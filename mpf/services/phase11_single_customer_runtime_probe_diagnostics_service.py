@@ -135,9 +135,19 @@ def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFCo
     _check_hash(bridge, kwargs.get("bridge_log_sha256"), "bridge_log_missing", "bridge_log_hash_mismatch", blockers)
 
     conn_text, fwd_text, br_text = _read(conntrack), _read(forwarder), _read(bridge)
-    conntrack_assured_seen = bool(re.search(r"ASSURED.*(dport=20101|sport=20101|172\.18\.0\.3.*sport=60010)", conn_text))
+    conn_lines = conn_text.splitlines()
+    conntrack_assured_seen = any(
+        ("ASSURED" in line)
+        and ("dport=20101" in line)
+        and ("172.18.0.3" in line)
+        and ("sport=60010" in line)
+        for line in conn_lines
+    )
     conntrack_20101_unreplied_seen = bool(re.search(r"(SYN_SENT|UNREPLIED).*(dport=20101)", conn_text))
-    conntrack_backend_nat_seen = bool(re.search(r"dport=20101.*172\.18\.0\.3.*sport=60010", conn_text))
+    conntrack_backend_nat_seen = any(
+        ("dport=20101" in line) and ("172.18.0.3" in line) and ("sport=60010" in line)
+        for line in conn_lines
+    )
     forwarder_pool_seen = ("limited-btc-001" in fwd_text and "20101" in fwd_text) or ("172.18.0.3:60010" in fwd_text)
     forwarder_backend_seen = ("127.0.0.1:60010" in fwd_text) or ("172.18.0.3:60010" in fwd_text)
     bridge_loopback_seen = (("127.0.0.1:20170" in br_text and "172.18.0.3" in br_text) or ("172.18.0.3:60010" in br_text))
