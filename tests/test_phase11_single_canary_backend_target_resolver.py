@@ -1,8 +1,9 @@
+from mpf import __version__
 from mpf.services.phase11_single_canary_backend_target_resolver import Phase11SingleCanaryBackendTargetResolver
 
 
 def _report():
-    return {"request": {"customer_key": "canary-btc-001", "lane": "btc", "port": 20001, "expected_version": "0.1.215"}}
+    return {"request": {"customer_key": "canary-btc-001", "lane": "btc", "port": 20001, "expected_version": __version__}}
 
 
 class R:

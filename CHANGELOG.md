@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.217
+
+- test(phase11): align canary/rollback/renderer/backend-target tests with current repository version to avoid stale expected-version blockers in CI.
+
 ## 0.1.216
 
 - fix(phase11): align single-customer visibility bundle default `expected_version` to package version (`__version__`) and keep readiness semantics/gates unchanged (abuse and restart readiness remain false; production/miner/activation flags remain false).
