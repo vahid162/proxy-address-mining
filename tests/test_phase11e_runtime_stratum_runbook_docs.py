@@ -10,7 +10,7 @@ def test_phase11e_runbook_enforces_two_terminal_workflow() -> None:
     assert "scp /tmp/limited-btc-001-20101-transcript.json" in t
     assert "--wait-for-transcript-seconds 300" in t
     assert "--capture-delay-seconds 0" in t
-    assert "--expected-version 0.1.213" in t
+    assert "--expected-version 0.1.214" in t
     assert "outside farm5" in t
     assert ("no hairpin" in t) or ("no self" in t)
     assert "does not authorize or perform production activation" in t

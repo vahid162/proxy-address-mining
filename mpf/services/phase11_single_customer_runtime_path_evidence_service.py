@@ -129,11 +129,14 @@ def build_phase11_single_customer_runtime_path_evidence_report(config: MPFConfig
     conntrack_text = _read(kwargs.get("conntrack_snapshot_file"))
     forwarder_text = _read(kwargs.get("forwarder_log_file"))
     bridge_text = _read(kwargs.get("bridge_log_file"))
-    conn_ok = bool(re.search(r"ASSURED.*(dport=20101|sport=20101|172\.18\.0\.3.*sport=60010)", conntrack_text))
-    fwd_ok = "limited-btc-001" in forwarder_text and ("20101" in forwarder_text or "172.18.0.3:60010" in forwarder_text)
+    conn_assured_seen = bool(re.search(r"ASSURED.*(dport=20101|sport=20101|172\.18\.0\.3.*sport=60010)", conntrack_text))
+    conntrack_20101_unreplied_seen = bool(re.search(r"(SYN_SENT|UNREPLIED).*(dport=20101)", conntrack_text))
+    conntrack_backend_nat_seen = bool(re.search(r"dport=20101.*172\.18\.0\.3.*sport=60010", conntrack_text))
+    conn_ok = conn_assured_seen
+    fwd_ok = ("172.18.0.3:60010" in forwarder_text) or ("<->" in forwarder_text and "bitcoin.viabtc.io:3333" in forwarder_text)
     bridge_ok = ("127.0.0.1:20170" in bridge_text and "172.18.0.3" in bridge_text) or ("172.18.0.3:60010" in bridge_text)
     if not conn_ok:
-        blockers.append("missing_conntrack_runtime_signal")
+        blockers.append("missing_conntrack_assured_runtime_signal")
     if not fwd_ok:
         blockers.append("missing_forwarder_runtime_signal")
     if not bridge_ok:
@@ -158,7 +161,9 @@ def build_phase11_single_customer_runtime_path_evidence_report(config: MPFConfig
         "phase11_accepted": False,
         "db_activation_allowed": False,
         "mutation_performed": False,
-        "conntrack_assured_seen": conn_ok,
+        "conntrack_assured_seen": conn_assured_seen,
+        "conntrack_backend_nat_seen": conntrack_backend_nat_seen,
+        "conntrack_20101_unreplied_seen": conntrack_20101_unreplied_seen,
         "forwarder_pool_seen": fwd_ok,
         "bridge_loopback_seen": bridge_ok,
         "next_required_step": "phase11e_single_customer_stratum_visibility_bundle_pr" if ready else "none",

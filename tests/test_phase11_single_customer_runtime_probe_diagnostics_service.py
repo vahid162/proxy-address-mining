@@ -83,6 +83,16 @@ def test_assured_missing_forwarder_blocked(tmp_path, monkeypatch):
     assert r["final_decision"] == "BLOCKED" and "missing_forwarder_probe_signal" in r["blockers"]
 
 
+def test_forwarder_pool_seen_without_customer_key(tmp_path, monkeypatch):
+    r = _run(
+        tmp_path,
+        monkeypatch,
+        conn="tcp SYN_SENT src=172.18.0.2 dport=20101 [UNREPLIED] src=172.18.0.3 sport=60010",
+        fwd="213.195.38.240:35189 - 172.18.0.3:60010\n213.195.38.240:35189 <-> bitcoin.viabtc.io:3333",
+    )
+    assert r["forwarder_pool_seen"] is True
+
+
 def test_assured_missing_bridge_blocked(tmp_path, monkeypatch):
     r = _run(tmp_path, monkeypatch, conn="tcp ASSURED dport=20101 src=172.18.0.3 sport=60010", bridge="none")
     assert r["final_decision"] == "BLOCKED" and "missing_bridge_probe_signal" in r["blockers"]

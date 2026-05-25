@@ -54,5 +54,5 @@ def test_default_expected_version_matches_package_version(tmp_path):
 
 def test_expected_version_override_works_for_current_version(tmp_path):
     p = _write(tmp_path/'ok4.json', {'connect_port': 20101, 'worker_name': 'limited-btc-001.worker-001', 'messages': [{'direction': 'rx', 'id': 1, 'result_present': True}, {'direction': 'rx', 'id': 2, 'result': True}, {'direction': 'rx', 'method': 'mining.set_difficulty'}]})
-    r = svc.build_phase11_single_customer_stratum_transcript_evidence_report(_cfg(), transcript_json=p, expected_version="0.1.213")
-    assert r['expected_version'] == "0.1.213"
+    r = svc.build_phase11_single_customer_stratum_transcript_evidence_report(_cfg(), transcript_json=p, expected_version="0.1.214")
+    assert r['expected_version'] == "0.1.214"

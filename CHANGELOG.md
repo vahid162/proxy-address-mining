@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.1.213
+## 0.1.214
 
-- fix(phase11): capture helper docker logs into evidence artifacts (stdout+stderr), switch default forwarder container to `mpf-forwarder-btc`, and keep fail-closed non-activation behavior.
-- fix(phase11): align single-customer Stratum transcript evidence `expected_version` with repository `__version__` across service/CLI/helper path.
-- docs(phase11): update Phase 11 status/runbook notes while keeping all production/customer/miner activation gates closed.
+- fix(phase11): align single-customer runtime-path evidence forwarder classifier with source-backed backend/pool artifacts (no customer-key string dependency in raw forwarder logs).
+- chore(phase11): add optional repeated conntrack capture flags to runtime Stratum evidence helper for improved ASSURED collection without activation/apply/mutation.
+- docs(phase11): record 0.1.214 planning note and runbook guidance (Windows external probe success + optional repeated conntrack capture) while keeping all gates closed.
 
 ## 0.1.211
 - fix(phase11): derive current phase gate expected version from `VERSION` in `scripts/verify_current_phase_gate.sh` to prevent hardcoded drift while keeping all production/miner/activation gates closed.

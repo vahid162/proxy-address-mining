@@ -6,9 +6,11 @@ def test_helper_waits_for_transcript_after_runtime_capture() -> None:
     assert '--wait-for-transcript-seconds' in t
     assert '--capture-delay-seconds' in t
     assert 'iptables-save > "$OUT_DIR/live-iptables-save.txt"' in t
-    assert 'conntrack -L > "$OUT_DIR/conntrack.txt"' in t
+    assert '--conntrack-repeat-count' in t
+    assert '--conntrack-repeat-delay-seconds' in t
+    assert 'conntrack -L >> "$OUT_DIR/conntrack.txt"' in t
     wait_pos = t.index('for ((i=0; i<=WAIT_FOR_TRANSCRIPT_SECONDS; i++)); do')
-    cap_pos = t.index('conntrack -L > "$OUT_DIR/conntrack.txt"')
+    cap_pos = t.index('conntrack -L >> "$OUT_DIR/conntrack.txt"')
     assert cap_pos < wait_pos
 
 
