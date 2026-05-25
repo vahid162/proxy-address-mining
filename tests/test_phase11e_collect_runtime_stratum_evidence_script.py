@@ -27,3 +27,8 @@ def test_helper_uses_forwarder_btc_and_captures_stderr_logs() -> None:
     assert 'docker logs --since 15m "$FORWARDER_CONTAINER" > "$OUT_DIR/forwarder.log" 2>&1' in t
     assert 'docker logs --since 15m "$BRIDGE_CONTAINER" > "$OUT_DIR/bridge.log" 2>&1' in t
     assert 'FORWARDER_CONTAINER="mpf-forwarder"' not in t
+
+
+def test_helper_passes_expected_version_to_visibility_bundle() -> None:
+    t = Path('scripts/phase11e_collect_runtime_stratum_evidence.sh').read_text(encoding='utf-8')
+    assert 'single-customer-visibility-bundle --expected-version "$EXPECTED_VERSION"' in t

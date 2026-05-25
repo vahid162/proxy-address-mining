@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-EXPECTED_VERSION="0.1.215"
+EXPECTED_VERSION="0.1.216"
 FORWARDER_CONTAINER="mpf-forwarder-btc"
 BRIDGE_CONTAINER="mpf-v2raya-socks-bridge"
 OUT_DIR=""
@@ -149,7 +149,7 @@ mpf production single-customer-stratum-transcript-evidence --expected-version "$
 READY_PATH="$(python -c 'import json,sys;print(str(json.load(open(sys.argv[1])).get("runtime_path_evidence_ready",False)).lower())' "$OUT_DIR/runtime-path-evidence.json")"
 READY_TX="$(python -c 'import json,sys;print(str(json.load(open(sys.argv[1])).get("stratum_transcript_ready",False)).lower())' "$OUT_DIR/stratum-transcript-evidence.json")"
 if [[ "$READY_PATH" == "true" && "$READY_TX" == "true" ]]; then
-  mpf production single-customer-visibility-bundle --runtime-path-evidence-json "$OUT_DIR/runtime-path-evidence.json" --runtime-path-evidence-json-sha256 "$(sha256sum "$OUT_DIR/runtime-path-evidence.json" | cut -d' ' -f1)" --stratum-transcript-evidence-json "$OUT_DIR/stratum-transcript-evidence.json" --stratum-transcript-evidence-json-sha256 "$(sha256sum "$OUT_DIR/stratum-transcript-evidence.json" | cut -d' ' -f1)" --output json > "$OUT_DIR/visibility-bundle.json"
+  mpf production single-customer-visibility-bundle --expected-version "$EXPECTED_VERSION" --runtime-path-evidence-json "$OUT_DIR/runtime-path-evidence.json" --runtime-path-evidence-json-sha256 "$(sha256sum "$OUT_DIR/runtime-path-evidence.json" | cut -d' ' -f1)" --stratum-transcript-evidence-json "$OUT_DIR/stratum-transcript-evidence.json" --stratum-transcript-evidence-json-sha256 "$(sha256sum "$OUT_DIR/stratum-transcript-evidence.json" | cut -d' ' -f1)" --output json > "$OUT_DIR/visibility-bundle.json"
 fi
 
 write_manifest

@@ -38,7 +38,7 @@ def build_phase11_single_customer_visibility_bundle_report(config: MPFConfig, **
     del config
     blockers: list[str] = []
 
-    expected_version = str(kwargs.get("expected_version", "0.1.206"))
+    expected_version = str(kwargs.get("expected_version", __version__))
     candidate_customer_key = str(kwargs.get("candidate_customer_key", EXPECTED["customer_key"]))
     candidate_lane = str(kwargs.get("candidate_lane", EXPECTED["lane"]))
     candidate_public_port = int(kwargs.get("candidate_public_port", EXPECTED["public_port"]))

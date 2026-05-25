@@ -2,6 +2,7 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.216): aligned single-customer visibility bundle expected-version handling and recorded 0.1.215 reclassified runtime/Stratum visibility evidence while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.215): fixed line-based conntrack ASSURED detection for real NAT tuple order in single-customer runtime evidence while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.214): aligned single-customer runtime-path evidence classifier with captured forwarder/bridge artifacts and added optional repeated conntrack capture while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.213): fixed Phase 11E runtime/Stratum evidence helper log capture and single-customer Stratum transcript expected-version drift while keeping all production/miner/activation gates closed.
