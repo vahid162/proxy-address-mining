@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from mpf import __version__
 from mpf.config import load_config
 from mpf.services import phase11_single_customer_stratum_transcript_evidence_service as svc
 
@@ -42,3 +43,16 @@ def test_port_and_missing_primitives_block(tmp_path):
     assert 'missing_set_difficulty_or_notify' in r['blockers']
     for f in ('production_traffic_enabled','miner_traffic_allowed','phase11_accepted','db_activation_allowed','mutation_performed'):
         assert r[f] is False
+
+
+def test_default_expected_version_matches_package_version(tmp_path):
+    p = _write(tmp_path/'ok3.json', {'connect_port': 20101, 'worker_name': 'limited-btc-001.worker-001', 'messages': [{'direction': 'rx', 'id': 1, 'result_present': True}, {'direction': 'rx', 'id': 2, 'result': True}, {'direction': 'rx', 'method': 'mining.notify'}]})
+    r = svc.build_phase11_single_customer_stratum_transcript_evidence_report(_cfg(), transcript_json=p)
+    assert r['expected_version'] == __version__
+    assert r['repository_version'] == __version__
+
+
+def test_expected_version_override_works_for_current_version(tmp_path):
+    p = _write(tmp_path/'ok4.json', {'connect_port': 20101, 'worker_name': 'limited-btc-001.worker-001', 'messages': [{'direction': 'rx', 'id': 1, 'result_present': True}, {'direction': 'rx', 'id': 2, 'result': True}, {'direction': 'rx', 'method': 'mining.set_difficulty'}]})
+    r = svc.build_phase11_single_customer_stratum_transcript_evidence_report(_cfg(), transcript_json=p, expected_version="0.1.213")
+    assert r['expected_version'] == "0.1.213"

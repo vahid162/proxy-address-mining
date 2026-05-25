@@ -2828,8 +2828,8 @@ def production_single_customer_runtime_probe_diagnostics(
     for key in ("component","final_decision","probe_diagnostics_ready","conntrack_assured_seen","conntrack_20101_unreplied_seen","next_required_step","blockers"): typer.echo(f"{key}: {report.get(key)}")
 
 @production_app.command("single-customer-stratum-transcript-evidence")
-def production_single_customer_stratum_transcript_evidence(transcript_json: Path = typer.Option(..., "--transcript-json"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
-    report = phase11_single_customer_stratum_transcript_evidence_service.build_phase11_single_customer_stratum_transcript_evidence_report(_load(config), transcript_json=transcript_json)
+def production_single_customer_stratum_transcript_evidence(expected_version: str = typer.Option(__version__, "--expected-version"), transcript_json: Path = typer.Option(..., "--transcript-json"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    report = phase11_single_customer_stratum_transcript_evidence_service.build_phase11_single_customer_stratum_transcript_evidence_report(_load(config), expected_version=expected_version, transcript_json=transcript_json)
     if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
     for key in ("component","final_decision","stratum_transcript_ready","blockers"): typer.echo(f"{key}: {report.get(key)}")
 

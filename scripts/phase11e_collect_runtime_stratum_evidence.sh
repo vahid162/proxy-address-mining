@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-EXPECTED_VERSION="0.1.212"
-FORWARDER_CONTAINER="mpf-forwarder"
+EXPECTED_VERSION="0.1.213"
+FORWARDER_CONTAINER="mpf-forwarder-btc"
 BRIDGE_CONTAINER="mpf-v2raya-socks-bridge"
 OUT_DIR=""
 WAIT_FOR_TRANSCRIPT_SECONDS=300
@@ -92,8 +92,12 @@ fi
 [[ "$GATE_DECISION" == "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS" || "$GATE_DECISION" == "PASS_NO_CUSTOMER_ARTIFACTS" ]] || { write_manifest; echo "CRITICAL: blocked by artifact gate: $GATE_DECISION"; exit 1; }
 
 conntrack -L > "$OUT_DIR/conntrack.txt"
-docker logs --since 15m "$FORWARDER_CONTAINER" > "$OUT_DIR/forwarder.log" || echo "WARN: forwarder log collection failed" > "$OUT_DIR/forwarder.log.warn"
-docker logs --since 15m "$BRIDGE_CONTAINER" > "$OUT_DIR/bridge.log" || echo "WARN: bridge log collection failed" > "$OUT_DIR/bridge.log.warn"
+if ! docker logs --since 15m "$FORWARDER_CONTAINER" > "$OUT_DIR/forwarder.log" 2>&1; then
+  printf 'ERROR: docker logs collection failed for %s\n' "$FORWARDER_CONTAINER" >> "$OUT_DIR/forwarder.log"
+fi
+if ! docker logs --since 15m "$BRIDGE_CONTAINER" > "$OUT_DIR/bridge.log" 2>&1; then
+  printf 'ERROR: docker logs collection failed for %s\n' "$BRIDGE_CONTAINER" >> "$OUT_DIR/bridge.log"
+fi
 
 for f in "$OUT_DIR"/*; do [[ -f "$f" ]] && sha256sum "$f" > "$f.sha256"; done
 
@@ -127,7 +131,7 @@ mpf production single-customer-runtime-probe-diagnostics --expected-version "$EX
 
 mpf production single-customer-runtime-path-evidence --expected-version "$EXPECTED_VERSION" --post-apply-evidence-json "$POST_APPLY_JSON" --post-apply-evidence-json-sha256 "$POST_APPLY_SHA" --live-snapshot-file "$OUT_DIR/live-iptables-save.txt" --conntrack-snapshot-file "$OUT_DIR/conntrack.txt" --forwarder-log-file "$OUT_DIR/forwarder.log" --bridge-log-file "$OUT_DIR/bridge.log" --operator "$OPERATOR" --reason "$REASON" --operator-confirmed --i-understand-runtime-evidence-only --i-understand-no-production-traffic-acceptance --i-understand-no-miner-traffic-acceptance --i-understand-no-db-activation --i-confirm-stratum-transcript-required --i-confirm-visibility-bundle-required --i-confirm-abuse-1h-required-before-customer-traffic --i-confirm-restart-container-order-required-before-limited-acceptance --output json > "$OUT_DIR/runtime-path-evidence.json"
 
-mpf production single-customer-stratum-transcript-evidence --transcript-json "$OUT_DIR/stratum-transcript.json" --output json > "$OUT_DIR/stratum-transcript-evidence.json"
+mpf production single-customer-stratum-transcript-evidence --expected-version "$EXPECTED_VERSION" --transcript-json "$OUT_DIR/stratum-transcript.json" --output json > "$OUT_DIR/stratum-transcript-evidence.json"
 
 READY_PATH="$(python -c 'import json,sys;print(str(json.load(open(sys.argv[1])).get("runtime_path_evidence_ready",False)).lower())' "$OUT_DIR/runtime-path-evidence.json")"
 READY_TX="$(python -c 'import json,sys;print(str(json.load(open(sys.argv[1])).get("stratum_transcript_ready",False)).lower())' "$OUT_DIR/stratum-transcript-evidence.json")"
