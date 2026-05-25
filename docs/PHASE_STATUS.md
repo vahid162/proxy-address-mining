@@ -1,12 +1,9 @@
-## 0.1.209
-
-- planning/readiness note: controlled artifact-aware current phase gate and runtime/stratum evidence helper added.
-- current state unchanged: production_traffic none, firewall_apply_allowed no, abuse_automation_allowed no, customer_onboarding_allowed db_only, ui_allowed no, telegram_allowed no.
-
 # PHASE STATUS
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.210): added a stdlib-only external Stratum probe and timing-safe Phase 11E runtime/Stratum evidence helper workflow for limited-btc-001/20101 while keeping all production/miner/activation gates closed.
+Phase 11 planning/readiness note (0.1.209): added controlled artifact-aware current phase gate and fail-closed runtime/stratum evidence helper while keeping all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.208): added a fail-closed Phase 11E runbook for single-customer runtime + external Stratum evidence collection for limited-btc-001/20101 and kept all production/miner/activation gates closed.
 Phase 11 planning/readiness note (0.1.207): recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating runtime probe diagnostics for limited-btc-001 / 20101 while keeping production/miner/acceptance gates closed.
 Phase 11 planning/readiness note (0.1.206): records farm5 0.1.205 post-apply evidence READY and adds read-only single-customer runtime path + Stratum transcript + visibility bundle evidence classifiers for limited-btc-001/20101 while all activation gates remain closed.

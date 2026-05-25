@@ -40,7 +40,7 @@ def _parse_comment(line: str) -> tuple[str, str] | None:
     return m.group(1), m.group(2)
 
 
-def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text: str, ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = "0.1.209") -> dict[str, object]:
+def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text: str, ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = "0.1.210") -> dict[str, object]:
     blockers: list[str] = []
     warnings: list[str] = []
     unknown: list[str] = []
