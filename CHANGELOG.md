@@ -1,7 +1,7 @@
 # Changelog
 
 ## 0.1.208
-- Add Phase 11E single-customer runtime probe diagnostics and record 0.1.206 runtime-path BLOCKED evidence.
+- Add fail-closed Phase 11E runbook for collecting single-customer runtime + external Stratum evidence for limited-btc-001 / 20101 while keeping production/miner/activation gates closed.
 
 ## 0.1.206
 - Add Phase 11E single-customer runtime path, Stratum transcript, and visibility bundle evidence classifiers and CLI (read-only).

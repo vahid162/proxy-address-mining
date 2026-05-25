@@ -24,7 +24,7 @@ This runbook **does not** authorize or perform production activation, DB activat
 
 ```bash
 mpf --version
-python scripts/verify_current_phase_gate.sh
+bash scripts/verify_current_phase_gate.sh
 ```
 
 Expected:
@@ -32,6 +32,7 @@ Expected:
 - accepted phase still Phase 10
 - working phase still Phase 11 planning/readiness
 - closed production/miner/customer activation gates
+- if phase gate reports existing controlled MPF artifacts for Phase 11 canary/20101, stop and send the full output for review (do not bypass).
 
 ## Step 2) Prepare evidence directory
 
@@ -134,10 +135,9 @@ mpf production single-customer-runtime-path-evidence \
   --operator <operator> \
   --reason "phase11e runtime path evidence" \
   --operator-confirmed \
-  --i-understand-read-only-evidence \
-  --i-understand-no-runtime-activation \
-  --i-understand-no-production-traffic \
-  --i-understand-no-miner-traffic \
+  --i-understand-runtime-evidence-only \
+  --i-understand-no-production-traffic-acceptance \
+  --i-understand-no-miner-traffic-acceptance \
   --i-understand-no-db-activation \
   --i-confirm-stratum-transcript-required \
   --i-confirm-visibility-bundle-required \
@@ -150,34 +150,20 @@ mpf production single-customer-runtime-path-evidence \
 
 ```bash
 mpf production single-customer-stratum-transcript-evidence \
-  --expected-version 0.1.208 \
   --transcript-json "$RTE_DIR/stratum-transcript.json" \
-  --transcript-json-sha256 "$(cut -d' ' -f1 "$RTE_DIR/stratum-transcript.json.sha256")" \
-  --operator <operator> \
-  --reason "phase11e external stratum transcript evidence" \
-  --operator-confirmed \
-  --i-understand-read-only-evidence \
-  --i-understand-no-runtime-activation \
-  --i-understand-no-production-traffic \
-  --i-understand-no-miner-traffic \
-  --i-understand-no-db-activation \
-  --i-confirm-runtime-path-required \
-  --i-confirm-visibility-bundle-required \
-  --i-confirm-abuse-1h-required-before-customer-traffic \
-  --i-confirm-restart-container-order-required-before-limited-acceptance \
   --output json > "$RTE_DIR/stratum-transcript-evidence.json"
 ```
+
+Note: transcript sha256 is still required as operator evidence/checklist artifact in this runbook, even though the current transcript-evidence CLI does not accept a transcript hash flag.
 
 ## Step 9) If both runtime-path + Stratum are READY, build visibility bundle
 
 ```bash
 mpf production single-customer-visibility-bundle \
-  --expected-version 0.1.208 \
   --runtime-path-evidence-json "$RTE_DIR/runtime-path-evidence.json" \
+  --runtime-path-evidence-json-sha256 "$(sha256sum "$RTE_DIR/runtime-path-evidence.json" | cut -d' ' -f1)" \
   --stratum-transcript-evidence-json "$RTE_DIR/stratum-transcript-evidence.json" \
-  --operator <operator> \
-  --reason "phase11e visibility bundle" \
-  --operator-confirmed \
+  --stratum-transcript-evidence-json-sha256 "$(sha256sum "$RTE_DIR/stratum-transcript-evidence.json" | cut -d' ' -f1)" \
   --output json > "$RTE_DIR/visibility-bundle.json"
 ```
 
