@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.209
+## 0.1.210
 - Add controlled artifact gate classifier + CLI, update phase gate verifier, and add fail-closed Phase 11E runtime/Stratum evidence helper.
 
 
