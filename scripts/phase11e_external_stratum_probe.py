@@ -156,7 +156,7 @@ def main() -> int:
         transcript["probe_status"] = "BLOCKED_CONNECTION_ERROR"
         transcript["error"] = str(exc)
         _atomic_write_json(out_path, transcript)
-        print(f"BLOCKED_CONNECTION_ERROR: {exc}", flush=True, file=__import__('sys').stderr)
+        print(f"BLOCKED_CONNECTION_ERROR: {exc}", flush=True, file=sys.stderr)
         return 1
 
     return 0
