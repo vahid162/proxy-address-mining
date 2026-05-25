@@ -28,7 +28,7 @@ bash scripts/verify_current_phase_gate.sh
 ```
 
 Expected:
-- version `0.1.208`
+- version `0.1.209`
 - accepted phase still Phase 10
 - working phase still Phase 11 planning/readiness
 - closed production/miner/customer activation gates
@@ -95,7 +95,7 @@ sha256sum "$RTE_DIR/stratum-transcript.json" > "$RTE_DIR/stratum-transcript.json
 
 ```bash
 mpf production single-customer-runtime-probe-diagnostics \
-  --expected-version 0.1.208 \
+  --expected-version 0.1.209 \
   --post-apply-evidence-json /tmp/phase11-single-customer-post-apply-evidence-0.1.205.json \
   --post-apply-evidence-json-sha256 19ef5602af8ad36267ce34c3ca21e660e32d8970b0a81d69bc80b8a206d41ead \
   --live-snapshot-file "$RTE_DIR/live-iptables-save.txt" \
@@ -125,7 +125,7 @@ mpf production single-customer-runtime-probe-diagnostics \
 
 ```bash
 mpf production single-customer-runtime-path-evidence \
-  --expected-version 0.1.208 \
+  --expected-version 0.1.209 \
   --post-apply-evidence-json /tmp/phase11-single-customer-post-apply-evidence-0.1.205.json \
   --post-apply-evidence-json-sha256 19ef5602af8ad36267ce34c3ca21e660e32d8970b0a81d69bc80b8a206d41ead \
   --live-snapshot-file "$RTE_DIR/live-iptables-save.txt" \
@@ -176,7 +176,7 @@ mpf production single-customer-visibility-bundle \
 
 ## Operator checklist (must all be YES)
 
-- [ ] Version is `0.1.208`.
+- [ ] Version is `0.1.209`.
 - [ ] Current phase gate remains Phase 10 accepted / Phase 11 planning.
 - [ ] Probe was external (not farm5 hairpin/self path).
 - [ ] Long-lived probe stayed open sufficiently for ASSURED observation attempt.

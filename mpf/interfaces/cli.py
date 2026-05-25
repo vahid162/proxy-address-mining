@@ -113,6 +113,7 @@ from mpf.services import (
     phase11_canary_acceptance_review_service,
     phase11_live_canary_evidence_collector_service,
     phase11_canary_visibility_bundle_service,
+    phase11_current_controlled_artifact_gate_service,
     phase11_canary_final_check_report_visibility_service,
     phase11_canary_rollback_restore_visibility_service,
     phase11_canary_usage_visibility_service,
@@ -2751,6 +2752,27 @@ def production_single_customer_post_apply_evidence(
     for key in ("component","final_decision","post_apply_evidence_ready","controlled_apply_recorded","next_required_step","blockers"):
         typer.echo(f"{key}: {report.get(key)}")
 
+
+
+@production_app.command("current-controlled-artifact-gate")
+def production_current_controlled_artifact_gate(iptables_save_file: Path = typer.Option(..., "--iptables-save-file"), ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"), expected_version: str = typer.Option("0.1.209", "--expected-version"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+    phase_status_text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    ipv4 = iptables_save_file.read_text(encoding="utf-8")
+    ipv6 = ip6tables_save_file.read_text(encoding="utf-8") if ip6tables_save_file else ""
+    report = phase11_current_controlled_artifact_gate_service.build_phase11_current_controlled_artifact_gate_report(
+        iptables_save_text=ipv4, ip6tables_save_text=ipv6, phase_status_text=phase_status_text, expected_version=expected_version
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+        return
+    for k in ("component", "final_decision", "current_phase_gate_ok", "known_controlled_artifacts_present", "production_gates_remain_closed", "next_required_step"):
+        typer.echo(f"{k}: {report.get(k)}")
+    typer.echo(f"allowed_controlled_artifacts_count: {len(report.get('allowed_controlled_artifacts', []))}")
+    typer.echo(f"unknown_mpf_artifacts_count: {len(report.get('unknown_mpf_artifacts', []))}")
+    if report.get("unknown_mpf_artifacts"):
+        typer.echo("unknown_mpf_artifacts:")
+        for x in report["unknown_mpf_artifacts"]:
+            typer.echo(f"- {x}")
 
 @production_app.command("single-customer-runtime-path-evidence")
 def production_single_customer_runtime_path_evidence(

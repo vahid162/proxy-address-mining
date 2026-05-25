@@ -158,3 +158,6 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 
 0.1.202 planning/readiness: farm5 0.1.201 sync exposed a Phase 11 single-customer staging test isolation issue after real DB-only staging created limited-btc-001; test isolation fix + docs/version-only update, no runtime gate changes.
 0.1.201 planning/readiness: recorded farm5 0.1.199 limited-onboarding-execution-gate evidence and added controlled single-customer DB-only staging package.
+
+
+- Phase 11E 0.1.209: use `mpf production current-controlled-artifact-gate` and `scripts/phase11e_collect_runtime_stratum_evidence.sh` for fail-closed evidence collection only (no activation).

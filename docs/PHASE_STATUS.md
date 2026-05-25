@@ -1,3 +1,8 @@
+## 0.1.209
+
+- planning/readiness note: controlled artifact-aware current phase gate and runtime/stratum evidence helper added.
+- current state unchanged: production_traffic none, firewall_apply_allowed no, abuse_automation_allowed no, customer_onboarding_allowed db_only, ui_allowed no, telegram_allowed no.
+
 # PHASE STATUS
 
 Status: Active project control file
