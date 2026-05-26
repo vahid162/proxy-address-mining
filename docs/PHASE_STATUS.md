@@ -2,6 +2,8 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.222): fixed Phase11E readiness helper customer source handling and venv Python selection after farm5 0.1.221 helper execution reached real source collection and failed on CustomerList.rows.
+
 Phase 11 planning/readiness note (0.1.221): materialized source-backed evidence bundle + artifact gate + abuse/restart readiness chain without opening activation gates.
 
 Phase 11 planning/readiness note (0.1.220): added read-only abuse/restart evidence builders and helper evidence collection; gates remain closed.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.222
+- Fix Phase11E readiness helper customer source handling (`cust_res.customers`) and robust venv Python selection (`PYTHON_BIN`) without changing production/activation gates.
+
+
 ## 0.1.221
 - Materialize Phase 11E source-backed abuse/restart readiness evidence and run limited precheck without opening activation gates.
 
