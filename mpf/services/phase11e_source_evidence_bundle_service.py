@@ -29,6 +29,12 @@ def _load_json(path: Path, blockers: list[str], missing: str, invalid: str) -> d
     return obj
 
 
+
+
+def _bad_source_label(v: object) -> bool:
+    if not isinstance(v, str):
+        return False
+    return v.strip().lower() in {"default","synthetic","placeholder","docs+tests","runtime-observation","exposure-observation","source_bundle"}
 def _is_ok_status(obj: dict[str, object]) -> bool:
     val = str(obj.get("status", "")).upper()
     return val in {"OK", "PASS", "HEALTHY", "READY"} or obj.get("ok") is True
@@ -85,10 +91,16 @@ def build_phase11e_source_evidence_bundle_report(config: MPFConfig, **kwargs: ob
         blockers.append("missing_current_controlled_artifact_gate_source")
     if runtime_order_observations is None:
         blockers.append("missing_runtime_order_observations")
+    elif not runtime_order_observations.get("source_files") or not runtime_order_observations.get("source_hashes"):
+        blockers.append("runtime_order_observations_missing_source_references")
     if exposure_observations is None:
         blockers.append("missing_exposure_observations")
+    elif not exposure_observations.get("source_files") or not exposure_observations.get("source_hashes"):
+        blockers.append("exposure_observations_missing_source_references")
     if abuse_contract_observations is None:
         blockers.append("missing_abuse_contract_observations")
+    elif not abuse_contract_observations.get("source_files") or not abuse_contract_observations.get("source_hashes"):
+        blockers.append("abuse_contract_observations_missing_source_references")
 
     if vis is not None:
         if vis.get("expected_version") != "0.1.218":
@@ -113,11 +125,11 @@ def build_phase11e_source_evidence_bundle_report(config: MPFConfig, **kwargs: ob
             if str(phase.get(k)) != v:
                 blockers.append(f"unsafe_phase_status:{k}")
 
-    if mpf_doctor is not None and not _is_ok_status(mpf_doctor):
+    if mpf_doctor is not None and (_bad_source_label(mpf_doctor.get("source")) or not _is_ok_status(mpf_doctor)):
         blockers.append("mpf_doctor_not_ok")
-    if db_status is not None and not _is_ok_status(db_status):
+    if db_status is not None and (_bad_source_label(db_status.get("source")) or not _is_ok_status(db_status)):
         blockers.append("db_status_not_ok")
-    if proxy_doctor is not None and not _is_ok_status(proxy_doctor):
+    if proxy_doctor is not None and (_bad_source_label(proxy_doctor.get("source")) or not _is_ok_status(proxy_doctor)):
         blockers.append("proxy_doctor_not_ok")
 
     lanes_val = lanes or []
@@ -132,6 +144,8 @@ def build_phase11e_source_evidence_bundle_report(config: MPFConfig, **kwargs: ob
             blockers.append("limited_btc_001_not_paused")
 
     if artifact is not None:
+        if kwargs.get("current_controlled_artifact_gate_sha256") in (None, ""):
+            blockers.append("missing_artifact_gate_source_hash")
         if artifact.get("repository_version") != __version__:
             blockers.append("artifact_gate_repository_version_mismatch")
         if artifact.get("current_phase_gate_ok") is not True:

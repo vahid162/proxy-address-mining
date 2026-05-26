@@ -18,3 +18,6 @@ sudo bash scripts/phase11e_collect_abuse_restart_readiness_evidence.sh \
   --visibility-bundle-json /tmp/phase11e-runtime-stratum-0.1.214-20260525T152651Z/visibility-bundle-0.1.218.json \
   --visibility-bundle-json-sha256 0cfa19543128954c6774d7ac14646626cd1886ac24895825395fe96612fdc583
 ```
+
+
+Note: 0.1.221 may still return BLOCKED when real read-only source collection is incomplete. READY is valid only with real source-backed read-only evidence. No activation, no firewall mutation, no abuse automation.
