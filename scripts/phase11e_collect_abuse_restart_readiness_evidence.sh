@@ -59,8 +59,20 @@ for name,cmd in [('docker-ps.txt','docker ps --format "{{.Names}} {{.Status}}"')
     except Exception as e: out=f'ERROR:{e}'
     f.write_text(out,encoding='utf-8')
     runtime['source_hashes'][str(f)]=hashlib.sha256(out.encode()).hexdigest()
-runtime.update({'controlled_order_test_performed':True if 'v2raya' in (Path(sys.argv[7])/'docker-ps.txt').read_text(encoding='utf-8').lower() else False,'required_containers_running':True,'v2raya_running_before_forwarder_check':True,'socks_bridge_ready_before_forwarder_check':True,'forwarder_ready':True,'bridge_ready':True,'post_host_restart_test_performed':False})
-exposure={'source_files':[str(Path(sys.argv[7])/'ss-listen.txt')],'source_hashes':{str(Path(sys.argv[7])/'ss-listen.txt'):runtime['source_hashes'][str(Path(sys.argv[7])/'ss-listen.txt')]},'backend_60010_local_or_internal_reachable':True,'public_v2raya_ui_exposed':False,'backend_60010_publicly_exposed':False}
+docker_txt=(Path(sys.argv[7])/'docker-ps.txt').read_text(encoding='utf-8').lower()
+ss_txt=(Path(sys.argv[7])/'ss-listen.txt').read_text(encoding='utf-8').lower()
+required_names=['v2raya','forwarder','bridge']
+required_containers_running=all(any(n in ln for ln in docker_txt.splitlines()) for n in required_names)
+v2raya_running_before_forwarder_check=('v2raya' in docker_txt and 'forwarder' in docker_txt and docker_txt.find('v2raya')<=docker_txt.find('forwarder'))
+socks_bridge_ready_before_forwarder_check=('bridge' in docker_txt and 'forwarder' in docker_txt and docker_txt.find('bridge')<=docker_txt.find('forwarder'))
+forwarder_ready=('forwarder' in docker_txt and ('up' in docker_txt or 'running' in docker_txt))
+bridge_ready=('bridge' in docker_txt and ('up' in docker_txt or 'running' in docker_txt))
+backend_internal=('127.0.0.1:60010' in ss_txt or '172.18.0.3:60010' in ss_txt or ':60010' in ss_txt)
+backend_public=('0.0.0.0:60010' in ss_txt or '[::]:60010' in ss_txt or '*:60010' in ss_txt)
+public_v2raya_ui=('0.0.0.0:2015' in ss_txt or '[::]:2015' in ss_txt or '*:2015' in ss_txt)
+controlled_order_test_performed=required_containers_running and v2raya_running_before_forwarder_check and socks_bridge_ready_before_forwarder_check and forwarder_ready and bridge_ready and backend_internal and (not backend_public) and (not public_v2raya_ui)
+runtime.update({'controlled_order_test_performed':controlled_order_test_performed,'required_containers_running':required_containers_running,'v2raya_running_before_forwarder_check':v2raya_running_before_forwarder_check,'socks_bridge_ready_before_forwarder_check':socks_bridge_ready_before_forwarder_check,'forwarder_ready':forwarder_ready,'bridge_ready':bridge_ready,'post_host_restart_test_performed':False})
+exposure={'source_files':[str(Path(sys.argv[7])/'ss-listen.txt')],'source_hashes':{str(Path(sys.argv[7])/'ss-listen.txt'):runtime['source_hashes'][str(Path(sys.argv[7])/'ss-listen.txt')]},'backend_60010_local_or_internal_reachable':backend_internal,'public_v2raya_ui_exposed':public_v2raya_ui,'backend_60010_publicly_exposed':backend_public}
 abuse_files=['docs/ABUSE.md','tests/test_phase11_single_customer_abuse_1h_readiness_service.py','mpf/services/phase11_single_customer_abuse_1h_readiness_service.py']
 abuse_hashes={f:hashlib.sha256(Path(f).read_bytes()).hexdigest() for f in abuse_files if Path(f).exists()}
 abuse={'source_files':abuse_files,'source_hashes':abuse_hashes,'state_machine_contract':['normal','over_tracking','over_grace','hard'],'transition_coverage':['normal->over_tracking','over_tracking->over_grace','over_grace->normal','over_grace->over_tracking','over_tracking->hard_after_threshold'],'hard_threshold_sec':3600,'exemption_policy_validated':True,'manual_unhard_audited':True,'restore_point_required_for_hard':True,'policy_backup_required_for_hard':True,'farms_over_alone_hardens':False,'worker_over_alone_hardens':False,'missing_or_stale_evidence_hardens':False,'db_failure_hardens':False,'firewall_failure_hardens':False}
