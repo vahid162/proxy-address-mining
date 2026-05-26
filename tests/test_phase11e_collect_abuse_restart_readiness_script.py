@@ -40,3 +40,23 @@ def test_script_has_no_hardcoded_helper_customers_or_forbidden_mutations():
         'mpf abuse unhard', 'mpf customer activate',
     ]:
         assert cmd not in t
+
+
+def test_script_writes_manifest_with_required_fields():
+    t = Path('scripts/phase11e_collect_abuse_restart_readiness_evidence.sh').read_text()
+    for s in [
+        'manifest.json',
+        '"expected_version"',
+        '"generated_at"',
+        '"visibility_bundle_json"',
+        '"visibility_bundle_sha256"',
+        '"source_evidence_json"',
+        '"artifact_gate_json"',
+        '"abuse_readiness_json"',
+        '"restart_readiness_json"',
+        '"limited_acceptance_precheck_json"',
+        '"sha256_manifest"',
+        '"final_summary"',
+        '"next_required_step"',
+    ]:
+        assert s in t

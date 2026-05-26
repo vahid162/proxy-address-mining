@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.223
+- Fix Phase11E controlled-order source evidence mapping into restart/container-order readiness and restore helper `manifest.json` generation for operator review.
+
 ## 0.1.222
 - Fix Phase11E readiness helper customer source handling (`cust_res.customers`) and robust venv Python selection (`PYTHON_BIN`) without changing production/activation gates.
 
