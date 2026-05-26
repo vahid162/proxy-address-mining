@@ -107,3 +107,57 @@ if [[ "$RUN_PRECHECK" == "1" ]]; then
   mpf production single-customer-limited-acceptance-precheck --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --abuse-1h-readiness-json "$OUT_DIR/abuse-1h-readiness.json" --restart-container-order-readiness-json "$OUT_DIR/restart-container-order-readiness.json" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-precheck-only --i-understand-no-customer-activation --i-understand-no-production-traffic-acceptance --i-understand-no-miner-traffic-acceptance --i-understand-no-db-activation --output json > "$OUT_DIR/limited-acceptance-precheck.json"
 fi
 ( cd "$OUT_DIR" && sha256sum * > sha256-manifest.txt )
+"$PYTHON_BIN" - <<'PY' "$OUT_DIR" "$EXPECTED_VERSION" "$VIS" "$VIS_SHA" "$SRC" "$AG"
+import json, sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+out_dir = Path(sys.argv[1])
+expected_version = sys.argv[2]
+vis = sys.argv[3]
+vis_sha = sys.argv[4]
+src = sys.argv[5]
+ag = sys.argv[6]
+
+def _decision(path: Path) -> str:
+    if not path.exists():
+        return "MISSING"
+    try:
+        return str(json.loads(path.read_text(encoding="utf-8")).get("final_decision", "UNKNOWN"))
+    except Exception:
+        return "INVALID"
+
+manifest = {
+    "expected_version": expected_version,
+    "generated_at": datetime.now(timezone.utc).isoformat(),
+    "visibility_bundle_json": vis,
+    "visibility_bundle_sha256": vis_sha,
+    "abuse_readiness_json": str(out_dir / "abuse-1h-readiness.json"),
+    "restart_readiness_json": str(out_dir / "restart-container-order-readiness.json"),
+    "sha256_manifest": "sha256-manifest.txt",
+}
+if src:
+    manifest["source_evidence_json"] = src
+if ag:
+    manifest["artifact_gate_json"] = ag
+if (out_dir / "abuse-1h-evidence.json").exists():
+    manifest["abuse_evidence_json"] = str(out_dir / "abuse-1h-evidence.json")
+if (out_dir / "restart-container-order-evidence.json").exists():
+    manifest["restart_evidence_json"] = str(out_dir / "restart-container-order-evidence.json")
+if (out_dir / "limited-acceptance-precheck.json").exists():
+    manifest["limited_acceptance_precheck_json"] = str(out_dir / "limited-acceptance-precheck.json")
+
+manifest["final_summary"] = {
+    "source_evidence": _decision(Path(src)) if src else "NOT_COLLECTED",
+    "artifact_gate": _decision(Path(ag)) if ag else "NOT_COLLECTED",
+    "abuse_readiness": _decision(out_dir / "abuse-1h-readiness.json"),
+    "restart_container_order_readiness": _decision(out_dir / "restart-container-order-readiness.json"),
+    "limited_acceptance_precheck": _decision(out_dir / "limited-acceptance-precheck.json"),
+}
+manifest["next_required_step"] = (
+    "Rerun Phase11E helper evidence flow and inspect restart-container-order readiness "
+    "and limited-acceptance precheck before any activation decision."
+)
+
+(out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+PY

@@ -90,6 +90,10 @@ def build_phase11_single_customer_restart_container_order_evidence_report(config
     for field, (missing_blocker, source_field) in required.items():
         if field in runtime:
             val = runtime.get(field)
+        elif field == 'post_restart_or_controlled_order_test_performed' and se is not None:
+            controlled = runtime.get('controlled_order_test_performed')
+            post_restart = runtime.get('post_host_restart_test_performed')
+            val = (controlled is True) or (post_restart is True)
         elif field in exposure:
             val = exposure.get(field)
         elif field == 'proxy_doctor_ok' and se is not None:

@@ -2,6 +2,8 @@
 
 Status: Active project control file
 
+Phase 11 planning/readiness note (0.1.223): fixed controlled-order source evidence mapping into restart/container-order readiness and restored helper manifest.json generation after farm5 0.1.222 proved source evidence and abuse readiness READY but restart readiness BLOCKED on post_restart_or_controlled_order_test_performed.
+
 Phase 11 planning/readiness note (0.1.222): fixed Phase11E readiness helper customer source handling and venv Python selection after farm5 0.1.221 helper execution reached real source collection and failed on CustomerList.rows.
 
 Phase 11 planning/readiness note (0.1.221): materialized source-backed evidence bundle + artifact gate + abuse/restart readiness chain without opening activation gates.
