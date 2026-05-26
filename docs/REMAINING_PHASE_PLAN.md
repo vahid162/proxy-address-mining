@@ -166,3 +166,4 @@ Current roadmap ordering remains the Finite Remaining Path above. These anchors 
 
 
 - Phase 11E 0.1.216: use `mpf production current-controlled-artifact-gate` and `scripts/phase11e_collect_runtime_stratum_evidence.sh` for fail-closed evidence collection only (no activation).
+Current Position update: 0.1.221 materializes source-backed evidence bundle + artifact gate + abuse/restart readiness chain. If precheck READY, next step is explicit limited activation decision PR. If BLOCKED, next step resolves exact source blockers. Production/miner traffic still blocked.
