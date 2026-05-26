@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHON_BIN="${MPF_PYTHON:-$REPO_ROOT/.venv/bin/python}"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  PYTHON_BIN="${MPF_PYTHON:-python}"
+fi
 EXPECTED_VERSION="$(tr -d '[:space:]' < "$REPO_ROOT/VERSION")"
 OUT_DIR=""; VIS=""; VIS_SHA=""; COLLECT_SOURCE=0; COLLECT_AG=0; COLLECT_ABUSE=0; COLLECT_RESTART=0; RUN_PRECHECK=0; AG=""; AG_SHA=""; SRC=""; SRC_SHA=""
 while [[ $# -gt 0 ]]; do case "$1" in
@@ -15,7 +19,7 @@ OUT_DIR="${OUT_DIR:-/tmp/phase11e-abuse-restart-${EXPECTED_VERSION}-$(date -u +%
 if [[ "$COLLECT_AG" == "1" ]]; then
   if command -v iptables-save >/dev/null 2>&1; then iptables-save > "$OUT_DIR/iptables-save.txt"; else : > "$OUT_DIR/iptables-save.txt"; fi
   if command -v ip6tables-save >/dev/null 2>&1; then ip6tables-save > "$OUT_DIR/ip6tables-save.txt"; else : > "$OUT_DIR/ip6tables-save.txt"; fi
-  python - <<'PY' "$OUT_DIR/current-controlled-artifact-gate.json" "$EXPECTED_VERSION" "$OUT_DIR/iptables-save.txt" "$OUT_DIR/ip6tables-save.txt"
+  "$PYTHON_BIN" - <<'PY' "$OUT_DIR/current-controlled-artifact-gate.json" "$EXPECTED_VERSION" "$OUT_DIR/iptables-save.txt" "$OUT_DIR/ip6tables-save.txt"
 import json,sys
 from pathlib import Path
 from mpf.services.phase11_current_controlled_artifact_gate_service import build_phase11_current_controlled_artifact_gate_report
@@ -31,7 +35,7 @@ PY
 fi
 
 if [[ "$COLLECT_SOURCE" == "1" ]]; then
-  python - <<'PY' "$OUT_DIR/phase11e-source-evidence-bundle.json" "$EXPECTED_VERSION" "$VIS" "$VIS_SHA" "$AG" "$AG_SHA" "$OUT_DIR"
+  "$PYTHON_BIN" - <<'PY' "$OUT_DIR/phase11e-source-evidence-bundle.json" "$EXPECTED_VERSION" "$VIS" "$VIS_SHA" "$AG" "$AG_SHA" "$OUT_DIR"
 import hashlib,json,sys
 from pathlib import Path
 from mpf.config import load_config, DEFAULT_CONFIG_PATH
@@ -45,7 +49,7 @@ for k in ['production_traffic','firewall_apply_allowed','abuse_automation_allowe
         if ln.strip().startswith(k+':'): phase[k]=ln.split(':',1)[1].strip()
 mpf=doctor_service.run(DEFAULT_CONFIG_PATH); db=db_service.status(cfg); proxy=proxy_doctor_service.status(DEFAULT_CONFIG_PATH)
 lanes_res=lane_service.list_lane_status(cfg); lanes=[{'name':l.name,'enabled':l.enabled,'backend_port':l.backend_port,'source':l.source} for l in lanes_res.lanes] if lanes_res.ok else []
-cust_res=customer_read_service.list_customer_status(cfg,include_deleted=False,limit=5000); customers=[{'customer_key':r.customer_key,'status':r.status,'lane':r.lane} for r in cust_res.rows] if cust_res.ok else []
+cust_res=customer_read_service.list_customer_status(cfg,include_deleted=False,limit=5000); customers=[{'customer_key':r.customer_key,'status':r.status,'lane':r.lane} for r in cust_res.customers] if cust_res.ok else []
 ag={}
 if sys.argv[5]:
     p=Path(sys.argv[5]);
