@@ -1,3 +1,6 @@
+## 0.1.221
+- Materialize Phase 11E source-backed abuse/restart readiness evidence and run limited precheck without opening activation gates.
+
 # Changelog
 
 ## 0.1.220

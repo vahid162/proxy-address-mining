@@ -125,6 +125,7 @@ from mpf.services import (
     phase11_single_customer_abuse_1h_evidence_builder_service,
     phase11_single_customer_restart_container_order_evidence_builder_service,
     phase11_single_customer_limited_acceptance_precheck_service,
+    phase11e_source_evidence_bundle_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -2845,6 +2846,14 @@ def production_single_customer_visibility_bundle(runtime_path_evidence_json: Pat
     for key in ("component","final_decision","visibility_bundle_ready","next_required_step","blockers"): typer.echo(f"{key}: {report.get(key)}")
 
 
+
+
+@production_app.command("phase11e-source-evidence-bundle")
+def production_phase11e_source_evidence_bundle(expected_version: str = typer.Option(__version__, "--expected-version"), visibility_bundle_json: Path = typer.Option(..., "--visibility-bundle-json"), visibility_bundle_json_sha256: str = typer.Option(..., "--visibility-bundle-json-sha256"), out_json: Path | None = typer.Option(None, "--out-json"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_read_only: bool = typer.Option(False, "--i-understand-read-only"), i_understand_no_activation: bool = typer.Option(False, "--i-understand-no-activation"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_db_mutation: bool = typer.Option(False, "--i-understand-no-db-mutation"), i_understand_no_restart: bool = typer.Option(False, "--i-understand-no-restart"), i_understand_no_abuse_automation: bool = typer.Option(False, "--i-understand-no-abuse-automation"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    report = phase11e_source_evidence_bundle_service.build_phase11e_source_evidence_bundle_report(_load(config), expected_version=expected_version, visibility_bundle_json=visibility_bundle_json, visibility_bundle_json_sha256=visibility_bundle_json_sha256, operator=operator, reason=reason, operator_confirmed=operator_confirmed, i_understand_read_only=i_understand_read_only, i_understand_no_activation=i_understand_no_activation, i_understand_no_firewall_apply=i_understand_no_firewall_apply, i_understand_no_db_mutation=i_understand_no_db_mutation, i_understand_no_restart=i_understand_no_restart, i_understand_no_abuse_automation=i_understand_no_abuse_automation)
+    if out_json: out_json.write_text(json.dumps(report, indent=2), encoding='utf-8')
+    if output == "json": typer.echo(json.dumps(report, indent=2, ensure_ascii=False)); return
+    for key in ("component","final_decision","blockers"): typer.echo(f"{key}: {report.get(key)}")
 
 @production_app.command("single-customer-abuse-1h-evidence")
 def production_single_customer_abuse_1h_evidence(expected_version: str = typer.Option(__version__, "--expected-version"), visibility_bundle_json: Path = typer.Option(..., "--visibility-bundle-json"), visibility_bundle_json_sha256: str = typer.Option(..., "--visibility-bundle-json-sha256"), out_json: Path | None = typer.Option(None, "--out-json"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_evidence_only: bool = typer.Option(False, "--i-understand-evidence-only"), i_understand_no_abuse_automation_enable: bool = typer.Option(False, "--i-understand-no-abuse-automation-enable"), i_understand_no_hard_block: bool = typer.Option(False, "--i-understand-no-hard-block"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_db_mutation: bool = typer.Option(False, "--i-understand-no-db-mutation"), i_understand_no_production_traffic: bool = typer.Option(False, "--i-understand-no-production-traffic"), i_understand_no_miner_traffic: bool = typer.Option(False, "--i-understand-no-miner-traffic"), output: Literal["human", "json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:

@@ -47,6 +47,14 @@ def build_phase11_single_customer_abuse_1h_evidence_report(config: MPFConfig, **
         if kwargs.get(c) is not True:
             blockers.append(f"missing_confirmation:{c}")
 
+    source_path = kwargs.get("source_evidence_json")
+    source=None
+    if source_path is not None:
+        sp=Path(str(source_path)); source=_load(sp,"source_evidence_missing","source_evidence_invalid",blockers)
+        ssha=kwargs.get("source_evidence_json_sha256")
+        if source is not None and ssha is not None and _sha(sp)!=str(ssha):
+            blockers.append("source_evidence_hash_mismatch")
+
     vis_path = Path(str(kwargs.get("visibility_bundle_json", "")))
     vis = _load(vis_path, "visibility_bundle_missing", "visibility_bundle_invalid", blockers)
     vis_sha = str(kwargs.get("visibility_bundle_json_sha256", ""))
@@ -68,8 +76,13 @@ def build_phase11_single_customer_abuse_1h_evidence_report(config: MPFConfig, **
                 break
 
     active_customers = kwargs.get("active_enabled_lane_customers")
+    if source is not None and not isinstance(active_customers, list):
+        active_customers = source.get("active_enabled_lane_customers")
+
     paused_customers = kwargs.get("paused_candidate_customers")
+    if source is not None and not isinstance(paused_customers, list): paused_customers = source.get("paused_candidate_customers")
     disabled_lanes = kwargs.get("disabled_lanes")
+    if source is not None and not isinstance(disabled_lanes, list): disabled_lanes = source.get("disabled_lanes")
     skipped = kwargs.get("skipped_active_customers")
     missing = kwargs.get("missing_active_customers")
     state_machine = kwargs.get("state_machine_contract")
