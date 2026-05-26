@@ -1,7 +1,7 @@
+# Changelog
+
 ## 0.1.221
 - Materialize Phase 11E source-backed abuse/restart readiness evidence and run limited precheck without opening activation gates.
-
-# Changelog
 
 ## 0.1.220
 - Add read-only Phase 11E abuse/restart evidence builders and helper collection/precheck flow; keep all activation gates closed.
