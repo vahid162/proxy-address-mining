@@ -47,6 +47,13 @@ def build_phase11_single_customer_restart_container_order_evidence_report(config
         for f in ('production_traffic_enabled','miner_traffic_allowed','phase11_accepted','db_activation_allowed','mutation_performed'):
             if v.get(f) is not False: b.append('visibility_bundle_safety_boundary_open'); break
 
+    se_path = kwargs.get('source_evidence_json')
+    se = None
+    if se_path is not None:
+        sp=Path(str(se_path)); se=_load(sp,'source_evidence_missing','source_evidence_invalid',b)
+        ssha=kwargs.get('source_evidence_json_sha256')
+        if se is not None and ssha is not None and _sha(sp)!=str(ssha): b.append('source_evidence_hash_mismatch')
+
     ag_path = kwargs.get('artifact_gate_json')
     ag = None
     if ag_path is None:
@@ -73,6 +80,9 @@ def build_phase11_single_customer_restart_container_order_evidence_report(config
         'phase_gate_ok': ('missing_phase_gate_source', 'phase_gate_source'),
         'backend_60010_local_or_internal_reachable': ('missing_backend_internal_reachability_source', 'backend_internal_reachability_source'),
     }
+
+    if kwargs.get('controlled_order_test_performed') is False: b.append('missing_controlled_order_source')
+    if kwargs.get('post_host_restart_test_performed') is True: w.append('post_host_restart_claimed')
 
     values: dict[str, bool] = {}
     sources: dict[str, object] = {}

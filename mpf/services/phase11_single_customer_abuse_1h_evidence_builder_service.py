@@ -67,9 +67,16 @@ def build_phase11_single_customer_abuse_1h_evidence_report(config: MPFConfig, **
                 blockers.append("visibility_bundle_safety_boundary_open")
                 break
 
-    active_customers = kwargs.get("active_enabled_lane_customers")
-    paused_customers = kwargs.get("paused_candidate_customers")
-    disabled_lanes = kwargs.get("disabled_lanes")
+    se_path = kwargs.get('source_evidence_json')
+    se = None
+    if se_path is not None:
+        sp = Path(str(se_path)); se = _load(sp, 'source_evidence_missing', 'source_evidence_invalid', blockers)
+        ssha = kwargs.get('source_evidence_json_sha256')
+        if se is not None and ssha is not None and _sha(sp) != str(ssha): blockers.append('source_evidence_hash_mismatch')
+
+    active_customers = (se or {}).get('active_enabled_lane_customers', kwargs.get("active_enabled_lane_customers"))
+    paused_customers = (se or {}).get('paused_candidate_customers', kwargs.get("paused_candidate_customers"))
+    disabled_lanes = (se or {}).get('disabled_lanes', kwargs.get("disabled_lanes"))
     skipped = kwargs.get("skipped_active_customers")
     missing = kwargs.get("missing_active_customers")
     state_machine = kwargs.get("state_machine_contract")
@@ -92,6 +99,7 @@ def build_phase11_single_customer_abuse_1h_evidence_report(config: MPFConfig, **
     if not _source_ok(restore_src): blockers.append("missing_restore_policy_backup_source")
 
     if not isinstance(active_customers, list): blockers.append("active_enabled_lane_customers_invalid")
+    if isinstance(paused_customers,list) and 'limited-btc-001' not in paused_customers: blockers.append('limited_btc_001_not_paused_candidate')
     if not isinstance(paused_customers, list): blockers.append("paused_candidate_customers_invalid")
     if not isinstance(disabled_lanes, list): blockers.append("disabled_lanes_invalid")
     if not isinstance(skipped, list): blockers.append("skipped_active_customers_invalid")
