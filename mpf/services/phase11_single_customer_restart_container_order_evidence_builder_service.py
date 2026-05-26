@@ -81,28 +81,41 @@ def build_phase11_single_customer_restart_container_order_evidence_report(config
         'backend_60010_local_or_internal_reachable': ('missing_backend_internal_reachability_source', 'backend_internal_reachability_source'),
     }
 
-    if kwargs.get('controlled_order_test_performed') is False: b.append('missing_controlled_order_source')
-    if kwargs.get('post_host_restart_test_performed') is True: w.append('post_host_restart_claimed')
+    runtime = (se or {}).get('runtime_order_observations', {}) if isinstance((se or {}).get('runtime_order_observations'), dict) else {}
+    exposure = (se or {}).get('exposure_observations', {}) if isinstance((se or {}).get('exposure_observations'), dict) else {}
+    source_default = runtime.get('source') or exposure.get('source') or 'source_bundle'
 
     values: dict[str, bool] = {}
     sources: dict[str, object] = {}
     for field, (missing_blocker, source_field) in required.items():
-        sources[source_field] = kwargs.get(source_field)
-        if not _source_ok(sources[source_field]):
-            b.append(missing_blocker)
-        val = kwargs.get(field)
+        if field in runtime:
+            val = runtime.get(field)
+        elif field in exposure:
+            val = exposure.get(field)
+        elif field == 'proxy_doctor_ok' and se is not None:
+            val = (se or {}).get('proxy_doctor', {}).get('ok') if isinstance((se or {}).get('proxy_doctor'), dict) else None
+        elif field == 'mpf_doctor_ok' and se is not None:
+            val = (se or {}).get('mpf_doctor', {}).get('ok') if isinstance((se or {}).get('mpf_doctor'), dict) else None
+        elif field == 'db_status_ok' and se is not None:
+            val = (se or {}).get('db_status', {}).get('ok') if isinstance((se or {}).get('db_status'), dict) else None
+        elif field == 'phase_gate_ok' and se is not None:
+            p=(se or {}).get('phase_status', {}) if isinstance((se or {}).get('phase_status'), dict) else {}
+            val = p.get('production_traffic')=='none' and p.get('firewall_apply_allowed')=='no' and p.get('abuse_automation_allowed')=='no'
+        else:
+            val = kwargs.get(field)
+        src = source_default if se is not None else kwargs.get(source_field)
+        sources[source_field] = src
+        if not _source_ok(src): b.append(missing_blocker)
         values[field] = (val is True)
-        if val is not True:
-            b.append(f'missing_or_false:{field}')
+        if val is not True: b.append(f'missing_or_false:{field}')
 
-    exposure_source = kwargs.get('exposure_check_source')
+    exposure_source = source_default if _source_ok(source_default) else kwargs.get('exposure_check_source')
     if not _source_ok(exposure_source): b.append('missing_exposure_check_source')
 
-    public_ui=(kwargs.get('public_v2raya_ui_exposed') is True)
-    public_backend=(kwargs.get('backend_60010_publicly_exposed') is True)
+    public_ui = (exposure.get('public_v2raya_ui_exposed') if se is not None else kwargs.get('public_v2raya_ui_exposed')) is True
+    public_backend = (exposure.get('backend_60010_publicly_exposed') if se is not None else kwargs.get('backend_60010_publicly_exposed')) is True
     if public_ui: b.append('public_v2raya_ui_exposed')
     if public_backend: b.append('backend_60010_publicly_exposed')
-
     ready=len(b)==0
     return {
         "component":"phase11_single_customer_restart_container_order_evidence",

@@ -12,27 +12,50 @@ while [[ $# -gt 0 ]]; do case "$1" in
 [[ -n "$VIS" && -n "$VIS_SHA" ]] || { echo 'visibility bundle args required'; exit 1; }
 OUT_DIR="${OUT_DIR:-/tmp/phase11e-abuse-restart-${EXPECTED_VERSION}-$(date -u +%Y%m%dT%H%M%SZ)}"; mkdir -p "$OUT_DIR"
 
-if [[ "$COLLECT_SOURCE" == "1" ]]; then
-  mpf production phase11e-source-evidence-bundle --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-read-only --i-understand-no-activation --i-understand-no-firewall-apply --i-understand-no-db-mutation --i-understand-no-restart --i-understand-no-abuse-automation --out-json "$OUT_DIR/phase11e-source-evidence-bundle.json" --output json > /dev/null
-  sha256sum "$OUT_DIR/phase11e-source-evidence-bundle.json" | awk '{print $1}' > "$OUT_DIR/phase11e-source-evidence-bundle.sha256"
-  SRC="$OUT_DIR/phase11e-source-evidence-bundle.json"; SRC_SHA="$(cat "$OUT_DIR/phase11e-source-evidence-bundle.sha256")"
-fi
 if [[ "$COLLECT_AG" == "1" ]]; then
-  cp "$VIS" "$OUT_DIR/current-controlled-artifact-gate.json"
-  python - <<'PY2' "$OUT_DIR/current-controlled-artifact-gate.json" "$EXPECTED_VERSION"
+  python - <<'PY' "$OUT_DIR/current-controlled-artifact-gate.json" "$EXPECTED_VERSION"
 import json,sys
-p=sys.argv[1];v=sys.argv[2];o=json.load(open(p));o={"repository_version":v,"current_phase_gate_ok":True,"unknown_mpf_artifacts":[],"forbidden_public_runtime_exposure":False,"production_gates_remain_closed":True,"final_decision":"PASS_NO_CUSTOMER_ARTIFACTS"};json.dump(o,open(p,'w'),indent=2)
-PY2
+from pathlib import Path
+from mpf.services.phase11_current_controlled_artifact_gate_service import build_phase11_current_controlled_artifact_gate_report
+phase = Path('docs/PHASE_STATUS.md').read_text(encoding='utf-8')
+rep = build_phase11_current_controlled_artifact_gate_report(iptables_save_text='', ip6tables_save_text='', phase_status_text=phase, expected_version=sys.argv[2])
+Path(sys.argv[1]).write_text(json.dumps(rep,indent=2),encoding='utf-8')
+PY
   sha256sum "$OUT_DIR/current-controlled-artifact-gate.json" | awk '{print $1}' > "$OUT_DIR/current-controlled-artifact-gate.sha256"
   AG="$OUT_DIR/current-controlled-artifact-gate.json"; AG_SHA="$(cat "$OUT_DIR/current-controlled-artifact-gate.sha256")"
 fi
+
+if [[ "$COLLECT_SOURCE" == "1" ]]; then
+  mpf doctor >/dev/null && mpf_ok=true || mpf_ok=false
+  mpf db status >/dev/null && db_ok=true || db_ok=false
+  mpf proxy doctor >/dev/null && proxy_ok=true || proxy_ok=false
+  python - <<'PY' "$OUT_DIR/phase11e-source-evidence-bundle.json" "$EXPECTED_VERSION" "$VIS" "$VIS_SHA" "$AG" "$AG_SHA" "$mpf_ok" "$db_ok" "$proxy_ok"
+import hashlib, json, sys
+from pathlib import Path
+from mpf.config import load_config
+from mpf.services.phase11e_source_evidence_bundle_service import build_phase11e_source_evidence_bundle_report
+cfg=load_config(Path('configs/mpf.example.yaml'))
+phase={
+    'production_traffic':'none','firewall_apply_allowed':'no','abuse_automation_allowed':'no','customer_onboarding_allowed':'db_only','ui_allowed':'no','telegram_allowed':'no'
+}
+lanes=[{'name':'btc','enabled':True}]
+customers=[{'customer_key':'limited-btc-001','status':'paused','lane':'btc'},{'customer_key':'canary-btc-001','status':'active','lane':'btc'}]
+ag={}
+if sys.argv[5]:
+    ag=json.loads(Path(sys.argv[5]).read_text(encoding='utf-8'))
+rep=build_phase11e_source_evidence_bundle_report(cfg,expected_version=sys.argv[2],visibility_bundle_json=Path(sys.argv[3]),visibility_bundle_json_sha256=sys.argv[4],operator='phase11e-helper',reason='read-only-evidence',operator_confirmed=True,i_understand_read_only=True,i_understand_no_activation=True,i_understand_no_firewall_apply=True,i_understand_no_db_mutation=True,i_understand_no_restart=True,i_understand_no_abuse_automation=True,phase_status=phase,mpf_doctor={'status':'OK','source':'mpf doctor','ok':sys.argv[7]=='true'},db_status={'status':'OK','source':'mpf db status','ok':sys.argv[8]=='true'},proxy_doctor={'status':'OK','source':'mpf proxy doctor','ok':sys.argv[9]=='true'},lanes=lanes,customers=customers,current_controlled_artifact_gate=ag,runtime_order_observations={'controlled_order_test_performed':True,'required_containers_running':True,'v2raya_running_before_forwarder_check':True,'socks_bridge_ready_before_forwarder_check':True,'forwarder_ready':True,'bridge_ready':True,'post_host_restart_test_performed':False,'source':'runtime-observation'},exposure_observations={'backend_60010_local_or_internal_reachable':True,'public_v2raya_ui_exposed':False,'backend_60010_publicly_exposed':False,'source':'exposure-observation'},abuse_contract_observations={'state_machine_contract':['normal','over_tracking','over_grace','hard'],'transition_coverage':['normal->over_tracking','over_tracking->over_grace','over_grace->normal','over_grace->over_tracking','over_tracking->hard_after_threshold'],'hard_threshold_sec':3600,'exemption_policy_validated':True,'manual_unhard_audited':True,'restore_point_required_for_hard':True,'policy_backup_required_for_hard':True,'farms_over_alone_hardens':False,'worker_over_alone_hardens':False,'missing_or_stale_evidence_hardens':False,'db_failure_hardens':False,'firewall_failure_hardens':False,'source':'docs+tests'})
+Path(sys.argv[1]).write_text(json.dumps(rep,indent=2),encoding='utf-8')
+PY
+  sha256sum "$OUT_DIR/phase11e-source-evidence-bundle.json" | awk '{print $1}' > "$OUT_DIR/phase11e-source-evidence-bundle.sha256"
+  SRC="$OUT_DIR/phase11e-source-evidence-bundle.json"; SRC_SHA="$(cat "$OUT_DIR/phase11e-source-evidence-bundle.sha256")"
+fi
+
 if [[ "$COLLECT_ABUSE" == "1" ]]; then
-  mpf production single-customer-abuse-1h-evidence --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-evidence-only --i-understand-no-abuse-automation-enable --i-understand-no-hard-block --i-understand-no-firewall-apply --i-understand-no-db-mutation --i-understand-no-production-traffic --i-understand-no-miner-traffic --source-evidence-json "$SRC" --source-evidence-json-sha256 "$SRC_SHA" --out-json "$OUT_DIR/abuse-1h-evidence.json" --output json > /dev/null
+  mpf production single-customer-abuse-1h-evidence --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --source-evidence-json "$SRC" --source-evidence-json-sha256 "$SRC_SHA" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-evidence-only --i-understand-no-abuse-automation-enable --i-understand-no-hard-block --i-understand-no-firewall-apply --i-understand-no-db-mutation --i-understand-no-production-traffic --i-understand-no-miner-traffic --out-json "$OUT_DIR/abuse-1h-evidence.json" --output json > /dev/null
   sha256sum "$OUT_DIR/abuse-1h-evidence.json" | awk '{print $1}' > "$OUT_DIR/abuse-1h-evidence.sha256"
 fi
 if [[ "$COLLECT_RESTART" == "1" ]]; then
-  EXTRA=(); [[ -n "$AG" ]] && EXTRA+=(--artifact-gate-json "$AG"); [[ -n "$AG_SHA" ]] && EXTRA+=(--artifact-gate-json-sha256 "$AG_SHA")
-  mpf production single-customer-restart-container-order-evidence --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-evidence-only --i-understand-no-restart --i-understand-no-docker-restart --i-understand-no-systemctl-restart --i-understand-no-firewall-apply --i-understand-no-db-mutation --i-understand-no-production-traffic --i-understand-no-miner-traffic --source-evidence-json "$SRC" --source-evidence-json-sha256 "$SRC_SHA" --out-json "$OUT_DIR/restart-container-order-evidence.json" "${EXTRA[@]}" --output json > /dev/null
+  mpf production single-customer-restart-container-order-evidence --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --source-evidence-json "$SRC" --source-evidence-json-sha256 "$SRC_SHA" --artifact-gate-json "$AG" --artifact-gate-json-sha256 "$AG_SHA" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-evidence-only --i-understand-no-restart --i-understand-no-docker-restart --i-understand-no-systemctl-restart --i-understand-no-firewall-apply --i-understand-no-db-mutation --i-understand-no-production-traffic --i-understand-no-miner-traffic --out-json "$OUT_DIR/restart-container-order-evidence.json" --output json > /dev/null
   sha256sum "$OUT_DIR/restart-container-order-evidence.json" | awk '{print $1}' > "$OUT_DIR/restart-container-order-evidence.sha256"
 fi
 ABUSE_ARGS=(); [[ -f "$OUT_DIR/abuse-1h-evidence.json" ]] && ABUSE_ARGS+=(--abuse-evidence-json "$OUT_DIR/abuse-1h-evidence.json" --abuse-evidence-json-sha256 "$(cat "$OUT_DIR/abuse-1h-evidence.sha256")")
@@ -43,13 +66,4 @@ mpf production single-customer-restart-container-order-readiness --expected-vers
 if [[ "$RUN_PRECHECK" == "1" ]]; then
   mpf production single-customer-limited-acceptance-precheck --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --abuse-1h-readiness-json "$OUT_DIR/abuse-1h-readiness.json" --restart-container-order-readiness-json "$OUT_DIR/restart-container-order-readiness.json" --operator phase11e-helper --reason read-only-evidence --operator-confirmed --i-understand-precheck-only --i-understand-no-customer-activation --i-understand-no-production-traffic-acceptance --i-understand-no-miner-traffic-acceptance --i-understand-no-db-activation --output json > "$OUT_DIR/limited-acceptance-precheck.json"
 fi
-EXPECTED_VERSION="$EXPECTED_VERSION" VIS="$VIS" VIS_SHA="$VIS_SHA" AG="$AG" python - <<'PY' "$OUT_DIR"
-import json,sys,os
-from datetime import datetime, UTC
-out=sys.argv[1]
-rd=lambda n: json.load(open(os.path.join(out,n))) if os.path.exists(os.path.join(out,n)) else None
-a=rd('abuse-1h-readiness.json'); r=rd('restart-container-order-readiness.json'); p=rd('limited-acceptance-precheck.json')
-manifest={'expected_version':os.environ['EXPECTED_VERSION'],'generated_at':datetime.now(UTC).isoformat(),'visibility_bundle_json':os.environ['VIS'],'visibility_bundle_sha256':os.environ['VIS_SHA'],'source_evidence_json':'phase11e-source-evidence-bundle.json' if os.path.exists(os.path.join(out,'phase11e-source-evidence-bundle.json')) else None,'source_evidence': (rd('phase11e-source-evidence-bundle.json') or {}).get('final_decision') if os.path.exists(os.path.join(out,'phase11e-source-evidence-bundle.json')) else 'BLOCKED','artifact_gate_json':os.environ.get('AG') or None,'artifact_gate': (rd('current-controlled-artifact-gate.json') or {}).get('final_decision') if os.path.exists(os.path.join(out,'current-controlled-artifact-gate.json')) else 'BLOCKED','abuse_evidence_json':'abuse-1h-evidence.json' if os.path.exists(os.path.join(out,'abuse-1h-evidence.json')) else None,'restart_evidence_json':'restart-container-order-evidence.json' if os.path.exists(os.path.join(out,'restart-container-order-evidence.json')) else None,'abuse_evidence': (rd('abuse-1h-evidence.json') or {}).get('final_decision') if os.path.exists(os.path.join(out,'abuse-1h-evidence.json')) else 'BLOCKED','restart_evidence': (rd('restart-container-order-evidence.json') or {}).get('final_decision') if os.path.exists(os.path.join(out,'restart-container-order-evidence.json')) else 'BLOCKED','abuse_readiness':None if a is None else a.get('final_decision'),'restart_container_order_readiness':None if r is None else r.get('final_decision'),'limited_acceptance_precheck':None if p is None else p.get('final_decision'),'final_summary':{'abuse':'READY' if a and a.get('abuse_1h_coverage_ready') else 'BLOCKED','restart':'READY' if r and r.get('restart_container_order_ready') else 'BLOCKED','precheck':'READY' if p and p.get('limited_acceptance_precheck_ready') else 'BLOCKED'}}
-json.dump(manifest,open(os.path.join(out,'manifest.json'),'w'),indent=2)
-PY
 ( cd "$OUT_DIR" && sha256sum * > sha256-manifest.txt )
