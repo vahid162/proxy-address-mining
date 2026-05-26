@@ -1,3 +1,4 @@
+Phase 11 planning/readiness note (0.1.220): added read-only abuse/restart evidence builders and helper evidence collection; gates remain closed.
 # PHASE STATUS
 
 Status: Active project control file

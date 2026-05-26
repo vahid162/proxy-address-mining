@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.220
+- Add read-only Phase 11E abuse/restart evidence builders and helper collection/precheck flow; keep all activation gates closed.
+
 ## 0.1.219
 - Add Phase 11E non-mutating abuse/restart readiness classifiers, limited acceptance precheck, helper script, and evidence/runbook docs.
 

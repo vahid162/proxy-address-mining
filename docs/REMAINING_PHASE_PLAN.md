@@ -1,3 +1,4 @@
+- Current position update: repository version is 0.1.220; 0.1.219 helper fail-closed BLOCKED for missing abuse/restart evidence; 0.1.220 adds source-backed evidence builders; activation still requires explicit later decision PR.
 
 # Remaining Phase Plan
 
