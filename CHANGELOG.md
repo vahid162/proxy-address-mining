@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.223
+## 0.1.224
 - Fix Phase11E controlled-order source evidence mapping into restart/container-order readiness and restore helper `manifest.json` generation for operator review.
 
 ## 0.1.222

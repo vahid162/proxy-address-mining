@@ -3,11 +3,11 @@
 
 Status: planning reference aligned to docs/PHASE_STATUS.md.
 
-Current Position update: 0.1.223 keeps Phase 11 in planning/readiness, maps `controlled_order_test_performed` into restart/container-order evidence (`post_restart_or_controlled_order_test_performed`), and restores helper `manifest.json` generation.
+Current Position update: 0.1.224 keeps Phase 11 in planning/readiness, maps `controlled_order_test_performed` into restart/container-order evidence (`post_restart_or_controlled_order_test_performed`), and restores helper `manifest.json` generation.
 
 Current Position update: 0.1.222 farm5 result is source evidence READY and abuse readiness READY, while restart/container-order readiness remained BLOCKED due to missing controlled-order mapping into `post_restart_or_controlled_order_test_performed`.
 
-Current Position update: after 0.1.223 sync/test, rerun the Phase11E helper and inspect restart/container-order readiness plus limited acceptance precheck outputs.
+Current Position update: after 0.1.224 sync/test, rerun the Phase11E helper and inspect restart/container-order readiness plus limited acceptance precheck outputs.
 
 Current Position update (0.1.220): repository version is 0.1.220; 0.1.219 helper fail-closed BLOCKED for missing abuse/restart evidence; 0.1.220 adds source-backed evidence builders; activation still requires explicit later decision PR.
 

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+OUT_DIR=""; EXPECTED_VERSION=""; VIS=""; VIS_SHA=""; SRC=""; SRC_SHA=""; AG=""; AG_SHA=""; ABUSE=""; RESTART=""; PRE=""
+while [[ $# -gt 0 ]]; do case "$1" in
+  --out-dir) OUT_DIR="$2";shift 2;; --expected-version) EXPECTED_VERSION="$2";shift 2;;
+  --visibility-bundle-json) VIS="$2";shift 2;; --visibility-bundle-json-sha256) VIS_SHA="$2";shift 2;;
+  --source-evidence-json) SRC="$2";shift 2;; --source-evidence-json-sha256) SRC_SHA="$2";shift 2;;
+  --artifact-gate-json) AG="$2";shift 2;; --artifact-gate-json-sha256) AG_SHA="$2";shift 2;;
+  --abuse-readiness-json) ABUSE="$2";shift 2;; --restart-readiness-json) RESTART="$2";shift 2;; --limited-acceptance-precheck-json) PRE="$2";shift 2;; *) echo "bad arg $1"; exit 2;; esac; done
+mkdir -p "$OUT_DIR"
+mpf production phase11e-limited-activation-decision --expected-version "$EXPECTED_VERSION" --visibility-bundle-json "$VIS" --visibility-bundle-json-sha256 "$VIS_SHA" --source-evidence-json "$SRC" --source-evidence-json-sha256 "$SRC_SHA" --abuse-readiness-json "$ABUSE" --restart-readiness-json "$RESTART" --limited-acceptance-precheck-json "$PRE" --artifact-gate-json "$AG" --artifact-gate-json-sha256 "$AG_SHA" --operator phase11e-helper --reason package-only --operator-confirmed --i-understand-decision-only --i-understand-no-activation-performed --i-understand-no-db-mutation --i-understand-no-firewall-apply --i-understand-no-production-traffic --i-understand-no-miner-traffic --i-understand-no-abuse-automation --i-understand-phase11-not-accepted --out-json "$OUT_DIR/limited-activation-decision.json" --output json >/dev/null
+sha256sum "$OUT_DIR/limited-activation-decision.json"|awk '{print $1}' > "$OUT_DIR/limited-activation-decision.sha256"
+mpf production phase11e-limited-activation-execution-package --expected-version "$EXPECTED_VERSION" --limited-activation-decision-json "$OUT_DIR/limited-activation-decision.json" --limited-activation-decision-json-sha256 "$(cat "$OUT_DIR/limited-activation-decision.sha256")" --operator phase11e-helper --reason package-only --operator-confirmed --i-understand-package-only --i-understand-no-activation-performed --i-understand-no-db-mutation --i-understand-no-firewall-apply --i-understand-no-production-traffic --i-understand-no-miner-traffic --i-understand-no-abuse-automation --i-understand-phase11-not-accepted --out-json "$OUT_DIR/limited-activation-execution-package.json" --output json >/dev/null
+sha256sum "$OUT_DIR/limited-activation-execution-package.json"|awk '{print $1}' > "$OUT_DIR/limited-activation-execution-package.sha256"
+mpf production phase11e-limited-activation-rollback-package --expected-version "$EXPECTED_VERSION" --limited-activation-decision-json "$OUT_DIR/limited-activation-decision.json" --limited-activation-decision-json-sha256 "$(cat "$OUT_DIR/limited-activation-decision.sha256")" --operator phase11e-helper --reason package-only --operator-confirmed --i-understand-rollback-package-only --i-understand-no-rollback-performed --i-understand-no-db-mutation --i-understand-no-firewall-apply --out-json "$OUT_DIR/limited-activation-rollback-package.json" --output json >/dev/null
+sha256sum "$OUT_DIR/limited-activation-rollback-package.json"|awk '{print $1}' > "$OUT_DIR/limited-activation-rollback-package.sha256"
+( cd "$OUT_DIR" && sha256sum *.json *.sha256 > sha256-manifest.txt )
+python - <<'PY' "$OUT_DIR" "$EXPECTED_VERSION" "$VIS" "$VIS_SHA" "$SRC" "$SRC_SHA" "$AG" "$AG_SHA"
+import json,sys;from pathlib import Path;from datetime import datetime,timezone
+out=Path(sys.argv[1]);manifest={"expected_version":sys.argv[2],"generated_at":datetime.now(timezone.utc).isoformat(),"visibility_bundle_json":sys.argv[3],"visibility_bundle_json_sha256":sys.argv[4],"source_evidence_json":sys.argv[5],"source_evidence_json_sha256":sys.argv[6],"artifact_gate_json":sys.argv[7],"artifact_gate_json_sha256":sys.argv[8],"decision":json.loads((out/'limited-activation-decision.json').read_text()).get('final_decision'),"execution_package":json.loads((out/'limited-activation-execution-package.json').read_text()).get('final_decision'),"rollback_package":json.loads((out/'limited-activation-rollback-package.json').read_text()).get('final_decision'),"final_summary":"package-only","next_required_step":"operator_review_then_run_controlled_limited_activation"}
+(out/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf-8')
+PY
