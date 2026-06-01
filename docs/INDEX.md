@@ -56,6 +56,8 @@ Historical/reference note:
 
 - `docs/PHASE_11_FARM5_0_1_229_LIMITED_ACTIVATION_OBSERVATION_REVIEW_READY.md` — farm5 0.1.229 read-only limited activation observation/review READY evidence; non-authorizing.
 - `docs/PHASE_11_FARM5_0_1_230_OBSERVATION_FINAL_READINESS_READY.md` — farm5 0.1.230 read-only observation-window/final-readiness READY evidence; non-authorizing.
+- `docs/PHASE_11_FARM5_0_1_231_LIMITED_ACCEPTANCE_DECISION_READY.md` — farm5 0.1.231 limited acceptance decision READY evidence; non-authorizing.
+- `docs/PHASE_11_FARM5_0_1_232_CONTROLLED_BOUNDARY_ACCEPTANCE_PACKAGE_READY.md` — farm5 0.1.232 controlled boundary acceptance package READY evidence; non-authorizing.
 
 ## Core Contracts
 
