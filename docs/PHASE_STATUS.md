@@ -3009,3 +3009,5 @@ State:
 
 0.1.202 planning/readiness: isolated the Phase 11E single-customer staging create-failure test from real farm5 DB state after DB-only staging while preserving closed apply/traffic gates.
 0.1.201 planning/readiness: recorded farm5 0.1.200 single-customer DB-only staging evidence and added non-mutating single-customer firewall/NAT plan gate while preserving closed apply/traffic gates.
+
+- farm5 0.1.227 Phase 11E limited activation execution evidence note: `limited-btc-001` transitioned `paused -> active` through the DB-only controlled activation path; `canary-btc-001` remained active; no firewall/NAT/runtime change occurred; production/miner traffic remains closed; abuse automation remains disabled; Phase 11 remains not accepted. Post-evidence classified READY with `blockers=[]` and warning `source_evidence_not_provided_db_proxy_checks_unavailable`; the helper forwarding fix in 0.1.228 allows optional source-backed DB/proxy evidence to be supplied on recollection.

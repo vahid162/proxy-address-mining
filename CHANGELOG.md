@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.228
+
+- fix(phase11e): record limited activation helper execution evidence accurately, fail closed on malformed execution JSON, and forward optional source evidence into post-evidence collection without opening runtime gates.
+
 ## 0.1.227
 
 - fix(phase11e): add an explicit exact-scope rollback package schema and require it during limited activation execute preflight validation; no activation, firewall, runtime, abuse, UI, or Telegram gate is opened.
