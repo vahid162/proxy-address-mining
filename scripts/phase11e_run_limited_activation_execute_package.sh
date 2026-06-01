@@ -3,11 +3,11 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "$REPO_ROOT"
-PYTHON_BIN="${MPF_PYTHON_BIN:-}"
-if [ -z "$PYTHON_BIN" ]; then
-  if [ -x /opt/mpf-py/.venv/bin/python ]; then PYTHON_BIN=/opt/mpf-py/.venv/bin/python
-  elif [ -x .venv/bin/python ]; then PYTHON_BIN=.venv/bin/python
-  else PYTHON_BIN=python
+MPF_BIN="${MPF_BIN:-}"
+if [ -z "$MPF_BIN" ]; then
+  if [ -x /opt/mpf-py/.venv/bin/mpf ]; then MPF_BIN=/opt/mpf-py/.venv/bin/mpf
+  elif [ -x .venv/bin/mpf ]; then MPF_BIN=.venv/bin/mpf
+  else MPF_BIN=mpf
   fi
 fi
 EXPECTED_VERSION= DECISION_JSON= DECISION_SHA= EXECUTION_JSON= EXECUTION_SHA= ROLLBACK_JSON= ROLLBACK_SHA= ARTIFACT_JSON= ARTIFACT_SHA= OUT_DIR= OPERATOR= REASON=
@@ -62,7 +62,7 @@ else
  for confirmation in OPERATOR_CONFIRMED UNDERSTAND_MUTATION UNDERSTAND_LIMITED_ONLY UNDERSTAND_CANARY UNDERSTAND_NO_FIREWALL UNDERSTAND_NO_UNRESTRICTED_PRODUCTION UNDERSTAND_NO_MINER_EXPANSION UNDERSTAND_NO_ABUSE UNDERSTAND_PHASE11_NOT_ACCEPTED REVIEWED_ROLLBACK REVIEWED_POST_EVIDENCE; do
   [ "${!confirmation}" = true ] || { echo "missing required execute confirmation: $confirmation" >&2; exit 2; }
  done
- "$PYTHON_BIN" -m mpf production phase11e-limited-activation-execute --expected-version "$EXPECTED_VERSION" --limited-activation-decision-json "$DECISION_JSON" --limited-activation-decision-json-sha256 "$DECISION_SHA" --limited-activation-execution-package-json "$EXECUTION_JSON" --limited-activation-execution-package-json-sha256 "$EXECUTION_SHA" --limited-activation-rollback-package-json "$ROLLBACK_JSON" --limited-activation-rollback-package-json-sha256 "$ROLLBACK_SHA" --artifact-gate-json "$ARTIFACT_JSON" --artifact-gate-json-sha256 "$ARTIFACT_SHA" --operator "$OPERATOR" --reason "$REASON" --operator-confirmed --i-understand-this-mutates-limited-customer-db-state --i-understand-limited-btc-001-only --i-understand-canary-must-be-preserved --i-understand-no-firewall-apply --i-understand-no-unrestricted-production --i-understand-no-miner-traffic-expansion --i-understand-no-abuse-automation --i-understand-phase11-not-accepted --i-have-reviewed-rollback-package --i-have-reviewed-post-evidence-command --out-json "$EXECUTION_OUT" --output json
+ "$MPF_BIN" production phase11e-limited-activation-execute --expected-version "$EXPECTED_VERSION" --limited-activation-decision-json "$DECISION_JSON" --limited-activation-decision-json-sha256 "$DECISION_SHA" --limited-activation-execution-package-json "$EXECUTION_JSON" --limited-activation-execution-package-json-sha256 "$EXECUTION_SHA" --limited-activation-rollback-package-json "$ROLLBACK_JSON" --limited-activation-rollback-package-json-sha256 "$ROLLBACK_SHA" --artifact-gate-json "$ARTIFACT_JSON" --artifact-gate-json-sha256 "$ARTIFACT_SHA" --operator "$OPERATOR" --reason "$REASON" --operator-confirmed --i-understand-this-mutates-limited-customer-db-state --i-understand-limited-btc-001-only --i-understand-canary-must-be-preserved --i-understand-no-firewall-apply --i-understand-no-unrestricted-production --i-understand-no-miner-traffic-expansion --i-understand-no-abuse-automation --i-understand-phase11-not-accepted --i-have-reviewed-rollback-package --i-have-reviewed-post-evidence-command --out-json "$EXECUTION_OUT" --output json
 fi
 sha256sum "$EXECUTION_OUT" | awk '{print $1}' > "$OUT_DIR/limited-activation-execution.sha256"
 if [ "$COLLECT_POST_EVIDENCE" = true ]; then
@@ -70,7 +70,7 @@ if [ "$COLLECT_POST_EVIDENCE" = true ]; then
  for confirmation in OPERATOR_CONFIRMED UNDERSTAND_POST_EVIDENCE_ONLY UNDERSTAND_NO_DB_MUTATION UNDERSTAND_NO_FIREWALL UNDERSTAND_NO_PRODUCTION_EXPANSION UNDERSTAND_NO_MINER_EXPANSION UNDERSTAND_NO_ABUSE; do
   [ "${!confirmation}" = true ] || { echo "missing required post-evidence confirmation: $confirmation" >&2; exit 2; }
  done
- "$PYTHON_BIN" -m mpf production phase11e-limited-activation-post-evidence-collect --expected-version "$EXPECTED_VERSION" --activation-execution-json "$EXECUTION_OUT" --activation-execution-json-sha256 "$(cat "$OUT_DIR/limited-activation-execution.sha256")" --artifact-gate-json "$ARTIFACT_JSON" --artifact-gate-json-sha256 "$ARTIFACT_SHA" --operator "$OPERATOR" --reason "$REASON" --operator-confirmed --i-understand-post-evidence-only --i-understand-no-db-mutation --i-understand-no-firewall-apply --i-understand-no-production-traffic-expansion --i-understand-no-miner-traffic-expansion --i-understand-no-abuse-automation --out-json "$POST_OUT" --output json
+ "$MPF_BIN" production phase11e-limited-activation-post-evidence-collect --expected-version "$EXPECTED_VERSION" --activation-execution-json "$EXECUTION_OUT" --activation-execution-json-sha256 "$(cat "$OUT_DIR/limited-activation-execution.sha256")" --artifact-gate-json "$ARTIFACT_JSON" --artifact-gate-json-sha256 "$ARTIFACT_SHA" --operator "$OPERATOR" --reason "$REASON" --operator-confirmed --i-understand-post-evidence-only --i-understand-no-db-mutation --i-understand-no-firewall-apply --i-understand-no-production-traffic-expansion --i-understand-no-miner-traffic-expansion --i-understand-no-abuse-automation --out-json "$POST_OUT" --output json
  sha256sum "$POST_OUT" | awk '{print $1}' > "$OUT_DIR/post-activation-evidence.sha256"
 fi
 printf '{"component":"phase11e_limited_activation_execute_helper","expected_version":"%s","execute_requested":%s,"collect_post_evidence_requested":%s,"mutation_performed_by_helper":false}\n' "$EXPECTED_VERSION" "$EXECUTE" "$COLLECT_POST_EVIDENCE" > "$OUT_DIR/manifest.json"

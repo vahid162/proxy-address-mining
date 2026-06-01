@@ -104,14 +104,44 @@ def validate_artifact_gate(payload: dict[str, object] | None, blockers: list[str
         blockers.append("production_gates_not_closed")
 
 
+def _extract_current_state_block(text: str) -> str | None:
+    marker = "## Current State"
+    marker_index = text.find(marker)
+    if marker_index == -1:
+        return None
+    section = text[marker_index + len(marker):]
+    next_heading = section.find("\n## ")
+    if next_heading != -1:
+        section = section[:next_heading]
+    block_start = section.find("```text")
+    if block_start == -1:
+        return None
+    block_body_start = block_start + len("```text")
+    block_end = section.find("```", block_body_start)
+    if block_end == -1:
+        return None
+    block = section[block_body_start:block_end].strip()
+    return block or None
+
+
 def validate_current_phase_gate(blockers: list[str], *, phase_status_path: Path = Path("docs/PHASE_STATUS.md")) -> None:
     try:
         text = phase_status_path.read_text(encoding="utf-8")
     except OSError:
         blockers.append("current_phase_gate_unreadable")
         return
+    current_state = _extract_current_state_block(text)
+    if current_state is None:
+        blockers.append("current_phase_gate_malformed")
+        return
+    current_values: dict[str, str] = {}
+    for line in current_state.splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        current_values[key.strip()] = value.strip()
     for key, value in PHASE_GATE_REQUIREMENTS.items():
-        if f"{key}: {value}" not in text:
+        if current_values.get(key) != value:
             blockers.append(f"current_phase_gate_open:{key}")
 
 
