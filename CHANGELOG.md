@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.231 - 2026-06-01
+
+- feat(phase11): record farm5 0.1.230 observation-window/final-readiness READY evidence and add the read-only limited acceptance decision gate while keeping Phase 11 final acceptance and expansion gates closed.
+
 ## 0.1.230 - 2026-06-01
 
 - Add read-only Phase 11E limited customer observation-window collection and Phase 11 final-acceptance readiness planning.

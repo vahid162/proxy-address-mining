@@ -1,3 +1,4 @@
+Phase 11 planning/readiness note (0.1.231): recorded farm5 0.1.230 observation-window/final-readiness READY evidence and added a read-only limited acceptance decision gate while keeping Current State and all dangerous gates closed.
 Phase 11 planning/readiness note (0.1.230): recorded farm5 0.1.229 limited activation observation/review READY evidence and added read-only limited customer observation-window and final-acceptance readiness-planning reports while keeping Current State closed.
 Phase 11 planning/readiness note (0.1.208): recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating single-customer runtime probe diagnostics while keeping production/miner/acceptance gates closed.
 Phase 11 planning/readiness note (0.1.205): recorded farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence for limited-btc-001/20101 and added non-mutating post-apply evidence classifier while keeping global gates closed.
@@ -54,6 +55,7 @@ Historical/reference note:
 - `docs/HISTORICAL_COMPATIBILITY_ANCHORS.md` (historical compatibility/reference-only, non-authorizing; does not override `docs/PHASE_STATUS.md`)
 
 - `docs/PHASE_11_FARM5_0_1_229_LIMITED_ACTIVATION_OBSERVATION_REVIEW_READY.md` — farm5 0.1.229 read-only limited activation observation/review READY evidence; non-authorizing.
+- `docs/PHASE_11_FARM5_0_1_230_OBSERVATION_FINAL_READINESS_READY.md` — farm5 0.1.230 read-only observation-window/final-readiness READY evidence; non-authorizing.
 
 ## Core Contracts
 
