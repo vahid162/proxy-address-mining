@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.233 - 2026-06-01
+
+- feat(phase11): add read-only controlled boundary acceptance decision and final Phase 11 acceptance PR readiness gates while keeping Current State closed.
+
 ## 0.1.232 - 2026-06-01
 
 - feat(phase11): add the read-only controlled boundary acceptance package and runtime preflight gate while keeping Phase 11 final acceptance and all dangerous gates closed.

@@ -1,0 +1,12 @@
+import hashlib,json,os,subprocess
+from pathlib import Path
+SCRIPT_PATH=Path('scripts/phase11_run_controlled_boundary_decision_and_final_readiness.sh'); SCRIPT=SCRIPT_PATH.read_text()
+def test_helper_runs_decision_before_final_readiness_and_documents_local_peer(): assert SCRIPT.index('production phase11-controlled-boundary-acceptance-decision') < SCRIPT.index('production phase11-final-acceptance-pr-readiness') and SCRIPT.count('"$MPF_BIN" production ')==2 and 'sudo -u mpf' in SCRIPT
+def test_helper_has_no_forbidden_mutation_commands():
+ for marker in ('iptables-restore','conntrack -F','conntrack -D','docker restart','docker compose up','docker compose down','docker compose restart','systemctl restart','systemctl enable','mpf customer activate','mpf abuse hard','mpf abuse unhard','INSERT ','UPDATE ','DELETE ','ALTER ','DROP ','TRUNCATE ','psql '): assert marker not in SCRIPT
+def _run(tmp_path,decision='PHASE11_CONTROLLED_BOUNDARY_ACCEPTANCE_DECISION_READY',readiness='PHASE11_FINAL_ACCEPTANCE_PR_READINESS_READY'):
+ package=tmp_path/'package.json'; package.write_text('{}\n'); sha=hashlib.sha256(package.read_bytes()).hexdigest(); fake=tmp_path/'fake-mpf'; fake.write_text(f'''#!/usr/bin/env bash\nset -euo pipefail\ncmd=$2; out=\nwhile [ $# -gt 0 ]; do if [ "$1" = --out-json ]; then out=$2; shift 2; else shift; fi; done\nif [ "$cmd" = phase11-controlled-boundary-acceptance-decision ]; then printf '%s\\n' '{{"final_decision":"{decision}"}}' > "$out"; else printf '%s\\n' '{{"final_decision":"{readiness}"}}' > "$out"; fi\n'''); fake.chmod(0o755); out=tmp_path/'out'; proc=subprocess.run([str(SCRIPT_PATH),'--expected-version','0.1.233','--controlled-boundary-package-json',str(package),'--controlled-boundary-package-json-sha256',sha,'--out-dir',str(out),'--operator','operator','--reason','read-only'],env={**os.environ,'MPF_BIN':str(fake)},check=False); return proc,out
+def test_helper_writes_outputs_hashes_and_manifest(tmp_path):
+ proc,out=_run(tmp_path); assert proc.returncode==0; manifest=json.loads((out/'manifest.json').read_text()); assert manifest['mutation_performed'] is False; assert (out/'phase11-controlled-boundary-acceptance-decision.sha256').is_file(); assert (out/'phase11-final-acceptance-pr-readiness.sha256').is_file(); assert (out/'sha256-manifest.txt').is_file()
+def test_helper_fails_closed_on_blocked_decision(tmp_path): assert _run(tmp_path,decision='BLOCKED')[0].returncode != 0
+def test_helper_fails_closed_on_blocked_readiness(tmp_path): assert _run(tmp_path,readiness='BLOCKED')[0].returncode != 0
