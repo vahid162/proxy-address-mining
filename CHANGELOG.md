@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.232 - 2026-06-01
+
+- feat(phase11): add the read-only controlled boundary acceptance package and runtime preflight gate while keeping Phase 11 final acceptance and all dangerous gates closed.
+
 ## 0.1.231 - 2026-06-01
 
 - feat(phase11): record farm5 0.1.230 observation-window/final-readiness READY evidence and add the read-only limited acceptance decision gate while keeping Phase 11 final acceptance and expansion gates closed.

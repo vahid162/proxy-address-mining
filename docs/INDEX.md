@@ -680,3 +680,5 @@ Current Phase 11E operator runbook: `docs/PHASE_11E_SINGLE_CUSTOMER_RUNTIME_STRA
 
 - `docs/PHASE_11E_LIMITED_ACTIVATION_EXECUTION_RUNBOOK.md` — gated limited-btc-001 execute, rollback, and post-evidence operator flow.
 - `docs/PHASE_11E_LIMITED_ACTIVATION_OBSERVATION_ACCEPTANCE_REVIEW.md` — read-only hashed observation and limited acceptance review flow; non-authorizing.
+
+- `docs/PHASE_11_FARM5_0_1_231_LIMITED_ACCEPTANCE_DECISION_READY.md` — farm5 0.1.231 READY limited acceptance decision evidence; next step is the read-only controlled boundary acceptance package PR.

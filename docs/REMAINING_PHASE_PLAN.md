@@ -1,3 +1,11 @@
+## Phase 11 0.1.232 Active Target Position
+
+- Record farm5 `0.1.231` limited acceptance decision READY evidence for active `limited-btc-001` while preserving active `canary-btc-001`.
+- Add the read-only `mpf production phase11-controlled-boundary-acceptance-package` report and farm5 helper.
+- Revalidate hashed limited-decision, artifact-gate, source-backed runtime, abuse 1h, restart/container-order, exact-scope, and closed Current State inputs.
+- A READY report prepares only `phase11_controlled_boundary_acceptance_decision_pr`.
+- Phase 11 final acceptance, production expansion, miner traffic expansion, abuse automation, UI, Telegram, DB mutation, firewall apply, and runtime mutation remain closed.
+
 ## Phase 11 0.1.231 Active Target Position
 
 - Record farm5 `0.1.230` observation-window and final-readiness planning READY evidence for `limited-btc-001` while preserving `canary-btc-001`.
