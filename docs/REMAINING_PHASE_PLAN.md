@@ -3,6 +3,8 @@
 
 Status: planning reference aligned to docs/PHASE_STATUS.md.
 
+Current Position update: farm5 0.1.224 sync/test passed, but the decision package helper failed due to duplicate `config` kwargs. 0.1.225 fixes the CLI wrappers only; after sync, rerun `scripts/phase11e_prepare_limited_activation_decision_package.sh`.
+
 Current Position update: 0.1.224 keeps Phase 11 in planning/readiness, maps `controlled_order_test_performed` into restart/container-order evidence (`post_restart_or_controlled_order_test_performed`), and restores helper `manifest.json` generation.
 
 Current Position update: 0.1.222 farm5 result is source evidence READY and abuse readiness READY, while restart/container-order readiness remained BLOCKED due to missing controlled-order mapping into `post_restart_or_controlled_order_test_performed`.
