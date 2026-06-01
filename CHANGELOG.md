@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.227
+
+- fix(phase11e): add an explicit exact-scope rollback package schema and require it during limited activation execute preflight validation; no activation, firewall, runtime, abuse, UI, or Telegram gate is opened.
+
 ## 0.1.226
 - Add the gated Phase11E limited activation execute path, rollback execute path, and post-activation evidence collector for `limited-btc-001` without running activation during PR creation.
 
