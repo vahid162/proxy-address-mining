@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.225
+- Fix Phase11E limited activation package CLI kwargs handling after farm5 0.1.224 proved sync/test OK but the package helper failed on a duplicate `config` argument.
+
 ## 0.1.224
 - Fix Phase11E controlled-order source evidence mapping into restart/container-order readiness and restore helper `manifest.json` generation for operator review.
 
