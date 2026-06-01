@@ -51,3 +51,7 @@ Even a READY review is limited activation review evidence only. It does not auth
 ## Next Step After READY
 
 The only next step is `phase11e_limited_customer_observation_window_or_phase11_final_readiness_planning`. Phase 11 final acceptance, production expansion, and abuse automation remain separate later decisions.
+
+## 0.1.230 Read-only Observation Window and Final-readiness Planning
+
+After the recorded farm5 `0.1.229` READY result, run `scripts/phase11e_run_limited_customer_observation_window_and_final_readiness.sh` for hashed, fail-closed read-only collection. For local-peer `postgresql:///mpf`, the operator should run DB-reading `mpf` commands as `sudo -u mpf`, not root. The helper creates a limited customer observation-window report, hashes it, then creates a Phase 11 final-acceptance readiness-planning report. It does not authorize Phase 11 final acceptance or any production/miner/abuse/UI/Telegram expansion.
