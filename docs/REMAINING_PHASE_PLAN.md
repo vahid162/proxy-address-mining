@@ -1,4 +1,14 @@
 
+
+## Current Phase 11E Limited Activation Position (0.1.226 target)
+
+- Farm5 `0.1.225` produced READY decision, execution, and rollback packages with `expected_version=repository_version=0.1.225`.
+- `limited-btc-001` remains paused before execution.
+- `canary-btc-001` remains active and must be preserved.
+- The `0.1.226` target is the gated limited activation execute path, rollback execute path, and post-evidence collector.
+- After merge, sync, and tests, the next step is an operator-reviewed controlled activation run followed immediately by post-activation evidence collection.
+
+Any older current-position wording about `0.1.216` or runtime/Stratum evidence collection is historical only; the reviewed limited activation readiness packages are already READY.
 # Remaining Phase Plan
 
 Status: planning reference aligned to docs/PHASE_STATUS.md.

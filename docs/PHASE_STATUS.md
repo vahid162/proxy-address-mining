@@ -1,5 +1,7 @@
 # PHASE STATUS
 
+Phase 11 planning/readiness note (0.1.226): adds a gated limited-btc-001 activation execute path, rollback execute path, and post-activation evidence collector after farm5 0.1.225 generated READY decision/execution/rollback packages; this PR does not execute activation during development and does not open unrestricted production/miner/abuse/UI/Telegram gates.
+
 Status: Active project control file
 
 Phase 11 planning/readiness note (0.1.225): fixed Phase11E limited activation package CLI kwargs handling after farm5 0.1.224 sync/test passed but the package helper failed on duplicate config argument.
