@@ -2,7 +2,7 @@
 
 ## 0.1.228
 
-- fix(phase11e): record limited activation helper execution evidence accurately, fail closed on malformed execution JSON, and forward optional source evidence into post-evidence collection without opening runtime gates.
+- fix(phase11e): record limited activation helper execution evidence accurately, fail closed on malformed execution JSON, forward optional source evidence into post-evidence collection, and accept real nested Phase 11E DB/proxy source bundle health fields without opening runtime gates.
 
 ## 0.1.227
 

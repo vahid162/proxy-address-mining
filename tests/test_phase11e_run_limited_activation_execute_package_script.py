@@ -28,7 +28,7 @@ def helper_args(tmp_path: Path) -> tuple[list[str], Path, Path, Path]:
     execution = _write_json(inputs / "execution-package.json", {})
     rollback = _write_json(inputs / "rollback.json", {})
     artifact = _write_json(inputs / "artifact.json", {})
-    source = _write_json(inputs / "source.json", {"db_ok": True, "proxy_ok": True})
+    source = _write_json(inputs / "source.json", {"db_status": {"ok": True, "status": "OK"}, "proxy_doctor": {"ok": True, "final_verdict": "OK"}, "mpf_doctor": {"ok": True, "status": "OK"}, "lanes": [{"name": "btc", "enabled": True}], "customers": [{"customer_key": "limited-btc-001", "status": "active", "lane": "btc"}], "current_controlled_artifact_gate": {"production_gates_remain_closed": True}})
     out_dir = tmp_path / "out"
     args = [
         "bash", str(SCRIPT_PATH),
