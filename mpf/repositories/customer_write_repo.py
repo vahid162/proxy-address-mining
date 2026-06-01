@@ -313,3 +313,49 @@ def restore_phase11_exact_canary_db_visibility_customer(config: MPFConfig, *, cu
     except Exception as exc:  # noqa: BLE001
         return CustomerMutationResult(ok=False, message=str(exc), customer_key=customer_key)
     return CustomerMutationResult(ok=True, message="OK", customer_id=customer_id, customer_key=customer_key)
+
+
+def _set_phase11e_limited_customer_status(config: MPFConfig, *, customer_key: str, lane: str, port: int, before_status: str, after_status: str, operator: str, reason: str, action: str) -> CustomerMutationResult:
+    """Mutate the one reviewed Phase 11E customer only; never touches firewall/runtime state."""
+    if customer_key != "limited-btc-001" or lane != "btc" or port != 20101:
+        return CustomerMutationResult(ok=False, message="scope must be exact Phase 11E limited customer", customer_key=customer_key)
+    if (before_status, after_status) not in {("paused", "active"), ("active", "paused")}:
+        return CustomerMutationResult(ok=False, message="unsupported Phase 11E limited customer transition", customer_key=customer_key)
+    try:
+        import psycopg
+        with psycopg.connect(config.database.url, connect_timeout=5) as conn:
+            with conn.transaction():
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        select c.id, c.status
+                        from customers c
+                        join lanes l on l.id = c.lane_id
+                        where c.customer_key=%s and lower(l.name)=lower(%s) and c.port=%s and c.deleted_at is null
+                        for update
+                    """, (customer_key, lane, port))
+                    row = cur.fetchone()
+                    if row is None:
+                        return CustomerMutationResult(ok=False, message="exact Phase 11E limited customer not found", customer_key=customer_key)
+                    customer_id, status = int(row[0]), str(row[1])
+                    if status != before_status:
+                        return CustomerMutationResult(ok=False, message=f"expected {before_status} status before Phase 11E transition", customer_id=customer_id, customer_key=customer_key)
+                    cur.execute("update customers set status=%s, updated_at=now() where id=%s", (after_status, customer_id))
+                    _insert_event_audit(
+                        cur,
+                        customer_id=customer_id,
+                        event_type=f"customer.phase11e_limited_{action}",
+                        message=f"Phase 11E limited customer {action} by {operator}",
+                        action=f"customer.phase11e_limited_{action}",
+                        reason=reason,
+                    )
+    except Exception as exc:  # noqa: BLE001
+        return CustomerMutationResult(ok=False, message=str(exc), customer_key=customer_key)
+    return CustomerMutationResult(ok=True, message="OK", customer_id=customer_id, customer_key=customer_key, would_mutate_customer=True, would_create_event=True, would_create_audit=True)
+
+
+def activate_phase11e_limited_customer(config: MPFConfig, *, customer_key: str, lane: str, port: int, operator: str, reason: str) -> CustomerMutationResult:
+    return _set_phase11e_limited_customer_status(config, customer_key=customer_key, lane=lane, port=port, before_status="paused", after_status="active", operator=operator, reason=reason, action="activated")
+
+
+def rollback_phase11e_limited_customer(config: MPFConfig, *, customer_key: str, lane: str, port: int, operator: str, reason: str) -> CustomerMutationResult:
+    return _set_phase11e_limited_customer_status(config, customer_key=customer_key, lane=lane, port=port, before_status="active", after_status="paused", operator=operator, reason=reason, action="rolled_back")

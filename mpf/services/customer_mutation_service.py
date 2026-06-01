@@ -53,3 +53,15 @@ def set_ips_db_only_customer(config: MPFConfig, req: CustomerSetIpsRequest, *, d
 
 def restore_phase11_exact_canary_db_visibility_customer(config: MPFConfig, **kwargs) -> CustomerMutationResult:
     return _restore_phase11_exact_canary_db_visibility_customer(config, **kwargs)
+
+
+def activate_phase11e_limited_customer(config: MPFConfig, **kwargs) -> CustomerMutationResult:
+    """Exact-scope Phase 11E activation wrapper; intentionally not a generic customer activation API."""
+    from mpf.repositories.customer_write_repo import activate_phase11e_limited_customer as _activate
+    return _activate(config, **kwargs)
+
+
+def rollback_phase11e_limited_customer(config: MPFConfig, **kwargs) -> CustomerMutationResult:
+    """Exact-scope Phase 11E rollback wrapper; intentionally not a generic customer pause API."""
+    from mpf.repositories.customer_write_repo import rollback_phase11e_limited_customer as _rollback
+    return _rollback(config, **kwargs)

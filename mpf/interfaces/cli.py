@@ -130,6 +130,9 @@ from mpf.services import (
     phase11e_limited_activation_execution_package_service,
     phase11e_limited_activation_rollback_package_service,
     phase11e_limited_activation_post_evidence_service,
+    phase11e_limited_activation_execute_service,
+    phase11e_limited_activation_rollback_execute_service,
+    phase11e_limited_activation_post_evidence_collect_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3412,3 +3415,33 @@ def production_phase11e_limited_activation_post_evidence(expected_version: str =
     report = phase11e_limited_activation_post_evidence_service.build_phase11e_limited_activation_post_evidence_report(_load(cfg_path), **kwargs)
     if out_path: out_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     _print_output(report, output_mode)
+
+
+@production_app.command("phase11e-limited-activation-execute")
+def production_phase11e_limited_activation_execute(
+    expected_version: str = typer.Option(..., "--expected-version"), limited_activation_decision_json: Path = typer.Option(..., "--limited-activation-decision-json"), limited_activation_decision_json_sha256: str = typer.Option(..., "--limited-activation-decision-json-sha256"), limited_activation_execution_package_json: Path = typer.Option(..., "--limited-activation-execution-package-json"), limited_activation_execution_package_json_sha256: str = typer.Option(..., "--limited-activation-execution-package-json-sha256"), limited_activation_rollback_package_json: Path = typer.Option(..., "--limited-activation-rollback-package-json"), limited_activation_rollback_package_json_sha256: str = typer.Option(..., "--limited-activation-rollback-package-json-sha256"), artifact_gate_json: Path = typer.Option(..., "--artifact-gate-json"), artifact_gate_json_sha256: str = typer.Option(..., "--artifact-gate-json-sha256"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_this_mutates_limited_customer_db_state: bool = typer.Option(False, "--i-understand-this-mutates-limited-customer-db-state"), i_understand_limited_btc_001_only: bool = typer.Option(False, "--i-understand-limited-btc-001-only"), i_understand_canary_must_be_preserved: bool = typer.Option(False, "--i-understand-canary-must-be-preserved"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_unrestricted_production: bool = typer.Option(False, "--i-understand-no-unrestricted-production"), i_understand_no_miner_traffic_expansion: bool = typer.Option(False, "--i-understand-no-miner-traffic-expansion"), i_understand_no_abuse_automation: bool = typer.Option(False, "--i-understand-no-abuse-automation"), i_understand_phase11_not_accepted: bool = typer.Option(False, "--i-understand-phase11-not-accepted"), i_have_reviewed_rollback_package: bool = typer.Option(False, "--i-have-reviewed-rollback-package"), i_have_reviewed_post_evidence_command: bool = typer.Option(False, "--i-have-reviewed-post-evidence-command"),
+) -> None:
+    kwargs = dict(locals()); cfg = kwargs.pop("config"); mode = kwargs.pop("output"); out = kwargs.pop("out_json")
+    report = phase11e_limited_activation_execute_service.build_phase11e_limited_activation_execute_report(_load(cfg), **kwargs)
+    if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    _print_output(report, mode)
+
+
+@production_app.command("phase11e-limited-activation-rollback-execute")
+def production_phase11e_limited_activation_rollback_execute(
+    expected_version: str = typer.Option(..., "--expected-version"), activation_execution_json: Path = typer.Option(..., "--activation-execution-json"), activation_execution_json_sha256: str = typer.Option(..., "--activation-execution-json-sha256"), limited_activation_rollback_package_json: Path = typer.Option(..., "--limited-activation-rollback-package-json"), limited_activation_rollback_package_json_sha256: str = typer.Option(..., "--limited-activation-rollback-package-json-sha256"), artifact_gate_json: Path = typer.Option(..., "--artifact-gate-json"), artifact_gate_json_sha256: str = typer.Option(..., "--artifact-gate-json-sha256"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_this_mutates_limited_customer_db_state: bool = typer.Option(False, "--i-understand-this-mutates-limited-customer-db-state"), i_understand_rollback_limited_btc_001_only: bool = typer.Option(False, "--i-understand-rollback-limited-btc-001-only"), i_understand_canary_must_be_preserved: bool = typer.Option(False, "--i-understand-canary-must-be-preserved"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_conntrack_flush: bool = typer.Option(False, "--i-understand-no-conntrack-flush"), i_understand_phase11_not_accepted: bool = typer.Option(False, "--i-understand-phase11-not-accepted"),
+) -> None:
+    kwargs = dict(locals()); cfg = kwargs.pop("config"); mode = kwargs.pop("output"); out = kwargs.pop("out_json")
+    report = phase11e_limited_activation_rollback_execute_service.build_phase11e_limited_activation_rollback_execute_report(_load(cfg), **kwargs)
+    if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    _print_output(report, mode)
+
+
+@production_app.command("phase11e-limited-activation-post-evidence-collect")
+def production_phase11e_limited_activation_post_evidence_collect(
+    expected_version: str = typer.Option(..., "--expected-version"), activation_execution_json: Path = typer.Option(..., "--activation-execution-json"), activation_execution_json_sha256: str = typer.Option(..., "--activation-execution-json-sha256"), artifact_gate_json: Path = typer.Option(..., "--artifact-gate-json"), artifact_gate_json_sha256: str = typer.Option(..., "--artifact-gate-json-sha256"), source_evidence_json: Path | None = typer.Option(None, "--source-evidence-json"), source_evidence_json_sha256: str | None = typer.Option(None, "--source-evidence-json-sha256"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_post_evidence_only: bool = typer.Option(False, "--i-understand-post-evidence-only"), i_understand_no_db_mutation: bool = typer.Option(False, "--i-understand-no-db-mutation"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_production_traffic_expansion: bool = typer.Option(False, "--i-understand-no-production-traffic-expansion"), i_understand_no_miner_traffic_expansion: bool = typer.Option(False, "--i-understand-no-miner-traffic-expansion"), i_understand_no_abuse_automation: bool = typer.Option(False, "--i-understand-no-abuse-automation"),
+) -> None:
+    kwargs = dict(locals()); cfg = kwargs.pop("config"); mode = kwargs.pop("output"); out = kwargs.pop("out_json")
+    report = phase11e_limited_activation_post_evidence_collect_service.build_phase11e_limited_activation_post_evidence_collect_report(_load(cfg), **kwargs)
+    if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    _print_output(report, mode)
