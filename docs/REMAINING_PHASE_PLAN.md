@@ -35,7 +35,7 @@ docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any
 - Phase 11 final acceptance remains separate. Production expansion remains separate. Abuse automation enable remains separate. UI and Telegram remain later phases.
 - This target does not convert historical notes into active authorization and does not open the Current State gates.
 
-## Historical Current Position Notes
+## Current Position
 
 The notes below are retained as historical planning context only. The active target is the `Phase 11E 0.1.229 Target Position` section above, and `docs/PHASE_STATUS.md` remains authoritative.
 
