@@ -135,6 +135,8 @@ from mpf.services import (
     phase11e_limited_activation_post_evidence_collect_service,
     phase11e_limited_activation_observation_collect_service,
     phase11e_limited_activation_acceptance_review_service,
+    phase11e_limited_customer_observation_window_service,
+    phase11_final_acceptance_readiness_planning_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3465,5 +3467,25 @@ def production_phase11e_limited_activation_acceptance_review(
 ) -> None:
     kwargs = dict(locals()); cfg = kwargs.pop("config"); mode = kwargs.pop("output"); out = kwargs.pop("out_json")
     report = phase11e_limited_activation_acceptance_review_service.build_phase11e_limited_activation_acceptance_review_report(_load(cfg), **kwargs)
+    if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    _print_output(report, mode)
+
+
+@production_app.command("phase11e-limited-customer-observation-window")
+def production_phase11e_limited_customer_observation_window(
+    expected_version: str = typer.Option(..., "--expected-version"), observation_json: Path = typer.Option(..., "--observation-json"), observation_json_sha256: str = typer.Option(..., "--observation-json-sha256"), acceptance_review_json: Path = typer.Option(..., "--acceptance-review-json"), acceptance_review_json_sha256: str = typer.Option(..., "--acceptance-review-json-sha256"), artifact_gate_json: Path = typer.Option(..., "--artifact-gate-json"), artifact_gate_json_sha256: str = typer.Option(..., "--artifact-gate-json-sha256"), source_evidence_json: Path = typer.Option(..., "--source-evidence-json"), source_evidence_json_sha256: str = typer.Option(..., "--source-evidence-json-sha256"), window_start: str = typer.Option(..., "--window-start"), window_end: str = typer.Option(..., "--window-end"), sample_interval_seconds: int = typer.Option(..., "--sample-interval-seconds"), min_samples: int = typer.Option(..., "--min-samples"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_observation_window_only: bool = typer.Option(False, "--i-understand-observation-window-only"), i_understand_no_db_mutation: bool = typer.Option(False, "--i-understand-no-db-mutation"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_runtime_change: bool = typer.Option(False, "--i-understand-no-runtime-change"), i_understand_no_production_traffic_expansion: bool = typer.Option(False, "--i-understand-no-production-traffic-expansion"), i_understand_no_miner_traffic_expansion: bool = typer.Option(False, "--i-understand-no-miner-traffic-expansion"), i_understand_no_abuse_automation: bool = typer.Option(False, "--i-understand-no-abuse-automation"), i_understand_phase11_not_accepted: bool = typer.Option(False, "--i-understand-phase11-not-accepted"),
+) -> None:
+    kwargs = dict(locals()); cfg = kwargs.pop("config"); mode = kwargs.pop("output"); out = kwargs.pop("out_json")
+    report = phase11e_limited_customer_observation_window_service.build_phase11e_limited_customer_observation_window_report(_load(cfg), **kwargs)
+    if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    _print_output(report, mode)
+
+
+@production_app.command("phase11-final-acceptance-readiness-planning")
+def production_phase11_final_acceptance_readiness_planning(
+    expected_version: str = typer.Option(..., "--expected-version"), observation_window_json: Path = typer.Option(..., "--observation-window-json"), observation_window_json_sha256: str = typer.Option(..., "--observation-window-json-sha256"), acceptance_review_json: Path = typer.Option(..., "--acceptance-review-json"), acceptance_review_json_sha256: str = typer.Option(..., "--acceptance-review-json-sha256"), rollback_package_json: Path = typer.Option(..., "--rollback-package-json"), rollback_package_json_sha256: str = typer.Option(..., "--rollback-package-json-sha256"), artifact_gate_json: Path = typer.Option(..., "--artifact-gate-json"), artifact_gate_json_sha256: str = typer.Option(..., "--artifact-gate-json-sha256"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path | None = typer.Option(None, "--config", "-c"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_readiness_planning_only: bool = typer.Option(False, "--i-understand-readiness-planning-only"), i_understand_no_current_state_change: bool = typer.Option(False, "--i-understand-no-current-state-change"), i_understand_no_production_expansion: bool = typer.Option(False, "--i-understand-no-production-expansion"), i_understand_no_miner_traffic_expansion: bool = typer.Option(False, "--i-understand-no-miner-traffic-expansion"), i_understand_no_abuse_automation: bool = typer.Option(False, "--i-understand-no-abuse-automation"), i_understand_no_ui_telegram: bool = typer.Option(False, "--i-understand-no-ui-telegram"), i_understand_phase11_not_accepted: bool = typer.Option(False, "--i-understand-phase11-not-accepted"),
+) -> None:
+    kwargs = dict(locals()); cfg = kwargs.pop("config"); mode = kwargs.pop("output"); out = kwargs.pop("out_json")
+    report = phase11_final_acceptance_readiness_planning_service.build_phase11_final_acceptance_readiness_planning_report(_load(cfg), **kwargs)
     if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
     _print_output(report, mode)

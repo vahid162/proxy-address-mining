@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.230 - 2026-06-01
+
+- Add read-only Phase 11E limited customer observation-window collection and Phase 11 final-acceptance readiness planning.
+
 ## 0.1.229
 
 - feat(phase11e): add read-only limited activation observation collection and limited acceptance review gating with hashed artifact validation; keep production, miner, abuse, UI, Telegram, DB mutation, firewall, runtime, rollback, and Phase 11 final acceptance gates closed.

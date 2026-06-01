@@ -1,3 +1,11 @@
+## Phase 11E 0.1.230 Active Target Position
+
+- GitHub `main` before this PR is `0.1.229`.
+- Farm5 `0.1.229` limited activation observation and acceptance review READY evidence is recorded.
+- The `0.1.230` target is a read-only limited customer observation window followed by a read-only Phase 11 final-acceptance readiness planning report.
+- This target does not authorize production expansion, miner traffic expansion, DB/firewall/runtime mutation, abuse automation, UI, Telegram, or Phase 11 final acceptance.
+- Historical notes below remain non-authorizing; `docs/PHASE_STATUS.md` remains authoritative.
+
 
 
 ## Current Phase 11E Limited Activation Position (0.1.226 target)
