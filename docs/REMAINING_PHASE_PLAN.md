@@ -1,3 +1,10 @@
+## Phase 11 0.1.231 Active Target Position
+
+- Record farm5 `0.1.230` observation-window and final-readiness planning READY evidence for `limited-btc-001` while preserving `canary-btc-001`.
+- Add the read-only `mpf production phase11-limited-acceptance-decision-gate` report and helper package.
+- A READY report prepares only `phase11_controlled_boundary_acceptance_package_pr`.
+- Phase 11 final acceptance, production expansion, miner traffic expansion, abuse automation, UI, Telegram, DB mutation, firewall apply, and runtime mutation remain closed.
+
 ## Phase 11E 0.1.230 Active Target Position
 
 - GitHub `main` before this PR is `0.1.229`.
