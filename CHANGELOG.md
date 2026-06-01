@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.229
+
+- feat(phase11e): add read-only limited activation observation collection and limited acceptance review gating with hashed artifact validation; keep production, miner, abuse, UI, Telegram, DB mutation, firewall, runtime, rollback, and Phase 11 final acceptance gates closed.
+
 ## 0.1.228
 
 - fix(phase11e): record limited activation helper execution evidence accurately, fail closed on malformed execution JSON, forward optional source evidence into post-evidence collection, and accept real nested Phase 11E DB/proxy source bundle health fields without opening runtime gates.

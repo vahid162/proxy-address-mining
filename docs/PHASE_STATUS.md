@@ -1,3 +1,7 @@
+Phase 11 planning/readiness note (0.1.229): adds a read-only limited activation observation collector and a read-only limited activation acceptance review gate after the reported farm5 0.1.228 source-backed post-evidence READY context. Farm5 claims must be validated from supplied JSON artifacts and SHA-256 hashes. This PR does not execute activation, mutate DB/firewall/runtime, perform rollback, mark Phase 11 accepted, or open production/miner/abuse/UI/Telegram gates.
+
+Phase 11 planning/readiness note (0.1.228): accepted nested source-backed DB/proxy health evidence and forwarded optional source evidence into post-evidence recollection without changing Current State or opening runtime gates.
+
 Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation execute preflight rollback-package scope validation after farm5 0.1.226 failed closed before mutation with rollback package scope mismatch; no activation is executed by this PR and all public/miner/abuse/UI/Telegram gates remain closed.
 
 # PHASE STATUS

@@ -13,6 +13,8 @@ from mpf.services.phase11e_limited_activation_common import (
     validate_expected_version,
     validate_operator,
     validate_scope,
+    source_db_ok,
+    source_proxy_ok,
 )
 
 CONFIRMATIONS = (
@@ -24,27 +26,6 @@ CONFIRMATIONS = (
     "i_understand_no_miner_traffic_expansion",
     "i_understand_no_abuse_automation",
 )
-OK_STATUSES = {"OK", "PASS", "HEALTHY", "READY"}
-
-
-def _status_is_ok(value: object, *, verdict_key: str | None = None) -> bool:
-    if not isinstance(value, dict):
-        return False
-    if value.get("ok") is True:
-        return True
-    if str(value.get("status", "")).strip().upper() in OK_STATUSES:
-        return True
-    return verdict_key is not None and str(value.get(verdict_key, "")).strip().upper() in OK_STATUSES
-
-
-def _source_db_ok(source: dict[str, object]) -> bool:
-    return source.get("db_ok") is True or _status_is_ok(source.get("db_status"))
-
-
-def _source_proxy_ok(source: dict[str, object]) -> bool:
-    return source.get("proxy_ok") is True or _status_is_ok(source.get("proxy_doctor"), verdict_key="final_verdict")
-
-
 def build_phase11e_limited_activation_post_evidence_collect_report(config: MPFConfig, **kwargs: object) -> dict[str, object]:
     blockers: list[str] = []
     warnings: list[str] = []
@@ -87,8 +68,8 @@ def build_phase11e_limited_activation_post_evidence_collect_report(config: MPFCo
         if not canary_preserved:
             blockers.append("canary_missing_or_not_active")
 
-    db_ok = None if source is None else _source_db_ok(source)
-    proxy_ok = None if source is None else _source_proxy_ok(source)
+    db_ok = None if source is None else source_db_ok(source)
+    proxy_ok = None if source is None else source_proxy_ok(source)
     if source is None:
         warnings.append("source_evidence_not_provided_db_proxy_checks_unavailable")
     elif db_ok is not True or proxy_ok is not True:

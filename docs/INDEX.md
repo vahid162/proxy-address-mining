@@ -674,3 +674,4 @@ Current Phase 11E operator runbook: `docs/PHASE_11E_SINGLE_CUSTOMER_RUNTIME_STRA
 - `docs/PHASE_11E_SOURCE_BACKED_READINESS_CLOSURE.md`
 
 - `docs/PHASE_11E_LIMITED_ACTIVATION_EXECUTION_RUNBOOK.md` — gated limited-btc-001 execute, rollback, and post-evidence operator flow.
+- `docs/PHASE_11E_LIMITED_ACTIVATION_OBSERVATION_ACCEPTANCE_REVIEW.md` — read-only hashed observation and limited acceptance review flow; non-authorizing.
