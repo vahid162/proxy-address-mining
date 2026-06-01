@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from mpf.config import MPFConfig
 from mpf.services import customer_mutation_service, customer_read_service
-from mpf.services.phase11e_limited_activation_common import CANARY_KEY, SCOPE, base_report, load_hashed_json, validate_artifact_gate, validate_confirmations, validate_current_phase_gate, validate_expected_version, validate_operator, validate_scope
+from mpf.services.phase11e_limited_activation_common import CANARY_KEY, SCOPE, base_report, load_hashed_json, validate_artifact_gate, validate_confirmations, validate_current_phase_gate, validate_expected_version, validate_operator, validate_rollback_package_scope, validate_scope
 
 CONFIRMATIONS=("operator_confirmed","i_understand_this_mutates_limited_customer_db_state","i_understand_rollback_limited_btc_001_only","i_understand_canary_must_be_preserved","i_understand_no_firewall_apply","i_understand_no_conntrack_flush","i_understand_phase11_not_accepted")
 
@@ -12,7 +12,7 @@ def build_phase11e_limited_activation_rollback_execute_report(config: MPFConfig,
     execution=load_hashed_json(kwargs,"activation_execution_json","activation_execution_json_sha256",blockers)
     rollback=load_hashed_json(kwargs,"limited_activation_rollback_package_json","limited_activation_rollback_package_json_sha256",blockers)
     artifact=load_hashed_json(kwargs,"artifact_gate_json","artifact_gate_json_sha256",blockers)
-    validate_scope(execution,blockers,"activation_execution"); validate_scope(rollback,blockers,"rollback_package"); validate_artifact_gate(artifact,blockers); validate_current_phase_gate(blockers)
+    validate_scope(execution,blockers,"activation_execution"); validate_rollback_package_scope(rollback,blockers); validate_artifact_gate(artifact,blockers); validate_current_phase_gate(blockers)
     if execution is not None and execution.get("final_decision")!="PHASE11E_LIMITED_ACTIVATION_EXECUTED_PENDING_EVIDENCE": blockers.append("activation_execution_not_ready")
     if rollback is not None and rollback.get("final_decision")!="PHASE11E_LIMITED_ACTIVATION_ROLLBACK_PACKAGE_READY": blockers.append("rollback_package_not_ready")
     rows=customer_read_service.list_customer_status(config,include_deleted=False,limit=5000)

@@ -4,7 +4,7 @@ from mpf.config import MPFConfig
 from mpf.services import customer_mutation_service, customer_read_service
 from mpf.services.phase11e_limited_activation_common import (
     CANARY_KEY, SCOPE, base_report, load_hashed_json, validate_artifact_gate,
-    validate_confirmations, validate_current_phase_gate, validate_expected_version, validate_operator, validate_scope,
+    validate_confirmations, validate_current_phase_gate, validate_expected_version, validate_operator, validate_rollback_package_scope, validate_scope,
 )
 
 CONFIRMATIONS = (
@@ -46,11 +46,13 @@ def build_phase11e_limited_activation_execute_report(config: MPFConfig, **kwargs
     for payload, tag, final_decision in (
         (decision, "decision", "PHASE11E_LIMITED_ACTIVATION_DECISION_READY"),
         (execution, "execution_package", "PHASE11E_LIMITED_ACTIVATION_EXECUTION_PACKAGE_READY"),
-        (rollback, "rollback_package", "PHASE11E_LIMITED_ACTIVATION_ROLLBACK_PACKAGE_READY"),
     ):
         validate_scope(payload, blockers, tag)
         if payload is not None and payload.get("final_decision") != final_decision:
             blockers.append(f"{tag}_not_ready")
+    validate_rollback_package_scope(rollback, blockers)
+    if rollback is not None and rollback.get("final_decision") != "PHASE11E_LIMITED_ACTIVATION_ROLLBACK_PACKAGE_READY":
+        blockers.append("rollback_package_not_ready")
     validate_artifact_gate(artifact, blockers)
     validate_current_phase_gate(blockers)
     before, _ = _customers(config, blockers)

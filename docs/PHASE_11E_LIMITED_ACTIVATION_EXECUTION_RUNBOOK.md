@@ -1,4 +1,4 @@
-# Phase 11E Limited Activation Execution Runbook (0.1.226)
+# Phase 11E Limited Activation Execution Runbook (0.1.227)
 
 ## Farm5 baseline
 
@@ -7,6 +7,13 @@ The reviewed baseline is farm5 `0.1.225`: sync succeeded, `python -m pytest` rep
 ## Exact scope
 
 Only `limited-btc-001` / `btc` / `20101` / `172.18.0.3:60010` is in scope.
+
+## What 0.1.227 fixes
+
+- the rollback package now records its exact reviewed rollback scope explicitly;
+- limited activation execute preflight accepts only that strict rollback package schema and still fails closed on missing or mismatched scope.
+
+This PR does **not** execute activation. All public, miner, abuse, UI, and Telegram gates remain closed.
 
 ## What 0.1.226 adds
 

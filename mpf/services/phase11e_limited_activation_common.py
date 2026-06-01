@@ -91,6 +91,22 @@ def validate_scope(payload: dict[str, object] | None, blockers: list[str], tag: 
             blockers.append(f"scope_mismatch:{tag}:{key}")
 
 
+def validate_rollback_package_scope(payload: dict[str, object] | None, blockers: list[str]) -> None:
+    if payload is None:
+        return
+    if payload.get("component") != "phase11e_limited_activation_rollback_package":
+        blockers.append("scope_mismatch:rollback_package:schema")
+    rollback_scope = {
+        "candidate_customer_key": payload.get("rollback_customer_key"),
+        "lane": payload.get("rollback_lane"),
+        "public_port": payload.get("rollback_public_port"),
+        "backend_target": payload.get("rollback_backend_target"),
+    }
+    for key, expected in SCOPE.items():
+        if rollback_scope[key] != expected:
+            blockers.append(f"scope_mismatch:rollback_package:{key}")
+
+
 def validate_artifact_gate(payload: dict[str, object] | None, blockers: list[str]) -> None:
     if payload is None:
         return

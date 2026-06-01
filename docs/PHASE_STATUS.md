@@ -1,3 +1,5 @@
+Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation execute preflight rollback-package scope validation after farm5 0.1.226 failed closed before mutation with rollback package scope mismatch; no activation is executed by this PR and all public/miner/abuse/UI/Telegram gates remain closed.
+
 # PHASE STATUS
 
 Phase 11 planning/readiness note (0.1.226): adds a gated limited-btc-001 activation execute path, rollback execute path, and post-activation evidence collector after farm5 0.1.225 generated READY decision/execution/rollback packages; this PR does not execute activation during development and does not open unrestricted production/miner/abuse/UI/Telegram gates.
