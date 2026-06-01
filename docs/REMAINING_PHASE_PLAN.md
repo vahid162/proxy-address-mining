@@ -27,6 +27,14 @@ Current Position update (0.1.220): repository version is 0.1.220; 0.1.219 helper
 Current Position update (0.1.219): repository version is 0.1.219; runtime path READY; stratum transcript READY; visibility bundle READY at 0.1.218; abuse 1h and restart/container-order readiness still required; limited acceptance decision still required; production/miner traffic remains blocked.
 docs/PHASE_STATUS.md remains the authoritative gate. This plan does not open any runtime gate by itself.
 
+## Phase 11E 0.1.229 Target Position
+
+- GitHub `main` before this PR is `0.1.228`.
+- The `0.1.229` target is read-only limited activation observation plus limited acceptance review.
+- Reported `limited-btc-001` activation and source-backed post-evidence claims must be validated from actual farm5 JSON artifacts and SHA-256 hashes supplied to the helper or CLI.
+- Phase 11 final acceptance remains separate. Production expansion remains separate. Abuse automation enable remains separate. UI and Telegram remain later phases.
+- This target does not convert historical notes into active authorization and does not open the Current State gates.
+
 ## Current Position
 
 - Current accepted phase is Phase 10.

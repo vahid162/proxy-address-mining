@@ -24,6 +24,26 @@ PHASE_GATE_REQUIREMENTS = {
     "telegram_allowed": "no",
 }
 
+OK_STATUSES = {"OK", "PASS", "HEALTHY", "READY"}
+
+
+def status_is_ok(value: object, *, verdict_key: str | None = None) -> bool:
+    if not isinstance(value, dict):
+        return False
+    if value.get("ok") is True:
+        return True
+    if str(value.get("status", "")).strip().upper() in OK_STATUSES:
+        return True
+    return verdict_key is not None and str(value.get(verdict_key, "")).strip().upper() in OK_STATUSES
+
+
+def source_db_ok(source: dict[str, object]) -> bool:
+    return source.get("db_ok") is True or status_is_ok(source.get("db_status"))
+
+
+def source_proxy_ok(source: dict[str, object]) -> bool:
+    return source.get("proxy_ok") is True or status_is_ok(source.get("proxy_doctor"), verdict_key="final_verdict")
+
 
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
