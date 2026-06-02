@@ -17,6 +17,75 @@ from mpf.domain.abuse_operational import (
 _ALLOWED_DB_ONLY_STATES = {"normal", "over_tracking", "over_grace"}
 
 
+def _empty_to_none(value: Any) -> Any:
+    if value == "":
+        return None
+    return value
+
+
+def _parse_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    text = str(value).strip().lower()
+    if text in {"t", "true", "1", "yes", "on"}:
+        return True
+    if text in {"f", "false", "0", "no", "off", ""}:
+        return False
+    return False
+
+
+def _parse_int(value: Any, *, default: int = 0) -> int:
+    value = _empty_to_none(value)
+    if value is None:
+        return default
+    return int(value)
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    value = _empty_to_none(value)
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+    text = str(value).strip()
+    if not text:
+        return None
+    parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=UTC)
+
+
+def _parse_text_array(value: Any) -> list[str]:
+    value = _empty_to_none(value)
+    if value is None:
+        return []
+    if isinstance(value, list | tuple):
+        return [str(item) for item in value]
+    text = str(value).strip()
+    if not text or text == "{}":
+        return []
+    if text.startswith("{") and text.endswith("}"):
+        inner = text[1:-1].strip()
+        if not inner:
+            return []
+        return [item.strip().strip('"') for item in inner.split(",") if item.strip()]
+    return [text]
+
+
+def _parse_json_value(value: Any) -> Any:
+    value = _empty_to_none(value)
+    if value is None or isinstance(value, dict | list):
+        return value if value is not None else {}
+    text = str(value).strip()
+    if not text:
+        return {}
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return value
+
+
 class PostgresAbuseOperationalRepo:
     """Controlled PostgreSQL abuse repository.
 
@@ -65,34 +134,34 @@ class PostgresAbuseOperationalRepo:
         return customers
 
     def _customer_from_row(self, row: dict[str, Any]) -> OperationalAbuseCustomer:
-        customer_id = int(row["customer_id"])
+        customer_id = _parse_int(row["customer_id"])
         return OperationalAbuseCustomer(
             customer_id=customer_id,
-            lane_id=int(row["lane_id"]),
+            lane_id=_parse_int(row["lane_id"]),
             customer_key=str(row["customer_key"]),
-            port=int(row["port"]),
+            port=_parse_int(row["port"]),
             active=True,
-            lane_enabled=bool(row["lane_enabled"]),
+            lane_enabled=_parse_bool(row["lane_enabled"]),
             policy=OperationalAbusePolicy(
-                miners=int(row["miners"]),
-                farms=int(row["farms"]),
-                expires_at=row.get("policy_expires_at"),
-                abuse_exempt=bool(row.get("abuse_exempt", False)),
-                abuse_exempt_reason=row.get("abuse_exempt_reason"),
-                abuse_exempt_until=row.get("abuse_exempt_until"),
+                miners=_parse_int(row["miners"]),
+                farms=_parse_int(row["farms"]),
+                expires_at=_parse_datetime(row.get("policy_expires_at")),
+                abuse_exempt=_parse_bool(row.get("abuse_exempt", False)),
+                abuse_exempt_reason=_empty_to_none(row.get("abuse_exempt_reason")),
+                abuse_exempt_until=_parse_datetime(row.get("abuse_exempt_until")),
             ),
             state=OperationalAbuseState(
                 status=str(row["abuse_status"]),
-                first_seen_over=row.get("first_seen_over"),
-                last_seen_over=row.get("last_seen_over"),
-                last_recovery_at=row.get("last_recovery_at"),
-                hard_applied_at=row.get("hard_applied_at"),
+                first_seen_over=_parse_datetime(row.get("first_seen_over")),
+                last_seen_over=_parse_datetime(row.get("last_seen_over")),
+                last_recovery_at=_parse_datetime(row.get("last_recovery_at")),
+                hard_applied_at=_parse_datetime(row.get("hard_applied_at")),
             ),
             evidence=self.evidence_by_customer_id.get(customer_id),
         )
 
     def list_status_rows(self) -> list[dict[str, Any]]:
-        return self._query(
+        rows = self._query(
             """
             select c.id as customer_id, coalesce(c.customer_key, 'customer-id-' || c.id::text) as customer_key,
                    l.name as lane, c.port, coalesce(s.status, 'normal') as status,
@@ -118,12 +187,32 @@ class PostgresAbuseOperationalRepo:
             order by lower(l.name), c.port, c.id
             """
         )
+        return [self._status_row_from_row(row) for row in rows]
+
+    def _status_row_from_row(self, row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "customer_id": _parse_int(row.get("customer_id")),
+            "customer_key": str(row.get("customer_key", "")),
+            "lane": str(row.get("lane", "")),
+            "port": _parse_int(row.get("port")),
+            "status": str(row.get("status", "normal")),
+            "current_hot": _parse_int(row.get("current_hot")),
+            "current_unique_ips": _parse_int(row.get("current_unique_ips")),
+            "current_unique_workers": _parse_int(row.get("current_unique_workers")),
+            "first_seen_over": _parse_datetime(row.get("first_seen_over")),
+            "last_seen_over": _parse_datetime(row.get("last_seen_over")),
+            "last_recovery_at": _parse_datetime(row.get("last_recovery_at")),
+            "hard_applied_at": _parse_datetime(row.get("hard_applied_at")),
+            "latest_event": _empty_to_none(row.get("latest_event")),
+            "warnings": _parse_text_array(row.get("warnings")),
+            "blockers": _parse_text_array(row.get("blockers")),
+        }
 
     def list_events(self, *, limit: int = 50, customer_key: str | None = None) -> list[dict[str, Any]]:
         safe_limit = max(1, min(int(limit), 500))
         customer_filter = "and c.customer_key = %s" if customer_key else ""
         params: tuple[object, ...] = (customer_key,) if customer_key else ()
-        return self._query(
+        rows = self._query(
             f"""
             select ae.customer_id, c.customer_key, ae.event_type, ae.old_status, ae.new_status,
                    ae.created_at, ae.created_by, ae.evidence_json
@@ -135,6 +224,19 @@ class PostgresAbuseOperationalRepo:
             """,
             params,
         )
+        return [self._event_row_from_row(row) for row in rows]
+
+    def _event_row_from_row(self, row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "customer_id": _parse_int(row.get("customer_id")),
+            "customer_key": _empty_to_none(row.get("customer_key")),
+            "event_type": str(row.get("event_type", "")),
+            "old_status": _empty_to_none(row.get("old_status")),
+            "new_status": str(row.get("new_status", "")),
+            "created_at": _parse_datetime(row.get("created_at")),
+            "created_by": _empty_to_none(row.get("created_by")),
+            "evidence_json": _parse_json_value(row.get("evidence_json")),
+        }
 
     def record_evaluation_event(self, evaluation: OperationalAbuseEvaluation, *, actor: str) -> None:
         self._insert_event(evaluation, actor=actor)
