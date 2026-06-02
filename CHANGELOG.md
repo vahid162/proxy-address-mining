@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.239
+
+- Add the controlled abuse operational core and thin `mpf abuse` CLI surface with fail-closed evidence and controlled-package hard/unhard gates; Phase 12 remains blocked.
+
 ## 0.1.238
 
 - Fix farm5 main-zip sync sanity check for Phase 11 operational completion `server_state`.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from typing import Literal
 from pathlib import Path
 
@@ -12,9 +13,12 @@ from mpf.db import write_local_peer_root_guard_message
 from mpf.domain.customer_lifecycle import CustomerLifecycleInput
 from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, CustomerDisableRequest, CustomerPolicyInput, CustomerRenewRequest, CustomerSetIpsRequest, CustomerUpdateRequest
 from mpf.domain.health import HealthReport
+from mpf.domain.abuse_operational import evaluate_operational_abuse
 from mpf.domain import production as production_domain
 from mpf.services import (
     phase8_controlled_worker_dry_run_gate_service,
+    abuse_controlled_package_service,
+    abuse_operational_service,
     firewall_apply_gate_readiness_service,
     firewall_no_customer_apply_acceptance_gate_service,
     firewall_no_customer_apply_execution_acceptance_service,
@@ -168,6 +172,7 @@ phase8_app = typer.Typer(help="Phase 8 report-only readiness commands.")
 phase9_app = typer.Typer(help="Phase 9 report-only readiness commands.")
 phase10_app = typer.Typer(help="Phase 10 report-only planning/readiness commands.")
 production_app = typer.Typer(help="Phase 11 production readiness report-only commands.")
+abuse_app = typer.Typer(help="Controlled Phase 11 abuse operational commands. No timer or daemon is enabled.")
 app.add_typer(config_app, name="config")
 app.add_typer(db_app, name="db")
 app.add_typer(lanes_app, name="lanes")
@@ -182,6 +187,98 @@ app.add_typer(phase8_app, name="phase8")
 app.add_typer(phase9_app, name="phase9")
 app.add_typer(phase10_app, name="phase10")
 app.add_typer(production_app, name="production")
+app.add_typer(abuse_app, name="abuse")
+
+
+
+def _emit_abuse_json(report: dict[str, object]) -> None:
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+def _load_abuse_package(path: Path) -> dict[str, object]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        typer.echo(json.dumps({"status": "BLOCKED", "blockers": ["controlled_package_read_failed"], "error": str(exc)}, indent=2))
+        raise typer.Exit(1)
+    if not isinstance(payload, dict):
+        typer.echo(json.dumps({"status": "BLOCKED", "blockers": ["controlled_package_must_be_json_object"]}, indent=2))
+        raise typer.Exit(1)
+    return payload
+
+
+@abuse_app.command("doctor")
+def abuse_doctor() -> None:
+    _emit_abuse_json(abuse_operational_service.abuse_doctor_report())
+
+
+@abuse_app.command("status")
+def abuse_status() -> None:
+    _emit_abuse_json(abuse_operational_service.status_report())
+
+
+@abuse_app.command("events")
+def abuse_events() -> None:
+    _emit_abuse_json(abuse_operational_service.events_report())
+
+
+@abuse_app.command("run")
+def abuse_run(dry_run: bool = typer.Option(False, "--dry-run"), controlled_execute: bool = typer.Option(False, "--controlled-execute"), package: Path | None = typer.Option(None, "--package")) -> None:
+    if dry_run == controlled_execute:
+        _emit_abuse_json({"status": "BLOCKED", "blockers": ["choose_exactly_one_of_dry_run_or_controlled_execute"]})
+        raise typer.Exit(1)
+    if not controlled_execute:
+        _emit_abuse_json({"status": "BLOCKED", "execute": False, "blockers": ["controlled_evidence_package_required_for_customer_scan"], "evaluations": [], "hard_applied_count": 0, "note": "dry-run performs no DB, firewall, runtime, systemd, or Docker mutation"})
+        return
+    if package is None:
+        _emit_abuse_json({"status": "BLOCKED", "blockers": ["controlled_package_required"]})
+        raise typer.Exit(1)
+    payload = _load_abuse_package(package)
+    try:
+        repo = abuse_controlled_package_service.repo_from_controlled_package(payload)
+    except (KeyError, TypeError, ValueError) as exc:
+        _emit_abuse_json({"status": "BLOCKED", "blockers": ["controlled_package_validation_failed"], "error": str(exc)})
+        raise typer.Exit(1)
+    report = abuse_operational_service.run_abuse_cycle(repo, execute=False)
+    report["status"] = "BLOCKED"
+    report["execute"] = False
+    report["blockers"] = list(report.get("blockers", [])) + ["controlled_postgresql_repository_integration_unavailable"]
+    report["note"] = "package validated and evaluated only; no DB, firewall, runtime, systemd, or Docker mutation performed"
+    _emit_abuse_json(report)
+
+
+@abuse_app.command("hard")
+def abuse_hard(controlled_package: Path = typer.Option(..., "--controlled-package")) -> None:
+    payload = _load_abuse_package(controlled_package)
+    try:
+        repo = abuse_controlled_package_service.repo_from_controlled_package(payload)
+        customers = repo.list_eligible_customers(datetime.now(UTC))
+        if len(customers) != 1:
+            raise ValueError("hard package requires exactly one eligible customer")
+        evaluation = evaluate_operational_abuse(customers[0])
+        report = abuse_operational_service.apply_controlled_hard(repo, evaluation, {**payload, "firewall": {"controlled_path": False}})
+        report["blockers"] = sorted(set(list(report.get("blockers", [])) + ["controlled_firewall_apply_integration_unavailable"]))
+        _emit_abuse_json(report)
+    except (KeyError, TypeError, ValueError) as exc:
+        _emit_abuse_json({"status": "BLOCKED", "operation": "hard", "blockers": ["controlled_package_validation_failed"], "error": str(exc), "hard_applied_at": None})
+        raise typer.Exit(1)
+
+
+@abuse_app.command("unhard")
+def abuse_unhard(controlled_package: Path = typer.Option(..., "--controlled-package")) -> None:
+    payload = _load_abuse_package(controlled_package)
+    try:
+        repo = abuse_controlled_package_service.repo_from_controlled_package(payload)
+        customers = repo.list_eligible_customers(datetime.now(UTC))
+        if len(customers) != 1:
+            raise ValueError("unhard package requires exactly one eligible customer")
+        evaluation = evaluate_operational_abuse(customers[0])
+        report = abuse_operational_service.apply_controlled_unhard(repo, evaluation, {**payload, "firewall": {"controlled_path": False}})
+        report["blockers"] = sorted(set(list(report.get("blockers", [])) + ["controlled_firewall_apply_integration_unavailable"]))
+        _emit_abuse_json(report)
+    except (KeyError, TypeError, ValueError) as exc:
+        _emit_abuse_json({"status": "BLOCKED", "operation": "unhard", "blockers": ["controlled_package_validation_failed"], "error": str(exc)})
+        raise typer.Exit(1)
 
 
 def _config_path(config: Path | None) -> Path:
