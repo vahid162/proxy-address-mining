@@ -1,3 +1,4 @@
+Phase 11 final acceptance note (0.1.234): Phase 11 is accepted on farm5 only for controlled_cli_limited BTC operation. Phase 12 — Worker Policy Enforcement is the active working phase; worker enforcement, UI, Telegram, and unrestricted expansion remain closed.
 Phase 11 planning/readiness note (0.1.231): recorded farm5 0.1.230 observation-window/final-readiness READY evidence and added a read-only limited acceptance decision gate while keeping Current State and all dangerous gates closed.
 Phase 11 planning/readiness note (0.1.230): recorded farm5 0.1.229 limited activation observation/review READY evidence and added read-only limited customer observation-window and final-acceptance readiness-planning reports while keeping Current State closed.
 Phase 11 planning/readiness note (0.1.208): recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating single-customer runtime probe diagnostics while keeping production/miner/acceptance gates closed.
@@ -58,6 +59,8 @@ Historical/reference note:
 - `docs/PHASE_11_FARM5_0_1_230_OBSERVATION_FINAL_READINESS_READY.md` — farm5 0.1.230 read-only observation-window/final-readiness READY evidence; non-authorizing.
 - `docs/PHASE_11_FARM5_0_1_231_LIMITED_ACCEPTANCE_DECISION_READY.md` — farm5 0.1.231 limited acceptance decision READY evidence; non-authorizing.
 - `docs/PHASE_11_FARM5_0_1_232_CONTROLLED_BOUNDARY_ACCEPTANCE_PACKAGE_READY.md` — farm5 0.1.232 controlled boundary acceptance package READY evidence; non-authorizing.
+- `docs/PHASE_11_FARM5_0_1_233_FINAL_ACCEPTANCE_PR_READINESS_READY.md` — farm5 0.1.233 final acceptance PR readiness READY evidence.
+- `docs/PHASE_11_FINAL_ACCEPTANCE.md` — accepted controlled CLI-limited Phase 11 boundary and remaining restrictions.
 
 ## Core Contracts
 

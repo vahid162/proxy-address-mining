@@ -1,5 +1,9 @@
 # AI Coding Rules
 
+## Current Gate Update (0.1.234)
+
+Phase 11 is accepted on farm5 only for `controlled_cli_limited` BTC operation. The working phase is Phase 12 — Worker Policy Enforcement. Worker enforcement remains disabled until Phase 12 acceptance; UI, Telegram, unrestricted production expansion, and unrestricted miner expansion remain closed. Controlled authorization does not relax default `plan_only` config or authorize PR-development runtime mutation. `docs/PHASE_STATUS.md` is authoritative.
+
 Status: active implementation contract
 
 This file defines rules for AI coding agents working on `proxy-address-mining`.
@@ -58,12 +62,13 @@ Current gate:
 
 
 ```text
-accepted: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
-working: Phase 11 — Production / Customer Activation Gate planning/readiness
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-customer_onboarding_allowed: db_only
+accepted: Phase 11 — Production / Customer Activation Gate accepted on farm5
+working: Phase 12 — Worker Policy Enforcement
+production_traffic: controlled_cli_limited
+firewall_apply_allowed: controlled
+abuse_automation_allowed: controlled
+customer_onboarding_allowed: controlled_cli_limited
+worker_enforcement_allowed: no
 proxy_data_plane_allowed: limited_runtime_local_only
 ui_allowed: no
 telegram_allowed: no

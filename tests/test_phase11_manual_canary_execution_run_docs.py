@@ -6,7 +6,7 @@ def test_docs_and_readme_updates() -> None:
     assert 'manual-canary-execute --output json' in d
 
     r = Path('README.md').read_text(encoding='utf-8')
-    assert 'Actual canary execution has not been performed or accepted.' in r
+    assert 'Phase 11 is accepted: controlled CLI-limited production/customer activation is ready on farm5' in r
 
     rp = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')
     assert 'Current blocker before this PR: single_canary_restore_payload_renderer_missing.' in rp

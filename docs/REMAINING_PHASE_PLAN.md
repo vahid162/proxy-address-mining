@@ -1,3 +1,10 @@
+## Phase 12A Active Target Position (0.1.234)
+
+- Phase 11 is accepted on farm5 only for `controlled_cli_limited` BTC production/customer activation.
+- The active target is Phase 12A worker evidence mapping/readiness. Phase 12 is working, not accepted.
+- Worker enforcement remains disabled until Phase 12 acceptance. UI, Telegram, unrestricted production expansion, and unrestricted miner expansion remain closed.
+- Historical Phase 11 target notes below are reference-only and non-authorizing. `docs/PHASE_STATUS.md` remains authoritative.
+
 ## Phase 11 0.1.233 Active Target Position
 
 - Record farm5 `0.1.232` controlled boundary acceptance package READY evidence for active `limited-btc-001` while preserving active `canary-btc-001`.

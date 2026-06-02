@@ -22,8 +22,8 @@ def _canary_row(port=20001):
 def test_abuse_coverage_visible_with_exact_scope(monkeypatch):
     monkeypatch.setattr("mpf.services.customer_read_service.list_customer_status", lambda *a, **k: SimpleNamespace(ok=True, customers=[_canary_row()], message="ok"))
     r = build_phase11_canary_abuse_coverage_visibility_report(_cfg(), customer_key="canary-btc-001", lane="btc", port=20001, expected_version="0.1.198", farm5_baseline_version="0.1.168")
-    assert r["final_decision"] == "ABUSE_COVERAGE_VISIBLE"
-    assert r["generated_evidence"]["abuse_coverage_ok"] is True
+    assert r["final_decision"] == "BLOCKED"
+    assert "worker_enforcement_not_proven_disabled" in r["blockers"]
     assert r["generated_evidence"]["abuse_evidence_source"] == "live_source_backed_canary_abuse_coverage"
 
 

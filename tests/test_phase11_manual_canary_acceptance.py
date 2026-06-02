@@ -96,4 +96,4 @@ def test_no_forbidden_runtime_calls_in_phase11d_service_or_cli() -> None:
 
 def test_phase_status_not_marked_phase11_accepted() -> None:
     content = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
-    assert "current_accepted_phase: Phase 11" not in content
+    assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in content

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.234
+
+- Accept Phase 11 for the controlled CLI-limited farm5 BTC boundary and add read-only final acceptance/post-acceptance verification tooling.
+
 ## 0.1.233 - 2026-06-01
 
 - feat(phase11): add read-only controlled boundary acceptance decision and final Phase 11 acceptance PR readiness gates while keeping Current State closed.

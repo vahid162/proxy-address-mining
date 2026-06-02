@@ -12,6 +12,11 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+## 0.1.234 Phase 11 Final Acceptance Note
+
+Phase 11 is accepted on farm5 for the controlled CLI-limited BTC production/customer boundary only. The next working phase is Phase 12 — Worker Policy Enforcement. UI, Telegram, worker enforcement, unrestricted production expansion, and unrestricted miner expansion remain closed. This acceptance changes authorization boundaries only; it does not perform DB, firewall, conntrack, Docker, or systemd mutation.
+
+
 Phase 11 planning/readiness note (0.1.226): adds a gated limited-btc-001 activation execute path, rollback execute path, and post-activation evidence collector after farm5 0.1.225 generated READY decision/execution/rollback packages; this PR does not execute activation during development and does not open unrestricted production/miner/abuse/UI/Telegram gates.
 
 Status: Active project control file
@@ -65,14 +70,15 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 ## Current State
 
 ```text
-current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
-current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
-server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-customer_onboarding_allowed: db_only
+current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
+current_working_phase: Phase 12 — Worker Policy Enforcement
+server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary
+production_traffic: controlled_cli_limited
+firewall_apply_allowed: controlled
+abuse_automation_allowed: controlled
+customer_onboarding_allowed: controlled_cli_limited
 proxy_data_plane_allowed: limited_runtime_local_only
+worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
@@ -3023,3 +3029,22 @@ State:
 - farm5 0.1.227 Phase 11E limited activation execution evidence note: `limited-btc-001` transitioned `paused -> active` through the DB-only controlled activation path; `canary-btc-001` remained active; no firewall/NAT/runtime change occurred; production/miner traffic remains closed; abuse automation remains disabled; Phase 11 remains not accepted. Post-evidence classified READY with `blockers=[]` and warning `source_evidence_not_provided_db_proxy_checks_unavailable`; the helper forwarding fix in 0.1.228 allows optional source-backed DB/proxy evidence to be supplied on recollection.
 
 - 0.1.231 planning/readiness note: recorded farm5 0.1.230 observation-window/final-readiness READY evidence and added a read-only explicit limited acceptance decision gate for `limited-btc-001` while preserving `canary-btc-001`. Current State is unchanged; Phase 11 final acceptance, production expansion, miner traffic expansion, abuse automation, UI, and Telegram remain closed. A READY decision gate only prepares `phase11_controlled_boundary_acceptance_package_pr`.
+
+## Historical/reference-only pre-final-acceptance Current State snapshot
+
+The following snapshot is retained only so historical Phase 11 evidence and regression tests can be interpreted. It is non-authorizing and must not be parsed as the authoritative `## Current State` block.
+
+```text
+current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
+current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
+server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
+production_traffic: none
+firewall_apply_allowed: no
+abuse_automation_allowed: no
+customer_onboarding_allowed: db_only
+proxy_data_plane_allowed: limited_runtime_local_only
+ui_allowed: no
+telegram_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only
+```

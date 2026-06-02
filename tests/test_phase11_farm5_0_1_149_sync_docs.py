@@ -25,8 +25,8 @@ def test_docs_plan_and_script_alignment_for_0_1_149() -> None:
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     script = Path("scripts/verify_current_phase_gate.sh").read_text(encoding="utf-8")
 
-    assert "Latest recorded farm5 sync evidence is 0.1.153." in readme
-    assert "execution gate package is implemented on GitHub as non-authorizing and has farm5 sync/test evidence recorded" in readme
+    assert "Latest recorded farm5 sync evidence is 0.1.153." not in readme
+    assert "Phase 11 is accepted: controlled CLI-limited production/customer activation is ready on farm5" in readme
 
     assert "latest recorded farm5 sync evidence is 0.1.159." in plan
     assert NEXT_TARGET in plan

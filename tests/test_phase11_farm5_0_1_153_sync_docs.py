@@ -26,7 +26,7 @@ def test_phase11_farm5_0_1_153_evidence_doc_required_content() -> None:
 
 def test_docs_alignment_after_0_1_153_evidence_recording() -> None:
     readme = Path("README.md").read_text(encoding="utf-8")
-    assert "Latest recorded farm5 sync evidence is 0.1.153." in readme
+    assert "Latest recorded farm5 sync evidence is 0.1.153." not in readme
 
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     assert "latest recorded farm5 sync evidence is 0.1.159." in plan

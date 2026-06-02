@@ -141,6 +141,7 @@ from mpf.services import (
     phase11_controlled_boundary_acceptance_package_service,
     phase11_controlled_boundary_acceptance_decision_service,
     phase11_final_acceptance_pr_readiness_service,
+    phase11_final_acceptance_service, phase11_post_acceptance_verification_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3531,5 +3532,18 @@ def production_phase11_final_acceptance_pr_readiness(
 ) -> None:
     kwargs = dict(locals()); cfg = kwargs.pop("config"); mode = kwargs.pop("output"); out = kwargs.pop("out_json")
     report = phase11_final_acceptance_pr_readiness_service.build_phase11_final_acceptance_pr_readiness_report(_load(cfg), **kwargs)
+    if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    _print_output(report, mode)
+
+
+@production_app.command("phase11-final-acceptance")
+def production_phase11_final_acceptance(expected_version: str = typer.Option(__version__, "--expected-version"), final_acceptance_pr_readiness_json: Path = typer.Option(..., "--final-acceptance-pr-readiness-json"), final_acceptance_pr_readiness_json_sha256: str = typer.Option(..., "--final-acceptance-pr-readiness-json-sha256"), controlled_boundary_decision_json: Path = typer.Option(..., "--controlled-boundary-decision-json"), controlled_boundary_decision_json_sha256: str = typer.Option(..., "--controlled-boundary-decision-json-sha256"), controlled_boundary_package_json: Path = typer.Option(..., "--controlled-boundary-package-json"), controlled_boundary_package_json_sha256: str = typer.Option(..., "--controlled-boundary-package-json-sha256"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_phase11_final_acceptance: bool = typer.Option(False, "--i-understand-phase11-final-acceptance"), i_understand_controlled_cli_limited_only: bool = typer.Option(False, "--i-understand-controlled-cli-limited-only"), i_understand_phase12_is_next: bool = typer.Option(False, "--i-understand-phase12-is-next"), i_understand_worker_enforcement_remains_disabled: bool = typer.Option(False, "--i-understand-worker-enforcement-remains-disabled"), i_understand_ui_telegram_remain_disabled: bool = typer.Option(False, "--i-understand-ui-telegram-remain-disabled"), i_understand_no_unrestricted_production_expansion: bool = typer.Option(False, "--i-understand-no-unrestricted-production-expansion"), i_understand_no_db_mutation: bool = typer.Option(False, "--i-understand-no-db-mutation"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_runtime_change: bool = typer.Option(False, "--i-understand-no-runtime-change"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path|None = typer.Option(None,"--config","-c")) -> None:
+    kwargs=dict(locals()); cfg=kwargs.pop("config"); mode=kwargs.pop("output"); out=kwargs.pop("out_json"); report=phase11_final_acceptance_service.build_phase11_final_acceptance_report(_load(cfg), **kwargs)
+    if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    _print_output(report, mode)
+
+@production_app.command("phase11-post-acceptance-verification")
+def production_phase11_post_acceptance_verification(expected_version: str = typer.Option(__version__, "--expected-version"), final_acceptance_json: Path = typer.Option(..., "--final-acceptance-json"), final_acceptance_json_sha256: str = typer.Option(..., "--final-acceptance-json-sha256"), artifact_gate_json: Path = typer.Option(..., "--artifact-gate-json"), artifact_gate_json_sha256: str = typer.Option(..., "--artifact-gate-json-sha256"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_post_acceptance_verification_only: bool = typer.Option(False, "--i-understand-post-acceptance-verification-only"), i_understand_no_db_mutation: bool = typer.Option(False, "--i-understand-no-db-mutation"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_runtime_change: bool = typer.Option(False, "--i-understand-no-runtime-change"), i_understand_ui_telegram_remain_disabled: bool = typer.Option(False, "--i-understand-ui-telegram-remain-disabled"), i_understand_worker_enforcement_remains_disabled: bool = typer.Option(False, "--i-understand-worker-enforcement-remains-disabled"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path|None = typer.Option(None,"--config","-c")) -> None:
+    kwargs=dict(locals()); cfg=kwargs.pop("config"); mode=kwargs.pop("output"); out=kwargs.pop("out_json"); report=phase11_post_acceptance_verification_service.build_phase11_post_acceptance_verification_report(_load(cfg), **kwargs)
     if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
     _print_output(report, mode)
