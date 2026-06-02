@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.242
+
+- Add controlled Phase 11 usage/report/check operational surface while preserving read-only/fail-closed safety boundaries.
+
 ## 0.1.241
 
 - Add controlled Phase 11 customer lifecycle operational surface checks and align the operational completion gap inventory after the DB-backed abuse surface.
