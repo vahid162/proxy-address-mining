@@ -17,22 +17,17 @@ def test_sync_script_forbids_stale_phase6_phase7_hardcodes() -> None:
         assert fragment not in text
 
 
-def test_sync_script_requires_generic_phase_markers_and_phase8_doc() -> None:
-    text = Path("scripts/sync_main_zip_on_server.sh").read_text(encoding="utf-8")
-
-    assert "current_accepted_phase:" in text
-    assert "current_working_phase:" in text
-    assert "docs/AI_PHASE_8_TASK.md" in text
-
-
-def test_sync_script_preserves_hard_safety_checks_and_current_gate_verifier_call() -> None:
+def test_sync_script_requires_phase11_accepted_phase12_working_gate() -> None:
     text = Path("scripts/sync_main_zip_on_server.sh").read_text(encoding="utf-8")
 
     required_fragments = [
-        "production_traffic: none",
-        "firewall_apply_allowed: no",
-        "abuse_automation_allowed: no",
-        "customer_onboarding_allowed: db_only",
+        "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
+        "current_working_phase: Phase 12 — Worker Policy Enforcement",
+        "production_traffic: controlled_cli_limited",
+        "firewall_apply_allowed: controlled",
+        "abuse_automation_allowed: controlled",
+        "customer_onboarding_allowed: controlled_cli_limited",
+        "worker_enforcement_allowed: no",
         "proxy_data_plane_allowed: limited_runtime_local_only",
         "ui_allowed: no",
         "telegram_allowed: no",
@@ -44,7 +39,24 @@ def test_sync_script_preserves_hard_safety_checks_and_current_gate_verifier_call
         assert fragment in text
 
 
-def test_verify_current_phase_gate_remains_exact_phase7_phase8_validator() -> None:
+def test_sync_script_no_longer_requires_pre_acceptance_phase11_closed_gate() -> None:
+    text = Path("scripts/sync_main_zip_on_server.sh").read_text(encoding="utf-8")
+
+    stale_fragments = [
+        "new PHASE_STATUS does not keep production_traffic=none",
+        "new PHASE_STATUS does not keep firewall apply disabled",
+        "new PHASE_STATUS does not keep abuse automation disabled",
+        "new PHASE_STATUS does not keep customer onboarding DB-only",
+        "mpf phase-status does not keep production_traffic=none",
+        "mpf phase-status does not keep firewall apply disabled",
+        "mpf phase-status does not keep abuse automation disabled",
+    ]
+
+    for fragment in stale_fragments:
+        assert fragment not in text
+
+
+def test_verify_current_phase_gate_remains_phase11_phase12_validator() -> None:
     text = Path("scripts/verify_current_phase_gate.sh").read_text(encoding="utf-8")
 
     assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in text
