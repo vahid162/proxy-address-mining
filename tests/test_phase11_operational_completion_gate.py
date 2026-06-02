@@ -50,6 +50,15 @@ def test_gap_inventory_service_is_fail_closed_and_read_only() -> None:
     report = build_phase11_operational_completion_gap_inventory_report()
     assert report["final_decision"] == "PHASE11_OPERATIONAL_COMPLETION_REQUIRED"
     assert report["phase12_start_allowed"] is False
+    assert report["abuse_operational_surface"] == "ready_controlled_db_backed"
+    assert report["customer_lifecycle_surface"] == "ready_controlled_cli"
+    assert report["usage_report_check_surface"] == "missing_or_partial"
+    assert report["firewall_apply_rollback_surface"] == "missing_or_partial"
+    assert report["restart_autostart_proof"] == "missing_or_partial"
+    assert report["next_required_step"] == "implement_usage_report_check_operational_surface"
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
     for key in (
         "mutation_performed",
         "db_mutation_performed",
@@ -65,7 +74,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.240"
+    assert report["repository_version"] == "0.1.241"
     assert report["final_decision"] == "PHASE11_OPERATIONAL_COMPLETION_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False

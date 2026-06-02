@@ -41,3 +41,10 @@ The first implementation step after this entry gate is `implement_controlled_abu
 ## Progress Update (0.1.240)
 
 The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status`, `mpf abuse events`, and `mpf abuse run --dry-run` to real DB reads. Explicit operator-gated controlled execute may write only `abuse_states`, `abuse_events`, and `job_runs`; missing or stale evidence fails closed. Firewall hard/unhard execution remains blocked and `hard_applied_at` remains unset. No timer, daemon, worker enforcement, UI, Telegram, or Phase 12 implementation is enabled.
+
+## Progress Update (0.1.241)
+
+- Abuse DB-backed surface remains operational and now has regression coverage for local-peer psql row normalization.
+- Controlled customer lifecycle CLI surface is now checked/proven as a Phase 11 operational completion surface.
+- Usage/report/check, controlled firewall apply/rollback, and restart/autostart proof remain pending.
+- Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.

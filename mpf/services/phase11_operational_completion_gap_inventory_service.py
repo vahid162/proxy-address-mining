@@ -14,8 +14,8 @@ def build_phase11_operational_completion_gap_inventory_report() -> dict[str, obj
         "phase11_accepted": True,
         "phase11_operational_completion_required": True,
         "phase12_start_allowed": False,
-        "abuse_operational_surface": "missing_or_partial",
-        "customer_lifecycle_surface": "missing_or_partial",
+        "abuse_operational_surface": "ready_controlled_db_backed",
+        "customer_lifecycle_surface": "ready_controlled_cli",
         "usage_report_check_surface": "missing_or_partial",
         "firewall_apply_rollback_surface": "missing_or_partial",
         "restart_autostart_proof": "missing_or_partial",
@@ -29,5 +29,5 @@ def build_phase11_operational_completion_gap_inventory_report() -> dict[str, obj
         "docker_restart_performed": False,
         "systemd_restart_performed": False,
         "final_decision": "PHASE11_OPERATIONAL_COMPLETION_REQUIRED",
-        "next_required_step": "implement_controlled_abuse_operational_core",
+        "next_required_step": "implement_usage_report_check_operational_surface",
     }

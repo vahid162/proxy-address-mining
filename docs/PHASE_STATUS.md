@@ -14,6 +14,13 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+## 0.1.241 Phase 11 operational completion Progress Update
+
+- Abuse DB-backed surface remains operational and now has regression coverage for local-peer psql row normalization.
+- Controlled customer lifecycle CLI surface is now checked/proven as a Phase 11 operational completion surface.
+- Usage/report/check, controlled firewall apply/rollback, and restart/autostart proof remain pending.
+- Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
+
 ## 0.1.237 Phase 11 operational completion Entry Gate
 
 Phase 11 remains accepted on farm5 for the controlled CLI-limited BTC production/customer boundary. The current working phase is now `Phase 11 operational completion`, a post-acceptance completion gate required before Phase 12 implementation. This does not roll back Phase 11 acceptance, claim full backend completion, or authorize worker enforcement, UI, Telegram, unrestricted expansion, direct DB/firewall/runtime mutation, timers, or daemon automation.
