@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "proxy-address-mining"
-version = "0.1.235"
+version = "0.1.236"
 description = "Python-first control plane for a mining customer gateway"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -20,6 +20,11 @@ dependencies = [
   "psycopg[binary]>=3.2,<4.0",
   "SQLAlchemy>=2.0,<3.0",
   "alembic>=1.13,<2.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2,<9.0"
 ]
 
 [project.scripts]
