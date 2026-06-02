@@ -26,10 +26,10 @@ def test_current_position_updates() -> None:
 def test_finite_path_updates() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
     assert "11. Phase 11 Production / Customer Activation Gate" in t
-    assert "12. Phase 12 Worker Policy Enforcement" in t
-    assert "13. Phase 13 Local UI" in t
-    assert "14. Phase 14 Operator UI Actions" in t
-    assert "15. Phase 15 Telegram" in t
+    assert "12. Phase 11 operational completion" in t
+    assert "14. Phase 13 Local UI" in t
+    assert "15. Phase 14 Operator UI Actions" in t
+    assert "16. Phase 15 Telegram" in t
 
 
 def test_ai_phase10_task_marks_acceptance() -> None:

@@ -22,15 +22,16 @@ def test_sync_script_requires_phase11_accepted_phase12_working_gate() -> None:
 
     required_fragments = [
         "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
-        "current_working_phase: Phase 12 — Worker Policy Enforcement",
+        "current_working_phase: Phase 11 operational completion",
         "production_traffic: controlled_cli_limited",
         "firewall_apply_allowed: controlled",
-        "abuse_automation_allowed: controlled",
+        "abuse_automation_allowed: controlled_operator_gated",
         "customer_onboarding_allowed: controlled_cli_limited",
         "worker_enforcement_allowed: no",
         "proxy_data_plane_allowed: limited_runtime_local_only",
         "ui_allowed: no",
         "telegram_allowed: no",
+        "phase12_start_allowed: no",
         "runtime_activation_allowed: false",
         'bash "$APP_DIR/scripts/verify_current_phase_gate.sh"',
     ]
@@ -56,12 +57,12 @@ def test_sync_script_no_longer_requires_pre_acceptance_phase11_closed_gate() -> 
         assert fragment not in text
 
 
-def test_verify_current_phase_gate_remains_phase11_phase12_validator() -> None:
+def test_verify_current_phase_gate_requires_phase11_operational_completion() -> None:
     text = Path("scripts/verify_current_phase_gate.sh").read_text(encoding="utf-8")
 
     assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in text
-    assert "current_working_phase: Phase 12 — Worker Policy Enforcement" in text
-    assert "current Phase 11 accepted / Phase 12 working safety gate passed" in text
+    assert "current_working_phase: Phase 11 operational completion" in text
+    assert "current Phase 11 accepted / Phase 11 operational completion working safety gate passed" in text
     assert "current Phase 10 accepted / Phase 11 planning safety gate passed" not in text
 
 

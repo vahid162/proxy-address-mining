@@ -1,4 +1,17 @@
 from pathlib import Path
-TARGET='''current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5\ncurrent_working_phase: Phase 12 — Worker Policy Enforcement\nserver_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary\nproduction_traffic: controlled_cli_limited\nfirewall_apply_allowed: controlled\nabuse_automation_allowed: controlled\ncustomer_onboarding_allowed: controlled_cli_limited\nproxy_data_plane_allowed: limited_runtime_local_only\nworker_enforcement_allowed: no\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\nrestore_lock_record_execution_allowed: controlled_boundary_only'''
+TARGET='''current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
+current_working_phase: Phase 11 operational completion
+server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation
+production_traffic: controlled_cli_limited
+firewall_apply_allowed: controlled
+abuse_automation_allowed: controlled_operator_gated
+customer_onboarding_allowed: controlled_cli_limited
+proxy_data_plane_allowed: limited_runtime_local_only
+worker_enforcement_allowed: no
+ui_allowed: no
+telegram_allowed: no
+phase12_start_allowed: no
+live_snapshot_read_allowed: iptables_save_read_only
+restore_lock_record_execution_allowed: controlled_boundary_only'''
 def test_phase_status_current_state_target(): assert TARGET in Path('docs/PHASE_STATUS.md').read_text()
-def test_remaining_plan_phase12a(): assert '## Phase 12A Active Target Position (0.1.234)' in Path('docs/REMAINING_PHASE_PLAN.md').read_text()
+def test_remaining_plan_phase11_operational_completion(): assert '## Phase 11 operational completion Active Target Position (0.1.237)' in Path('docs/REMAINING_PHASE_PLAN.md').read_text()

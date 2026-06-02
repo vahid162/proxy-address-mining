@@ -33,30 +33,32 @@ hostname
 section 'PHASE STATUS CONTENT'
 [ -f docs/PHASE_STATUS.md ] || fail 'docs/PHASE_STATUS.md is missing'
 grep -q 'current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show accepted Phase 11 gate'
-grep -q 'current_working_phase: Phase 12 — Worker Policy Enforcement' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 12 as current working phase'
+grep -q 'current_working_phase: Phase 11 operational completion' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 11 operational completion as current working gate'
 grep -q 'production_traffic: controlled_cli_limited' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep production_traffic=controlled_cli_limited'
 grep -q 'firewall_apply_allowed: controlled' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep firewall apply controlled'
-grep -q 'abuse_automation_allowed: controlled' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep abuse automation controlled'
+grep -q 'abuse_automation_allowed: controlled_operator_gated' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep abuse automation controlled'
 grep -q 'customer_onboarding_allowed: controlled_cli_limited' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep customer_onboarding_allowed=controlled_cli_limited'
 grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep proxy_data_plane_allowed=limited_runtime_local_only'
-grep -q 'worker_enforcement_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md enables worker enforcement before Phase 12 acceptance'
+grep -q 'worker_enforcement_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md enables worker enforcement before Phase 11 operational completion acceptance'
 grep -q 'ui_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep ui_allowed=no'
 grep -q 'telegram_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep telegram_allowed=no'
+grep -q 'phase12_start_allowed: no' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not block Phase 12 start'
 
 section 'CLI PHASE STATUS + SAFE COMMANDS'
 command -v mpf >/dev/null 2>&1 || fail 'mpf command not found'
 phase_status_output="$(mpf phase-status)"
 printf '%s\n' "$phase_status_output"
 [[ "$phase_status_output" == *'current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5'* ]] || fail 'mpf phase-status is not aligned with accepted Phase 11 gate'
-[[ "$phase_status_output" == *'current_working_phase: Phase 12 — Worker Policy Enforcement'* ]] || fail 'mpf phase-status is not aligned with Phase 12 working phase'
+[[ "$phase_status_output" == *'current_working_phase: Phase 11 operational completion'* ]] || fail 'mpf phase-status is not aligned with Phase 11 operational completion working gate'
 [[ "$phase_status_output" == *'production_traffic: controlled_cli_limited'* ]] || fail 'mpf phase-status does not keep production_traffic=controlled_cli_limited'
 [[ "$phase_status_output" == *'firewall_apply_allowed: controlled'* ]] || fail 'mpf phase-status does not keep firewall apply controlled'
-[[ "$phase_status_output" == *'abuse_automation_allowed: controlled'* ]] || fail 'mpf phase-status does not keep abuse automation controlled'
+[[ "$phase_status_output" == *'abuse_automation_allowed: controlled_operator_gated'* ]] || fail 'mpf phase-status does not keep abuse automation controlled'
 [[ "$phase_status_output" == *'customer_onboarding_allowed: controlled_cli_limited'* ]] || fail 'mpf phase-status does not keep customer onboarding controlled CLI-limited'
 [[ "$phase_status_output" == *'proxy_data_plane_allowed: limited_runtime_local_only'* ]] || fail 'mpf phase-status does not keep proxy_data_plane_allowed=limited_runtime_local_only'
-[[ "$phase_status_output" == *'worker_enforcement_allowed: no'* ]] || fail 'mpf phase-status enables worker enforcement before Phase 12 acceptance'
+[[ "$phase_status_output" == *'worker_enforcement_allowed: no'* ]] || fail 'mpf phase-status enables worker enforcement before Phase 11 operational completion acceptance'
 [[ "$phase_status_output" == *'ui_allowed: no'* ]] || fail 'mpf phase-status does not keep UI disabled'
 [[ "$phase_status_output" == *'telegram_allowed: no'* ]] || fail 'mpf phase-status does not keep Telegram disabled'
+[[ "$phase_status_output" == *'phase12_start_allowed: no'* ]] || fail 'mpf phase-status does not block Phase 12 start'
 mpf config validate
 mpf doctor
 mpf db status
@@ -131,4 +133,4 @@ if command -v ss >/dev/null 2>&1; then
 fi
 
 section 'CURRENT GATE VERDICT'
-echo 'OK: current Phase 11 accepted / Phase 12 working safety gate passed. Phase 11 remains controlled CLI-limited only; unrestricted production and worker enforcement remain disabled.'
+echo 'OK: current Phase 11 accepted / Phase 11 operational completion working safety gate passed. Phase 11 remains controlled CLI-limited only; unrestricted production and worker enforcement remain disabled.'

@@ -28,7 +28,7 @@ def test_readme_plan_phase_status_align_0_1_151() -> None:
 
     assert "latest recorded farm5 sync evidence is 0.1.159." in plan
     assert NEXT_TARGET in plan
-    assert "## Phase 12A Active Target Position (0.1.234)" in plan
+    assert "## Phase 11 operational completion Active Target Position (0.1.237)" in plan
     assert "Phase 12A worker evidence mapping/readiness" in plan
     assert "Phase 11 is accepted" in plan
     assert "production traffic remains none." in plan

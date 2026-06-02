@@ -1,8 +1,9 @@
-## Phase 12A Active Target Position (0.1.234)
+## Phase 11 operational completion Active Target Position (0.1.237)
 
 - Phase 11 is accepted on farm5 only for `controlled_cli_limited` BTC production/customer activation.
-- The active target is Phase 12A worker evidence mapping/readiness. Phase 12 is working, not accepted.
-- Worker enforcement remains disabled until Phase 12 acceptance. UI, Telegram, unrestricted production expansion, and unrestricted miner expansion remain closed.
+- The active working gate is `Phase 11 operational completion`, a post-acceptance completion gate. This does not roll back Phase 11 acceptance or claim full backend completion.
+- Phase 12A worker evidence mapping/readiness is stale historical wording and is not active immediately. Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
+- Worker enforcement, UI, Telegram, unrestricted production expansion, unrestricted miner expansion, direct DB/firewall/runtime mutation, and unrestricted background automation remain closed.
 - Historical Phase 11 target notes below are reference-only and non-authorizing. `docs/PHASE_STATUS.md` remains authoritative.
 
 ## Phase 11 0.1.233 Active Target Position
@@ -110,11 +111,12 @@ The notes below are retained as historical planning context only. The active tar
 8. Phase 10F Runtime Worker / Scheduler dry-run readiness — implemented as backend-readiness and non-authorizing
 9. Phase 10 final-acceptance-readiness — implemented as non-authorizing explicit gate
 10. Phase 10 final acceptance — accepted, not production activation
-11. Phase 11 Production / Customer Activation Gate — current planning/readiness target; explicit controlled CLI canary first, then limited real customer onboarding after evidence
-12. Phase 12 Worker Policy Enforcement — future, after Phase 10 worker/session evidence and Phase 11 production activation
-13. Phase 13 Local UI — future service-layer interface after backend path is accepted
-14. Phase 14 Operator UI Actions — future service-layer interface with confirmation and audit
-15. Phase 15 Telegram — future notification/read-only/restricted-action interface, last in the roadmap
+11. Phase 11 Production / Customer Activation Gate — accepted on farm5 for the controlled CLI-limited BTC boundary
+12. Phase 11 operational completion — current post-acceptance completion gate before worker enforcement
+13. Phase 12 Worker Policy Enforcement — future, only after Phase 11 operational completion final acceptance
+14. Phase 13 Local UI — future service-layer interface after backend path is accepted
+15. Phase 14 Operator UI Actions — future service-layer interface with confirmation and audit
+16. Phase 15 Telegram — future notification/read-only/restricted-action interface, last in the roadmap
 
 ## Backend-First Principle
 
@@ -129,7 +131,8 @@ Phase 10 accepted
   -> Phase 11 Production / Customer Activation Gate
   -> controlled CLI canary customer
   -> limited real customer onboarding
-  -> Phase 12 Worker Policy Enforcement after evidence/adapter support
+  -> Phase 11 operational completion
+  -> Phase 12 Worker Policy Enforcement only after operational completion acceptance
   -> Phase 13 Local UI
   -> Phase 14 Operator UI Actions
   -> Phase 15 Telegram

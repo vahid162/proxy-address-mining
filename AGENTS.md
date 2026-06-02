@@ -28,6 +28,8 @@ For the current Phase 11 work, also read:
 
 ```text
 docs/AI_PHASE_11_TASK.md
+docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md
+docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md
 docs/PRODUCTION_ACTIVATION_GATE.md
 docs/AI_SAFE_RUNTIME_FIRST.md
 docs/FIREWALL.md
@@ -87,16 +89,17 @@ Current repository gate:
 
 ```text
 current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
-current_working_phase: Phase 12 — Worker Policy Enforcement
-server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary
+current_working_phase: Phase 11 operational completion
+server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation
 production_traffic: controlled_cli_limited
 firewall_apply_allowed: controlled
-abuse_automation_allowed: controlled
+abuse_automation_allowed: controlled_operator_gated
 customer_onboarding_allowed: controlled_cli_limited
 proxy_data_plane_allowed: limited_runtime_local_only
 worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
+phase12_start_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only
 ```
@@ -519,3 +522,27 @@ avoid future schema dead ends
 ```
 
 When in doubt, choose the safer implementation and document the tradeoff.
+
+## Runtime-forward PR rule
+
+After a controlled runtime boundary is accepted, AI agents must not create repeated report-only PRs that avoid implementation.
+
+Report-only PRs are allowed only when they are:
+
+1. the first entry gate for a new phase/subphase;
+2. a fail-closed blocker investigation with concrete next implementation step;
+3. evidence capture required before a dangerous controlled operation.
+
+No two consecutive PRs in the same active phase/subphase may be report-only unless the second PR records a real farm5 blocker and includes the exact next implementation scope.
+
+Every normal implementation PR must deliver at least one concrete implementation artifact:
+
+- service-layer implementation
+- repository/model/migration change
+- CLI/API operator surface
+- controlled execution package
+- adapter behavior
+- tests covering behavior
+- gated runtime/runbook script
+
+Documentation-only changes are allowed for safety clarification, but they must not become the default progression path.
