@@ -113,7 +113,7 @@ fi
 
 section 'LISTENING PORT SAFETY'
 if command -v ss >/dev/null 2>&1; then
-  port_matches="$(ss -lntup 2>/dev/null | grep -E ":(${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}|2014|20170|20171|20172|22070|22071|22072)\\b" || true)"
+  port_matches="$(ss -lntup 2>/dev/null | grep -E ":(${BTC_BACKEND_PORT}|${V2RAYA_HOST_PORT}|2014|20170|20171|20172|22070|22071|22072)\b" || true)"
   if [ -n "$port_matches" ]; then
     echo "$port_matches"
     if runtime_running; then
@@ -132,4 +132,4 @@ if command -v ss >/dev/null 2>&1; then
 fi
 
 section 'CURRENT GATE VERDICT'
-echo 'OK: current Phase 10 accepted / Phase 11 planning safety gate passed. Production customer traffic remains disabled.'
+echo 'OK: current Phase 11 accepted / Phase 12 working safety gate passed. Phase 11 remains controlled CLI-limited only; unrestricted production and worker enforcement remain disabled.'
