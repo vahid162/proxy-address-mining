@@ -60,7 +60,7 @@ def run_abuse_cycle(repo: AbuseOperationalRepo, *, execute: bool, actor: str = "
             repo.record_job_run(status="failed" if blockers else "ok", data=report)
         except Exception as exc:
             report["status"] = "BLOCKED"
-            report["blockers"].append("job_run_write_failed")
+            report["blockers"].append("database_write_failed")
             report["blockers"].append(str(exc))
     return report
 
@@ -121,16 +121,16 @@ def status_report(repo: AbuseOperationalRepo | None = None) -> dict[str, Any]:
     if repo is None:
         return {"status": "BLOCKED", "blockers": ["database_repository_not_configured"], "states": [], "note": "status is fail-closed until the controlled PostgreSQL repository is configured"}
     try:
-        customers = repo.list_eligible_customers(datetime.now(UTC))
+        states = repo.list_status_rows()
     except Exception as exc:
         return {"status": "BLOCKED", "blockers": ["database_read_failed"], "error": str(exc), "states": []}
-    return {"status": "OK", "blockers": [], "states": [{"customer_id": c.customer_id, "lane_id": c.lane_id, "customer_key": c.customer_key, "port": c.port, "state": asdict(c.state)} for c in customers]}
+    return {"status": "OK", "blockers": [], "states": states}
 
 
-def events_report(repo: AbuseOperationalRepo | None = None) -> dict[str, Any]:
+def events_report(repo: AbuseOperationalRepo | None = None, *, limit: int = 50, customer_key: str | None = None) -> dict[str, Any]:
     if repo is None:
         return {"status": "BLOCKED", "blockers": ["database_repository_not_configured"], "events": [], "note": "events are fail-closed until the controlled PostgreSQL repository is configured"}
     try:
-        return {"status": "OK", "blockers": [], "events": repo.list_events()}
+        return {"status": "OK", "blockers": [], "events": repo.list_events(limit=limit, customer_key=customer_key)}
     except Exception as exc:
         return {"status": "BLOCKED", "blockers": ["database_read_failed"], "error": str(exc), "events": []}

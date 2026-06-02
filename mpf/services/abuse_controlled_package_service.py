@@ -32,3 +32,35 @@ def repo_from_controlled_package(package: dict[str, Any]) -> InMemoryAbuseOperat
             evidence=None if evidence is None else OperationalAbuseEvidence(hot_sessions=evidence.get("hot_sessions"), unique_source_ips=evidence.get("unique_source_ips"), unique_workers=evidence.get("unique_workers"), observed_at=_dt(evidence.get("observed_at")), collected_at=_dt(evidence.get("collected_at")), source=str(evidence.get("source", "controlled_package"))),
         ))
     return InMemoryAbuseOperationalRepo(parsed)
+
+
+def evidence_by_customer_id_from_controlled_package(package: dict[str, Any]) -> dict[int, OperationalAbuseEvidence]:
+    """Parse explicit timestamped evidence without inventing DB counter freshness."""
+    customers = package.get("customers")
+    if not isinstance(customers, list):
+        raise ValueError("controlled package requires customers list")
+    evidence_by_customer_id: dict[int, OperationalAbuseEvidence] = {}
+    for item in customers:
+        if not isinstance(item, dict):
+            raise ValueError("controlled package customer entries must be objects")
+        evidence = item.get("evidence")
+        if evidence is None:
+            continue
+        if not isinstance(evidence, dict):
+            raise ValueError("controlled package evidence must be an object")
+        evidence_by_customer_id[int(item["customer_id"])] = OperationalAbuseEvidence(
+            hot_sessions=evidence.get("hot_sessions"),
+            unique_source_ips=evidence.get("unique_source_ips"),
+            unique_workers=evidence.get("unique_workers"),
+            observed_at=_dt(evidence.get("observed_at")),
+            collected_at=_dt(evidence.get("collected_at")),
+            source=str(evidence.get("source", "controlled_operator_package")),
+        )
+    return evidence_by_customer_id
+
+
+def validate_db_only_execute_package(package: dict[str, Any]) -> None:
+    for key in ("operator", "reason"):
+        if not str(package.get(key, "")).strip():
+            raise ValueError(f"controlled package requires {key}")
+    evidence_by_customer_id_from_controlled_package(package)

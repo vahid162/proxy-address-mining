@@ -32,7 +32,7 @@ def test_readme_stale_wording_removed() -> None:
 def test_ai_coding_rules_current_gate_and_stale_sections() -> None:
     t = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
     assert "accepted: Phase 11 — Production / Customer Activation Gate accepted on farm5" in t
-    assert "working: Phase 12 — Worker Policy Enforcement" in t
+    assert "working: Phase 11 operational completion" in t
     assert "accepted: Phase 7" not in t
     assert "Forbidden in current Phase 8 work:" not in t
     assert "Phase PR bodies must use Why / What / How to test / Version / Risk + Rollback." in t

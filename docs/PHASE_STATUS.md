@@ -1,3 +1,4 @@
+Phase 11 operational completion implementation note (0.1.240): added the controlled PostgreSQL-backed abuse repository for DB-backed status/events/dry-run and explicit operator-gated DB-only transition/event/job-run writes. Firewall hard/unhard execution remains blocked and `hard_applied_at` remains unset.
 Phase 11 operational completion implementation note (0.1.239): added the first controlled abuse operational core and thin `mpf abuse` CLI surface. Hard/unhard remain controlled-package gated, no timer or daemon is enabled, and Phase 12 remains blocked.
 Phase 11 planning/readiness note (0.1.233): records farm5 0.1.232 controlled boundary acceptance package READY evidence and adds read-only controlled boundary acceptance decision plus final Phase 11 acceptance PR readiness gates. Current State is unchanged; this does not mark Phase 11 accepted or authorize production/miner expansion, DB/firewall/runtime mutation, abuse automation, UI, or Telegram.
 

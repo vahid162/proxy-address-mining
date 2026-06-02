@@ -86,24 +86,27 @@ def test_verified_controlled_firewall_path_is_only_way_to_mark_hard_applied_at()
 def test_cli_surface_is_thin_and_fail_closed_without_controlled_package(tmp_path: Path) -> None:
     runner = CliRunner()
     assert runner.invoke(app, ["abuse", "doctor"]).exit_code == 0
-    assert runner.invoke(app, ["abuse", "status"]).exit_code == 0
-    assert runner.invoke(app, ["abuse", "events"]).exit_code == 0
+    status = runner.invoke(app, ["abuse", "status"])
+    assert status.exit_code == 0 and "database_read_failed" in status.stdout
+    events = runner.invoke(app, ["abuse", "events", "--limit", "50"])
+    assert events.exit_code == 0 and "database_read_failed" in events.stdout
     dry = runner.invoke(app, ["abuse", "run", "--dry-run"])
-    assert dry.exit_code == 0
-    assert "controlled_evidence_package_required_for_customer_scan" in dry.stdout
+    assert dry.exit_code == 0 and "database_read_failed" in dry.stdout
     missing = runner.invoke(app, ["abuse", "run", "--controlled-execute"])
     assert missing.exit_code == 1 and "controlled_package_required" in missing.stdout
 
 
-def test_cli_controlled_run_evaluates_package_without_runtime_mutation(tmp_path: Path) -> None:
+def test_cli_controlled_run_evaluates_package_without_runtime_mutation(tmp_path: Path, monkeypatch) -> None:
     cli_now = datetime.now(UTC)
-    payload = {"customers": [{"customer_id": 1, "lane_id": 1, "customer_key": "btc-1", "port": 20101, "policy": {"miners": 10, "farms": 2, "expires_at": (cli_now + timedelta(days=1)).isoformat()}, "state": {"status": "normal"}, "evidence": {"hot_sessions": 11, "unique_source_ips": 1, "unique_workers": 1, "observed_at": cli_now.isoformat(), "collected_at": cli_now.isoformat()}}]}
+    payload = {"operator": "operator-1", "reason": "reviewed", "customers": [{"customer_id": 1, "lane_id": 1, "customer_key": "btc-1", "port": 20101, "policy": {"miners": 10, "farms": 2, "expires_at": (cli_now + timedelta(days=1)).isoformat()}, "state": {"status": "normal"}, "evidence": {"hot_sessions": 11, "unique_source_ips": 1, "unique_workers": 1, "observed_at": cli_now.isoformat(), "collected_at": cli_now.isoformat()}}]}
     package = tmp_path / "abuse.json"
     package.write_text(json.dumps(payload), encoding="utf-8")
+    cli_customer = OperationalAbuseCustomer(customer_id=1, lane_id=1, customer_key="btc-1", port=20101, active=True, lane_enabled=True, policy=OperationalAbusePolicy(miners=10, farms=2, expires_at=cli_now + timedelta(days=1)), state=OperationalAbuseState(), evidence=OperationalAbuseEvidence(hot_sessions=11, unique_source_ips=1, unique_workers=1, observed_at=cli_now, collected_at=cli_now))
+    monkeypatch.setattr("mpf.interfaces.cli._load_abuse_postgres_repo", lambda config, evidence_by_customer_id=None: InMemoryAbuseOperationalRepo([cli_customer]))
     result = CliRunner().invoke(app, ["abuse", "run", "--controlled-execute", "--package", str(package)])
     assert result.exit_code == 0
     assert '"proposed_state": "over_tracking"' in result.stdout
-    assert "controlled_postgresql_repository_integration_unavailable" in result.stdout
+    assert "writes only abuse_states, abuse_events, and job_runs" in result.stdout
 
 
 def test_cli_hard_and_unhard_are_controlled_package_gated_and_adapter_blocked(tmp_path: Path) -> None:
