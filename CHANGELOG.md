@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.241
+
+- Add controlled Phase 11 customer lifecycle operational surface checks and align the operational completion gap inventory after the DB-backed abuse surface.
+- Add regression coverage for local-peer PostgreSQL/psql row type normalization in the abuse repository.
+
 ## 0.1.240
 
 - Add controlled PostgreSQL-backed abuse repository for status/events/run while keeping firewall hard/unhard execution blocked.

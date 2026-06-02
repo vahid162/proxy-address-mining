@@ -162,3 +162,59 @@ def test_status_and_events_reports_use_db_visibility_fields_and_limit(monkeypatc
     assert state["lane"] == "btc" and state["current_hot"] == 0 and state["latest_event"] == "abuse.evaluation_failed"
     assert events[0]["created_by"] == "operator"
     assert "limit 50" in calls[-1][0].lower() and calls[-1][1] == ("btc-1",)
+
+
+def test_local_peer_psql_csv_rows_are_normalized_and_cli_dry_run_remains_fail_closed(monkeypatch) -> None:
+    import json
+
+    from typer.testing import CliRunner
+
+    from mpf.interfaces import cli
+    from mpf.interfaces.cli import app
+
+    csv_row = row(
+        customer_id="1",
+        lane_id="1",
+        port="20001",
+        lane_enabled="t",
+        miners="10",
+        farms="2",
+        policy_expires_at="2026-06-03 12:00:00+00",
+        abuse_exempt="f",
+        abuse_exempt_until="",
+        abuse_status="over_tracking",
+        first_seen_over="",
+        last_seen_over="",
+        last_recovery_at="",
+        hard_applied_at="",
+    )
+    monkeypatch.setattr("mpf.repositories.abuse_operational_postgres_repo.query_database_params", lambda *_args, **_kwargs: DBQueryResult(True, [csv_row], "OK"))
+    repo = PostgresAbuseOperationalRepo(cfg())
+    customer = repo.list_eligible_customers(NOW)[0]
+    assert customer.port == 20001
+    assert customer.lane_enabled is True
+    assert customer.policy.expires_at == datetime(2026, 6, 3, 12, 0, tzinfo=UTC)
+    assert customer.policy.abuse_exempt_until is None
+    assert customer.state.first_seen_over is None
+    assert customer.state.last_seen_over is None
+    assert customer.state.last_recovery_at is None
+    assert customer.state.hard_applied_at is None
+
+    status_csv_row = {
+        "customer_id": "1", "customer_key": "btc-1", "lane": "btc", "port": "20001", "status": "normal",
+        "current_hot": "0", "current_unique_ips": "0", "current_unique_workers": "0", "first_seen_over": "",
+        "last_seen_over": "", "last_recovery_at": "", "hard_applied_at": "", "latest_event": "", "warnings": "{}", "blockers": "{}",
+    }
+    assert repo._status_row_from_row(status_csv_row)["warnings"] == []
+    assert repo._status_row_from_row(status_csv_row)["blockers"] == []
+
+    original_run = cli.abuse_operational_service.run_abuse_cycle
+    monkeypatch.setattr(cli, "_load", lambda _path: cfg())
+    monkeypatch.setattr(cli.abuse_operational_service, "run_abuse_cycle", lambda repo, execute: original_run(repo, execute=execute, now=NOW))
+    result = CliRunner().invoke(app, ["abuse", "run", "--dry-run"])
+    assert result.exit_code == 0, result.output
+    report = json.loads(result.output)
+    assert report["evaluations"][0]["result"] == "evaluation_failed"
+    assert report["evaluations"][0]["blockers"] == ["missing_evidence"]
+    assert report["hard_applied_count"] == 0
+    assert report["execute"] is False

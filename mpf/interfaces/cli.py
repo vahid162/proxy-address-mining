@@ -37,6 +37,7 @@ from mpf.services import (
     phase6_final_acceptance_review_service,
     phase6_operator_acceptance_decision_service,
     config_service,
+    customer_lifecycle_operational_surface_service,
     customer_mutation_service,
     customer_read_service,
     db_service,
@@ -555,6 +556,25 @@ def customer_expired(config: Path | None = typer.Option(None, "--config", "-c"),
     typer.echo("firewall_change: no")
     typer.echo("nat_change: no")
     typer.echo("runtime_change: no")
+
+
+@customer_app.command("lifecycle-doctor")
+def customer_lifecycle_doctor(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Run the read-only controlled Phase 11 customer lifecycle surface check."""
+
+    try:
+        cfg = _load(config)
+    except Exception as exc:  # noqa: BLE001 - operator doctor must fail closed without traceback.
+        report = customer_lifecycle_operational_surface_service.build_customer_lifecycle_operational_surface_blocked_report(
+            blocker="configuration_load_failed",
+            message=str(exc),
+        )
+    else:
+        report = customer_lifecycle_operational_surface_service.build_customer_lifecycle_operational_surface_report(cfg)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 
 @customer_app.command("delete-eligible")
