@@ -14,6 +14,14 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+## 0.1.242 Phase 11 operational completion Progress Update
+
+- Controlled usage/report/check operational surface is now checked/proven as a Phase 11 operational completion surface.
+- Abuse DB-backed surface remains ready.
+- Customer lifecycle CLI surface remains ready.
+- Controlled firewall apply/rollback and restart/autostart proof remain pending.
+- Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
+
 ## 0.1.241 Phase 11 operational completion Progress Update
 
 - Abuse DB-backed surface remains operational and now has regression coverage for local-peer psql row normalization.
