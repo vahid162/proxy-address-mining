@@ -61,6 +61,8 @@ def test_verify_current_phase_gate_remains_phase11_phase12_validator() -> None:
 
     assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in text
     assert "current_working_phase: Phase 12 — Worker Policy Enforcement" in text
+    assert "current Phase 11 accepted / Phase 12 working safety gate passed" in text
+    assert "current Phase 10 accepted / Phase 11 planning safety gate passed" not in text
 
 
 def test_sync_phase_gate_regression_note_for_pr117() -> None:
