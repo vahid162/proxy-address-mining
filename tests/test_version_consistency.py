@@ -6,7 +6,7 @@ import tomllib
 import mpf
 
 
-EXPECTED_VERSION = "0.1.235"
+EXPECTED_VERSION = "0.1.236"
 
 
 def test_version_sources_are_consistent() -> None:
@@ -33,3 +33,12 @@ def test_package_docstring_matches_phase11_accepted_phase12_working_gate() -> No
     assert "Importing this package performs no DB, firewall, conntrack, Docker, or systemd mutation" in doc
     assert "Phase 10 Session / Worker / Policy / Share Timeline accepted" not in doc
     assert "Phase 11 Production / Customer Activation Gate planning/readiness" not in doc
+
+
+def test_ci_dev_extra_installs_pytest() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+
+    pyproject_data = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
+    dev_dependencies = pyproject_data["project"]["optional-dependencies"]["dev"]
+
+    assert any(dependency.startswith("pytest") for dependency in dev_dependencies)

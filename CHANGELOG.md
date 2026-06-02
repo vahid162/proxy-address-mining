@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.236
+
+- Restore the `dev` packaging extra so GitHub Actions installs `pytest` before running the test suite.
+
 ## 0.1.235
 
 - Clarify Phase 11 accepted controlled boundaries in README and agent rules while preserving conservative runtime defaults.
