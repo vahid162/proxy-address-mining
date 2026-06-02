@@ -5,7 +5,7 @@ def test_readme_phase_alignment() -> None:
     t = Path("README.md").read_text(encoding="utf-8")
     hist = Path("docs/HISTORICAL_COMPATIBILITY_ANCHORS.md").read_text(encoding="utf-8")
     assert "accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in t
-    assert "working_phase: Phase 12 — Worker Policy Enforcement" in t
+    assert "working_phase: Phase 11 operational completion" in t
     assert "Latest recorded farm5 sync evidence is 0.1.128" in hist
     assert "not production activation" in hist
     assert "Current target is Phase 10 planning/readiness" in hist
@@ -13,7 +13,7 @@ def test_readme_phase_alignment() -> None:
     assert "production/customer activation" in t and "firewall_apply_allowed: controlled" in t and "UI and Telegram remain later phases" in t
     assert "Phase 9 Check / Report / Diagnostics accepted on farm5 as report-only/final diagnostics" in t
     assert "Phase 10 Session / Worker / Policy / Share Timeline accepted on farm5" in t
-    assert "Current advancement target is Phase 12 — Worker Policy Enforcement" in t
+    assert "Current advancement target is Phase 11 operational completion" in t
     assert "Historical compatibility anchors are kept in docs/HISTORICAL_COMPATIBILITY_ANCHORS.md." in t
 
 

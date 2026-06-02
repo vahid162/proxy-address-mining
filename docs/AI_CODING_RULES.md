@@ -292,3 +292,27 @@ no execution in PR, no dry-run evidence claimed before operator output exists, n
 Phase PR body format rule: Why / What / How to test / Version / Risk + Rollback.
 
 - AI-safe operator rule: do not suggest root for DB write execute commands when `database.url` is local-peer `postgresql:///mpf`; use `sudo -u mpf mpf ...` for DB-only execute paths.
+
+## Runtime-forward PR rule
+
+After a controlled runtime boundary is accepted, AI agents must not create repeated report-only PRs that avoid implementation.
+
+Report-only PRs are allowed only when they are:
+
+1. the first entry gate for a new phase/subphase;
+2. a fail-closed blocker investigation with concrete next implementation step;
+3. evidence capture required before a dangerous controlled operation.
+
+No two consecutive PRs in the same active phase/subphase may be report-only unless the second PR records a real farm5 blocker and includes the exact next implementation scope.
+
+Every normal implementation PR must deliver at least one concrete implementation artifact:
+
+- service-layer implementation
+- repository/model/migration change
+- CLI/API operator surface
+- controlled execution package
+- adapter behavior
+- tests covering behavior
+- gated runtime/runbook script
+
+Documentation-only changes are allowed for safety clarification, but they must not become the default progression path.

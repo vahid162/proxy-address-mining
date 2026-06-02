@@ -35,14 +35,14 @@ def test_phase_status_gate_alignment_and_safety_lines() -> None:
 
     assert result.exit_code == 0
     assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in result.stdout
-    assert "current_working_phase: Phase 12 — Worker Policy Enforcement" in result.stdout
+    assert "current_working_phase: Phase 11 operational completion" in result.stdout
 
     assert "current_accepted_phase: Phase 4 Runtime Activation" not in result.stdout
     assert "current_working_phase: Phase 5 — Customer CRUD in DB Only" not in result.stdout
 
     assert "production_traffic: controlled_cli_limited" in result.stdout
     assert "firewall_apply_allowed: controlled" in result.stdout
-    assert "abuse_automation_allowed: controlled" in result.stdout
+    assert "abuse_automation_allowed: controlled_operator_gated" in result.stdout
     assert "proxy_data_plane_allowed: limited_runtime_local_only" in result.stdout
     assert "ui_allowed: no" in result.stdout
     assert "telegram_allowed: no" in result.stdout

@@ -62,7 +62,7 @@ def test_docs_and_plan_alignment() -> None:
     rem = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     assert "latest recorded farm5 sync evidence is 0.1.159" in rem
     assert "Next target: sync latest main to farm5, run explicit operator-approved single-canary execution once, and collect evidence; if execution blocks, implement the exact missing primitive reported as `accepted_single_canary_host_apply_primitive`." in rem
-    assert "## Phase 12A Active Target Position (0.1.234)" in rem
+    assert "## Phase 11 operational completion Active Target Position (0.1.237)" in rem
     assert "Phase 12A worker evidence mapping/readiness" in rem
     assert "Phase 11 is accepted" in rem
     assert "production traffic remains none" in rem

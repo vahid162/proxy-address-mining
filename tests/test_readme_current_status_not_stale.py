@@ -48,7 +48,7 @@ def test_readme_forbidden_section_allows_only_controlled_paths():
     assert "customer onboarding outside the controlled CLI/service-layer path" in boundary
     assert "firewall apply, rollback, or verify outside the controlled operator-gated path" in boundary
     assert "iptables-restore execution outside the accepted controlled path" in boundary
-    assert "worker enforcement before Phase 12 acceptance" in boundary
+    assert "worker enforcement before Phase 11 operational completion acceptance" in boundary
     assert "\nproduction traffic\n" not in boundary
     assert "\nlive firewall apply\n" not in boundary
 

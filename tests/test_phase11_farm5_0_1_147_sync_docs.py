@@ -37,7 +37,7 @@ def test_readme_phase_status_and_plan_alignment_for_0_1_147() -> None:
 
     current_state = status.split("## Current State", 1)[1].split("## Accepted Server Results", 1)[0]
     assert "current_accepted_phase: Phase 11" in current_state
-    assert "current_working_phase: Phase 12" in current_state
+    assert "current_working_phase: Phase 11 operational completion" in current_state
     assert "production_traffic: controlled_cli_limited" in current_state
 
     assert "Phase 11 farm5 0.1.147 Sync/Test Evidence" in status
@@ -45,5 +45,5 @@ def test_readme_phase_status_and_plan_alignment_for_0_1_147() -> None:
 
     assert "latest recorded farm5 sync evidence is 0.1.159." in plan
     assert NEXT_TARGET in plan
-    assert "## Phase 12A Active Target Position (0.1.234)" in plan
+    assert "## Phase 11 operational completion Active Target Position (0.1.237)" in plan
     assert "Phase 12A worker evidence mapping/readiness" in plan

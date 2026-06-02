@@ -1,5 +1,7 @@
+Phase 11 operational completion entry gate note (0.1.237): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
+
 Phase 11 controlled-boundary clarification note (0.1.235): clarified README and agent-rule wording after final acceptance; runtime behavior and conservative config defaults remain unchanged.
-Phase 11 final acceptance note (0.1.234): Phase 11 is accepted on farm5 only for controlled_cli_limited BTC operation. Phase 12 — Worker Policy Enforcement is the active working phase; worker enforcement, UI, Telegram, and unrestricted expansion remain closed.
+Phase 11 final acceptance note (0.1.234, historical transition context): Phase 11 is accepted on farm5 only for controlled_cli_limited BTC operation. Phase 12 does not start immediately; the current Phase 11 operational completion gate must pass first.
 Phase 11 planning/readiness note (0.1.231): recorded farm5 0.1.230 observation-window/final-readiness READY evidence and added a read-only limited acceptance decision gate while keeping Current State and all dangerous gates closed.
 Phase 11 planning/readiness note (0.1.230): recorded farm5 0.1.229 limited activation observation/review READY evidence and added read-only limited customer observation-window and final-acceptance readiness-planning reports while keeping Current State closed.
 Phase 11 planning/readiness note (0.1.208): recorded farm5 0.1.206 runtime-path BLOCKED evidence and added non-mutating single-customer runtime probe diagnostics while keeping production/miner/acceptance gates closed.
@@ -536,6 +538,11 @@ Phase 8   — Abuse 1h Core
 Phase 9   — Check / Report / Diagnostics
 Phase 10  — Session / Worker / Policy / Share Timeline
 Phase 11  — Production / Customer Activation Gate
+Phase 11 operational completion — post-acceptance completion gate before Phase 12
+
+- `AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md`
+- `PHASE_11_OPERATIONAL_COMPLETION_GATE.md`
+
 Phase 12  — Worker Policy Enforcement
 Phase 13  — Local UI
 Phase 14  — Operator UI Actions

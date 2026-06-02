@@ -142,6 +142,7 @@ from mpf.services import (
     phase11_controlled_boundary_acceptance_decision_service,
     phase11_final_acceptance_pr_readiness_service,
     phase11_final_acceptance_service, phase11_post_acceptance_verification_service,
+    phase11_operational_completion_gap_inventory_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3541,6 +3542,20 @@ def production_phase11_final_acceptance(expected_version: str = typer.Option(__v
     kwargs=dict(locals()); cfg=kwargs.pop("config"); mode=kwargs.pop("output"); out=kwargs.pop("out_json"); report=phase11_final_acceptance_service.build_phase11_final_acceptance_report(_load(cfg), **kwargs)
     if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
     _print_output(report, mode)
+
+
+@production_app.command("phase11-operational-completion-gap-inventory")
+def production_phase11_operational_completion_gap_inventory(
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
+
+    report = phase11_operational_completion_gap_inventory_service.build_phase11_operational_completion_gap_inventory_report()
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
 
 @production_app.command("phase11-post-acceptance-verification")
 def production_phase11_post_acceptance_verification(expected_version: str = typer.Option(__version__, "--expected-version"), final_acceptance_json: Path = typer.Option(..., "--final-acceptance-json"), final_acceptance_json_sha256: str = typer.Option(..., "--final-acceptance-json-sha256"), artifact_gate_json: Path = typer.Option(..., "--artifact-gate-json"), artifact_gate_json_sha256: str = typer.Option(..., "--artifact-gate-json-sha256"), operator: str = typer.Option(..., "--operator"), reason: str = typer.Option(..., "--reason"), out_json: Path | None = typer.Option(None, "--out-json"), operator_confirmed: bool = typer.Option(False, "--operator-confirmed"), i_understand_post_acceptance_verification_only: bool = typer.Option(False, "--i-understand-post-acceptance-verification-only"), i_understand_no_db_mutation: bool = typer.Option(False, "--i-understand-no-db-mutation"), i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"), i_understand_no_runtime_change: bool = typer.Option(False, "--i-understand-no-runtime-change"), i_understand_ui_telegram_remain_disabled: bool = typer.Option(False, "--i-understand-ui-telegram-remain-disabled"), i_understand_worker_enforcement_remains_disabled: bool = typer.Option(False, "--i-understand-worker-enforcement-remains-disabled"), output: Literal["human","json"] = typer.Option("human", "--output"), config: Path|None = typer.Option(None,"--config","-c")) -> None:

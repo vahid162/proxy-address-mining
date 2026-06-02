@@ -12,6 +12,10 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+## 0.1.237 Phase 11 operational completion Entry Gate
+
+Phase 11 remains accepted on farm5 for the controlled CLI-limited BTC production/customer boundary. The current working phase is now `Phase 11 operational completion`, a post-acceptance completion gate required before Phase 12 implementation. This does not roll back Phase 11 acceptance, claim full backend completion, or authorize worker enforcement, UI, Telegram, unrestricted expansion, direct DB/firewall/runtime mutation, timers, or daemon automation.
+
 ## 0.1.235 Phase 11 Controlled-Boundary Documentation Clarification
 
 Clarifies current documentation after Phase 11 acceptance: controlled CLI/service-layer onboarding, controlled planner-driven firewall handling, and controlled abuse paths remain the only authorized Phase 11 boundary. Unrestricted expansion, direct/ad-hoc mutation, UI, Telegram, and worker enforcement remain closed. Runtime behavior and conservative configuration defaults are unchanged.
@@ -75,16 +79,17 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 
 ```text
 current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
-current_working_phase: Phase 12 — Worker Policy Enforcement
-server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary
+current_working_phase: Phase 11 operational completion
+server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation
 production_traffic: controlled_cli_limited
 firewall_apply_allowed: controlled
-abuse_automation_allowed: controlled
+abuse_automation_allowed: controlled_operator_gated
 customer_onboarding_allowed: controlled_cli_limited
 proxy_data_plane_allowed: limited_runtime_local_only
 worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
+phase12_start_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only
 ```

@@ -69,7 +69,7 @@ def test_collect_live_uses_timeout_and_check_false(tmp_path,monkeypatch):
     assert r['final_decision']=='PHASE11_SINGLE_CUSTOMER_FIREWALL_APPLY_GATE_READY'
     assert called['timeout']==5 and called['check'] is False
 def test_collect_live_authorized_from_current_state_block(tmp_path,monkeypatch):
-    phase='''x\n## Current State\n```text\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\n```\nmore'''
+    phase='''x\n## Current State\n```text\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nui_allowed: no\ntelegram_allowed: no\nphase12_start_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\n```\nmore'''
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service._PHASE_STATUS_PATH',tmp_path/'ps.md')
     (tmp_path/'ps.md').write_text(phase)
     monkeypatch.setattr('mpf.services.phase11_single_customer_firewall_apply_gate_service.subprocess.run',lambda *a,**k: SimpleNamespace(returncode=0,stdout=_live()))

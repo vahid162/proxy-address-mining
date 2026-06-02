@@ -6,7 +6,7 @@ import tomllib
 import mpf
 
 
-EXPECTED_VERSION = "0.1.236"
+EXPECTED_VERSION = "0.1.237"
 
 
 def test_version_sources_are_consistent() -> None:
@@ -23,11 +23,12 @@ def test_version_sources_are_consistent() -> None:
     assert version_file == EXPECTED_VERSION
 
 
-def test_package_docstring_matches_phase11_accepted_phase12_working_gate() -> None:
+def test_package_docstring_matches_phase11_accepted_operational_completion_working_gate() -> None:
     doc = mpf.__doc__ or ""
 
     assert "Phase 11 — Production / Customer Activation Gate accepted on farm5" in doc
-    assert "Phase 12 — Worker Policy Enforcement is the current working phase" in doc
+    assert "Phase 11 operational completion is the current working phase" in doc
+    assert "Phase 12 — Worker Policy Enforcement remains blocked until operational completion acceptance" in doc
     assert "controlled_cli_limited for the limited BTC scope only" in doc
     assert "UI, Telegram, worker enforcement, unrestricted production expansion, and unrestricted miner expansion remain closed" in doc
     assert "Importing this package performs no DB, firewall, conntrack, Docker, or systemd mutation" in doc

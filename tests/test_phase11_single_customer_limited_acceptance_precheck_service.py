@@ -40,8 +40,8 @@ def base_visibility(visibility_sha: str | None = None) -> dict[str, object]:
 def base_readiness(*, kind: str, visibility_sha: str) -> dict[str, object]:
     ready_key = "abuse_1h_coverage_ready" if kind == "abuse" else "restart_container_order_ready"
     return {
-        "expected_version": "0.1.236",
-        "repository_version": "0.1.236",
+        "expected_version": "0.1.237",
+        "repository_version": "0.1.237",
         "source_visibility_bundle_version": "0.1.218",
         "source_visibility_bundle_repository_version": "0.1.218",
         "candidate_customer_key": "limited-btc-001",
@@ -115,7 +115,7 @@ def test_ready_accepts_0218_source_visibility_bundle_with_0219_readiness_reports
 
     report = service.build_phase11_single_customer_limited_acceptance_precheck_report(
         cfg(),
-        expected_version="0.1.236",
+        expected_version="0.1.237",
         visibility_bundle_json=visibility,
         visibility_bundle_json_sha256=visibility_sha,
         abuse_1h_readiness_json=abuse,
@@ -136,7 +136,7 @@ def test_ready_accepts_0218_source_visibility_bundle_with_0219_readiness_reports
     assert report["limited_acceptance_precheck_ready"] is True
     assert report["source_visibility_bundle_version"] == "0.1.218"
     assert report["source_visibility_bundle_repository_version"] == "0.1.218"
-    assert report["repository_version"] == "0.1.236"
+    assert report["repository_version"] == "0.1.237"
     assert report["phase11_accepted"] is False
     assert report["production_traffic_enabled"] is False
     assert report["miner_traffic_allowed"] is False
@@ -153,7 +153,7 @@ def test_blocks_on_readiness_visibility_hash_mismatch(tmp_path):
 
     report = service.build_phase11_single_customer_limited_acceptance_precheck_report(
         cfg(),
-        expected_version="0.1.236",
+        expected_version="0.1.237",
         visibility_bundle_json=visibility,
         visibility_bundle_json_sha256=visibility_sha,
         abuse_1h_readiness_json=abuse,

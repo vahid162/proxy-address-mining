@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.237
+
+- feat(phase11): define the post-acceptance Phase 11 operational completion gate and add a read-only fail-closed gap inventory.
+
 ## 0.1.236
 
 - Restore the `dev` packaging extra so GitHub Actions installs `pytest` before running the test suite.

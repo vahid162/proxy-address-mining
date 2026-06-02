@@ -20,7 +20,8 @@ READINESS_REQUIREMENTS = {
     "proposed_next_current_accepted_phase": PHASE11_POST_FINAL_ACCEPTANCE_GATE["current_accepted_phase"],
     "proposed_next_current_working_phase": PHASE11_POST_FINAL_ACCEPTANCE_GATE["current_working_phase"],
     "proposed_next_production_traffic": "controlled_cli_limited", "proposed_next_firewall_apply_allowed": "controlled",
-    "proposed_next_abuse_automation_allowed": "controlled", "proposed_next_customer_onboarding_allowed": "controlled_cli_limited",
+    "proposed_next_abuse_automation_allowed": "controlled_operator_gated", "proposed_next_customer_onboarding_allowed": "controlled_cli_limited",
+    "proposed_next_phase12_start_allowed": "no",
     "proposed_next_worker_enforcement_allowed": "no", "proposed_next_ui_allowed": "no", "proposed_next_telegram_allowed": "no",
     "blockers": [], "warnings": [],
 }
@@ -51,9 +52,9 @@ def build_phase11_final_acceptance_report(config: MPFConfig, **kwargs: object) -
         "controlled_boundary_decision_ready":decision_ready, "controlled_boundary_package_ready":package_ready,
         "final_acceptance_pr_readiness_ready":readiness_ready, "final_accepted_phase":PHASE11_POST_FINAL_ACCEPTANCE_GATE["current_accepted_phase"],
         "next_working_phase":PHASE11_POST_FINAL_ACCEPTANCE_GATE["current_working_phase"], "production_traffic":"controlled_cli_limited",
-        "firewall_apply_allowed":"controlled", "abuse_automation_allowed":"controlled", "customer_onboarding_allowed":"controlled_cli_limited",
-        "worker_enforcement_allowed":"no", "ui_allowed":"no", "telegram_allowed":"no", "phase11_accepted":ready, "phase12_accepted":False,
+        "firewall_apply_allowed":"controlled", "abuse_automation_allowed":"controlled_operator_gated", "customer_onboarding_allowed":"controlled_cli_limited",
+        "worker_enforcement_allowed":"no", "ui_allowed":"no", "telegram_allowed":"no", "phase12_start_allowed":"no", "phase11_accepted":ready, "phase12_accepted":False,
         "current_state_changed_by_command":False, "mutation_performed":False, "db_mutation_performed":False, "firewall_apply_performed":False,
         "conntrack_flush_performed":False, "docker_restart_performed":False, "systemd_restart_performed":False,
-        "blockers":sorted(set(blockers)), "warnings":[], "next_required_step":"phase12_worker_evidence_mapping_readiness" if ready else "fix_blockers_and_rerun_phase11_final_acceptance",
+        "blockers":sorted(set(blockers)), "warnings":[], "next_required_step":"implement_controlled_abuse_operational_core" if ready else "fix_blockers_and_rerun_phase11_final_acceptance",
         "final_decision":"PHASE11_FINAL_ACCEPTANCE_ACCEPTED" if ready else "BLOCKED"}
