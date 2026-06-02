@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.238
+
+- Fix farm5 main-zip sync sanity check for Phase 11 operational completion `server_state`.
+
 ## 0.1.237
 
 - feat(phase11): define the post-acceptance Phase 11 operational completion gate and add a read-only fail-closed gap inventory.

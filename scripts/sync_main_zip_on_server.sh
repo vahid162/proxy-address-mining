@@ -96,7 +96,7 @@ done
 
 grep -q 'current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show accepted Phase 11 gate"
 grep -q 'current_working_phase: Phase 11 operational completion' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 11 operational completion working gate"
-grep -q 'server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 11 controlled server state"
+grep -q 'server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 11 controlled server state"
 grep -q 'production_traffic: controlled_cli_limited' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep production_traffic=controlled_cli_limited"
 grep -q 'firewall_apply_allowed: controlled' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep firewall apply controlled"
 grep -q 'abuse_automation_allowed: controlled_operator_gated' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep abuse automation controlled"
@@ -104,6 +104,7 @@ grep -q 'customer_onboarding_allowed: controlled_cli_limited' "$NEW_SRC/docs/PHA
 grep -q 'worker_enforcement_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS must keep worker enforcement disabled before Phase 11 operational completion acceptance"
 grep -q 'ui_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep UI disabled"
 grep -q 'telegram_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep Telegram disabled"
+grep -q 'phase12_start_allowed: no' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not block Phase 12 start"
 grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep proxy data-plane limited local-only"
 grep -q 'runtime_activation_allowed: false' "$NEW_SRC/configs/mpf.example.yaml" || fail "example config does not keep proxy runtime activation disabled"
 grep -q 'phase4_runtime_activation_execute.sh' "$NEW_SRC/docs/PHASE_4_RUNTIME_ACTIVATION_EXECUTION_TASK.md" || fail "runtime execution task does not reference approved script"
