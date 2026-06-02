@@ -14,6 +14,7 @@ from mpf.domain.customer_lifecycle import CustomerLifecycleInput
 from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, CustomerDisableRequest, CustomerPolicyInput, CustomerRenewRequest, CustomerSetIpsRequest, CustomerUpdateRequest
 from mpf.domain.health import HealthReport
 from mpf.domain.abuse_operational import evaluate_operational_abuse
+from mpf.repositories.abuse_operational_postgres_repo import PostgresAbuseOperationalRepo
 from mpf.domain import production as production_domain
 from mpf.services import (
     phase8_controlled_worker_dry_run_gate_service,
@@ -195,6 +196,14 @@ def _emit_abuse_json(report: dict[str, object]) -> None:
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 
+def _load_abuse_postgres_repo(config: Path | None, *, evidence_by_customer_id: dict[int, object] | None = None) -> PostgresAbuseOperationalRepo | None:
+    try:
+        return PostgresAbuseOperationalRepo(_load(config), evidence_by_customer_id=evidence_by_customer_id)
+    except Exception as exc:  # noqa: BLE001 - operator CLI must fail closed without traceback.
+        _emit_abuse_json({"status": "BLOCKED", "blockers": ["database_read_failed"], "error": str(exc)})
+        return None
+
+
 def _load_abuse_package(path: Path) -> dict[str, object]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -213,37 +222,47 @@ def abuse_doctor() -> None:
 
 
 @abuse_app.command("status")
-def abuse_status() -> None:
-    _emit_abuse_json(abuse_operational_service.status_report())
+def abuse_status(config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    repo = _load_abuse_postgres_repo(config)
+    if repo is not None:
+        _emit_abuse_json(abuse_operational_service.status_report(repo))
 
 
 @abuse_app.command("events")
-def abuse_events() -> None:
-    _emit_abuse_json(abuse_operational_service.events_report())
+def abuse_events(limit: int = typer.Option(50, "--limit", min=1, max=500), customer_key: str | None = typer.Option(None, "--customer-key"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    repo = _load_abuse_postgres_repo(config)
+    if repo is not None:
+        _emit_abuse_json(abuse_operational_service.events_report(repo, limit=limit, customer_key=customer_key))
 
 
 @abuse_app.command("run")
-def abuse_run(dry_run: bool = typer.Option(False, "--dry-run"), controlled_execute: bool = typer.Option(False, "--controlled-execute"), package: Path | None = typer.Option(None, "--package")) -> None:
+def abuse_run(dry_run: bool = typer.Option(False, "--dry-run"), controlled_execute: bool = typer.Option(False, "--controlled-execute"), package: Path | None = typer.Option(None, "--package"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
     if dry_run == controlled_execute:
         _emit_abuse_json({"status": "BLOCKED", "blockers": ["choose_exactly_one_of_dry_run_or_controlled_execute"]})
         raise typer.Exit(1)
     if not controlled_execute:
-        _emit_abuse_json({"status": "BLOCKED", "execute": False, "blockers": ["controlled_evidence_package_required_for_customer_scan"], "evaluations": [], "hard_applied_count": 0, "note": "dry-run performs no DB, firewall, runtime, systemd, or Docker mutation"})
+        repo = _load_abuse_postgres_repo(config)
+        if repo is None:
+            return
+        report = abuse_operational_service.run_abuse_cycle(repo, execute=False)
+        report["note"] = "dry-run performs DB reads only; no DB writes or firewall, runtime, systemd, Docker, or conntrack action"
+        _emit_abuse_json(report)
         return
     if package is None:
         _emit_abuse_json({"status": "BLOCKED", "blockers": ["controlled_package_required"]})
         raise typer.Exit(1)
     payload = _load_abuse_package(package)
     try:
-        repo = abuse_controlled_package_service.repo_from_controlled_package(payload)
+        abuse_controlled_package_service.validate_db_only_execute_package(payload)
+        evidence = abuse_controlled_package_service.evidence_by_customer_id_from_controlled_package(payload)
+        repo = _load_abuse_postgres_repo(config, evidence_by_customer_id=evidence)
+        if repo is None:
+            return
     except (KeyError, TypeError, ValueError) as exc:
         _emit_abuse_json({"status": "BLOCKED", "blockers": ["controlled_package_validation_failed"], "error": str(exc)})
         raise typer.Exit(1)
-    report = abuse_operational_service.run_abuse_cycle(repo, execute=False)
-    report["status"] = "BLOCKED"
-    report["execute"] = False
-    report["blockers"] = list(report.get("blockers", [])) + ["controlled_postgresql_repository_integration_unavailable"]
-    report["note"] = "package validated and evaluated only; no DB, firewall, runtime, systemd, or Docker mutation performed"
+    report = abuse_operational_service.run_abuse_cycle(repo, execute=True, actor=str(payload["operator"]))
+    report["note"] = "controlled operator execution writes only abuse_states, abuse_events, and job_runs; no firewall, runtime, systemd, Docker, or conntrack action"
     _emit_abuse_json(report)
 
 

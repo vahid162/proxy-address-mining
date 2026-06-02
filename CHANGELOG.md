@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.240
+
+- Add controlled PostgreSQL-backed abuse repository for status/events/run while keeping firewall hard/unhard execution blocked.
+
 ## 0.1.239
 
 - Add the controlled abuse operational core and thin `mpf abuse` CLI surface with fail-closed evidence and controlled-package hard/unhard gates; Phase 12 remains blocked.
