@@ -12,6 +12,10 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+## 0.1.235 Phase 11 Controlled-Boundary Documentation Clarification
+
+Clarifies current documentation after Phase 11 acceptance: controlled CLI/service-layer onboarding, controlled planner-driven firewall handling, and controlled abuse paths remain the only authorized Phase 11 boundary. Unrestricted expansion, direct/ad-hoc mutation, UI, Telegram, and worker enforcement remain closed. Runtime behavior and conservative configuration defaults are unchanged.
+
 ## 0.1.234 Phase 11 Final Acceptance Note
 
 Phase 11 is accepted on farm5 for the controlled CLI-limited BTC production/customer boundary only. The next working phase is Phase 12 — Worker Policy Enforcement. UI, Telegram, worker enforcement, unrestricted production expansion, and unrestricted miner expansion remain closed. This acceptance changes authorization boundaries only; it does not perform DB, firewall, conntrack, Docker, or systemd mutation.

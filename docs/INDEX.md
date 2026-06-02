@@ -1,3 +1,4 @@
+Phase 11 controlled-boundary clarification note (0.1.235): clarified README and agent-rule wording after final acceptance; runtime behavior and conservative config defaults remain unchanged.
 Phase 11 final acceptance note (0.1.234): Phase 11 is accepted on farm5 only for controlled_cli_limited BTC operation. Phase 12 — Worker Policy Enforcement is the active working phase; worker enforcement, UI, Telegram, and unrestricted expansion remain closed.
 Phase 11 planning/readiness note (0.1.231): recorded farm5 0.1.230 observation-window/final-readiness READY evidence and added a read-only limited acceptance decision gate while keeping Current State and all dangerous gates closed.
 Phase 11 planning/readiness note (0.1.230): recorded farm5 0.1.229 limited activation observation/review READY evidence and added read-only limited customer observation-window and final-acceptance readiness-planning reports while keeping Current State closed.

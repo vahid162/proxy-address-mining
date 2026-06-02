@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.235
+
+- Clarify Phase 11 accepted controlled boundaries in README and agent rules while preserving conservative runtime defaults.
+
 ## 0.1.234
 
 - Accept Phase 11 for the controlled CLI-limited farm5 BTC boundary and add read-only final acceptance/post-acceptance verification tooling.

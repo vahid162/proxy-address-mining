@@ -76,7 +76,7 @@ live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
-Phase 11 planning-readiness stop condition: no production traffic, no controlled CLI canary execution, no limited real customer onboarding, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no abuse automation runner, no background worker/scheduler/timer, no collector daemon, no unrestricted production DB execution, no hard/soft block automation, no pause automation, no UI, no Telegram.
+Historical pre-final-acceptance Phase 11 planning-readiness stop condition (non-authorizing reference only): no production traffic, no controlled CLI canary execution, no limited real customer onboarding, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no abuse automation runner, no background worker/scheduler/timer, no collector daemon, no unrestricted production DB execution, no hard/soft block automation, no pause automation, no UI, no Telegram.
 
 Phase 8 dry-run evaluator stop condition: synthetic/in-memory only, no real customer evaluation, no live evidence collection, no DB reads/writes, no abuse runner, no hard/soft blocks, no pause automation, no runtime automation.
 
@@ -116,7 +116,7 @@ backend exposure classification tests
 internal backend reachability classification tests
 ```
 
-Forbidden now and still forbidden after Phase 6-C:
+Historical Phase 6-C forbidden work (non-authorizing reference only; does not override the accepted Phase 11 controlled boundary):
 
 ```text
 production traffic
@@ -142,7 +142,7 @@ public v2rayA UI exposure
 public backend exposure
 ```
 
-Live firewall apply remains forbidden until the Phase 11 production/customer activation gate explicitly accepts a controlled apply path.
+Phase 11 acceptance authorizes only the controlled, planner-driven, operator-gated firewall apply path. Unrestricted or direct/ad-hoc firewall mutation remains forbidden, and conservative config defaults remain unchanged.
 
 Historical compatibility anchor: Slice 3 / Apply Slice 3 and Future Dedicated Phase 6 Apply Gate Proposal/Review are retained as non-authorizing Phase 6 references only; they do not reopen any current gate.
 

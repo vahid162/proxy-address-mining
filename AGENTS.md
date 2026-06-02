@@ -122,7 +122,7 @@ backend exposure classification
 internal backend reachability classification
 ```
 
-Phase 6-B forbidden work (historical reference, constraints still forbidden now):
+Phase 6-B forbidden work (historical Phase 6 reference only; this list does not override the accepted Phase 11 controlled boundary):
 
 ```text
 production traffic
@@ -148,7 +148,7 @@ public v2rayA UI exposure
 public backend exposure
 ```
 
-Phase 11 acceptance authorizes only the controlled firewall apply path. Default configuration remains conservative (`plan_only`); each future controlled operation still requires its explicit operator package, planning, restore, lock, verify, and evidence workflow.
+After Phase 11 acceptance, only controlled CLI/service-layer onboarding, planner-driven customer NAT/firewall handling, the controlled firewall apply path, and the controlled abuse path are authorized. Unrestricted expansion and direct or ad-hoc DB/firewall/runtime mutation remain forbidden. Default configuration remains conservative (`plan_only`); each future controlled operation still requires its explicit operator package, planning, restore, lock, verify, and evidence workflow.
 
 Historical compatibility anchor: Slice 3 / Apply Slice 3 and Future Dedicated Phase 6 Apply Gate Proposal/Review are retained as non-authorizing Phase 6 references only; they do not reopen any current gate.
 

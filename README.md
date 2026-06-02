@@ -77,27 +77,25 @@ proxy/backend safety checks that preserve internal reachability and external non
 Forbidden now:
 
 ```text
-production traffic
-controlled CLI canary execution
-limited real customer onboarding
-customer NAT redirects
-customer firewall rules
-live firewall apply
-live firewall rollback
-live firewall verify
+unrestricted production traffic expansion
+unrestricted miner traffic expansion
+customer onboarding outside the controlled CLI/service-layer path
+direct or ad-hoc customer NAT redirects outside the accepted planner/service-layer path
+direct or ad-hoc customer firewall rules outside the accepted planner/service-layer path
+firewall apply, rollback, or verify outside the controlled operator-gated path
 unauthorized iptables-save execution
-iptables-restore execution
-conntrack flush
-usage timers
-hash-rate/share collectors
-abuse runner automation
+iptables-restore execution outside the accepted controlled path
+conntrack flush outside the relevant runtime gate
+usage timers or daemon starts outside an explicit accepted gate
+high-volume hash-rate/share collectors without retention and partition review
+unrestricted abuse runner or background automation outside the controlled boundary
 worker automation
-block or pause automation
+block or pause automation outside an explicit accepted gate
 local UI service
 buyer UI service
 Telegram bot
-production customer import
-worker enforcement
+production customer import outside the controlled CLI-limited path
+worker enforcement before Phase 12 acceptance
 public API binding
 public v2rayA UI exposure
 public backend exposure
@@ -108,13 +106,16 @@ Required invariants remain:
 ```text
 firewall.apply_mode = plan_only
 proxy.runtime_activation_allowed = false
+production_traffic = controlled_cli_limited
+firewall_apply_allowed = controlled
+abuse_automation_allowed = controlled
+customer_onboarding_allowed = controlled_cli_limited
 proxy_data_plane_allowed = limited_runtime_local_only
-production_traffic = none
-firewall_apply_allowed = no
-abuse_automation_allowed = no
-customer_onboarding_allowed = db_only
+worker_enforcement_allowed = no
 ui_allowed = no
 telegram_allowed = no
+live_snapshot_read_allowed = iptables_save_read_only
+restore_lock_record_execution_allowed = controlled_boundary_only
 ```
 
 ## Implemented So Far
@@ -146,26 +147,28 @@ Phase 7 usage + policy/reject accounting accepted on farm5 as report-only/servic
 Phase 8 Abuse 1h Core accepted on farm5 as evidence/readiness only
 Phase 9 Check / Report / Diagnostics accepted on farm5 as report-only/final diagnostics
 Phase 10 Session / Worker / Policy / Share Timeline accepted on farm5
+Phase 11 Production / Customer Activation Gate accepted on farm5 for controlled CLI-limited BTC operation
 ```
 
-## Not Implemented Yet
+## Not Open or Not Implemented Yet
+
+The accepted Phase 11 boundary is intentionally limited. The following unrestricted or later-phase capabilities remain closed:
 
 ```text
-production customer traffic
-live firewall apply
-live firewall rollback
-customer NAT redirects
-customer firewall rules
-usage timers
-hash-rate/share collectors
-abuse runner automation
-block/pause automation
+unrestricted production customer traffic expansion
+unrestricted miner traffic expansion
+firewall apply or rollback outside the controlled operator-gated path
+customer NAT redirects or customer firewall rules outside the accepted planner/service-layer path
+usage timers or daemon starts outside an explicit accepted gate
+high-volume hash-rate/share collectors without retention and partition review
+unrestricted abuse runner or background automation
+block/pause automation outside an explicit accepted gate
 local UI
 buyer UI
 Telegram bot
 authentication/billing
-worker enforcement
-production import
+worker enforcement before Phase 12 acceptance
+unrestricted production import
 ```
 
 ## Project Objective
