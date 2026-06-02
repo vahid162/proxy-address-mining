@@ -1,3 +1,7 @@
+## Current Gate Update (0.1.234)
+
+Phase 11 is accepted only for the farm5 `controlled_cli_limited` BTC boundary. Phase 12 — Worker Policy Enforcement is next. UI, Telegram, worker enforcement, and unrestricted expansion remain closed. Controlled firewall/apply and abuse authorization are operator-gated boundaries, not permission for unrestricted background automation or direct mutation.
+
 # AI-safe Runtime-first
 
 Status: Phase 11 operating principle

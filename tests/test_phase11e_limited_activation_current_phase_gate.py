@@ -2,13 +2,15 @@ from pathlib import Path
 
 import pytest
 
-from mpf.services.phase11e_limited_activation_common import validate_current_phase_gate
+from mpf.services.phase11e_limited_activation_common import PHASE11_PRE_FINAL_ACCEPTANCE_GATE, validate_current_phase_gate
 
 
 SAFE_CURRENT_STATE = """\
 ## Current State
 
 ```text
+current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
+current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 production_traffic: none
 firewall_apply_allowed: no
 abuse_automation_allowed: no
@@ -24,7 +26,7 @@ def _validate(tmp_path: Path, content: str) -> list[str]:
     phase_status = tmp_path / "PHASE_STATUS.md"
     phase_status.write_text(content, encoding="utf-8")
     blockers: list[str] = []
-    validate_current_phase_gate(blockers, phase_status_path=phase_status)
+    validate_current_phase_gate(blockers, phase_status_path=phase_status, requirements=PHASE11_PRE_FINAL_ACCEPTANCE_GATE)
     return blockers
 
 

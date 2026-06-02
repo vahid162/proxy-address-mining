@@ -86,21 +86,22 @@ docs/PHASE_STATUS.md
 Current repository gate:
 
 ```text
-current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
-current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
-server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-customer_onboarding_allowed: db_only
+current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
+current_working_phase: Phase 12 — Worker Policy Enforcement
+server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary
+production_traffic: controlled_cli_limited
+firewall_apply_allowed: controlled
+abuse_automation_allowed: controlled
+customer_onboarding_allowed: controlled_cli_limited
 proxy_data_plane_allowed: limited_runtime_local_only
+worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
-Phase 11 is planning/readiness only. It does not authorize controlled CLI canary, production traffic, firewall apply, customer NAT/customer firewall rules, abuse automation, scheduler/timer, collector daemon, UI, Telegram, or unrestricted customer onboarding.
+Phase 11 is accepted only for the controlled CLI-limited BTC boundary. Controlled CLI/service-layer onboarding, controlled firewall apply, and controlled abuse automation paths are authorized boundaries; this does not authorize unrestricted expansion, UI, Telegram, worker enforcement, scheduler/timer starts, or direct DB/firewall mutation.
 
 Phase 6-B allowed work (historical reference, already accepted):
 
@@ -121,7 +122,7 @@ backend exposure classification
 internal backend reachability classification
 ```
 
-Phase 6-B forbidden work (historical reference, constraints still forbidden now):
+Phase 6-B forbidden work (historical Phase 6 reference only; this list does not override the accepted Phase 11 controlled boundary):
 
 ```text
 production traffic
@@ -147,7 +148,7 @@ public v2rayA UI exposure
 public backend exposure
 ```
 
-Live firewall apply remains forbidden until the Phase 11 production/customer activation gate explicitly accepts a controlled apply path.
+After Phase 11 acceptance, only controlled CLI/service-layer onboarding, planner-driven customer NAT/firewall handling, the controlled firewall apply path, and the controlled abuse path are authorized. Unrestricted expansion and direct or ad-hoc DB/firewall/runtime mutation remain forbidden. Default configuration remains conservative (`plan_only`); each future controlled operation still requires its explicit operator package, planning, restore, lock, verify, and evidence workflow.
 
 Historical compatibility anchor: Slice 3 / Apply Slice 3 and Future Dedicated Phase 6 Apply Gate Proposal/Review are retained as non-authorizing Phase 6 references only; they do not reopen any current gate.
 

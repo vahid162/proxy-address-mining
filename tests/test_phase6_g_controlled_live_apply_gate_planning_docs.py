@@ -11,7 +11,7 @@ def test_phase6_g_doc_exists() -> None:
 
 def test_phase_status_current_state_block_unchanged() -> None:
     text = _read("docs/PHASE_STATUS.md")
-    expected = """## Current State\n\n```text\ncurrent_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5\ncurrent_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness\nserver_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\nproxy_data_plane_allowed: limited_runtime_local_only\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\nrestore_lock_record_execution_allowed: controlled_boundary_only\n```"""
+    expected = """## Current State\n\n```text\ncurrent_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5\ncurrent_working_phase: Phase 12 — Worker Policy Enforcement\nserver_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary\nproduction_traffic: controlled_cli_limited\nfirewall_apply_allowed: controlled\nabuse_automation_allowed: controlled\ncustomer_onboarding_allowed: controlled_cli_limited\nproxy_data_plane_allowed: limited_runtime_local_only\nworker_enforcement_allowed: no\nui_allowed: no\ntelegram_allowed: no\nlive_snapshot_read_allowed: iptables_save_read_only\nrestore_lock_record_execution_allowed: controlled_boundary_only\n```"""
     assert expected in text
 
 

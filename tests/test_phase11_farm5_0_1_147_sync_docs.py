@@ -32,18 +32,18 @@ def test_readme_phase_status_and_plan_alignment_for_0_1_147() -> None:
     status = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
 
-    assert "Latest recorded farm5 sync evidence is 0.1.153." in readme
-    assert "Actual canary execution has not been performed or accepted." in readme
+    assert "Latest recorded farm5 sync evidence is 0.1.153." not in readme
+    assert "Phase 11 is accepted: controlled CLI-limited production/customer activation is ready on farm5" in readme
 
     current_state = status.split("## Current State", 1)[1].split("## Accepted Server Results", 1)[0]
-    assert "current_accepted_phase: Phase 10" in current_state
-    assert "current_working_phase: Phase 11" in current_state
-    assert "production_traffic: none" in current_state
+    assert "current_accepted_phase: Phase 11" in current_state
+    assert "current_working_phase: Phase 12" in current_state
+    assert "production_traffic: controlled_cli_limited" in current_state
 
     assert "Phase 11 farm5 0.1.147 Sync/Test Evidence" in status
     assert "Phase 11D execution not authorized." in status
 
     assert "latest recorded farm5 sync evidence is 0.1.159." in plan
     assert NEXT_TARGET in plan
-    assert "Current accepted phase is Phase 10." in plan
-    assert "Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in plan
+    assert "## Phase 12A Active Target Position (0.1.234)" in plan
+    assert "Phase 12A worker evidence mapping/readiness" in plan

@@ -14,7 +14,9 @@ SCOPE = {
 }
 CANARY_KEY = "canary-btc-001"
 SAFE_ARTIFACT_DECISIONS = {"PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS", "PASS_NO_CUSTOMER_ARTIFACTS"}
-PHASE_GATE_REQUIREMENTS = {
+PHASE11_PRE_FINAL_ACCEPTANCE_GATE = {
+    "current_accepted_phase": "Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5",
+    "current_working_phase": "Phase 11 — Production / Customer Activation Gate planning/readiness",
     "production_traffic": "none",
     "firewall_apply_allowed": "no",
     "abuse_automation_allowed": "no",
@@ -23,6 +25,23 @@ PHASE_GATE_REQUIREMENTS = {
     "ui_allowed": "no",
     "telegram_allowed": "no",
 }
+PHASE11_POST_FINAL_ACCEPTANCE_GATE = {
+    "current_accepted_phase": "Phase 11 — Production / Customer Activation Gate accepted on farm5",
+    "current_working_phase": "Phase 12 — Worker Policy Enforcement",
+    "server_state": "farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary",
+    "production_traffic": "controlled_cli_limited",
+    "firewall_apply_allowed": "controlled",
+    "abuse_automation_allowed": "controlled",
+    "customer_onboarding_allowed": "controlled_cli_limited",
+    "proxy_data_plane_allowed": "limited_runtime_local_only",
+    "worker_enforcement_allowed": "no",
+    "ui_allowed": "no",
+    "telegram_allowed": "no",
+    "live_snapshot_read_allowed": "iptables_save_read_only",
+    "restore_lock_record_execution_allowed": "controlled_boundary_only",
+}
+# Backward-compatible alias for historical pre-acceptance services and fixtures.
+PHASE_GATE_REQUIREMENTS = PHASE11_PRE_FINAL_ACCEPTANCE_GATE
 
 OK_STATUSES = {"OK", "PASS", "HEALTHY", "READY"}
 
@@ -160,7 +179,12 @@ def _extract_current_state_block(text: str) -> str | None:
     return block or None
 
 
-def validate_current_phase_gate(blockers: list[str], *, phase_status_path: Path = Path("docs/PHASE_STATUS.md")) -> None:
+def validate_current_phase_gate(
+    blockers: list[str],
+    *,
+    phase_status_path: Path = Path("docs/PHASE_STATUS.md"),
+    requirements: dict[str, str] = PHASE11_POST_FINAL_ACCEPTANCE_GATE,
+) -> None:
     try:
         text = phase_status_path.read_text(encoding="utf-8")
     except OSError:
@@ -176,7 +200,7 @@ def validate_current_phase_gate(blockers: list[str], *, phase_status_path: Path 
             continue
         key, value = line.split(":", 1)
         current_values[key.strip()] = value.strip()
-    for key, value in PHASE_GATE_REQUIREMENTS.items():
+    for key, value in requirements.items():
         if current_values.get(key) != value:
             blockers.append(f"current_phase_gate_open:{key}")
 

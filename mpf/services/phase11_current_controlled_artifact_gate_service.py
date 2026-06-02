@@ -14,15 +14,18 @@ _ALLOWED_SUFFIXES = {"customer_connlimit_reject", "customer_hashlimit_reject", "
 
 
 def _phase_gate_ok(phase_status_text: str) -> bool:
-    required = (
+    pre = (
         "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5",
         "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness",
-        "production_traffic: none",
-        "firewall_apply_allowed: no",
-        "abuse_automation_allowed: no",
-        "customer_onboarding_allowed: db_only",
+        "production_traffic: none", "firewall_apply_allowed: no", "abuse_automation_allowed: no", "customer_onboarding_allowed: db_only",
     )
-    return all(x in phase_status_text for x in required)
+    post = (
+        "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
+        "current_working_phase: Phase 12 — Worker Policy Enforcement",
+        "production_traffic: controlled_cli_limited", "firewall_apply_allowed: controlled", "abuse_automation_allowed: controlled",
+        "customer_onboarding_allowed: controlled_cli_limited", "worker_enforcement_allowed: no", "ui_allowed: no", "telegram_allowed: no",
+    )
+    return all(x in phase_status_text for x in pre) or all(x in phase_status_text for x in post)
 
 
 def _parse_chain_decl(line: str) -> str | None:

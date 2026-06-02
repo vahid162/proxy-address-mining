@@ -15,7 +15,7 @@ def test_evidence_records_farm5_ready_results_and_hashes():
 
 def test_phase_status_current_state_stays_closed():
     block = _current_state(STATUS)
-    for marker in ("production_traffic: none", "firewall_apply_allowed: no", "abuse_automation_allowed: no", "customer_onboarding_allowed: db_only",
+    for marker in ("production_traffic: controlled_cli_limited", "firewall_apply_allowed: controlled", "abuse_automation_allowed: controlled", "customer_onboarding_allowed: controlled_cli_limited",
         "proxy_data_plane_allowed: limited_runtime_local_only", "ui_allowed: no", "telegram_allowed: no"):
         assert marker in block
     assert "0.1.231 planning/readiness note" in STATUS

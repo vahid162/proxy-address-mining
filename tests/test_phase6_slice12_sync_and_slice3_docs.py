@@ -10,14 +10,15 @@ def test_phase_status_current_state_block_unchanged() -> None:
     expected = """## Current State
 
 ```text
-current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
-current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
-server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-customer_onboarding_allowed: db_only
+current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
+current_working_phase: Phase 12 — Worker Policy Enforcement
+server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary
+production_traffic: controlled_cli_limited
+firewall_apply_allowed: controlled
+abuse_automation_allowed: controlled
+customer_onboarding_allowed: controlled_cli_limited
 proxy_data_plane_allowed: limited_runtime_local_only
+worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only

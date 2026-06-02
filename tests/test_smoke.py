@@ -43,13 +43,13 @@ def test_cli_version_works_without_command() -> None:
 def test_cli_phase_status_matches_current_phase_guard() -> None:
     result = RUNNER.invoke(app, ["phase-status"])
     assert result.exit_code == 0
-    assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in result.output
-    assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in result.output
-    assert "server_state: farm5 limited Phase 4 proxy runtime is running and accepted" in result.output
-    assert "firewall_apply_allowed: no" in result.output
-    assert "abuse_automation_allowed: no" in result.output
+    assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in result.output
+    assert "current_working_phase: Phase 12 — Worker Policy Enforcement" in result.output
+    assert "server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary" in result.output
+    assert "firewall_apply_allowed: controlled" in result.output
+    assert "abuse_automation_allowed: controlled" in result.output
     assert "proxy_data_plane_allowed: limited_runtime_local_only" in result.output
-    assert "customer_onboarding_allowed: db_only" in result.output
+    assert "customer_onboarding_allowed: controlled_cli_limited" in result.output
 
 
 def test_cli_config_validate_example() -> None:

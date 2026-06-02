@@ -14,5 +14,5 @@ def test_docs_link_new_evidence_and_target():
     assert "## Phase 11 0.1.232 Active Target Position" in PLAN
 def test_phase_status_current_state_stays_closed():
     block = _current_state(STATUS)
-    for marker in ("production_traffic: none", "firewall_apply_allowed: no", "abuse_automation_allowed: no", "customer_onboarding_allowed: db_only", "proxy_data_plane_allowed: limited_runtime_local_only", "ui_allowed: no", "telegram_allowed: no"):
+    for marker in ("production_traffic: controlled_cli_limited", "firewall_apply_allowed: controlled", "abuse_automation_allowed: controlled", "customer_onboarding_allowed: controlled_cli_limited", "proxy_data_plane_allowed: limited_runtime_local_only", "ui_allowed: no", "telegram_allowed: no"):
         assert marker in block

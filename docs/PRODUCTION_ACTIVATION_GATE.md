@@ -1,5 +1,10 @@
 # Production / Customer Activation Gate
 
+## Acceptance Update (0.1.234)
+
+Phase 11 is now accepted on farm5 only for `controlled_cli_limited` BTC operation. Controlled CLI/service-layer onboarding, controlled firewall apply, and controlled abuse automation paths are accepted boundaries. This does not enable unrestricted expansion, UI, Telegram, worker enforcement, or direct DB/firewall edits. Default configuration remains conservative and each controlled operation requires explicit operator evidence.
+
+
 Status: planned Phase 11 gate after Phase 10 final acceptance
 
 This document defines the required Phase 11 gate for making the server operational for real customers through terminal commands before Worker Policy Enforcement, Local UI, Operator UI Actions, or Telegram phases.

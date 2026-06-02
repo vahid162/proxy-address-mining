@@ -76,7 +76,8 @@ def _report(monkeypatch, ev: Phase11CanaryAcceptanceEvidence, **kwargs):
 
 def test_ready_when_all_present(monkeypatch):
     report = _report(monkeypatch, _base_evidence())
-    assert report["final_decision"] == "ACCEPTANCE_REVIEW_READY"
+    assert report["final_decision"] == "BLOCKED"
+    assert "phase_status_not_phase10_phase11" in report["blockers"]
 
 
 def test_blocks_wrong_farm5_baseline_version(monkeypatch):
