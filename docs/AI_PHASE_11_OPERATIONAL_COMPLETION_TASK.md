@@ -33,3 +33,7 @@ timers or daemon starts without a later explicit accepted gate
 ```
 
 The first implementation step after this entry gate is `implement_controlled_abuse_operational_core`.
+
+## Progress Update (0.1.239)
+
+`implement_controlled_abuse_operational_core` is implemented as an operator-invoked service/repository/domain boundary with thin `mpf abuse` CLI commands. Hard/unhard remain controlled-package gated; firewall verification failure cannot set `hard_applied_at`. No timer, daemon, worker enforcement, UI, Telegram, or Phase 12 implementation is enabled.
