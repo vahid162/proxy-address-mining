@@ -85,12 +85,13 @@ def test_verified_controlled_firewall_path_is_only_way_to_mark_hard_applied_at()
 
 def test_cli_surface_is_thin_and_fail_closed_without_controlled_package(tmp_path: Path) -> None:
     runner = CliRunner()
+    missing_config = tmp_path / "missing-mpf.yaml"
     assert runner.invoke(app, ["abuse", "doctor"]).exit_code == 0
-    status = runner.invoke(app, ["abuse", "status"])
+    status = runner.invoke(app, ["abuse", "status", "--config", str(missing_config)])
     assert status.exit_code == 0 and "database_read_failed" in status.stdout
-    events = runner.invoke(app, ["abuse", "events", "--limit", "50"])
+    events = runner.invoke(app, ["abuse", "events", "--limit", "50", "--config", str(missing_config)])
     assert events.exit_code == 0 and "database_read_failed" in events.stdout
-    dry = runner.invoke(app, ["abuse", "run", "--dry-run"])
+    dry = runner.invoke(app, ["abuse", "run", "--dry-run", "--config", str(missing_config)])
     assert dry.exit_code == 0 and "database_read_failed" in dry.stdout
     missing = runner.invoke(app, ["abuse", "run", "--controlled-execute"])
     assert missing.exit_code == 1 and "controlled_package_required" in missing.stdout
