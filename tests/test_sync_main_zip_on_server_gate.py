@@ -17,7 +17,7 @@ def test_sync_script_forbids_stale_phase6_phase7_hardcodes() -> None:
         assert fragment not in text
 
 
-def test_sync_script_requires_phase11_accepted_phase12_working_gate() -> None:
+def test_sync_script_requires_phase11_operational_completion_gate() -> None:
     text = Path("scripts/sync_main_zip_on_server.sh").read_text(encoding="utf-8")
 
     required_fragments = [
