@@ -23,6 +23,7 @@ def test_sync_script_requires_phase11_operational_completion_gate() -> None:
     required_fragments = [
         "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
         "current_working_phase: Phase 11 operational completion",
+        "server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation",
         "production_traffic: controlled_cli_limited",
         "firewall_apply_allowed: controlled",
         "abuse_automation_allowed: controlled_operator_gated",
@@ -44,6 +45,7 @@ def test_sync_script_no_longer_requires_pre_acceptance_phase11_closed_gate() -> 
     text = Path("scripts/sync_main_zip_on_server.sh").read_text(encoding="utf-8")
 
     stale_fragments = [
+        "server_state: farm5 controlled CLI-limited production/customer activation is accepted for the Phase 11 limited BTC boundary",
         "new PHASE_STATUS does not keep production_traffic=none",
         "new PHASE_STATUS does not keep firewall apply disabled",
         "new PHASE_STATUS does not keep abuse automation disabled",
