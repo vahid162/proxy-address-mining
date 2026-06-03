@@ -1,6 +1,8 @@
 # AI Task — Phase 11 operational completion — Full CLI Production Operations
 
 
+Phase 11 operational completion 0.1.246 note: farm5 0.1.245 post-reboot evidence discovered that runtime containers partially returned, `mpf-v2raya-socks-bridge` was missing from the expected runtime container set, and controlled Phase 11 firewall artifacts were absent after reboot. Restart/autostart proof remains blocked as `missing_or_partial` until the persistence gap is fixed; `next_required_step` remains `fix_restart_autostart_persistence_gap`.
+
 Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
 
 ## Purpose
@@ -43,7 +45,7 @@ unrestricted production/miner expansion
 timers or daemon starts without a later explicit accepted gate
 ```
 
-The first implementation step after this scope expansion remains `run_restart_autostart_proof_on_farm5`.
+The current required implementation step after farm5 0.1.245 post-reboot evidence is `fix_restart_autostart_persistence_gap`.
 
 ## Progress Update (0.1.239)
 
@@ -89,3 +91,10 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - Restart/autostart proof now has a service-layer report, thin production CLI command, and read-only farm5 helper script.
 - The proof remains fail-closed as `missing_or_partial` until source-backed farm5 evidence is collected after the operator workflow.
 - All mutation flags remain false; no reboot, Docker/systemd restart, DB/firewall mutation, iptables-restore, conntrack flush, Phase 12, worker enforcement, UI, Telegram, public API, or unrestricted production is enabled.
+
+## Progress Update (0.1.246)
+
+- farm5 0.1.245 post-reboot evidence showed only partial runtime container return after reboot.
+- `mpf-v2raya-socks-bridge` was missing from the expected runtime container set.
+- Controlled Phase 11 firewall customer artifacts were absent after reboot while unknown MPF artifacts remained empty.
+- Keep `restart_autostart_proof: missing_or_partial` and `next_required_step: fix_restart_autostart_persistence_gap` until persistence is fixed and source-backed evidence proves readiness.

@@ -31,6 +31,8 @@ The accepted boundary remains Phase 11 controlled_cli_limited BTC operation. The
 
 Full CLI Production Operations acceptance must prove restart/autostart, production customer lifecycle execution, production firewall plan/apply/verify/rollback for real customer ports, CLI onboarding, usage/report/check evidence, abuse runner coverage for all active customers in all enabled lanes, pause/block/expire-run controls, backup/restore drill, and final acceptance that advances `production_traffic` and `customer_onboarding_allowed` to `cli_production`. Until that final acceptance PR lands, the current gate remains `controlled_cli_limited` and Phase 12 remains blocked.
 
+0.1.245 farm5 post-reboot evidence found a restart/autostart persistence gap: runtime containers partially returned, `mpf-v2raya-socks-bridge` was missing, and known controlled Phase 11 firewall artifacts were absent after reboot. Version 0.1.246 keeps `restart_autostart_proof=missing_or_partial` and sets the next required step to `fix_restart_autostart_persistence_gap`; it does not start a new phase or open Phase 12.
+
 Historical compatibility anchors are kept in docs/HISTORICAL_COMPATIBILITY_ANCHORS.md.
 
 
