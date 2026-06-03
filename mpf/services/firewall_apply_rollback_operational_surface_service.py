@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib
+import subprocess
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +19,8 @@ from mpf.services import (
 
 _COMPONENT = "controlled_firewall_apply_rollback_operational_surface"
 _NEXT_REQUIRED_STEP = "implement_restart_autostart_proof"
-_PHASE_STATUS_PATH = Path("docs/PHASE_STATUS.md")
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_PHASE_STATUS_PATH = _REPO_ROOT / "docs" / "PHASE_STATUS.md"
 _CONTROLLED_APPLY_COMPONENTS = (
     "mpf.services.phase11_single_customer_firewall_plan_gate_service",
     "mpf.services.phase11_single_customer_firewall_apply_gate_service",
@@ -76,6 +80,10 @@ def _base_report() -> dict[str, Any]:
         "firewall_rollback_performed": False,
         "iptables_restore_executed": False,
         "iptables_save_executed": False,
+        "iptables_save_mode": "not_executed",
+        "artifact_snapshot_source": "not_collected",
+        "artifact_snapshot_collected": False,
+        "artifact_snapshot_sha256": "",
         "firewall_change": "no",
         "nat_change": "no",
         "runtime_change": "no",
@@ -119,27 +127,88 @@ def _read_phase_status_text(path: Path = _PHASE_STATUS_PATH) -> str:
         return ""
 
 
-def _controlled_artifact_gate_report() -> dict[str, Any]:
-    """Run the pure artifact-gate parser without executing iptables-save."""
+def _live_snapshot_read_authorized(phase_status_text: str) -> bool:
+    return "live_snapshot_read_allowed: iptables_save_read_only" in phase_status_text
+
+
+def _collect_iptables_save_text(
+    report: dict[str, Any],
+    blockers: list[str],
+    *,
+    phase_status_text: str,
+    iptables_save_text: str | None = None,
+    snapshot_reader: Callable[[], str] | None = None,
+) -> str | None:
+    """Collect source-backed/read-only iptables-save evidence or fail closed."""
+
+    if iptables_save_text is not None:
+        report["artifact_snapshot_source"] = "provided_iptables_save_text"
+        report["iptables_save_mode"] = "provided_read_only_snapshot"
+        snapshot_text = iptables_save_text
+    else:
+        if not _live_snapshot_read_authorized(phase_status_text):
+            _append_unique(blockers, "live_snapshot_read_not_authorized")
+            return None
+        report["iptables_save_executed"] = True
+        report["iptables_save_mode"] = "read_only"
+        report["artifact_snapshot_source"] = "iptables-save stdout"
+        try:
+            if snapshot_reader is not None:
+                snapshot_text = str(snapshot_reader())
+            else:
+                completed = subprocess.run(["iptables-save"], capture_output=True, text=True, check=False, timeout=5)
+                if completed.returncode != 0:
+                    report["iptables_save_returncode"] = completed.returncode
+                    report["iptables_save_error"] = (completed.stderr or completed.stdout or "iptables-save failed").strip()[:500]
+                    _append_unique(blockers, "iptables_save_read_failed")
+                    return None
+                snapshot_text = completed.stdout or ""
+        except subprocess.TimeoutExpired:
+            report["iptables_save_error"] = "iptables-save timed out"
+            _append_unique(blockers, "iptables_save_read_failed")
+            return None
+        except Exception as exc:  # noqa: BLE001 - read-only evidence must fail closed.
+            report["iptables_save_error"] = str(exc)
+            _append_unique(blockers, "iptables_save_read_failed")
+            return None
+
+    if not snapshot_text.strip():
+        _append_unique(blockers, "artifact_snapshot_missing_or_empty")
+        return None
+    report["artifact_snapshot_collected"] = True
+    report["artifact_snapshot_sha256"] = hashlib.sha256(snapshot_text.encode("utf-8")).hexdigest()
+    return snapshot_text
+
+
+def _controlled_artifact_gate_report(
+    *,
+    iptables_save_text: str,
+    ip6tables_save_text: str = "",
+    phase_status_text: str,
+) -> dict[str, Any]:
+    """Run the pure artifact-gate parser from source-backed snapshot text."""
 
     return phase11_current_controlled_artifact_gate_service.build_phase11_current_controlled_artifact_gate_report(
-        iptables_save_text="",
-        ip6tables_save_text="",
-        phase_status_text=_read_phase_status_text(),
+        iptables_save_text=iptables_save_text,
+        ip6tables_save_text=ip6tables_save_text,
+        phase_status_text=phase_status_text,
     )
 
 
 def build_firewall_apply_rollback_operational_surface_report(
     config: MPFConfig,
     *,
-    controlled_artifact_gate_report: dict[str, Any] | None = None,
+    iptables_save_text: str | None = None,
+    ip6tables_save_text: str = "",
+    snapshot_reader: Callable[[], str] | None = None,
 ) -> dict[str, Any]:
     """Inspect the controlled firewall apply/rollback surface using read-only checks only.
 
     READY means the operator-facing surface can prove that controlled apply and
     rollback workflows are explicit, gated, rollback-aware, restore/lock/verify
-    aware, and package/operator-confirmation bound. This command never executes
-    iptables-save, iptables-restore, Docker, systemd, conntrack, or DB writes.
+    aware, and package/operator-confirmation bound. The default check may execute
+    the already-authorized read-only iptables-save evidence path, but it never
+    executes iptables-restore, Docker, systemd, conntrack, firewall mutation, or DB writes.
     """
 
     report = _base_report()
@@ -192,11 +261,26 @@ def build_firewall_apply_rollback_operational_surface_report(
         if not customers.ok:
             _append_unique(blockers, "active_customer_read_failed")
 
-    try:
-        artifact_gate = controlled_artifact_gate_report if controlled_artifact_gate_report is not None else _controlled_artifact_gate_report()
-    except Exception as exc:  # noqa: BLE001 - artifact visibility must fail closed.
-        artifact_gate = {"final_decision": "BLOCKED", "unknown_mpf_artifacts": [], "forbidden_public_runtime_exposure": False, "error": str(exc)}
-        _append_unique(blockers, "controlled_artifact_gate_read_failed")
+    phase_status_text = _read_phase_status_text()
+    snapshot_text = _collect_iptables_save_text(
+        report,
+        blockers,
+        phase_status_text=phase_status_text,
+        iptables_save_text=iptables_save_text,
+        snapshot_reader=snapshot_reader,
+    )
+    if snapshot_text is None:
+        artifact_gate: dict[str, Any] = {"final_decision": "BLOCKED", "unknown_mpf_artifacts": [], "forbidden_public_runtime_exposure": False}
+    else:
+        try:
+            artifact_gate = _controlled_artifact_gate_report(
+                iptables_save_text=snapshot_text,
+                ip6tables_save_text=ip6tables_save_text,
+                phase_status_text=phase_status_text,
+            )
+        except Exception as exc:  # noqa: BLE001 - artifact visibility must fail closed.
+            artifact_gate = {"final_decision": "BLOCKED", "unknown_mpf_artifacts": [], "forbidden_public_runtime_exposure": False, "error": str(exc)}
+            _append_unique(blockers, "controlled_artifact_gate_read_failed")
     report["controlled_artifact_gate_status"] = str(artifact_gate.get("final_decision", "BLOCKED"))
     report["known_controlled_artifacts_present"] = bool(artifact_gate.get("known_controlled_artifacts_present", False))
     report["known_controlled_artifacts_coverage"] = list(artifact_gate.get("allowed_controlled_artifacts", []))
