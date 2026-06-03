@@ -223,5 +223,5 @@ def build_phase11_restart_autostart_proof_report(evidence_dir: Path | str | None
         "warnings": warnings,
         **_MUTATION_FLAGS,
         "final_decision": _READY_DECISION if ready else _BLOCKED,
-        "next_required_step": "implement_production_customer_lifecycle_execution" if ready else "run_restart_autostart_proof_on_farm5",
+        "next_required_step": "implement_production_customer_lifecycle_execution" if ready else "fix_restart_autostart_persistence_gap",
     }

@@ -1,6 +1,8 @@
 # Phase 11 operational completion — Full CLI Production Operations Gate
 
 
+Phase 11 operational completion 0.1.246 note: farm5 0.1.245 post-reboot evidence discovered that runtime containers partially returned, `mpf-v2raya-socks-bridge` was missing from the expected runtime container set, and controlled Phase 11 firewall artifacts were absent after reboot. Restart/autostart proof remains blocked as `missing_or_partial` until the persistence gap is fixed; `next_required_step` remains `fix_restart_autostart_persistence_gap`.
+
 Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
 
 ## Gate Meaning
@@ -59,3 +61,10 @@ customer_onboarding_allowed: controlled_cli_limited
 ```
 
 No worker enforcement, UI, Telegram, buyer panel, public API, public backend exposure, direct/ad-hoc DB or firewall mutation, firewall changes outside the service-layer planner/apply/verify path, or abuse hard outside the official restore/backup/firewall/conntrack/audit path is authorized by this document.
+
+## Progress Update (0.1.246)
+
+- farm5 0.1.245 post-reboot evidence found a restart/autostart persistence blocker: runtime containers only partially returned after reboot.
+- `mpf-v2raya-socks-bridge` was missing from the expected runtime container set while the local-only v2rayA UI and BTC backend listeners were visible.
+- The current controlled artifact gate reported no unknown MPF artifacts, but known controlled Phase 11 firewall customer artifacts were absent after reboot.
+- Restart/autostart proof stays `missing_or_partial`; the next required step is `fix_restart_autostart_persistence_gap`, not Phase 12 or Full CLI Production Operations acceptance.

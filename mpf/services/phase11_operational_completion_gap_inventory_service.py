@@ -21,7 +21,7 @@ def build_phase11_operational_completion_gap_inventory_report(evidence_dir: Path
     next_required_step = (
         "implement_production_customer_lifecycle_execution"
         if restart_status == "ready"
-        else "run_restart_autostart_proof_on_farm5"
+        else "fix_restart_autostart_persistence_gap"
     )
 
     return {

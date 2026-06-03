@@ -1,3 +1,5 @@
+Phase 11 restart/autostart persistence blocker note (0.1.246): farm5 0.1.245 post-reboot evidence showed partial runtime container return, missing `mpf-v2raya-socks-bridge`, and absent known controlled Phase 11 firewall artifacts after reboot. `restart_autostart_proof` remains `missing_or_partial`; next required step is `fix_restart_autostart_persistence_gap`.
+
 Phase 11 operational completion full CLI production scope note (0.1.245): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion — Full CLI Production Operations; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
 
 Phase 11 controlled-boundary clarification note (0.1.235): clarified README and agent-rule wording after final acceptance; runtime behavior and conservative config defaults remain unchanged.
@@ -166,6 +168,7 @@ Phase 6-F may define manual canary criteria, operator approval requirements, evi
 Historical note: Phase 6-A established planner/model/diff foundations. Phase 5 — Customer CRUD in DB Only included documentation-only contract clarification for customer lifecycle, control rules, worker policy, and future abuse coverage. These historical notes do not authorize runtime behavior now.
 
 - `scripts/phase11_collect_restart_autostart_proof.sh` — read-only farm5 helper for Phase 11 restart/autostart proof evidence; it does not reboot, restart Docker/systemd, mutate DB/firewall, run iptables-restore, or flush conntrack.
+- `scripts/phase11_diagnose_restart_autostart_persistence.sh` — read-only farm5 helper for diagnosing the Phase 11 post-reboot restart/autostart persistence gap; it captures MPF status, Docker listings, listeners, iptables-save snapshots, current artifact gate output, restart/autostart proof, and persistence diagnosis without runtime, DB, firewall, restore, or connection-table mutation.
 
 ## Reading Order by Task
 

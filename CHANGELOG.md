@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.246
+
+- Add read-only Phase 11 post-reboot restart/autostart persistence diagnosis for missing runtime containers and controlled firewall artifacts.
+
 ## 0.1.245
 
 - Add a read-only Phase 11 restart/autostart proof surface and farm5 evidence helper while keeping operational completion fail-closed.

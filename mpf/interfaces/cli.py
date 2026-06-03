@@ -152,6 +152,7 @@ from mpf.services import (
     phase11_final_acceptance_service, phase11_post_acceptance_verification_service,
     phase11_operational_completion_gap_inventory_service,
     phase11_restart_autostart_proof_service,
+    phase11_restart_autostart_persistence_diagnosis_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3727,6 +3728,42 @@ def production_restart_autostart_proof(
     report = phase11_restart_autostart_proof_service.build_phase11_restart_autostart_proof_report(evidence_dir)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
+
+
+@production_app.command("restart-autostart-persistence-diagnosis")
+def production_restart_autostart_persistence_diagnosis(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Diagnose Phase 11 post-reboot autostart persistence gaps without mutation."""
+
+    try:
+        report = phase11_restart_autostart_persistence_diagnosis_service.run_phase11_restart_autostart_persistence_diagnosis(
+            _config_path(config),
+            expected_version=expected_version,
+        )
+    except Exception as exc:  # noqa: BLE001 - operator diagnosis must fail closed without traceback.
+        report = phase11_restart_autostart_persistence_diagnosis_service.build_phase11_restart_autostart_persistence_diagnosis_report(
+            expected_version=expected_version,
+            actual_containers=[],
+            listening_sockets=[],
+            artifact_gate_report={
+                "final_decision": "BLOCKED_CONFIGURATION_OR_READ_ONLY_INSPECTION_FAILED",
+                "known_controlled_artifacts_present": False,
+                "allowed_controlled_artifacts": [],
+                "unknown_mpf_artifacts": [],
+                "blockers": ["configuration_or_read_only_inspection_failed", str(exc)],
+                "warnings": [],
+            },
+        )
+        report["blockers"] = sorted(set([*report["blockers"], "configuration_or_read_only_inspection_failed"]))
+        report["configuration_error"] = str(exc)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
         return
     for key, value in report.items():
         typer.echo(f"{key}: {value}")

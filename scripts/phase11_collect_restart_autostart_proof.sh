@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -u
 
-VERSION="0.1.245"
+VERSION="0.1.246"
 OUT_DIR="${1:-/tmp/phase11-restart-autostart-proof-${VERSION}}"
 mkdir -p "${OUT_DIR}"
 

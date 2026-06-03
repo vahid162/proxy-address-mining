@@ -15,7 +15,17 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 # PHASE STATUS
 
 
+Phase 11 operational completion 0.1.246 note: farm5 0.1.245 post-reboot evidence discovered that runtime containers partially returned, `mpf-v2raya-socks-bridge` was missing from the expected runtime container set, and controlled Phase 11 firewall artifacts were absent after reboot. Restart/autostart proof remains blocked as `missing_or_partial` until the persistence gap is fixed; `next_required_step` remains `fix_restart_autostart_persistence_gap`.
+
 Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
+
+
+## 0.1.246 Phase 11 restart/autostart persistence blocker
+
+- farm5 0.1.245 post-reboot evidence discovered that runtime containers partially returned after reboot.
+- `mpf-v2raya-socks-bridge` was missing from the expected runtime container set.
+- Known controlled Phase 11 firewall customer artifacts were absent after reboot, while unknown MPF artifacts remained empty.
+- `restart_autostart_proof` remains `missing_or_partial`; `next_required_step` is `fix_restart_autostart_persistence_gap`. This does not create a new phase and does not authorize Phase 12, timers/daemons, Docker/systemd restarts, DB/firewall mutation, iptables-restore, conntrack flush, worker enforcement, UI, Telegram, public API/backend exposure, or unrestricted production.
 
 ## 0.1.245 Phase 11 operational completion — Full CLI Production Operations Scope Update
 
