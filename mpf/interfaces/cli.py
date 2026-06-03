@@ -151,6 +151,7 @@ from mpf.services import (
     phase11_final_acceptance_pr_readiness_service,
     phase11_final_acceptance_service, phase11_post_acceptance_verification_service,
     phase11_operational_completion_gap_inventory_service,
+    phase11_restart_autostart_proof_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3708,6 +3709,22 @@ def production_phase11_operational_completion_gap_inventory(
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
     report = phase11_operational_completion_gap_inventory_service.build_phase11_operational_completion_gap_inventory_report()
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
+
+
+
+@production_app.command("restart-autostart-proof")
+def production_restart_autostart_proof(
+    evidence_dir: Path | None = typer.Option(None, "--evidence-dir", help="Read-only evidence directory collected on farm5."),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    """Render the read-only, fail-closed Phase 11 restart/autostart proof report."""
+
+    report = phase11_restart_autostart_proof_service.build_phase11_restart_autostart_proof_report(evidence_dir)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
         return

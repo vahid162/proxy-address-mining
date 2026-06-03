@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.245
+
+- Add a read-only Phase 11 restart/autostart proof surface and farm5 evidence helper while keeping operational completion fail-closed.
+- Fix restart/autostart helper firewall artifact evidence to derive known/unknown MPF artifacts from the official current-controlled-artifact-gate classifier.
+
 ## 0.1.244
 
 - Expand active Phase 11 operational completion to the Full CLI Production Operations matrix and update the fail-closed gap inventory.

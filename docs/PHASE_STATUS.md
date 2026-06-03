@@ -14,7 +14,10 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
-## 0.1.244 Phase 11 operational completion — Full CLI Production Operations Scope Update
+
+Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
+
+## 0.1.245 Phase 11 operational completion — Full CLI Production Operations Scope Update
 
 - Active Phase 11 operational completion scope now requires Full CLI Production Operations before Phase 12 Worker Policy Enforcement.
 - This is not a new phase; current working phase remains under `Phase 11 operational completion — Full CLI Production Operations`.
@@ -36,14 +39,14 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 - Controlled usage/report/check operational surface is now checked/proven as a Phase 11 operational completion surface.
 - Abuse DB-backed surface remains ready.
 - Customer lifecycle CLI surface remains ready.
-- Controlled firewall apply/rollback and restart/autostart proof remain pending.
+- Restart/autostart proof now has an operator-runnable evidence surface but remains missing_or_partial until farm5 evidence is collected; controlled firewall apply/rollback remains outside final operational completion acceptance.
 - Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
 
 ## 0.1.241 Phase 11 operational completion Progress Update
 
 - Abuse DB-backed surface remains operational and now has regression coverage for local-peer psql row normalization.
 - Controlled customer lifecycle CLI surface is now checked/proven as a Phase 11 operational completion surface.
-- Usage/report/check, controlled firewall apply/rollback, and restart/autostart proof remain pending.
+- Restart/autostart proof now has an operator-runnable evidence surface but remains missing_or_partial until farm5 evidence is collected; usage/report/check and controlled firewall apply/rollback surfaces are present but not accepted as final operational completion.
 - Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
 
 ## 0.1.237 Phase 11 operational completion Entry Gate

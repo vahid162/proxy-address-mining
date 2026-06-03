@@ -1,5 +1,8 @@
 # AI Task — Phase 11 operational completion — Full CLI Production Operations
 
+
+Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
+
 ## Purpose
 
 `Phase 11 operational completion — Full CLI Production Operations` is the active post-acceptance completion gate. This is not a new phase. Phase 11 remains accepted on farm5 for the controlled CLI-limited BTC production/customer boundary, and the current working phase remains under Phase 11 operational completion.
@@ -40,7 +43,7 @@ unrestricted production/miner expansion
 timers or daemon starts without a later explicit accepted gate
 ```
 
-The first implementation step after this scope expansion remains `implement_restart_autostart_proof`.
+The first implementation step after this scope expansion remains `run_restart_autostart_proof_on_farm5`.
 
 ## Progress Update (0.1.239)
 
@@ -54,7 +57,7 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 
 - Abuse DB-backed surface remains operational and now has regression coverage for local-peer psql row normalization.
 - Controlled customer lifecycle CLI surface is now checked/proven as a Phase 11 operational completion surface.
-- Usage/report/check, controlled firewall apply/rollback, and restart/autostart proof remain pending.
+- Restart/autostart proof now has an operator-runnable evidence surface but remains missing_or_partial until farm5 evidence is collected; usage/report/check and controlled firewall apply/rollback surfaces are present but not accepted as final operational completion.
 - Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
 
 ## Progress Update (0.1.242)
@@ -62,7 +65,7 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - Controlled usage/report/check operational surface is now checked/proven as a Phase 11 operational completion surface.
 - Abuse DB-backed surface remains ready.
 - Customer lifecycle CLI surface remains ready.
-- Controlled firewall apply/rollback and restart/autostart proof remain pending.
+- Restart/autostart proof now has an operator-runnable evidence surface but remains missing_or_partial until farm5 evidence is collected; controlled firewall apply/rollback remains outside final operational completion acceptance.
 - Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
 
 ## Progress Update (0.1.243)
@@ -80,3 +83,9 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - The remaining gap matrix now includes restart/autostart proof, production customer lifecycle execution, production firewall apply/verify/rollback, production onboarding, production usage/report/check evidence, production abuse runner, pause/block/expire-run controls, backup/restore drill, and final CLI production acceptance.
 - Final acceptance must set `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
 - Phase 12, worker enforcement, UI, Telegram, buyer panel, public API, public backend exposure, direct/ad-hoc mutation, and out-of-path abuse hard remain blocked.
+
+## Progress Update (0.1.245)
+
+- Restart/autostart proof now has a service-layer report, thin production CLI command, and read-only farm5 helper script.
+- The proof remains fail-closed as `missing_or_partial` until source-backed farm5 evidence is collected after the operator workflow.
+- All mutation flags remain false; no reboot, Docker/systemd restart, DB/firewall mutation, iptables-restore, conntrack flush, Phase 12, worker enforcement, UI, Telegram, public API, or unrestricted production is enabled.
