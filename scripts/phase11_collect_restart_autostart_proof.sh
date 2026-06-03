@@ -68,15 +68,45 @@ else
   printf 'ip6tables-save command not found\n' >"${OUT_DIR}/ip6tables_save.txt"
 fi
 
-# This script only records read-only firewall visibility. Operators must review the
-# raw iptables-save files and keep this summary fail-closed unless the artifacts
-# exactly match the accepted controlled Phase 11 boundary.
-if grep -E 'mpf:|MPF|MPFC|limited-btc-001|canary-btc-001' "${OUT_DIR}/iptables_save.txt" "${OUT_DIR}/ip6tables_save.txt" >/dev/null 2>&1; then
-  printf 'known_controlled_phase11_artifacts: present\n' >"${OUT_DIR}/phase11_firewall_artifacts.txt"
-else
-  printf 'known_controlled_phase11_artifacts: missing\n' >"${OUT_DIR}/phase11_firewall_artifacts.txt"
-fi
-: >"${OUT_DIR}/unknown_mpf_firewall_artifacts.txt"
+# Classify firewall evidence through the official read-only controlled artifact gate.
+# The restart/autostart proof must never synthesize an empty unknown-artifact file.
+mpf production current-controlled-artifact-gate \
+  --expected-version "${VERSION}" \
+  --iptables-save-file "${OUT_DIR}/iptables_save.txt" \
+  --ip6tables-save-file "${OUT_DIR}/ip6tables_save.txt" \
+  --output json >"${OUT_DIR}/current_controlled_artifact_gate.json" 2>"${OUT_DIR}/current_controlled_artifact_gate.stderr" || true
+
+python - "${OUT_DIR}/current_controlled_artifact_gate.json" "${OUT_DIR}/phase11_firewall_artifacts.txt" "${OUT_DIR}/unknown_mpf_firewall_artifacts.txt" <<'PY'
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+json_path = Path(sys.argv[1])
+known_path = Path(sys.argv[2])
+unknown_path = Path(sys.argv[3])
+
+try:
+    report = json.loads(json_path.read_text(encoding="utf-8"))
+except Exception as exc:  # noqa: BLE001 - helper evidence must fail closed.
+    known_path.write_text("known_controlled_phase11_artifacts: missing\n", encoding="utf-8")
+    unknown_path.write_text(f"artifact_gate_parse_failed: {exc}\n", encoding="utf-8")
+    raise SystemExit(0)
+
+if report.get("known_controlled_artifacts_present") is True:
+    known_path.write_text("known_controlled_phase11_artifacts: present\n", encoding="utf-8")
+else:
+    known_path.write_text("known_controlled_phase11_artifacts: missing\n", encoding="utf-8")
+
+unknown = report.get("unknown_mpf_artifacts")
+if unknown == []:
+    unknown_path.write_text("unknown_mpf_firewall_artifacts: []\n", encoding="utf-8")
+elif isinstance(unknown, list):
+    unknown_path.write_text("".join(f"{item}\n" for item in unknown), encoding="utf-8")
+else:
+    unknown_path.write_text("unknown_mpf_artifacts_missing_or_invalid\n", encoding="utf-8")
+PY
 
 cat >"${OUT_DIR}/mutation_flags.json" <<'JSON'
 {

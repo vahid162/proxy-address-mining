@@ -3,6 +3,7 @@
 ## 0.1.245
 
 - Add a read-only Phase 11 restart/autostart proof surface and farm5 evidence helper while keeping operational completion fail-closed.
+- Fix restart/autostart helper firewall artifact evidence to derive known/unknown MPF artifacts from the official current-controlled-artifact-gate classifier.
 
 ## 0.1.244
 

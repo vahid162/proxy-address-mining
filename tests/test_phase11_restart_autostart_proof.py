@@ -123,6 +123,18 @@ def test_restart_autostart_proof_blocks_public_backend_listener(tmp_path: Path) 
     assert any("btc_backend_local_only" in str(blocker) for blocker in report["blockers"])
 
 
+def test_restart_autostart_proof_blocks_non_empty_unknown_firewall_artifacts(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence"
+    _write_ready_evidence(evidence)
+    (evidence / "unknown_mpf_firewall_artifacts.txt").write_text("unknown_chain:MPFC_BAD\n", encoding="utf-8")
+
+    report = build_phase11_restart_autostart_proof_report(evidence)
+
+    assert report["restart_autostart_proof"] == "missing_or_partial"
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PROOF_MISSING_OR_PARTIAL"
+    assert any("unknown_mpf_firewall_artifacts_empty" in str(blocker) for blocker in report["blockers"])
+
+
 def test_restart_autostart_proof_cli_json_fails_closed_without_evidence() -> None:
     result = RUNNER.invoke(app, ["production", "restart-autostart-proof", "--output", "json"])
     assert result.exit_code == 0, result.output
@@ -147,3 +159,28 @@ def test_restart_autostart_helper_script_is_read_only() -> None:
         assert item not in text
     assert "iptables-save" in text
     assert "mpf production restart-autostart-proof" in text
+
+
+def test_restart_autostart_helper_uses_current_controlled_artifact_gate() -> None:
+    text = Path("scripts/phase11_collect_restart_autostart_proof.sh").read_text(encoding="utf-8")
+
+    assert "mpf production current-controlled-artifact-gate" in text
+    assert '--iptables-save-file "${OUT_DIR}/iptables_save.txt"' in text
+    assert '--ip6tables-save-file "${OUT_DIR}/ip6tables_save.txt"' in text
+    assert "current_controlled_artifact_gate.json" in text
+
+
+def test_restart_autostart_helper_does_not_fake_empty_unknown_artifacts() -> None:
+    text = Path("scripts/phase11_collect_restart_autostart_proof.sh").read_text(encoding="utf-8")
+
+    assert ': >"${OUT_DIR}/unknown_mpf_firewall_artifacts.txt"' not in text
+    assert 'unknown = report.get("unknown_mpf_artifacts")' in text
+    assert "unknown_mpf_firewall_artifacts: []" in text
+    assert "artifact_gate_parse_failed" in text
+
+
+def test_restart_autostart_helper_uses_ip6tables_save_for_ipv6_snapshot() -> None:
+    text = Path("scripts/phase11_collect_restart_autostart_proof.sh").read_text(encoding="utf-8")
+
+    assert "run_capture ip6tables_save.txt ip6tables-save" in text
+    assert "run_capture ip6tables_save.txt iptables-save" not in text
