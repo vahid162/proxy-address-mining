@@ -10,8 +10,8 @@ It preserves the required operational capabilities of the old shell-script setup
 
 ```text
 current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
-current_working_phase: Phase 11 operational completion
-server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation
+current_working_phase: Phase 11 operational completion — Full CLI Production Operations
+server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; Phase 11 operational completion now requires Full CLI Production Operations acceptance before Phase 12 implementation
 production_traffic: controlled_cli_limited
 firewall_apply_allowed: controlled
 abuse_automation_allowed: controlled_operator_gated
@@ -27,14 +27,16 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 Phase 11 is accepted: controlled CLI-limited production/customer activation is ready on farm5 for the limited BTC boundary only. The stable runtime contract remains local-only: `127.0.0.1:60010 -> forwarder -> v2rayA -> pool`. The accepted artifact evidence recorded `172.18.0.3:60010`, but future runtime correctness must not depend on that Docker container IP.
 
-The accepted boundary remains Phase 11 controlled_cli_limited BTC operation. The current working gate is Phase 11 operational completion. Phase 12 — Worker Policy Enforcement is blocked until operational completion acceptance. UI and Telegram remain later phases. Unrestricted production expansion and unrestricted miner expansion remain closed.
+The accepted boundary remains Phase 11 controlled_cli_limited BTC operation. The current working gate is Phase 11 operational completion — Full CLI Production Operations. Phase 12 — Worker Policy Enforcement is blocked until operational completion acceptance. UI and Telegram remain later phases. Unrestricted production expansion and unrestricted miner expansion remain closed.
+
+Full CLI Production Operations acceptance must prove restart/autostart, production customer lifecycle execution, production firewall plan/apply/verify/rollback for real customer ports, CLI onboarding, usage/report/check evidence, abuse runner coverage for all active customers in all enabled lanes, pause/block/expire-run controls, backup/restore drill, and final acceptance that advances `production_traffic` and `customer_onboarding_allowed` to `cli_production`. Until that final acceptance PR lands, the current gate remains `controlled_cli_limited` and Phase 12 remains blocked.
 
 Historical compatibility anchors are kept in docs/HISTORICAL_COMPATIBILITY_ANCHORS.md.
 
 
 ## Current Accepted/Working Boundary (Phase 11 accepted / Phase 11 operational completion working)
 
-`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 11 controlled_cli_limited BTC operation / working Phase 11 operational completion. Phase 12 Worker Policy Enforcement is blocked until operational completion acceptance. `docs/AI_SAFE_RUNTIME_FIRST.md` remains a safety contract and does not open unrestricted gates by itself.
+`docs/PHASE_STATUS.md` is authoritative. Current state is accepted Phase 11 controlled_cli_limited BTC operation / working Phase 11 operational completion — Full CLI Production Operations. Phase 12 Worker Policy Enforcement is blocked until operational completion acceptance. `docs/AI_SAFE_RUNTIME_FIRST.md` remains a safety contract and does not open unrestricted gates by itself.
 
 Current gate values remain:
 
@@ -52,7 +54,7 @@ live_snapshot_read_allowed=iptables_save_read_only
 restore_lock_record_execution_allowed=controlled_boundary_only
 ```
 
-Current advancement target is Phase 11 operational completion. Phase 12 — Worker Policy Enforcement is blocked until operational completion acceptance. Phase 11 is accepted only for controlled CLI-limited production/customer activation. Historical anchors only: Phase 8 Abuse 1h Core, Phase 9 Check / Report / Diagnostics, and Phase 10 Session / Worker / Policy / Share Timeline are completed accepted context and are not active implementation targets unless `docs/PHASE_STATUS.md` explicitly reopens them.
+Current advancement target is Phase 11 operational completion — Full CLI Production Operations. Phase 12 — Worker Policy Enforcement is blocked until operational completion acceptance. Phase 11 is accepted only for controlled CLI-limited production/customer activation. Historical anchors only: Phase 8 Abuse 1h Core, Phase 9 Check / Report / Diagnostics, and Phase 10 Session / Worker / Policy / Share Timeline are completed accepted context and are not active implementation targets unless `docs/PHASE_STATUS.md` explicitly reopens them.
 
 Phase 6 apply-gate materials (D1/E0/E1/E2/E3/F/G/H and apply slices) are historical/reference-only context and remain non-authorizing for current active work. Phase 6 Dedicated Apply Gate Proposal/Review is historical/completed context. Apply Slice 3 and Apply Slice 4 are server-synced and accepted only as documentation/test-only boundaries. Historical compatibility anchor: Future Dedicated Phase 6 Apply Gate Proposal/Review.
 

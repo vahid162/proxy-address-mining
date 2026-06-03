@@ -21,7 +21,7 @@ def _phase_gate_ok(phase_status_text: str) -> bool:
     )
     post = (
         "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
-        "current_working_phase: Phase 11 operational completion",
+        "current_working_phase: Phase 11 operational completion — Full CLI Production Operations",
         "production_traffic: controlled_cli_limited", "firewall_apply_allowed: controlled", "abuse_automation_allowed: controlled_operator_gated",
         "customer_onboarding_allowed: controlled_cli_limited", "worker_enforcement_allowed: no", "ui_allowed: no", "telegram_allowed: no",
         "phase12_start_allowed: no",

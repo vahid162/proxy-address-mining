@@ -95,8 +95,8 @@ for file in "${required_files[@]}"; do
 done
 
 grep -q 'current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show accepted Phase 11 gate"
-grep -q 'current_working_phase: Phase 11 operational completion' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 11 operational completion working gate"
-grep -q 'server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 11 controlled server state"
+grep -q 'current_working_phase: Phase 11 operational completion — Full CLI Production Operations' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 11 operational completion working gate"
+grep -q 'server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; Phase 11 operational completion now requires Full CLI Production Operations acceptance before Phase 12 implementation' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not show Phase 11 controlled server state"
 grep -q 'production_traffic: controlled_cli_limited' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep production_traffic=controlled_cli_limited"
 grep -q 'firewall_apply_allowed: controlled' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep firewall apply controlled"
 grep -q 'abuse_automation_allowed: controlled_operator_gated' "$NEW_SRC/docs/PHASE_STATUS.md" || fail "new PHASE_STATUS does not keep abuse automation controlled"
@@ -132,7 +132,7 @@ cd "$APP_DIR"
 mpf --version
 mpf phase-status
 mpf phase-status | grep -q 'current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5' || fail "mpf phase-status is not aligned with accepted Phase 11 gate"
-mpf phase-status | grep -q 'current_working_phase: Phase 11 operational completion' || fail "mpf phase-status is not aligned with Phase 11 operational completion working gate"
+mpf phase-status | grep -q 'current_working_phase: Phase 11 operational completion — Full CLI Production Operations' || fail "mpf phase-status is not aligned with Phase 11 operational completion working gate"
 mpf phase-status | grep -q 'proxy_data_plane_allowed: limited_runtime_local_only' || fail "mpf phase-status does not show limited_runtime_local_only"
 mpf phase-status | grep -q 'production_traffic: controlled_cli_limited' || fail "mpf phase-status does not keep production_traffic=controlled_cli_limited"
 mpf phase-status | grep -q 'firewall_apply_allowed: controlled' || fail "mpf phase-status does not keep firewall apply controlled"

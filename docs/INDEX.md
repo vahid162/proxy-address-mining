@@ -1,4 +1,4 @@
-Phase 11 operational completion entry gate note (0.1.237): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
+Phase 11 operational completion full CLI production scope note (0.1.244): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion — Full CLI Production Operations; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
 
 Phase 11 controlled-boundary clarification note (0.1.235): clarified README and agent-rule wording after final acceptance; runtime behavior and conservative config defaults remain unchanged.
 Phase 11 final acceptance note (0.1.234, historical transition context): Phase 11 is accepted on farm5 only for controlled_cli_limited BTC operation. Phase 12 does not start immediately; the current Phase 11 operational completion gate must pass first.
@@ -51,7 +51,7 @@ Read these first:
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_11_TASK.md` is active/current for Phase 11 planning/readiness. `docs/PRODUCTION_ACTIVATION_GATE.md` defines the current production/customer activation boundary. `docs/AI_SAFE_RUNTIME_FIRST.md` defines the Phase 11 AI-safe Runtime-first operating principle. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
+`docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md` and `docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md` are active/current for Phase 11 operational completion — Full CLI Production Operations. `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` remain Phase 11 controlled-boundary context. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
 This file is the documentation map.
 
 Historical/reference note:
@@ -87,24 +87,26 @@ Read these before implementation work:
 Current accepted phase:
 
 ```text
-Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
+current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
 ```
 
 Current working phase:
 
 ```text
-Phase 11 — Production / Customer Activation Gate planning/readiness
+current_working_phase: Phase 11 operational completion — Full CLI Production Operations
 ```
 
-Current active add-on read first: `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` (active/current). `docs/AI_PHASE_10_TASK.md` remains accepted Phase 10 context.
+Current active add-on read first: `docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md`, `docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md`, `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` (active/current). `docs/AI_PHASE_10_TASK.md` remains accepted Phase 10 context.
 Phase 6 documents below remain historical/reference/non-authorizing context.
 
 Current Phase 11 step:
 
 ```text
-Current Phase 11 work remains non-authorizing until explicit accepted gates. Phase 11 now follows AI-safe Runtime-first: move toward real controlled runtime evidence in small accepted steps, while production traffic, controlled CLI canary, limited real customer onboarding, firewall apply, iptables-restore, abuse automation, UI, and Telegram remain closed until their explicit gates.
+Phase 12 Worker Policy Enforcement remains blocked until final Phase 11 operational completion acceptance.
+UI, Telegram, worker enforcement, buyer panel, public API, and public backend exposure remain closed.
+Full CLI Production Operations acceptance must prove the expanded matrix: restart/autostart proof, production customer lifecycle CLI execution, production firewall plan/apply/verify/rollback for real customer ports, production onboarding flow through CLI, production usage/report/check evidence, production abuse runner for all active customers in all enabled lanes, pause/block/expire-run operational controls, backup/restore drill, and final acceptance that sets production_traffic=cli_production and customer_onboarding_allowed=cli_production.
 docs/PHASE_STATUS.md is authoritative for active phase language.
-No production traffic, no controlled CLI canary execution yet, no limited real customer onboarding yet, no firewall apply, no iptables-restore, no customer NAT/customer firewall rules, no abuse automation runner, no real worker runtime, no scheduler/timer, no collector daemon, no unrestricted production DB execution, no hard/soft block automation, no pause automation, no UI, no Telegram.
+Until final acceptance, current production/onboarding gates remain controlled_cli_limited and direct/ad-hoc DB or firewall mutation remains forbidden.
 Phase 10 is accepted context only unless docs/PHASE_STATUS.md explicitly reopens it.
 Phase 6-G accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing.
 Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.

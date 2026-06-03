@@ -1,8 +1,8 @@
 # AI Coding Rules
 
-## Current Gate Update (0.1.240)
+## Current Gate Update (0.1.244)
 
-Phase 11 is accepted on farm5 only for `controlled_cli_limited` BTC operation. The working phase is Phase 11 operational completion; Phase 12 — Worker Policy Enforcement remains blocked. Worker enforcement remains disabled until Phase 12 acceptance; UI, Telegram, unrestricted production expansion, and unrestricted miner expansion remain closed. Controlled authorization does not relax default `plan_only` config or authorize PR-development runtime mutation. `docs/PHASE_STATUS.md` is authoritative.
+Phase 11 is accepted on farm5 only for `controlled_cli_limited` BTC operation. The working phase is Phase 11 operational completion — Full CLI Production Operations; Phase 12 — Worker Policy Enforcement remains blocked. Full CLI Production Operations acceptance must prove restart/autostart, production customer lifecycle CLI execution, production firewall plan/apply/verify/rollback for real customer ports, production onboarding through CLI, usage/report/check evidence, abuse runner coverage for all active customers in all enabled lanes, pause/block/expire-run controls, backup/restore drill, and final acceptance to `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`. Worker enforcement remains disabled until Phase 12 acceptance; UI, Telegram, buyer panel, public API, public backend exposure, unrestricted production expansion, and unrestricted miner expansion remain closed. Controlled authorization does not relax default `plan_only` config or authorize PR-development runtime mutation. `docs/PHASE_STATUS.md` is authoritative.
 
 Status: active implementation contract
 
@@ -63,7 +63,7 @@ Current gate:
 
 ```text
 accepted: Phase 11 — Production / Customer Activation Gate accepted on farm5
-working: Phase 11 operational completion
+working: Phase 11 operational completion — Full CLI Production Operations
 production_traffic: controlled_cli_limited
 firewall_apply_allowed: controlled
 abuse_automation_allowed: controlled_operator_gated
