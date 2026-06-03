@@ -6,7 +6,7 @@ import tomllib
 import mpf
 
 
-EXPECTED_VERSION = "0.1.242"
+EXPECTED_VERSION = "0.1.243"
 
 
 def test_version_sources_are_consistent() -> None:
@@ -43,3 +43,9 @@ def test_ci_dev_extra_installs_pytest() -> None:
     dev_dependencies = pyproject_data["project"]["optional-dependencies"]["dev"]
 
     assert any(dependency.startswith("pytest") for dependency in dev_dependencies)
+
+
+def test_changelog_contains_expected_version() -> None:
+    text = Path("CHANGELOG.md").read_text(encoding="utf-8")
+    assert f"## {EXPECTED_VERSION}" in text
+    assert "controlled Phase 11 firewall apply/rollback operational surface" in text

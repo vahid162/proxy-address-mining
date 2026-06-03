@@ -39,6 +39,7 @@ from mpf.services import (
     config_service,
     customer_lifecycle_operational_surface_service,
     usage_report_check_operational_surface_service,
+    firewall_apply_rollback_operational_surface_service,
     customer_mutation_service,
     customer_read_service,
     db_service,
@@ -3679,6 +3680,25 @@ def production_phase11_final_acceptance(expected_version: str = typer.Option(__v
     kwargs=dict(locals()); cfg=kwargs.pop("config"); mode=kwargs.pop("output"); out=kwargs.pop("out_json"); report=phase11_final_acceptance_service.build_phase11_final_acceptance_report(_load(cfg), **kwargs)
     if out: out.write_text(json.dumps(report, indent=2), encoding="utf-8")
     _print_output(report, mode)
+
+
+@production_app.command("firewall-apply-rollback-operational-surface")
+def production_firewall_apply_rollback_operational_surface(
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Run the read-only controlled Phase 11 firewall apply/rollback surface check."""
+
+    try:
+        cfg = _load(config)
+    except Exception as exc:  # noqa: BLE001 - operator doctor must fail closed without traceback.
+        report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_blocked_report(
+            blocker="configuration_load_failed",
+            message=str(exc),
+        )
+    else:
+        report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_report(cfg)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 
 @production_app.command("phase11-operational-completion-gap-inventory")

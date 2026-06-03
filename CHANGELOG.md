@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.243
+
+- Add controlled Phase 11 firewall apply/rollback operational surface while preserving fail-closed safety boundaries.
+
 ## 0.1.242
 
 - Add controlled Phase 11 usage/report/check operational surface while preserving read-only/fail-closed safety boundaries.

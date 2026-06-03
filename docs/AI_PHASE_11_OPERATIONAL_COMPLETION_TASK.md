@@ -57,3 +57,12 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - Customer lifecycle CLI surface remains ready.
 - Controlled firewall apply/rollback and restart/autostart proof remain pending.
 - Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
+
+## Progress Update (0.1.243)
+
+- Controlled firewall apply/rollback operational workflow surface is now checked/proven as a Phase 11 operational completion surface.
+- Abuse DB-backed surface remains ready.
+- Customer lifecycle CLI surface remains ready.
+- Usage/report/check surface remains ready.
+- Restart/autostart proof remains pending.
+- Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
