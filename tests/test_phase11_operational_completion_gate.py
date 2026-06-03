@@ -26,6 +26,20 @@ def test_docs_define_phase11_operational_completion_gate() -> None:
         assert "Phase 11 operational completion" in Path(path).read_text(encoding="utf-8")
 
 
+def test_index_current_phase_contracts_match_full_cli_production_scope() -> None:
+    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    current = text.split("## Current Phase Contracts", 1)[1].split("## Reading Order by Task", 1)[0]
+
+    assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in current
+    assert "current_working_phase: Phase 11 operational completion — Full CLI Production Operations" in current
+    assert "Phase 12 Worker Policy Enforcement remains blocked until final Phase 11 operational completion acceptance" in current
+    assert "UI, Telegram, worker enforcement, buyer panel, public API, and public backend exposure remain closed" in current
+    assert "Full CLI Production Operations acceptance must prove the expanded matrix" in current
+    assert "production_firewall plan/apply/verify/rollback" not in current
+    assert "Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" not in current
+    assert "Phase 11 — Production / Customer Activation Gate planning/readiness" not in current
+
+
 def test_phase_status_blocks_phase12_and_later_interfaces() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     current = text.split("## Current State", 1)[1].split("```text", 1)[1].split("```", 1)[0]

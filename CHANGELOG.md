@@ -3,6 +3,7 @@
 ## 0.1.244
 
 - Expand active Phase 11 operational completion to the Full CLI Production Operations matrix and update the fail-closed gap inventory.
+- Align docs/INDEX.md Current Phase Contracts with the active Full CLI Production Operations scope.
 
 ## 0.1.243
 
