@@ -89,8 +89,8 @@ Current repository gate:
 
 ```text
 current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
-current_working_phase: Phase 11 operational completion
-server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation
+current_working_phase: Phase 11 operational completion — Full CLI Production Operations
+server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; Phase 11 operational completion now requires Full CLI Production Operations acceptance before Phase 12 implementation
 production_traffic: controlled_cli_limited
 firewall_apply_allowed: controlled
 abuse_automation_allowed: controlled_operator_gated
@@ -105,6 +105,8 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 ```
 
 Phase 11 is accepted only for the controlled CLI-limited BTC boundary. Controlled CLI/service-layer onboarding, controlled firewall apply, and controlled abuse automation paths are authorized boundaries; this does not authorize unrestricted expansion, UI, Telegram, worker enforcement, scheduler/timer starts, or direct DB/firewall mutation.
+
+The active Phase 11 operational completion scope is Full CLI Production Operations before Phase 12 Worker Policy Enforcement. This is not a new phase. Acceptance must prove restart/autostart, production customer lifecycle CLI execution, production firewall plan/apply/verify/rollback for real customer ports, production onboarding through CLI, usage/report/check evidence, abuse runner coverage for all active customers in all enabled lanes, pause/block/expire-run controls, backup/restore drill, and final acceptance to `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`. Until final acceptance, current production/onboarding gates remain `controlled_cli_limited`.
 
 Phase 6-B allowed work (historical reference, already accepted):
 

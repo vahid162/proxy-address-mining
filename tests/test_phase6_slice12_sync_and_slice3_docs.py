@@ -11,8 +11,8 @@ def test_phase_status_current_state_block_unchanged() -> None:
 
 ```text
 current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
-current_working_phase: Phase 11 operational completion
-server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation
+current_working_phase: Phase 11 operational completion — Full CLI Production Operations
+server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; Phase 11 operational completion now requires Full CLI Production Operations acceptance before Phase 12 implementation
 production_traffic: controlled_cli_limited
 firewall_apply_allowed: controlled
 abuse_automation_allowed: controlled_operator_gated

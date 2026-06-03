@@ -14,6 +14,14 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+## 0.1.244 Phase 11 operational completion — Full CLI Production Operations Scope Update
+
+- Active Phase 11 operational completion scope now requires Full CLI Production Operations before Phase 12 Worker Policy Enforcement.
+- This is not a new phase; current working phase remains under `Phase 11 operational completion — Full CLI Production Operations`.
+- Required acceptance matrix now includes restart/autostart proof, production customer lifecycle CLI execution, production firewall plan/apply/verify/rollback for real customer ports, production onboarding through CLI, production usage/report/check evidence, production abuse runner for all active customers in all enabled lanes, pause/block/expire-run controls, backup/restore drill, and final CLI production acceptance.
+- Final acceptance must set `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
+- Phase 12, worker enforcement, UI, Telegram, buyer panel, public API, public backend exposure, direct/ad-hoc mutation, firewall changes outside service-layer planner/apply/verify, and abuse hard outside the official restore/backup/firewall/conntrack/audit path remain blocked.
+
 ## 0.1.243 Phase 11 operational completion Progress Update
 
 - Controlled firewall apply/rollback operational workflow surface is now checked/proven as a Phase 11 operational completion surface.
@@ -105,8 +113,8 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 
 ```text
 current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
-current_working_phase: Phase 11 operational completion
-server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation
+current_working_phase: Phase 11 operational completion — Full CLI Production Operations
+server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; Phase 11 operational completion now requires Full CLI Production Operations acceptance before Phase 12 implementation
 production_traffic: controlled_cli_limited
 firewall_apply_allowed: controlled
 abuse_automation_allowed: controlled_operator_gated

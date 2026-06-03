@@ -35,7 +35,7 @@ def test_phase_status_gate_alignment_and_safety_lines() -> None:
 
     assert result.exit_code == 0
     assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in result.stdout
-    assert "current_working_phase: Phase 11 operational completion" in result.stdout
+    assert "current_working_phase: Phase 11 operational completion — Full CLI Production Operations" in result.stdout
 
     assert "current_accepted_phase: Phase 4 Runtime Activation" not in result.stdout
     assert "current_working_phase: Phase 5 — Customer CRUD in DB Only" not in result.stdout

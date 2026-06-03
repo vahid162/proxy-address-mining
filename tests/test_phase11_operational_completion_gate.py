@@ -30,7 +30,7 @@ def test_phase_status_blocks_phase12_and_later_interfaces() -> None:
     text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     current = text.split("## Current State", 1)[1].split("```text", 1)[1].split("```", 1)[0]
     for expected in (
-        "current_working_phase: Phase 11 operational completion",
+        "current_working_phase: Phase 11 operational completion — Full CLI Production Operations",
         "phase12_start_allowed: no",
         "worker_enforcement_allowed: no",
         "ui_allowed: no",
@@ -48,13 +48,25 @@ def test_runtime_forward_pr_rule_is_recorded() -> None:
 
 def test_gap_inventory_service_is_fail_closed_and_read_only() -> None:
     report = build_phase11_operational_completion_gap_inventory_report()
-    assert report["final_decision"] == "PHASE11_OPERATIONAL_COMPLETION_REQUIRED"
+    assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
-    assert report["abuse_operational_surface"] == "ready_controlled_db_backed"
-    assert report["customer_lifecycle_surface"] == "ready_controlled_cli"
-    assert report["usage_report_check_surface"] == "ready_controlled_cli"
-    assert report["firewall_apply_rollback_surface"] == "ready_controlled_workflow"
-    assert report["restart_autostart_proof"] == "missing_or_partial"
+    assert report["phase11_operational_completion_scope"] == "full_cli_production_operations"
+    for key in (
+        "restart_autostart_proof",
+        "production_customer_lifecycle_execution",
+        "production_firewall_apply_verify_rollback",
+        "production_onboarding_flow",
+        "production_usage_report_check_evidence",
+        "production_abuse_runner",
+        "production_controls_pause_block_expire",
+        "backup_restore_drill",
+        "full_cli_production_operations",
+    ):
+        assert report[key] == "missing_or_partial"
+    assert report["accepted_final_state_required"] == {
+        "production_traffic": "cli_production",
+        "customer_onboarding_allowed": "cli_production",
+    }
     assert report["next_required_step"] == "implement_restart_autostart_proof"
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
@@ -74,7 +86,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.243"
-    assert report["final_decision"] == "PHASE11_OPERATIONAL_COMPLETION_REQUIRED"
+    assert report["repository_version"] == "0.1.244"
+    assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False

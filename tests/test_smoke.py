@@ -44,8 +44,8 @@ def test_cli_phase_status_matches_current_phase_guard() -> None:
     result = RUNNER.invoke(app, ["phase-status"])
     assert result.exit_code == 0
     assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in result.output
-    assert "current_working_phase: Phase 11 operational completion" in result.output
-    assert "server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; operational completion is required before Phase 12 implementation" in result.output
+    assert "current_working_phase: Phase 11 operational completion — Full CLI Production Operations" in result.output
+    assert "server_state: farm5 controlled CLI-limited BTC production/customer activation is accepted; Phase 11 operational completion now requires Full CLI Production Operations acceptance before Phase 12 implementation" in result.output
     assert "firewall_apply_allowed: controlled" in result.output
     assert "abuse_automation_allowed: controlled_operator_gated" in result.output
     assert "proxy_data_plane_allowed: limited_runtime_local_only" in result.output

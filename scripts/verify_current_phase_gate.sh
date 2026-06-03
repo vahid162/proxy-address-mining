@@ -33,7 +33,7 @@ hostname
 section 'PHASE STATUS CONTENT'
 [ -f docs/PHASE_STATUS.md ] || fail 'docs/PHASE_STATUS.md is missing'
 grep -q 'current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show accepted Phase 11 gate'
-grep -q 'current_working_phase: Phase 11 operational completion' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 11 operational completion as current working gate'
+grep -q 'current_working_phase: Phase 11 operational completion — Full CLI Production Operations' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not show Phase 11 operational completion as current working gate'
 grep -q 'production_traffic: controlled_cli_limited' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep production_traffic=controlled_cli_limited'
 grep -q 'firewall_apply_allowed: controlled' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep firewall apply controlled'
 grep -q 'abuse_automation_allowed: controlled_operator_gated' docs/PHASE_STATUS.md || fail 'docs/PHASE_STATUS.md does not keep abuse automation controlled'
@@ -49,7 +49,7 @@ command -v mpf >/dev/null 2>&1 || fail 'mpf command not found'
 phase_status_output="$(mpf phase-status)"
 printf '%s\n' "$phase_status_output"
 [[ "$phase_status_output" == *'current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5'* ]] || fail 'mpf phase-status is not aligned with accepted Phase 11 gate'
-[[ "$phase_status_output" == *'current_working_phase: Phase 11 operational completion'* ]] || fail 'mpf phase-status is not aligned with Phase 11 operational completion working gate'
+[[ "$phase_status_output" == *'current_working_phase: Phase 11 operational completion — Full CLI Production Operations'* ]] || fail 'mpf phase-status is not aligned with Phase 11 operational completion working gate'
 [[ "$phase_status_output" == *'production_traffic: controlled_cli_limited'* ]] || fail 'mpf phase-status does not keep production_traffic=controlled_cli_limited'
 [[ "$phase_status_output" == *'firewall_apply_allowed: controlled'* ]] || fail 'mpf phase-status does not keep firewall apply controlled'
 [[ "$phase_status_output" == *'abuse_automation_allowed: controlled_operator_gated'* ]] || fail 'mpf phase-status does not keep abuse automation controlled'

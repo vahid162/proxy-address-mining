@@ -1,20 +1,24 @@
-# AI Task — Phase 11 operational completion
+# AI Task — Phase 11 operational completion — Full CLI Production Operations
 
 ## Purpose
 
-`Phase 11 operational completion` is a post-acceptance completion gate. Phase 11 remains accepted on farm5 for the controlled CLI-limited BTC production/customer boundary. This gate does not roll back that acceptance and does not claim full backend completion.
+`Phase 11 operational completion — Full CLI Production Operations` is the active post-acceptance completion gate. This is not a new phase. Phase 11 remains accepted on farm5 for the controlled CLI-limited BTC production/customer boundary, and the current working phase remains under Phase 11 operational completion.
 
-Phase 12 Worker Policy Enforcement is blocked until this gate is finally accepted. The purpose of this gate is to complete controlled CLI/service-layer operational surfaces before worker enforcement work starts.
+Phase 12 Worker Policy Enforcement is blocked until this gate is finally accepted. The purpose of this gate is to complete and prove CLI/service-layer production operations before worker enforcement work starts.
 
-## Required Operational Completion Scope
+## Required Full CLI Production Operations Scope
 
-The implementation sequence must complete and prove these controlled surfaces:
+The implementation sequence must complete and prove these controlled production CLI surfaces:
 
-1. abuse operational runner and CLI;
-2. customer lifecycle CLI;
-3. usage/report/check CLI;
-4. controlled firewall apply/rollback workflow;
-5. restart/autostart proof.
+1. restart/autostart proof;
+2. production customer lifecycle CLI execution;
+3. production firewall plan/apply/verify/rollback for real customer ports;
+4. production onboarding flow through CLI;
+5. production usage/report/check evidence;
+6. production abuse runner for all active customers in all enabled lanes;
+7. pause/block/expire-run operational controls;
+8. backup/restore drill;
+9. final acceptance that sets `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
 
 Each implementation PR must preserve service-layer architecture, conservative defaults, explicit operator gating, auditability, restore/lock/verify requirements where applicable, and fail-closed behavior.
 
@@ -26,13 +30,17 @@ This completion gate does not authorize:
 worker enforcement
 UI
 Telegram
+buyer panel
+public API
+public backend exposure
+direct/ad-hoc DB or firewall mutation
+firewall changes outside service-layer planner/apply/verify
+abuse hard outside the official restore/backup/firewall/conntrack/audit path
 unrestricted production/miner expansion
-direct DB/firewall/runtime mutation
-unrestricted background automation
 timers or daemon starts without a later explicit accepted gate
 ```
 
-The first implementation step after this entry gate is `implement_controlled_abuse_operational_core`.
+The first implementation step after this scope expansion remains `implement_restart_autostart_proof`.
 
 ## Progress Update (0.1.239)
 
@@ -48,7 +56,6 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - Controlled customer lifecycle CLI surface is now checked/proven as a Phase 11 operational completion surface.
 - Usage/report/check, controlled firewall apply/rollback, and restart/autostart proof remain pending.
 - Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
-
 
 ## Progress Update (0.1.242)
 
@@ -66,3 +73,10 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - Usage/report/check surface remains ready.
 - Restart/autostart proof remains pending.
 - Phase 12, worker enforcement, UI, Telegram, timer, daemon, and unrestricted production remain blocked.
+
+## Progress Update (0.1.244)
+
+- The active Phase 11 operational completion scope is expanded to Full CLI Production Operations without creating a new phase.
+- The remaining gap matrix now includes restart/autostart proof, production customer lifecycle execution, production firewall apply/verify/rollback, production onboarding, production usage/report/check evidence, production abuse runner, pause/block/expire-run controls, backup/restore drill, and final CLI production acceptance.
+- Final acceptance must set `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
+- Phase 12, worker enforcement, UI, Telegram, buyer panel, public API, public backend exposure, direct/ad-hoc mutation, and out-of-path abuse hard remain blocked.

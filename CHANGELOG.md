@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.244
+
+- Expand active Phase 11 operational completion to the Full CLI Production Operations matrix and update the fail-closed gap inventory.
+
 ## 0.1.243
 
 - Add controlled Phase 11 firewall apply/rollback operational surface while preserving fail-closed safety boundaries.

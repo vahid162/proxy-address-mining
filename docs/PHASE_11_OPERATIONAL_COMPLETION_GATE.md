@@ -1,20 +1,41 @@
-# Phase 11 operational completion Gate
+# Phase 11 operational completion — Full CLI Production Operations Gate
 
 ## Gate Meaning
 
-`Phase 11 operational completion` is the post-acceptance completion gate after the accepted Phase 11 controlled CLI-limited BTC boundary and before Phase 12 Worker Policy Enforcement. Phase 11 remains accepted. Phase 12 implementation must not start until a final acceptance PR records this gate as accepted.
+`Phase 11 operational completion — Full CLI Production Operations` is the active post-acceptance completion gate after the accepted Phase 11 controlled CLI-limited BTC boundary and before Phase 12 Worker Policy Enforcement. This is not a new phase: Phase 11 remains accepted for the controlled BTC boundary, and the current working phase stays under Phase 11 operational completion.
+
+Phase 12 implementation must not start until a final Phase 11 operational completion acceptance PR records Full CLI Production Operations as accepted.
+
+## Required Full CLI Production Operations Acceptance Scope
+
+Final acceptance must prove all of these operational surfaces through CLI/service-layer workflows and farm5 evidence:
+
+1. restart/autostart proof;
+2. production customer lifecycle CLI execution;
+3. production firewall plan/apply/verify/rollback for real customer ports;
+4. production onboarding flow through CLI;
+5. production usage/report/check evidence;
+6. production abuse runner for all active customers in all enabled lanes;
+7. pause/block/expire-run operational controls;
+8. backup/restore drill;
+9. final acceptance that sets `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
 
 ## Final Acceptance Criteria
 
 ```text
-abuse operational runner: READY
-abuse CLI surface: READY
-customer lifecycle surface: READY
-usage/report/check surface: READY
-controlled firewall apply/rollback workflow: READY
-restart/autostart proof: READY
+restart_autostart_proof: READY
+production_customer_lifecycle_execution: READY
+production_firewall_apply_verify_rollback: READY
+production_onboarding_flow: READY
+production_usage_report_check_evidence: READY
+production_abuse_runner: READY
+production_controls_pause_block_expire: READY
+backup_restore_drill: READY
+full_cli_production_operations: READY
 unknown_mpf_artifacts: []
 forbidden_public_runtime_exposure: false
+production_traffic: cli_production
+customer_onboarding_allowed: cli_production
 worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
@@ -30,6 +51,8 @@ phase12_start_allowed: no
 worker_enforcement_allowed: no
 ui_allowed: no
 telegram_allowed: no
+production_traffic: controlled_cli_limited
+customer_onboarding_allowed: controlled_cli_limited
 ```
 
-No direct DB/firewall/runtime mutation, unrestricted production/miner expansion, unrestricted background automation, timer start, or daemon start is authorized by this document.
+No worker enforcement, UI, Telegram, buyer panel, public API, public backend exposure, direct/ad-hoc DB or firewall mutation, firewall changes outside the service-layer planner/apply/verify path, or abuse hard outside the official restore/backup/firewall/conntrack/audit path is authorized by this document.
