@@ -1,4 +1,4 @@
-Phase 11 operational completion full CLI production scope note (0.1.244): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion — Full CLI Production Operations; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
+Phase 11 operational completion full CLI production scope note (0.1.245): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion — Full CLI Production Operations; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
 
 Phase 11 controlled-boundary clarification note (0.1.235): clarified README and agent-rule wording after final acceptance; runtime behavior and conservative config defaults remain unchanged.
 Phase 11 final acceptance note (0.1.234, historical transition context): Phase 11 is accepted on farm5 only for controlled_cli_limited BTC operation. Phase 12 does not start immediately; the current Phase 11 operational completion gate must pass first.
@@ -164,6 +164,8 @@ Phase 6-F may define manual canary criteria, operator approval requirements, evi
 `docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md` is a future apply gate risk matrix and operator approval checklist only; it does not authorize live apply.
 
 Historical note: Phase 6-A established planner/model/diff foundations. Phase 5 — Customer CRUD in DB Only included documentation-only contract clarification for customer lifecycle, control rules, worker policy, and future abuse coverage. These historical notes do not authorize runtime behavior now.
+
+- `scripts/phase11_collect_restart_autostart_proof.sh` — read-only farm5 helper for Phase 11 restart/autostart proof evidence; it does not reboot, restart Docker/systemd, mutate DB/firewall, run iptables-restore, or flush conntrack.
 
 ## Reading Order by Task
 

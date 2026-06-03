@@ -6,7 +6,7 @@ import tomllib
 import mpf
 
 
-EXPECTED_VERSION = "0.1.244"
+EXPECTED_VERSION = "0.1.245"
 
 
 def test_version_sources_are_consistent() -> None:
@@ -48,4 +48,4 @@ def test_ci_dev_extra_installs_pytest() -> None:
 def test_changelog_contains_expected_version() -> None:
     text = Path("CHANGELOG.md").read_text(encoding="utf-8")
     assert f"## {EXPECTED_VERSION}" in text
-    assert "controlled Phase 11 firewall apply/rollback operational surface" in text
+    assert "Phase 11 restart/autostart proof surface" in text

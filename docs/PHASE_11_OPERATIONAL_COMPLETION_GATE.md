@@ -1,5 +1,8 @@
 # Phase 11 operational completion — Full CLI Production Operations Gate
 
+
+Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
+
 ## Gate Meaning
 
 `Phase 11 operational completion — Full CLI Production Operations` is the active post-acceptance completion gate after the accepted Phase 11 controlled CLI-limited BTC boundary and before Phase 12 Worker Policy Enforcement. This is not a new phase: Phase 11 remains accepted for the controlled BTC boundary, and the current working phase stays under Phase 11 operational completion.
