@@ -81,7 +81,7 @@ def test_gap_inventory_service_is_fail_closed_and_read_only() -> None:
         "production_traffic": "cli_production",
         "customer_onboarding_allowed": "cli_production",
     }
-    assert report["next_required_step"] == "fix_restart_autostart_persistence_gap"
+    assert report["next_required_step"] == "run_restart_autostart_persistence_fix_on_farm5"
     assert report["restart_autostart_proof_final_decision"] == "BLOCKED_RESTART_AUTOSTART_PROOF_MISSING_OR_PARTIAL"
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.246"
+    assert report["repository_version"] == "0.1.247"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -111,6 +111,6 @@ def test_gap_inventory_keeps_restart_autostart_blocked_on_persistence_gap() -> N
     report = build_phase11_operational_completion_gap_inventory_report()
 
     assert report["restart_autostart_proof"] == "missing_or_partial"
-    assert report["next_required_step"] == "fix_restart_autostart_persistence_gap"
+    assert report["next_required_step"] == "run_restart_autostart_persistence_fix_on_farm5"
     assert report["full_cli_production_operations"] == "missing_or_partial"
     assert report["phase12_start_allowed"] is False

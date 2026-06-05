@@ -1,3 +1,5 @@
+Phase 11 operational completion 0.1.247 note: the active step is `fix_restart_autostart_persistence_gap`. The repository now provides controlled repair planning/package/evidence tooling for the post-reboot persistence blockers (`unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent`) while keeping `restart_autostart_proof=missing_or_partial` until farm5 post-fix evidence proves recovery. `unknown_mpf_artifacts` remained `[]`, public backend exposure remained false, Phase 12, worker enforcement, UI, and Telegram remain blocked, and `full_cli_production_operations` remains not accepted.
+
 # Phase 11 operational completion — Full CLI Production Operations Gate
 
 

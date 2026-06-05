@@ -15,6 +15,8 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 # PHASE STATUS
 
 
+Phase 11 operational completion 0.1.247 note: current step remains `fix_restart_autostart_persistence_gap`. This version adds a controlled restart/autostart repair plan, operator-reviewed Docker Compose recovery package, guarded helper, read-only controlled artifact persistence plan, and post-fix evidence collector. It does not mark restart/autostart proof READY without farm5 post-fix evidence. Previous farm5 blockers remain the source context: `unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent`; `unknown_mpf_artifacts` remained `[]`, public backend exposure remained false, Phase 12/worker enforcement/UI/Telegram remain blocked, and Full CLI Production Operations remains not accepted.
+
 Phase 11 operational completion 0.1.246 note: farm5 0.1.245 post-reboot evidence discovered that runtime containers partially returned, `mpf-v2raya-socks-bridge` was missing from the expected runtime container set, and controlled Phase 11 firewall artifacts were absent after reboot. Restart/autostart proof remains blocked as `missing_or_partial` until the persistence gap is fixed; `next_required_step` remains `fix_restart_autostart_persistence_gap`.
 
 Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
