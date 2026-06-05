@@ -216,31 +216,53 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         expected_version=expected_version,
     )
 
-    blockers: list[str] = []
+    repair_reasons: list[str] = []
+    safety_blockers: list[str] = []
     warnings: list[str] = []
-    if expected_version != __version__:
-        blockers.append("wrong_expected_version")
-    blockers.extend(f"missing_container:{name}" for name in missing)
-    blockers.extend(f"unhealthy_container:{name}" for name in unhealthy)
-    blockers.extend(str(item) for item in listeners["blockers"])
-    if unexpected:
-        blockers.extend(f"unexpected_project_container:{name}" for name in unexpected)
-    if not compose_file.exists():
-        blockers.append("compose_file_missing")
-    if "Phase 11 operational completion" not in Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8", errors="ignore"):
-        blockers.append("phase_gate_mismatch")
-    if diagnosis.get("unknown_mpf_artifacts") not in ([], None):
-        blockers.append("unknown_mpf_artifacts_detected")
-    if diagnosis.get("backend_public_exposure_detected") is True:
-        blockers.append("backend_public_exposure_detected")
 
-    ready = not blockers
+    if expected_version != __version__:
+        safety_blockers.append("wrong_expected_version")
+
+    repair_reasons.extend(f"missing_container:{name}" for name in missing)
+    repair_reasons.extend(f"unhealthy_container:{name}" for name in unhealthy)
+
+    for listener_blocker in listeners["blockers"]:
+        blocker = str(listener_blocker)
+        if blocker.startswith("missing_listener:"):
+            repair_reasons.append(blocker)
+        else:
+            safety_blockers.append(blocker)
+
+    if unexpected:
+        safety_blockers.extend(f"unexpected_project_container:{name}" for name in unexpected)
+    if not compose_file.exists():
+        safety_blockers.append("compose_file_missing")
+    if str(compose_file) not in {_COMPOSE_FILE, f"./{_COMPOSE_FILE}"}:
+        safety_blockers.append("compose_scope_mismatch")
+    if "Phase 11 operational completion" not in Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8", errors="ignore"):
+        safety_blockers.append("phase_gate_mismatch")
+    if diagnosis.get("unknown_mpf_artifacts") not in ([], None):
+        safety_blockers.append("unknown_mpf_artifacts_detected")
+    if diagnosis.get("backend_public_exposure_detected") is True:
+        safety_blockers.append("backend_public_exposure_detected")
+
+    phase_summary = _phase_gate_summary()
+    if phase_summary["phase12_start_allowed"] is not False:
+        safety_blockers.append("phase12_opened")
+    if phase_summary["worker_enforcement_allowed"] != "no":
+        safety_blockers.append("worker_enforcement_opened")
+    if phase_summary["ui_allowed"] != "no":
+        safety_blockers.append("ui_opened")
+    if phase_summary["telegram_allowed"] != "no":
+        safety_blockers.append("telegram_opened")
+
+    ready = not safety_blockers
     return {
         "component": _COMPONENT,
         "repository_version": __version__,
         "expected_version": expected_version,
         "phase11_operational_completion_scope": _SCOPE,
-        **_phase_gate_summary(),
+        **phase_summary,
         "expected_runtime_containers": expected,
         "actual_runtime_containers": health,
         "missing_containers": missing,
@@ -258,7 +280,9 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
             "blockers": diagnosis.get("blockers", []),
             "unknown_mpf_artifacts": diagnosis.get("unknown_mpf_artifacts", []),
         },
-        "blockers": sorted(set(blockers)),
+        "repair_reasons": sorted(set(repair_reasons)),
+        "safety_blockers": sorted(set(safety_blockers)),
+        "blockers": sorted(set([*repair_reasons, *safety_blockers])),
         "warnings": sorted(set(warnings)),
         **_MUTATION_FLAGS,
         "final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN_READY" if ready else "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN",
@@ -270,19 +294,44 @@ def build_phase11_restart_autostart_persistence_fix_package(*, expected_version:
     """Build an operator-reviewed controlled Docker Compose recovery package."""
 
     plan = build_phase11_restart_autostart_persistence_fix_plan_report(expected_version=expected_version)
+    safety_blockers = list(plan.get("safety_blockers", []))
+    phase_summary = _phase_gate_summary()
+    allowed_operation_set = ["controlled_docker_compose_runtime_reconciliation_up_no_build_pull_never"]
+    command_scope = {
+        "project_name": _PROJECT_NAME,
+        "compose_file": _COMPOSE_FILE,
+        "profile": _PROFILE,
+        "execute_command": _EXECUTE_COMMAND,
+    }
+    if expected_version != __version__:
+        safety_blockers.append("wrong_expected_version")
+    if phase_summary["phase12_start_allowed"] is not False:
+        safety_blockers.append("phase12_opened")
+    if phase_summary["worker_enforcement_allowed"] != "no":
+        safety_blockers.append("worker_enforcement_opened")
+    if phase_summary["ui_allowed"] != "no":
+        safety_blockers.append("ui_opened")
+    if phase_summary["telegram_allowed"] != "no":
+        safety_blockers.append("telegram_opened")
+    unknown = plan.get("diagnosis_summary", {}).get("unknown_mpf_artifacts") if isinstance(plan.get("diagnosis_summary"), dict) else []
+    if unknown not in ([], None):
+        safety_blockers.append("unknown_mpf_artifacts_detected")
+    if command_scope != {
+        "project_name": "mpf-proxy",
+        "compose_file": "compose/mpf-proxy.compose.yaml",
+        "profile": "phase4-runtime",
+        "execute_command": "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never",
+    }:
+        safety_blockers.append("compose_scope_mismatch")
+    package_ready = not sorted(set(safety_blockers))
     return {
         "package_type": "phase11_restart_autostart_persistence_fix",
         "repository_version": __version__,
         "expected_version": expected_version,
-        "phase_gate_summary": _phase_gate_summary(),
+        "phase_gate_summary": phase_summary,
         "fix_plan_final_decision": plan["final_decision"],
-        "exact_allowed_operation_set": ["controlled_docker_compose_runtime_reconciliation_up_no_build_pull_never"],
-        "exact_docker_compose_command_plan": {
-            "project_name": _PROJECT_NAME,
-            "compose_file": _COMPOSE_FILE,
-            "profile": _PROFILE,
-            "execute_command": _EXECUTE_COMMAND,
-        },
+        "exact_allowed_operation_set": allowed_operation_set,
+        "exact_docker_compose_command_plan": command_scope,
         "required_pre_check_commands": _PRE_CHECK_COMMANDS,
         "required_execute_command": _EXECUTE_COMMAND,
         "required_post_check_commands": _POST_CHECK_COMMANDS,
@@ -300,10 +349,12 @@ def build_phase11_restart_autostart_persistence_fix_package(*, expected_version:
             "operator confirmed backend public exposure is false before execution",
             "operator invokes helper with --execute --yes only after review",
         ],
-        "blockers": plan["blockers"],
+        "repair_reasons": plan.get("repair_reasons", []),
+        "safety_blockers": sorted(set(safety_blockers)),
+        "blockers": sorted(set([*plan.get("repair_reasons", []), *safety_blockers])),
         "warnings": plan["warnings"],
-        "final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY" if expected_version == __version__ else "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE",
-        "next_required_step": "run_restart_autostart_persistence_fix_on_farm5" if expected_version == __version__ else "fix_restart_autostart_persistence_gap",
+        "final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY" if package_ready else "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE",
+        "next_required_step": "run_restart_autostart_persistence_fix_on_farm5" if package_ready else "fix_restart_autostart_persistence_gap",
     }
 
 

@@ -37,14 +37,22 @@ PHASE_STATUS_TXT="$OUT_DIR/phase_status.txt"
 "$MPF_BIN" production restart-autostart-persistence-fix-plan --expected-version "$EXPECTED_VERSION" --output json | tee "$PLAN_JSON"
 "$MPF_BIN" phase-status | tee "$PHASE_STATUS_TXT"
 
-python - "$PACKAGE_JSON" "$PLAN_JSON" "$EXPECTED_VERSION" <<'PY'
+python - "$PACKAGE_JSON" "$PLAN_JSON" "$EXPECTED_VERSION" "$MODE" <<'PY'
 import json, sys
-package_path, plan_path, expected = sys.argv[1:4]
+package_path, plan_path, expected, mode = sys.argv[1:5]
 package = json.load(open(package_path, encoding="utf-8"))
 plan = json.load(open(plan_path, encoding="utf-8"))
 required_command = "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never"
+if package.get("final_decision") != "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY":
+    raise SystemExit("package final_decision is not READY")
 if package.get("repository_version") != expected or package.get("expected_version") != expected:
     raise SystemExit("package version does not match repository version")
+if package.get("safety_blockers") != []:
+    raise SystemExit("package safety_blockers must be empty before execute")
+if plan.get("safety_blockers") != []:
+    raise SystemExit("plan safety_blockers must be empty before execute")
+if mode == "--execute" and not plan.get("repair_reasons"):
+    raise SystemExit("plan repair_reasons must identify a controlled runtime repair target")
 summary = package.get("phase_gate_summary", {})
 if summary.get("phase12_start_allowed") is not False:
     raise SystemExit("Phase 12 must remain blocked")
@@ -52,6 +60,16 @@ if summary.get("worker_enforcement_allowed") != "no":
     raise SystemExit("worker enforcement must remain blocked")
 if summary.get("ui_allowed") != "no" or summary.get("telegram_allowed") != "no":
     raise SystemExit("UI/Telegram must remain blocked")
+if plan.get("phase12_start_allowed") is not False:
+    raise SystemExit("plan opened Phase 12")
+if plan.get("worker_enforcement_allowed") != "no":
+    raise SystemExit("plan opened worker enforcement")
+if plan.get("ui_allowed") != "no" or plan.get("telegram_allowed") != "no":
+    raise SystemExit("plan opened UI/Telegram")
+if package.get("exact_allowed_operation_set") != ["controlled_docker_compose_runtime_reconciliation_up_no_build_pull_never"]:
+    raise SystemExit("unexpected allowed operation set")
+if plan.get("backend_public_exposure_detected") is True:
+    raise SystemExit("backend public exposure detected before execution")
 cmd_plan = package.get("exact_docker_compose_command_plan", {})
 if cmd_plan.get("project_name") != "mpf-proxy":
     raise SystemExit("unexpected compose project name")
@@ -75,8 +93,6 @@ for command in commands:
     for token in deny:
         if token in command:
             raise SystemExit(f"forbidden token in reviewed command plan: {token}")
-if plan.get("phase12_start_allowed") is not False:
-    raise SystemExit("plan opened Phase 12")
 listener_state = plan.get("local_only_listener_state", {}).get("checks", {})
 for name, state in listener_state.items():
     if state.get("public_bind_detected") is True:

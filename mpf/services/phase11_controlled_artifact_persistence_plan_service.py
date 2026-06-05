@@ -11,6 +11,10 @@ from mpf import __version__
 from mpf.adapters import socket_inspector
 from mpf.config import DEFAULT_CONFIG_PATH, MPFConfig, load_config
 from mpf.repositories import customer_repo
+from mpf.services import (
+    phase11_single_customer_firewall_apply_gate_service,
+    phase11e_limited_activation_execution_package_service,
+)
 from mpf.services.phase11_current_controlled_artifact_gate_service import (
     build_phase11_current_controlled_artifact_gate_report,
 )
@@ -104,13 +108,24 @@ def _load_customer_records(config: MPFConfig) -> tuple[bool, list[object], str]:
     return ok, list(records), message
 
 
-def _official_reapply_path_summary() -> dict[str, object]:
+def _candidate_reapply_path_summary() -> dict[str, object]:
+    single_customer_plan_callable = callable(
+        getattr(phase11_single_customer_firewall_apply_gate_service, "build_phase11_single_customer_firewall_apply_gate_report", None)
+    )
+    limited_activation_package_callable = callable(
+        getattr(phase11e_limited_activation_execution_package_service, "build_phase11e_limited_activation_execution_package_report", None)
+    )
     return {
-        "single_customer_apply_package_service_present": True,
-        "limited_activation_execution_package_service_present": True,
+        "candidate_reapply_services_declared": single_customer_plan_callable and limited_activation_package_callable,
+        "candidate_reapply_services": {
+            "phase11_single_customer_firewall_apply_gate_service.build_phase11_single_customer_firewall_apply_gate_report": single_customer_plan_callable,
+            "phase11e_limited_activation_execution_package_service.build_phase11e_limited_activation_execution_package_report": limited_activation_package_callable,
+        },
         "raw_iptables_reapply_implemented_here": False,
         "safe_reuse_identified_for_execution_in_this_pr": False,
-        "reason": "Existing controlled services can inform a future package, but this PR does not implement artifact reapply execution or ad-hoc iptables persistence.",
+        "execution_package_available": False,
+        "execution_decision": "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE",
+        "reason": "Candidate controlled services are visible for future design, but this PR does not implement a controlled artifact reapply execution package or ad-hoc iptables persistence.",
     }
 
 
@@ -122,7 +137,7 @@ def build_phase11_controlled_artifact_persistence_plan_report(
     customer_read_ok: bool = True,
     customer_read_message: str = "OK",
     phase_status_text: str | None = None,
-    official_reapply_restore_path_reuse: dict[str, object] | None = None,
+    candidate_reapply_restore_path_reuse: dict[str, object] | None = None,
     expected_version: str = __version__,
 ) -> dict[str, object]:
     """Build the fail-closed read-only artifact persistence plan."""
@@ -136,7 +151,7 @@ def build_phase11_controlled_artifact_persistence_plan_report(
     )
     backend = _backend_listener_state(listening_sockets or [])
     customers = _customer_visibility_from_records(customer_records or [])
-    official_path = official_reapply_restore_path_reuse or _official_reapply_path_summary()
+    candidate_path = candidate_reapply_restore_path_reuse or _candidate_reapply_path_summary()
 
     unknown = gate.get("unknown_mpf_artifacts") if isinstance(gate.get("unknown_mpf_artifacts"), list) else []
     known_present = gate.get("known_controlled_artifacts_present") is True
@@ -163,13 +178,16 @@ def build_phase11_controlled_artifact_persistence_plan_report(
     blockers.extend(f"required_controlled_customer_missing_or_mismatched:{key}" for key in missing_or_mismatched)
     if not known_classified:
         blockers.append("known_controlled_artifact_state_unclassified")
-    if not official_path["single_customer_apply_package_service_present"]:
-        blockers.append("official_reapply_or_restore_path_not_identified")
+    if not candidate_path.get("candidate_reapply_services_declared", False):
+        blockers.append("candidate_reapply_or_restore_services_not_identified")
 
     ready = not blockers
     next_step = "implement_controlled_artifact_reapply_execute_package"
     if not ready:
         next_step = "fix_restart_autostart_persistence_gap"
+    warnings = ["controlled_artifacts_absent_after_reboot"] if controlled_absent_after_reboot else []
+    if candidate_path.get("execution_package_available") is not True:
+        warnings.append("controlled_artifact_reapply_execution_package_not_available")
 
     return {
         "component": _COMPONENT,
@@ -193,9 +211,12 @@ def build_phase11_controlled_artifact_persistence_plan_report(
         "controlled_customer_records_visible": customers,
         "customer_read_ok": customer_read_ok,
         "customer_read_message": customer_read_message,
-        "official_reapply_restore_path_reuse": official_path,
+        "candidate_reapply_restore_path_reuse": candidate_path,
+        "safe_reuse_identified_for_execution_in_this_pr": candidate_path.get("safe_reuse_identified_for_execution_in_this_pr", False),
+        "execution_package_available": candidate_path.get("execution_package_available", False),
+        "artifact_reapply_execution_decision": candidate_path.get("execution_decision", "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE"),
         "blockers": sorted(set(blockers)),
-        "warnings": ["controlled_artifacts_absent_after_reboot"] if controlled_absent_after_reboot else [],
+        "warnings": sorted(set(warnings)),
         **_MUTATION_FLAGS,
         "final_decision": "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY" if ready else "BLOCKED_CONTROLLED_ARTIFACT_PERSISTENCE_PLAN",
         "next_required_step": next_step,
