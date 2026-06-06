@@ -1,4 +1,4 @@
-Phase 11 restart/autostart persistence blocker note (0.1.246): farm5 0.1.245 post-reboot evidence showed partial runtime container return, missing `mpf-v2raya-socks-bridge`, and absent known controlled Phase 11 firewall artifacts after reboot. `restart_autostart_proof` remains `missing_or_partial`; next required step is `fix_restart_autostart_persistence_gap`.
+Phase 11 restart/autostart persistence fix-path note (0.1.247): farm5 post-reboot evidence showed `unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent` while `unknown_mpf_artifacts` remained `[]` and public backend exposure remained false. `restart_autostart_proof` remains `missing_or_partial`; this version adds controlled repair plan/package/evidence tooling and points the next operator step to `run_restart_autostart_persistence_fix_on_farm5` without accepting Full CLI Production Operations.
 
 Phase 11 operational completion full CLI production scope note (0.1.245): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion — Full CLI Production Operations; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
 
@@ -53,7 +53,7 @@ Read these first:
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md` and `docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md` are active/current for Phase 11 operational completion — Full CLI Production Operations. `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` remain Phase 11 controlled-boundary context. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
+`docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md` and `docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md` are active/current for Phase 11 operational completion — Full CLI Production Operations. Version 0.1.247 records current step `fix_restart_autostart_persistence_gap` with controlled repair plan/package/evidence tooling only; restart/autostart proof and Full CLI Production Operations are not accepted without farm5 post-fix evidence. `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` remain Phase 11 controlled-boundary context. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
 This file is the documentation map.
 
 Historical/reference note:

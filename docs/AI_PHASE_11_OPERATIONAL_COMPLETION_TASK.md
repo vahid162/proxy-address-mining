@@ -5,6 +5,10 @@ Phase 11 operational completion 0.1.246 note: farm5 0.1.245 post-reboot evidence
 
 Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
 
+## 0.1.247 current step: fix_restart_autostart_persistence_gap
+
+This operational-completion step adds the controlled restart/autostart persistence fix plan/package, guarded plan-default helper, read-only controlled firewall artifact persistence plan, and post-fix evidence collector. It does not fake READY: restart/autostart proof remains `missing_or_partial` until source-backed farm5 post-fix evidence proves all expected containers, known controlled artifacts, empty `unknown_mpf_artifacts`, false public backend exposure, local-only listeners, and closed Phase 12/worker/UI/Telegram gates. Previous farm5 blockers were `unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent`. Full CLI Production Operations remains not accepted.
+
 ## Purpose
 
 `Phase 11 operational completion — Full CLI Production Operations` is the active post-acceptance completion gate. This is not a new phase. Phase 11 remains accepted on farm5 for the controlled CLI-limited BTC production/customer boundary, and the current working phase remains under Phase 11 operational completion.

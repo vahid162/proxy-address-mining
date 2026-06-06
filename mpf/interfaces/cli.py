@@ -153,6 +153,8 @@ from mpf.services import (
     phase11_operational_completion_gap_inventory_service,
     phase11_restart_autostart_proof_service,
     phase11_restart_autostart_persistence_diagnosis_service,
+    phase11_restart_autostart_persistence_fix_service,
+    phase11_controlled_artifact_persistence_plan_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3759,6 +3761,80 @@ def production_restart_autostart_persistence_diagnosis(
                 "blockers": ["configuration_or_read_only_inspection_failed", str(exc)],
                 "warnings": [],
             },
+        )
+        report["blockers"] = sorted(set([*report["blockers"], "configuration_or_read_only_inspection_failed"]))
+        report["configuration_error"] = str(exc)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
+
+
+@production_app.command("restart-autostart-persistence-fix-plan")
+def production_restart_autostart_persistence_fix_plan(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Render a read-only controlled Phase 11 restart/autostart persistence fix plan."""
+
+    try:
+        report = phase11_restart_autostart_persistence_fix_service.run_phase11_restart_autostart_persistence_fix_plan(
+            _config_path(config),
+            expected_version=expected_version,
+        )
+    except Exception as exc:  # noqa: BLE001 - operator plan must fail closed without traceback.
+        report = phase11_restart_autostart_persistence_fix_service.build_phase11_restart_autostart_persistence_fix_plan_report(
+            expected_version=expected_version,
+            actual_containers=[],
+            listening_sockets=[],
+            diagnosis_report={"final_decision": "BLOCKED_READ_ONLY_INSPECTION_FAILED", "blockers": [str(exc)], "unknown_mpf_artifacts": []},
+        )
+        report["blockers"] = sorted(set([*report["blockers"], "configuration_or_read_only_inspection_failed"]))
+        report["configuration_error"] = str(exc)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
+
+
+@production_app.command("restart-autostart-persistence-fix-package")
+def production_restart_autostart_persistence_fix_package(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    """Render the operator-reviewed controlled Docker Compose recovery package."""
+
+    report = phase11_restart_autostart_persistence_fix_service.build_phase11_restart_autostart_persistence_fix_package(
+        expected_version=expected_version,
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
+
+
+@production_app.command("controlled-artifact-persistence-plan")
+def production_controlled_artifact_persistence_plan(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Render the read-only controlled Phase 11 firewall artifact persistence plan."""
+
+    try:
+        report = phase11_controlled_artifact_persistence_plan_service.run_phase11_controlled_artifact_persistence_plan(
+            _config_path(config),
+            expected_version=expected_version,
+        )
+    except Exception as exc:  # noqa: BLE001 - operator plan must fail closed without traceback.
+        report = phase11_controlled_artifact_persistence_plan_service.build_phase11_controlled_artifact_persistence_plan_report(
+            customer_read_ok=False,
+            customer_read_message=str(exc),
+            expected_version=expected_version,
         )
         report["blockers"] = sorted(set([*report["blockers"], "configuration_or_read_only_inspection_failed"]))
         report["configuration_error"] = str(exc)

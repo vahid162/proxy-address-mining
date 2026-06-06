@@ -44,8 +44,8 @@ services:
       test: ["CMD-SHELL", "nc -z 127.0.0.1 22070 >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 12
+      start_period: 30s
 
   mpf-forwarder-btc:
     image: ${MPF_FORWARDER_IMAGE:-ginuerzh/gost:latest}

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
+import subprocess
 
 from typer.testing import CliRunner
 
@@ -10,11 +12,18 @@ from mpf.adapters.socket_inspector import ListeningSocket
 from mpf.services.phase11_restart_autostart_persistence_diagnosis_service import (
     build_phase11_restart_autostart_persistence_diagnosis_report,
 )
+from mpf.services.phase11_restart_autostart_persistence_fix_service import (
+    build_phase11_restart_autostart_persistence_fix_package,
+    build_phase11_restart_autostart_persistence_fix_plan_report,
+)
+from mpf.services.phase11_controlled_artifact_persistence_plan_service import (
+    build_phase11_controlled_artifact_persistence_plan_report,
+)
 from mpf.interfaces.cli import app
 from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
 
 RUNNER = CliRunner()
-VERSION = "0.1.246"
+VERSION = "0.1.247"
 
 
 PHASE_STATUS = """current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
@@ -307,3 +316,411 @@ def test_restart_autostart_persistence_diagnosis_cli_json_fails_closed() -> None
         "RESTART_AUTOSTART_PERSISTENCE_READY",
     }
     assert report["mutation_performed"] is False
+
+
+
+def test_restart_autostart_persistence_fix_plan_allows_missing_socks_bridge_as_repair_reason() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(include_bridge=False),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={"final_decision": "BLOCKED", "blockers": [], "unknown_mpf_artifacts": []},
+    )
+
+    assert report["final_decision"] == "RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN_READY"
+    assert "missing_container:mpf-v2raya-socks-bridge" in report["repair_reasons"]
+    assert report["safety_blockers"] == []
+    assert report["docker_restart_performed"] is False
+
+
+def test_restart_autostart_persistence_fix_plan_allows_unhealthy_socks_bridge_as_repair_reason() -> None:
+    containers = _healthy_runtime_containers()
+    containers = [
+        DockerContainerSummary(item.name, item.image, "Exited (1) 2 minutes ago", item.ports)
+        if item.name == "mpf-v2raya-socks-bridge"
+        else item
+        for item in containers
+    ]
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=containers,
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={"final_decision": "BLOCKED", "blockers": [], "unknown_mpf_artifacts": []},
+    )
+
+    assert report["final_decision"] == "RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN_READY"
+    assert "unhealthy_container:mpf-v2raya-socks-bridge" in report["repair_reasons"]
+    assert report["safety_blockers"] == []
+    assert report["likely_socks_bridge_failure_reason"] == "socks_bridge_container_exited_after_reboot"
+
+
+def test_restart_autostart_persistence_fix_plan_ready_for_fix_plan_only_when_runtime_local() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={"final_decision": "RESTART_AUTOSTART_PERSISTENCE_READY", "blockers": [], "unknown_mpf_artifacts": []},
+    )
+
+    assert report["final_decision"] == "RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN_READY"
+    assert report["next_required_step"] == "run_restart_autostart_persistence_fix_on_farm5"
+    assert report["mutation_performed"] is False
+
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_unknown_artifacts_as_safety_blocker() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={"final_decision": "BLOCKED", "blockers": [], "unknown_mpf_artifacts": ["unknown_chain:MPFX"]},
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_nested_unknown_artifacts_summary() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": [],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": ["unknown_chain:MPFX"]},
+            "unknown_mpf_artifacts_empty": True,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_unknown_artifacts_empty_false() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": [],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": []},
+            "unknown_mpf_artifacts_empty": False,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_unknown_artifacts_blocker() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": ["unknown_mpf_artifacts_present"],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": []},
+            "unknown_mpf_artifacts_empty": True,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_direct_artifact_gate_unknown_artifacts() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        artifact_gate_report=_artifact_gate(known_present=True, unknown=["unknown_chain:MPFX"]),
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_fix_package_blocks_nested_unknown_artifacts() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_package(
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": [],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": ["unknown_chain:MPFX"]},
+            "unknown_mpf_artifacts_empty": True,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_compose_runtime_contract_keeps_expected_containers_and_local_only_ports() -> None:
+    text = Path("compose/mpf-proxy.compose.yaml").read_text(encoding="utf-8")
+    for name in ("mpf-v2raya", "mpf-v2raya-socks-bridge", "mpf-forwarder-btc"):
+        assert f"container_name: {name}" in text
+    assert 'network_mode: "service:mpf-v2raya"' in text
+    assert "22070:22070" not in text
+    assert '"127.0.0.1:2015:2017"' in text
+    assert '"127.0.0.1:60010:60010"' in text
+    assert "mpf-v2raya-socks-bridge:" in text
+    assert "condition: service_healthy" in text
+
+
+def test_restart_autostart_fix_helper_is_plan_default_and_guarded() -> None:
+    text = Path("scripts/phase11_run_restart_autostart_persistence_fix_package.sh").read_text(encoding="utf-8")
+    assert 'MODE="--plan"' in text
+    assert '--execute requires --yes' in text
+    assert "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never" in text
+    for item in (
+        "reboot",
+        "shutdown",
+        "systemctl enable",
+        "systemctl start",
+        "systemctl restart",
+        "iptables-restore",
+        "conntrack -F",
+        "mpf customer add",
+        "mpf customer edit",
+        "mpf customer delete",
+        "mpf customer renew",
+        "unrestricted firewall apply",
+    ):
+        assert item not in text
+
+
+def test_controlled_artifact_persistence_plan_blocks_absent_artifacts_when_no_official_reapply_plan() -> None:
+    report = build_phase11_controlled_artifact_persistence_plan_report(
+        current_controlled_artifact_gate_result=_artifact_gate(known_present=False),
+        listening_sockets=_local_only_runtime_sockets(),
+        customer_records=[],
+        phase_status_text=PHASE_STATUS,
+        candidate_reapply_restore_path_reuse={
+            "candidate_reapply_services_declared": False,
+            "raw_iptables_reapply_implemented_here": False,
+            "safe_reuse_identified_for_execution_in_this_pr": False,
+            "execution_package_available": False,
+            "execution_decision": "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE",
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_CONTROLLED_ARTIFACT_PERSISTENCE_PLAN"
+    assert "candidate_reapply_or_restore_services_not_identified" in report["blockers"]
+
+
+def test_controlled_artifact_persistence_plan_blocks_unknown_public_and_missing_customers() -> None:
+    base_gate = _artifact_gate(known_present=False)
+    missing = build_phase11_controlled_artifact_persistence_plan_report(
+        current_controlled_artifact_gate_result=base_gate,
+        listening_sockets=_local_only_runtime_sockets(),
+        customer_records=[],
+        phase_status_text=PHASE_STATUS,
+    )
+    assert missing["final_decision"] == "BLOCKED_CONTROLLED_ARTIFACT_PERSISTENCE_PLAN"
+    assert any(str(item).startswith("required_controlled_customer_missing_or_mismatched") for item in missing["blockers"])
+
+    unknown = build_phase11_controlled_artifact_persistence_plan_report(
+        current_controlled_artifact_gate_result=_artifact_gate(known_present=True, unknown=["unknown_chain:MPFX"]),
+        listening_sockets=_local_only_runtime_sockets(),
+        customer_records=[],
+        phase_status_text=PHASE_STATUS,
+    )
+    assert "unknown_mpf_artifacts_detected" in unknown["blockers"]
+
+    public = build_phase11_controlled_artifact_persistence_plan_report(
+        current_controlled_artifact_gate_result=base_gate,
+        listening_sockets=[ListeningSocket("0.0.0.0", 60010, "gost")],
+        customer_records=[],
+        phase_status_text=PHASE_STATUS,
+    )
+    assert "backend_public_exposure_detected" in public["blockers"]
+
+
+def test_controlled_artifact_persistence_plan_ready_only_for_classified_local_records() -> None:
+    class Record:
+        def __init__(self, customer_key: str, lane: str, port: int, status: str = "active") -> None:
+            self.customer_key = customer_key
+            self.lane = lane
+            self.port = port
+            self.status = status
+
+    report = build_phase11_controlled_artifact_persistence_plan_report(
+        current_controlled_artifact_gate_result=_artifact_gate(known_present=False),
+        listening_sockets=_local_only_runtime_sockets(),
+        customer_records=[Record("canary-btc-001", "btc", 20001), Record("limited-btc-001", "btc", 20101)],
+        phase_status_text=PHASE_STATUS,
+    )
+
+    assert report["final_decision"] == "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY"
+    assert report["known_controlled_artifacts_present"] is False
+    assert report["controlled_artifacts_absent_after_reboot"] is True
+    assert report["next_required_step"] == "implement_controlled_artifact_reapply_execute_package"
+    assert report["safe_reuse_identified_for_execution_in_this_pr"] is False
+    assert report["execution_package_available"] is False
+    assert report["artifact_reapply_execution_decision"] == "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE"
+
+
+def test_new_phase11_fix_plan_cli_surfaces_json() -> None:
+    for args in (
+        ["production", "restart-autostart-persistence-fix-plan", "--output", "json"],
+        ["production", "restart-autostart-persistence-fix-package", "--output", "json"],
+        ["production", "controlled-artifact-persistence-plan", "--output", "json"],
+    ):
+        result = RUNNER.invoke(app, args)
+        assert result.exit_code == 0, result.output
+        report = json.loads(result.output)
+        assert report["repository_version"] == VERSION
+        assert report.get("mutation_performed") is False or report.get("mutation_declaration", {}).get("normal_service_code_performs_mutation") is False
+
+
+
+def test_restart_autostart_fix_package_blocks_when_safety_blockers_present() -> None:
+    from mpf.services.phase11_restart_autostart_persistence_fix_service import (
+        build_phase11_restart_autostart_persistence_fix_package,
+    )
+
+    report = build_phase11_restart_autostart_persistence_fix_package(expected_version="0.1.246")
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE"
+    assert "wrong_expected_version" in report["safety_blockers"]
+
+
+def _write_fake_phase11_fix_mpf(path: Path, *, plan_safety_blockers: list[str], repair_reasons: list[str], package_safety_blockers: list[str] | None = None) -> None:
+    package = {
+        "final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY",
+        "repository_version": VERSION,
+        "expected_version": VERSION,
+        "safety_blockers": package_safety_blockers or [],
+        "repair_reasons": repair_reasons,
+        "phase_gate_summary": {
+            "phase12_start_allowed": False,
+            "worker_enforcement_allowed": "no",
+            "ui_allowed": "no",
+            "telegram_allowed": "no",
+        },
+        "exact_allowed_operation_set": ["controlled_docker_compose_runtime_reconciliation_up_no_build_pull_never"],
+        "exact_docker_compose_command_plan": {
+            "project_name": "mpf-proxy",
+            "compose_file": "compose/mpf-proxy.compose.yaml",
+            "profile": "phase4-runtime",
+            "execute_command": "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never",
+        },
+        "required_execute_command": "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never",
+    }
+    plan = {
+        "phase12_start_allowed": False,
+        "worker_enforcement_allowed": "no",
+        "ui_allowed": "no",
+        "telegram_allowed": "no",
+        "safety_blockers": plan_safety_blockers,
+        "repair_reasons": repair_reasons,
+        "local_only_listener_state": {
+            "checks": {
+                "v2raya_ui": {"public_bind_detected": False},
+                "btc_backend": {"public_bind_detected": False},
+            }
+        },
+    }
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json, sys\n"
+        f"PACKAGE = {json.dumps(package)!r}\n"
+        f"PLAN = {json.dumps(plan)!r}\n"
+        "args = sys.argv[1:]\n"
+        "if args[:1] == ['phase-status']:\n"
+        "    print('current_working_phase: Phase 11 operational completion — Full CLI Production Operations')\n"
+        "    print('phase12_start_allowed: no')\n"
+        "    print('worker_enforcement_allowed: no')\n"
+        "    print('ui_allowed: no')\n"
+        "    print('telegram_allowed: no')\n"
+        "elif args[:2] == ['production', 'restart-autostart-persistence-fix-package']:\n"
+        "    print(PACKAGE)\n"
+        "elif args[:2] == ['production', 'restart-autostart-persistence-fix-plan']:\n"
+        "    print(PLAN)\n"
+        "else:\n"
+        "    print(json.dumps({'ok': True, 'mutation_performed': False}))\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+
+
+def _write_fake_docker(path: Path, log_path: Path) -> None:
+    path.write_text(
+        "#!/usr/bin/env bash\n"
+        "set -euo pipefail\n"
+        f"printf '%s\\n' \"$*\" >> {log_path}\n"
+        "printf 'fake docker %s\\n' \"$*\"\n",
+        encoding="utf-8",
+    )
+    path.chmod(0o755)
+
+
+def test_restart_autostart_fix_helper_refuses_execute_when_safety_blockers_present(tmp_path: Path) -> None:
+    fake_mpf = tmp_path / "mpf"
+    fake_docker = tmp_path / "docker"
+    docker_log = tmp_path / "docker.log"
+    _write_fake_phase11_fix_mpf(
+        fake_mpf,
+        plan_safety_blockers=["phase_gate_mismatch"],
+        repair_reasons=["unhealthy_container:mpf-v2raya-socks-bridge"],
+    )
+    _write_fake_docker(fake_docker, docker_log)
+
+    result = subprocess.run(
+        ["scripts/phase11_run_restart_autostart_persistence_fix_package.sh", "--execute", "--yes", "--out-dir", str(tmp_path / "out")],
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "MPF_BIN": str(fake_mpf), "PATH": f"{tmp_path}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "plan safety_blockers must be empty before execute" in result.stderr
+    assert not docker_log.exists()
+
+
+def test_restart_autostart_fix_helper_allows_execute_for_repair_reasons_without_safety_blockers(tmp_path: Path) -> None:
+    fake_mpf = tmp_path / "mpf"
+    fake_docker = tmp_path / "docker"
+    docker_log = tmp_path / "docker.log"
+    _write_fake_phase11_fix_mpf(
+        fake_mpf,
+        plan_safety_blockers=[],
+        repair_reasons=["unhealthy_container:mpf-v2raya-socks-bridge"],
+    )
+    _write_fake_docker(fake_docker, docker_log)
+
+    result = subprocess.run(
+        ["scripts/phase11_run_restart_autostart_persistence_fix_package.sh", "--execute", "--yes", "--out-dir", str(tmp_path / "out")],
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "MPF_BIN": str(fake_mpf), "PATH": f"{tmp_path}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    docker_calls = docker_log.read_text(encoding="utf-8")
+    assert "compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never" in docker_calls
+
+
+def test_restart_autostart_fix_helper_refuses_execute_when_unknown_safety_blocker_present(tmp_path: Path) -> None:
+    fake_mpf = tmp_path / "mpf"
+    fake_docker = tmp_path / "docker"
+    docker_log = tmp_path / "docker.log"
+    _write_fake_phase11_fix_mpf(
+        fake_mpf,
+        plan_safety_blockers=["unknown_mpf_artifacts_detected"],
+        package_safety_blockers=["unknown_mpf_artifacts_detected"],
+        repair_reasons=["unhealthy_container:mpf-v2raya-socks-bridge"],
+    )
+    _write_fake_docker(fake_docker, docker_log)
+
+    result = subprocess.run(
+        ["scripts/phase11_run_restart_autostart_persistence_fix_package.sh", "--execute", "--yes", "--out-dir", str(tmp_path / "out")],
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "MPF_BIN": str(fake_mpf), "PATH": f"{tmp_path}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "package safety_blockers must be empty before execute" in result.stderr
+    assert not docker_log.exists()

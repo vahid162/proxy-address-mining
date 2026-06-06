@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.247
+
+- Add controlled Phase 11 restart/autostart persistence fix planning/package/evidence tooling and read-only artifact persistence planning while keeping Phase 12, worker enforcement, UI, Telegram, public backend exposure, and Full CLI Production Operations acceptance blocked.
+
 ## 0.1.246
 
 - Add read-only Phase 11 post-reboot restart/autostart persistence diagnosis for missing runtime containers and controlled firewall artifacts.
