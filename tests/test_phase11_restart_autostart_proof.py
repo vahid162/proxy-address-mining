@@ -13,6 +13,7 @@ from mpf.services.phase11_restart_autostart_persistence_diagnosis_service import
     build_phase11_restart_autostart_persistence_diagnosis_report,
 )
 from mpf.services.phase11_restart_autostart_persistence_fix_service import (
+    build_phase11_restart_autostart_persistence_fix_package,
     build_phase11_restart_autostart_persistence_fix_plan_report,
 )
 from mpf.services.phase11_controlled_artifact_persistence_plan_service import (
@@ -375,6 +376,80 @@ def test_restart_autostart_persistence_fix_plan_blocks_unknown_artifacts_as_safe
     assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
 
 
+
+def test_restart_autostart_persistence_fix_plan_blocks_nested_unknown_artifacts_summary() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": [],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": ["unknown_chain:MPFX"]},
+            "unknown_mpf_artifacts_empty": True,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_unknown_artifacts_empty_false() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": [],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": []},
+            "unknown_mpf_artifacts_empty": False,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_unknown_artifacts_blocker() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": ["unknown_mpf_artifacts_present"],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": []},
+            "unknown_mpf_artifacts_empty": True,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_persistence_fix_plan_blocks_direct_artifact_gate_unknown_artifacts() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        artifact_gate_report=_artifact_gate(known_present=True, unknown=["unknown_chain:MPFX"]),
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
+def test_restart_autostart_fix_package_blocks_nested_unknown_artifacts() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_package(
+        diagnosis_report={
+            "final_decision": "BLOCKED",
+            "blockers": [],
+            "current_controlled_artifact_gate_summary": {"unknown_mpf_artifacts": ["unknown_chain:MPFX"]},
+            "unknown_mpf_artifacts_empty": True,
+        },
+    )
+
+    assert report["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE"
+    assert "unknown_mpf_artifacts_detected" in report["safety_blockers"]
+
+
 def test_compose_runtime_contract_keeps_expected_containers_and_local_only_ports() -> None:
     text = Path("compose/mpf-proxy.compose.yaml").read_text(encoding="utf-8")
     for name in ("mpf-v2raya", "mpf-v2raya-socks-bridge", "mpf-forwarder-btc"):
@@ -505,12 +580,12 @@ def test_restart_autostart_fix_package_blocks_when_safety_blockers_present() -> 
     assert "wrong_expected_version" in report["safety_blockers"]
 
 
-def _write_fake_phase11_fix_mpf(path: Path, *, plan_safety_blockers: list[str], repair_reasons: list[str]) -> None:
+def _write_fake_phase11_fix_mpf(path: Path, *, plan_safety_blockers: list[str], repair_reasons: list[str], package_safety_blockers: list[str] | None = None) -> None:
     package = {
         "final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY",
         "repository_version": VERSION,
         "expected_version": VERSION,
-        "safety_blockers": [],
+        "safety_blockers": package_safety_blockers or [],
         "repair_reasons": repair_reasons,
         "phase_gate_summary": {
             "phase12_start_allowed": False,
@@ -623,3 +698,29 @@ def test_restart_autostart_fix_helper_allows_execute_for_repair_reasons_without_
     assert result.returncode == 0, result.stderr + result.stdout
     docker_calls = docker_log.read_text(encoding="utf-8")
     assert "compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never" in docker_calls
+
+
+def test_restart_autostart_fix_helper_refuses_execute_when_unknown_safety_blocker_present(tmp_path: Path) -> None:
+    fake_mpf = tmp_path / "mpf"
+    fake_docker = tmp_path / "docker"
+    docker_log = tmp_path / "docker.log"
+    _write_fake_phase11_fix_mpf(
+        fake_mpf,
+        plan_safety_blockers=["unknown_mpf_artifacts_detected"],
+        package_safety_blockers=["unknown_mpf_artifacts_detected"],
+        repair_reasons=["unhealthy_container:mpf-v2raya-socks-bridge"],
+    )
+    _write_fake_docker(fake_docker, docker_log)
+
+    result = subprocess.run(
+        ["scripts/phase11_run_restart_autostart_persistence_fix_package.sh", "--execute", "--yes", "--out-dir", str(tmp_path / "out")],
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "MPF_BIN": str(fake_mpf), "PATH": f"{tmp_path}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "package safety_blockers must be empty before execute" in result.stderr
+    assert not docker_log.exists()

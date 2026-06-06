@@ -157,6 +157,32 @@ def _socks_bridge_runtime_model(compose_file: Path) -> dict[str, object]:
     }
 
 
+def _list_value(value: object) -> list[object]:
+    return value if isinstance(value, list) else []
+
+
+def _unknown_mpf_artifacts_detected(*, diagnosis: dict[str, object], artifact_gate_report: dict[str, object] | None = None) -> bool:
+    direct_unknown = _list_value(diagnosis.get("unknown_mpf_artifacts"))
+    if direct_unknown:
+        return True
+
+    gate_summary = diagnosis.get("current_controlled_artifact_gate_summary")
+    if isinstance(gate_summary, dict) and _list_value(gate_summary.get("unknown_mpf_artifacts")):
+        return True
+
+    if diagnosis.get("unknown_mpf_artifacts_empty") is False:
+        return True
+
+    blockers = [str(item) for item in _list_value(diagnosis.get("blockers"))]
+    if "unknown_mpf_artifacts_present" in blockers:
+        return True
+
+    if artifact_gate_report is not None and _list_value(artifact_gate_report.get("unknown_mpf_artifacts")):
+        return True
+
+    return False
+
+
 def _likely_bridge_failure_reason(containers: list[docker_compose.DockerContainerSummary]) -> str | None:
     for container in containers:
         if container.name != "mpf-v2raya-socks-bridge":
@@ -194,6 +220,7 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
     actual_containers: Iterable[docker_compose.DockerContainerSummary] | None = None,
     listening_sockets: Iterable[socket_inspector.ListeningSocket] | None = None,
     diagnosis_report: dict[str, object] | None = None,
+    artifact_gate_report: dict[str, object] | None = None,
     compose_file: Path = Path(_COMPOSE_FILE),
     expected_version: str = __version__,
 ) -> dict[str, object]:
@@ -213,6 +240,7 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         expected_containers=expected,
         actual_containers=containers,
         listening_sockets=listening_sockets or [],
+        artifact_gate_report=artifact_gate_report,
         expected_version=expected_version,
     )
 
@@ -241,7 +269,7 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         safety_blockers.append("compose_scope_mismatch")
     if "Phase 11 operational completion" not in Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8", errors="ignore"):
         safety_blockers.append("phase_gate_mismatch")
-    if diagnosis.get("unknown_mpf_artifacts") not in ([], None):
+    if _unknown_mpf_artifacts_detected(diagnosis=diagnosis, artifact_gate_report=artifact_gate_report):
         safety_blockers.append("unknown_mpf_artifacts_detected")
     if diagnosis.get("backend_public_exposure_detected") is True:
         safety_blockers.append("backend_public_exposure_detected")
@@ -279,6 +307,8 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
             "final_decision": diagnosis.get("final_decision"),
             "blockers": diagnosis.get("blockers", []),
             "unknown_mpf_artifacts": diagnosis.get("unknown_mpf_artifacts", []),
+            "current_controlled_artifact_gate_summary": diagnosis.get("current_controlled_artifact_gate_summary", {}),
+            "unknown_mpf_artifacts_empty": diagnosis.get("unknown_mpf_artifacts_empty"),
         },
         "repair_reasons": sorted(set(repair_reasons)),
         "safety_blockers": sorted(set(safety_blockers)),
@@ -290,10 +320,19 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
     }
 
 
-def build_phase11_restart_autostart_persistence_fix_package(*, expected_version: str = __version__) -> dict[str, object]:
+def build_phase11_restart_autostart_persistence_fix_package(
+    *,
+    diagnosis_report: dict[str, object] | None = None,
+    artifact_gate_report: dict[str, object] | None = None,
+    expected_version: str = __version__,
+) -> dict[str, object]:
     """Build an operator-reviewed controlled Docker Compose recovery package."""
 
-    plan = build_phase11_restart_autostart_persistence_fix_plan_report(expected_version=expected_version)
+    plan = build_phase11_restart_autostart_persistence_fix_plan_report(
+        diagnosis_report=diagnosis_report,
+        artifact_gate_report=artifact_gate_report,
+        expected_version=expected_version,
+    )
     safety_blockers = list(plan.get("safety_blockers", []))
     phase_summary = _phase_gate_summary()
     allowed_operation_set = ["controlled_docker_compose_runtime_reconciliation_up_no_build_pull_never"]
@@ -313,8 +352,8 @@ def build_phase11_restart_autostart_persistence_fix_package(*, expected_version:
         safety_blockers.append("ui_opened")
     if phase_summary["telegram_allowed"] != "no":
         safety_blockers.append("telegram_opened")
-    unknown = plan.get("diagnosis_summary", {}).get("unknown_mpf_artifacts") if isinstance(plan.get("diagnosis_summary"), dict) else []
-    if unknown not in ([], None):
+    diagnosis_summary = plan.get("diagnosis_summary", {})
+    if isinstance(diagnosis_summary, dict) and _unknown_mpf_artifacts_detected(diagnosis=diagnosis_summary, artifact_gate_report=artifact_gate_report):
         safety_blockers.append("unknown_mpf_artifacts_detected")
     if command_scope != {
         "project_name": "mpf-proxy",
