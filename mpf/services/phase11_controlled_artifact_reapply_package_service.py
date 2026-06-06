@@ -41,7 +41,12 @@ def run_controlled_artifact_reapply_plan(config_path: Path = DEFAULT_CONFIG_PATH
     if not loaded.ok:
         return {"component": "phase11_controlled_artifact_reapply_plan", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["postgresql_planner_input_read_failed"], "message": loaded.message, "mutation_performed": False}
     backend = build_controlled_backend_target_report(expected_version=expected_version)
-    return build_controlled_artifact_reapply_plan_report(lanes=loaded.lanes, customers=loaded.customers, backend_target=backend, iptables_save_text=_cmd(["iptables-save"]), ip6tables_save_text=_cmd(["ip6tables-save"]), phase_status_text=_phase_text(), expected_version=expected_version)
+    iptables_save_text = _cmd(["iptables-save"])
+    ip6tables_save_text = _cmd(["ip6tables-save"])
+    report = build_controlled_artifact_reapply_plan_report(lanes=loaded.lanes, customers=loaded.customers, backend_target=backend, iptables_save_text=iptables_save_text, ip6tables_save_text=ip6tables_save_text, phase_status_text=_phase_text(), expected_version=expected_version)
+    report["iptables_save_text"] = iptables_save_text
+    report["ip6tables_save_text"] = ip6tables_save_text
+    return report
 
 
 def run_controlled_artifact_reapply_package(config_path: Path = DEFAULT_CONFIG_PATH, *, expected_version: str = __version__) -> dict[str, object]:

@@ -1,6 +1,6 @@
-# Phase 11 Controlled Artifact Reapply Runbook (0.1.250)
+# Phase 11 Controlled Artifact Reapply Runbook (0.1.249)
 
-Version `0.1.250` preserves the 0.1.249 implementation and fixes injected environment handling for CI-safe executor preflight. Version `0.1.249` implements the controlled artifact reapply capability for exactly the accepted BTC customers `canary-btc-001:20001` and `limited-btc-001:20101`.
+Version `0.1.249` implements controlled artifact reapply read-only package evidence surfaces for exactly the accepted BTC customers `canary-btc-001:20001` and `limited-btc-001:20101`.
 
 No farm5 mutation was performed by this PR. Package generation is read-only and a live READY package must be collected and reviewed on farm5 before any execution.
 
@@ -16,9 +16,9 @@ scripts/phase11_controlled_artifact_reapply.sh --package --out-dir <evidence-dir
 
 Local or CI environments without source-backed Docker, PostgreSQL, listener, and firewall evidence must fail closed and must not fabricate a historical backend target or READY execution package.
 
-## Guarded execution boundary
+## Execution boundary
 
-Execution is operator-gated and requires `--execute`, `--yes`, package path, package SHA-256, package ID, expected version, operator, and reason. The executor rechecks package identity, version, hostname/runtime target fingerprint, customer/policy snapshot hash, firewall snapshot preconditions, unknown/stale/duplicate/public-exposure blockers, lock, backup, restore-point metadata, audit intent, `iptables-restore --test --noflush`, apply, and post-apply verification.
+Public production execution intentionally fails closed before any `iptables-restore` invocation until real live preflight, OS lock, non-empty firewall backup, PostgreSQL operational metadata, exact rollback-plan, and post-apply verification adapters are implemented and tested. The command still validates package file hash, canonical content hash, scope, version, hostname, phase gates, payload safety, and rollback metadata before reporting blockers.
 
 The execution path must not restart Docker, call systemd, flush conntrack, mutate customer/policy/abuse/block/pause state, enable timers/daemons, broaden the two-customer scope, or mark restart/autostart proof READY.
 

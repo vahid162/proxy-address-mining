@@ -1,4 +1,16 @@
 from __future__ import annotations
-from mpf.services.phase11_controlled_artifact_reapply_core import NoopOperationalMetadataRepo
 
-ControlledArtifactReapplyAuditRepo = NoopOperationalMetadataRepo
+
+class ControlledArtifactReapplyAuditRepoUnavailable:
+    """Fail-closed placeholder until PostgreSQL operational metadata writes are implemented."""
+
+    production_ready = False
+
+    def record_intent(self, *args, **kwargs) -> None:
+        raise RuntimeError("real_postgresql_operational_metadata_repo_unavailable")
+
+    def record_result(self, *args, **kwargs) -> None:
+        raise RuntimeError("real_postgresql_operational_metadata_repo_unavailable")
+
+
+ControlledArtifactReapplyAuditRepo = ControlledArtifactReapplyAuditRepoUnavailable

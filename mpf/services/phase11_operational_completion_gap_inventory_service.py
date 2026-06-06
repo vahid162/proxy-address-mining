@@ -27,7 +27,7 @@ def _next_step(restart_status: str, persistence_plan: dict[str, object] | None) 
     if persistence_plan.get("runtime_repair_required") is True:
         return "run_restart_autostart_persistence_fix_on_farm5"
     if persistence_plan.get("controlled_artifact_reapply_required") is True:
-        if persistence_plan.get("controlled_artifact_reapply_execution_available") is False:
+        if persistence_plan.get("controlled_artifact_reapply_capability_implemented") is not True:
             return "implement_controlled_artifact_reapply_execute_package"
         if persistence_plan.get("controlled_artifact_reapply_package_evidence_ready") is not True:
             return "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
@@ -78,6 +78,7 @@ def build_phase11_operational_completion_gap_inventory_report(
             "runtime_repair_required": persistence_plan_report.get("runtime_repair_required") if persistence_plan_report else None,
             "runtime_repair_reasons": persistence_plan_report.get("runtime_repair_reasons", []) if persistence_plan_report else [],
             "controlled_artifact_reapply_required": persistence_plan_report.get("controlled_artifact_reapply_required") if persistence_plan_report else None,
+            "controlled_artifact_reapply_capability_implemented": persistence_plan_report.get("controlled_artifact_reapply_capability_implemented") if persistence_plan_report else None,
             "controlled_artifact_reapply_execution_available": persistence_plan_report.get("controlled_artifact_reapply_execution_available") if persistence_plan_report else None,
         },
         "mutation_performed": False,

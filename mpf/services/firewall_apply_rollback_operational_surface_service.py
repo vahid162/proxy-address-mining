@@ -185,6 +185,7 @@ def _controlled_artifact_gate_report(
     iptables_save_text: str,
     ip6tables_save_text: str = "",
     phase_status_text: str,
+    expected_backend_target: str | None = None,
 ) -> dict[str, Any]:
     """Run the pure artifact-gate parser from source-backed snapshot text."""
 
@@ -192,6 +193,7 @@ def _controlled_artifact_gate_report(
         iptables_save_text=iptables_save_text,
         ip6tables_save_text=ip6tables_save_text,
         phase_status_text=phase_status_text,
+        expected_backend_target=expected_backend_target,
     )
 
 
@@ -201,6 +203,7 @@ def build_firewall_apply_rollback_operational_surface_report(
     iptables_save_text: str | None = None,
     ip6tables_save_text: str = "",
     snapshot_reader: Callable[[], str] | None = None,
+    expected_backend_target: str | None = None,
 ) -> dict[str, Any]:
     """Inspect the controlled firewall apply/rollback surface using read-only checks only.
 
@@ -277,6 +280,7 @@ def build_firewall_apply_rollback_operational_surface_report(
                 iptables_save_text=snapshot_text,
                 ip6tables_save_text=ip6tables_save_text,
                 phase_status_text=phase_status_text,
+                expected_backend_target=expected_backend_target,
             )
         except Exception as exc:  # noqa: BLE001 - artifact visibility must fail closed.
             artifact_gate = {"final_decision": "BLOCKED", "unknown_mpf_artifacts": [], "forbidden_public_runtime_exposure": False, "error": str(exc)}

@@ -3921,11 +3921,17 @@ def production_controlled_artifact_reapply_execute(
     """Execute an operator-reviewed controlled artifact reapply package."""
 
     try:
-        package = json.loads(package_json.read_text(encoding="utf-8"))
+        import hashlib
+        package_bytes = package_json.read_bytes()
+        package_file_sha256 = hashlib.sha256(package_bytes).hexdigest()
+        if package_file_sha256 != package_sha256:
+            raise ValueError("package_file_sha256_mismatch")
+        package = json.loads(package_bytes.decode("utf-8"))
         if not isinstance(package, dict):
             raise ValueError("package_json_must_be_object")
+        package["__package_file_sha256"] = package_file_sha256
     except Exception as exc:  # noqa: BLE001
-        report = {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["package_json_read_failed"], "error": str(exc), "firewall_mutation_performed": False}
+        report = {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["package_json_read_failed"], "error": str(exc), "firewall_mutation_performed": False, "iptables_restore_invoked": False}
     else:
         report = phase11_controlled_artifact_reapply_executor_service.execute_controlled_artifact_reapply_package(package=package, package_sha256=package_sha256, package_id=package_id, operator=operator, reason=reason, execute=execute, yes=yes, expected_version=expected_version)
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))

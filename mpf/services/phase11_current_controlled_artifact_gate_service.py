@@ -44,7 +44,7 @@ def _parse_comment(line: str) -> tuple[str, str] | None:
     return m.group(1), m.group(2)
 
 
-def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text: str, ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = __version__, expected_backend_target: str | None = _ALLOWED_TARGET) -> dict[str, object]:
+def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text: str, ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = __version__, expected_backend_target: str | None = None) -> dict[str, object]:
     blockers: list[str] = []
     warnings: list[str] = []
     unknown: list[str] = []
@@ -55,8 +55,6 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         blockers.append("phase_gate_mismatch")
     if expected_version != __version__:
         blockers.append("wrong_expected_version")
-    if expected_backend_target is None:
-        blockers.append("expected_backend_target_required")
 
     if re.search(r"(?:MPF|MPFBTC|MPFC_|MPFO_|\bmpf:|customer_)", ip6tables_save_text, flags=re.IGNORECASE):
         unknown.append("ipv6_mpf_or_customer_artifact_detected")
@@ -112,6 +110,7 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
             exp = _ALLOWED[dport]
             expected_target = expected_backend_target
             if expected_target is None:
+                blockers.append("expected_backend_target_required")
                 unknown.append(f"dnat_target_unresolved:{dport}->{target}")
             elif target != expected_target:
                 unknown.append(f"dnat_target_mismatch:{dport}->{target}")

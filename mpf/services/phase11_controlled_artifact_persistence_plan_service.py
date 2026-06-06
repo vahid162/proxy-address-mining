@@ -16,6 +16,7 @@ from mpf.services import (
     phase11e_limited_activation_execution_package_service,
     phase11_controlled_artifact_reapply_package_service,
     phase11_controlled_artifact_reapply_executor_service,
+    phase11_controlled_backend_target_service,
 )
 from mpf.services.phase11_current_controlled_artifact_gate_service import (
     build_phase11_current_controlled_artifact_gate_report,
@@ -128,10 +129,15 @@ def _candidate_reapply_path_summary() -> dict[str, object]:
             "phase11_controlled_artifact_reapply_executor_service.execute_controlled_artifact_reapply_package": execute_callable,
         },
         "raw_iptables_reapply_implemented_here": False,
-        "safe_reuse_identified_for_execution_in_this_pr": True,
-        "execution_package_available": package_callable and execute_callable,
-        "execution_decision": "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_PACKAGE_IMPLEMENTED",
-        "reason": "Controlled two-customer artifact reapply package and guarded executor are implemented; farm5 source-backed package evidence is still required before review/execution.",
+        "controlled_artifact_reapply_capability_implemented": package_callable and execute_callable,
+        "safe_reuse_identified_for_execution_in_this_pr": False,
+        "execution_package_available": False,
+        "live_package_ready": False,
+        "package_evidence_collected": False,
+        "package_reviewed": False,
+        "execution_verified": False,
+        "execution_decision": "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_BLOCKED_UNTIL_REAL_ADAPTERS_AND_FARM5_READY_PACKAGE",
+        "reason": "Controlled read-only reapply surfaces are implemented, but production execute remains blocked until source-backed farm5 READY package evidence and real live-preflight/lock/backup/audit/rollback/verification adapters exist.",
     }
 
 
@@ -221,6 +227,7 @@ def build_phase11_controlled_artifact_persistence_plan_report(
         "customer_read_message": customer_read_message,
         "candidate_reapply_restore_path_reuse": candidate_path,
         "safe_reuse_identified_for_execution_in_this_pr": candidate_path.get("safe_reuse_identified_for_execution_in_this_pr", False),
+        "controlled_artifact_reapply_capability_implemented": candidate_path.get("controlled_artifact_reapply_capability_implemented", False),
         "execution_package_available": candidate_path.get("execution_package_available", False),
         "artifact_reapply_execution_decision": candidate_path.get("execution_decision", "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE"),
         "blockers": sorted(set(blockers)),
@@ -228,9 +235,9 @@ def build_phase11_controlled_artifact_persistence_plan_report(
         **_MUTATION_FLAGS,
         "final_decision": "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY" if ready else "BLOCKED_CONTROLLED_ARTIFACT_PERSISTENCE_PLAN",
         "controlled_artifact_reapply_required": controlled_absent_after_reboot,
-        "controlled_artifact_reapply_execution_available": candidate_path.get("execution_package_available", False),
+        "controlled_artifact_reapply_execution_available": False,
         "controlled_artifact_reapply_package_evidence_ready": False,
-        "next_required_step": "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5" if ready and candidate_path.get("execution_package_available", False) else next_step,
+        "next_required_step": "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5" if ready and candidate_path.get("controlled_artifact_reapply_capability_implemented", False) else next_step,
     }
 
 
@@ -239,12 +246,18 @@ def run_phase11_controlled_artifact_persistence_plan(config_path: Path = DEFAULT
 
     cfg = load_config(config_path)
     ok, records, message = _load_customer_records(cfg)
+    backend_target = phase11_controlled_backend_target_service.build_controlled_backend_target_report(expected_version=expected_version)
+    expected_backend_target = None
+    if backend_target.get("status") == "ok" and backend_target.get("resolved_ipv4") and backend_target.get("target_port"):
+        expected_backend_target = f"{backend_target['resolved_ipv4']}:{backend_target['target_port']}"
     gate = build_phase11_current_controlled_artifact_gate_report(
         iptables_save_text=_read_command_stdout(["iptables-save"]),
         ip6tables_save_text=_read_command_stdout(["ip6tables-save"]),
         phase_status_text=_phase_status_text(),
         expected_version=expected_version,
+        expected_backend_target=expected_backend_target,
     )
+    gate["backend_target_resolution"] = backend_target
     return build_phase11_controlled_artifact_persistence_plan_report(
         current_controlled_artifact_gate_result=gate,
         listening_sockets=socket_inspector.list_listening_tcp_sockets(),
