@@ -1,3 +1,7 @@
+## 0.1.250 fix note
+
+The controlled artifact reapply executor now honors an explicitly injected empty environment for CI-safe drift testing. The next operational step remains `sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5`; no farm5 mutation is claimed.
+
 ## 0.1.249 current step: sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5
 
 Version 0.1.249 implements the controlled artifact reapply capability but does not restore farm5 artifacts. A live source-backed READY package must now be collected and reviewed on farm5 before execution. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.

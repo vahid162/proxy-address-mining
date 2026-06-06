@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.250
+
+- Fix the controlled artifact reapply executor so injected empty environment mappings in CI are honored and drift checks are not masked by ambient CI variables.
+
 ## 0.1.249
 
 - Add the controlled Phase 11 two-customer artifact reapply resolver, read-only plan/package/verify/evidence surfaces, operator-gated executor, helper, and regression tests while keeping farm5 mutation, Full CLI Production Operations acceptance, Phase 12, worker enforcement, UI, Telegram, timers, and daemons blocked.

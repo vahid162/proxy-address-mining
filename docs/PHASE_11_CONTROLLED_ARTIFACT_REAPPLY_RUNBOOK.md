@@ -1,6 +1,6 @@
-# Phase 11 Controlled Artifact Reapply Runbook (0.1.249)
+# Phase 11 Controlled Artifact Reapply Runbook (0.1.250)
 
-Version `0.1.249` implements the controlled artifact reapply capability for exactly the accepted BTC customers `canary-btc-001:20001` and `limited-btc-001:20101`.
+Version `0.1.250` preserves the 0.1.249 implementation and fixes injected environment handling for CI-safe executor preflight. Version `0.1.249` implements the controlled artifact reapply capability for exactly the accepted BTC customers `canary-btc-001:20001` and `limited-btc-001:20101`.
 
 No farm5 mutation was performed by this PR. Package generation is read-only and a live READY package must be collected and reviewed on farm5 before any execution.
 

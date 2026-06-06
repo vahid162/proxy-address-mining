@@ -502,7 +502,8 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
         blockers.append("execute_mode_required")
     if not yes:
         blockers.append("yes_confirmation_required")
-    if (env or os.environ).get("CI"):
+    runtime_env = os.environ if env is None else env
+    if runtime_env.get("CI"):
         blockers.append("ci_execution_blocked")
     if expected_version != __version__ or package.get("repository_version") != __version__:
         blockers.append("version_mismatch")
