@@ -1,5 +1,3 @@
-Phase 11 restart/autostart persistence fix-path note (0.1.247): farm5 post-reboot evidence showed `unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent` while `unknown_mpf_artifacts` remained `[]` and public backend exposure remained false. `restart_autostart_proof` remains `missing_or_partial`; this version adds controlled repair plan/package/evidence tooling and points the next operator step to `run_restart_autostart_persistence_fix_on_farm5` without accepting Full CLI Production Operations.
-
 Phase 11 operational completion full CLI production scope note (0.1.245): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion — Full CLI Production Operations; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
 
 Phase 11 controlled-boundary clarification note (0.1.235): clarified README and agent-rule wording after final acceptance; runtime behavior and conservative config defaults remain unchanged.
@@ -10,6 +8,8 @@ Phase 11 planning/readiness note (0.1.208): recorded farm5 0.1.206 runtime-path 
 Phase 11 planning/readiness note (0.1.205): recorded farm5 0.1.204 controlled single-customer firewall/NAT apply execution evidence for limited-btc-001/20101 and added non-mutating post-apply evidence classifier while keeping global gates closed.
 Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
 # Documentation Index
+
+Phase 11 persistence alignment note (0.1.248): farm5 0.1.247 post-sync evidence showed healthy runtime containers/listeners and absent controlled customer firewall artifacts. The next step is `implement_controlled_artifact_reapply_execute_package`; restart/autostart proof remains `missing_or_partial`, Full CLI Production Operations is not accepted, and Phase 12/worker enforcement/UI/Telegram remain blocked. See `docs/PHASE_11_FARM5_0_1_247_PERSISTENCE_POST_SYNC_EVIDENCE.md`.
 
 Status: active documentation map
 
@@ -53,7 +53,7 @@ Read these first:
 `README.md` is the project overview.
 `docs/PHASE_STATUS.md` is the authoritative current phase guard.
 `docs/AI_CODING_RULES.md` defines active AI coding rules and stop conditions.
-`docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md` and `docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md` are active/current for Phase 11 operational completion — Full CLI Production Operations. Version 0.1.247 records current step `fix_restart_autostart_persistence_gap` with controlled repair plan/package/evidence tooling only; restart/autostart proof and Full CLI Production Operations are not accepted without farm5 post-fix evidence. `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` remain Phase 11 controlled-boundary context. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
+`docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md` and `docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md` are active/current for Phase 11 operational completion — Full CLI Production Operations. Version 0.1.248 records current step `implement_controlled_artifact_reapply_execute_package` after farm5 0.1.247 showed healthy runtime containers/listeners but absent controlled customer firewall artifacts; restart/autostart proof and Full CLI Production Operations are not accepted without source-backed evidence. `docs/AI_PHASE_11_TASK.md`, `docs/PRODUCTION_ACTIVATION_GATE.md`, and `docs/AI_SAFE_RUNTIME_FIRST.md` remain Phase 11 controlled-boundary context. `docs/AI_PHASE_10_TASK.md` is accepted Phase 10 context. `docs/AI_PHASE_8_TASK.md`, `docs/AI_PHASE_9_TASK.md`, and Phase 6 documents below are historical/reference-only and non-authorizing unless `docs/PHASE_STATUS.md` explicitly reopens them.
 This file is the documentation map.
 
 Historical/reference note:

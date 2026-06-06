@@ -1,3 +1,7 @@
+## 0.1.248 current step: implement_controlled_artifact_reapply_execute_package
+
+Farm5 0.1.247 post-sync evidence showed healthy runtime containers/listeners and no Docker runtime repair requirement. Known controlled customer firewall artifacts are absent after reboot, so the active implementation step is the controlled artifact reapply execute package. Do not run Docker Compose, do not mutate firewall/DB/conntrack/systemd, and keep restart/autostart proof and Full CLI Production Operations unaccepted.
+
 # AI Task — Phase 11 operational completion — Full CLI Production Operations
 
 
@@ -5,7 +9,7 @@ Phase 11 operational completion 0.1.246 note: farm5 0.1.245 post-reboot evidence
 
 Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a real read-only service/CLI/helper surface, but remains missing_or_partial until farm5 source-backed restart/autostart evidence is collected; all other Full CLI Production Operations items remain missing_or_partial and Phase 12 remains blocked.
 
-## 0.1.247 current step: fix_restart_autostart_persistence_gap
+## 0.1.248 current step: implement_controlled_artifact_reapply_execute_package
 
 This operational-completion step adds the controlled restart/autostart persistence fix plan/package, guarded plan-default helper, read-only controlled firewall artifact persistence plan, and post-fix evidence collector. It does not fake READY: restart/autostart proof remains `missing_or_partial` until source-backed farm5 post-fix evidence proves all expected containers, known controlled artifacts, empty `unknown_mpf_artifacts`, false public backend exposure, local-only listeners, and closed Phase 12/worker/UI/Telegram gates. Previous farm5 blockers were `unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent`. Full CLI Production Operations remains not accepted.
 
@@ -49,7 +53,7 @@ unrestricted production/miner expansion
 timers or daemon starts without a later explicit accepted gate
 ```
 
-The current required implementation step after farm5 0.1.245 post-reboot evidence is `fix_restart_autostart_persistence_gap`.
+The current required implementation step after farm5 0.1.247 post-sync evidence is `implement_controlled_artifact_reapply_execute_package`.
 
 ## Progress Update (0.1.239)
 
@@ -101,4 +105,4 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - farm5 0.1.245 post-reboot evidence showed only partial runtime container return after reboot.
 - `mpf-v2raya-socks-bridge` was missing from the expected runtime container set.
 - Controlled Phase 11 firewall customer artifacts were absent after reboot while unknown MPF artifacts remained empty.
-- Keep `restart_autostart_proof: missing_or_partial` and `next_required_step: fix_restart_autostart_persistence_gap` until persistence is fixed and source-backed evidence proves readiness.
+- Keep `restart_autostart_proof: missing_or_partial` and `next_required_step: implement_controlled_artifact_reapply_execute_package` until controlled artifact persistence is implemented and source-backed evidence proves readiness.

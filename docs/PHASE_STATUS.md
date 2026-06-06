@@ -14,6 +14,7 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+Phase 11 operational completion 0.1.248 note: farm5 0.1.247 post-sync evidence showed runtime container persistence healthy (`mpf-v2raya`, `mpf-v2raya-socks-bridge`, `mpf-forwarder-btc`) with local-only listeners on `127.0.0.1:2015` and `127.0.0.1:60010`, `unknown_mpf_artifacts=[]`, and no Docker runtime repair required. Known controlled customer firewall artifacts remain absent, restart/autostart proof remains `missing_or_partial`, Full CLI Production Operations is not accepted, and the next implementation step is `implement_controlled_artifact_reapply_execute_package`. Phase 12, worker enforcement, UI, and Telegram remain blocked.
 
 Phase 11 operational completion 0.1.247 note: current step remains `fix_restart_autostart_persistence_gap`. This version adds a controlled restart/autostart repair plan, operator-reviewed Docker Compose recovery package, guarded helper, read-only controlled artifact persistence plan, and post-fix evidence collector. It does not mark restart/autostart proof READY without farm5 post-fix evidence. Previous farm5 blockers remain the source context: `unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent`; `unknown_mpf_artifacts` remained `[]`, public backend exposure remained false, Phase 12/worker enforcement/UI/Telegram remain blocked, and Full CLI Production Operations remains not accepted.
 
@@ -27,7 +28,7 @@ Phase 11 operational completion 0.1.245 note: restart/autostart proof now has a 
 - farm5 0.1.245 post-reboot evidence discovered that runtime containers partially returned after reboot.
 - `mpf-v2raya-socks-bridge` was missing from the expected runtime container set.
 - Known controlled Phase 11 firewall customer artifacts were absent after reboot, while unknown MPF artifacts remained empty.
-- `restart_autostart_proof` remains `missing_or_partial`; `next_required_step` is `fix_restart_autostart_persistence_gap`. This does not create a new phase and does not authorize Phase 12, timers/daemons, Docker/systemd restarts, DB/firewall mutation, iptables-restore, conntrack flush, worker enforcement, UI, Telegram, public API/backend exposure, or unrestricted production.
+- `restart_autostart_proof` remains `missing_or_partial`; `next_required_step` is `implement_controlled_artifact_reapply_execute_package` because runtime is healthy but controlled customer firewall artifact persistence remains unresolved. This does not create a new phase and does not authorize Phase 12, timers/daemons, Docker/systemd restarts, DB/firewall mutation, iptables-restore, conntrack flush, worker enforcement, UI, Telegram, public API/backend exposure, or unrestricted production.
 
 ## 0.1.245 Phase 11 operational completion — Full CLI Production Operations Scope Update
 

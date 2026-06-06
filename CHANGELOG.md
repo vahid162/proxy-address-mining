@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.248
+
+- Fix Phase 11 restart/autostart persistence planning/package integration so healthy runtime state does not fabricate Docker repair needs, and record farm5 0.1.247 post-sync evidence.
+
 ## 0.1.247
 
 - Add controlled Phase 11 restart/autostart persistence fix planning/package/evidence tooling and read-only artifact persistence planning while keeping Phase 12, worker enforcement, UI, Telegram, public backend exposure, and Full CLI Production Operations acceptance blocked.
