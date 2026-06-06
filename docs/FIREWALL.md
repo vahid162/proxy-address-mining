@@ -324,7 +324,10 @@ public_ip:<ui_port>
 Docker published UI without localhost bind
 ```
 
-## Firewall Plan
+## Firewall
+
+0.1.249 controlled artifact reapply note: the only newly implemented Phase 11 mutation-capable path is an operator-gated, exact two-customer, `iptables-restore --test --noflush` then `iptables-restore --noflush` package executor. Plan/package/verify/evidence defaults remain read-only, stale/unknown/duplicate/public artifacts fail closed, and no farm5 mutation was performed by the PR.
+ Plan
 
 `mpf firewall plan` must produce:
 

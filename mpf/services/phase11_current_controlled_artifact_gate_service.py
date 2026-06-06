@@ -44,7 +44,7 @@ def _parse_comment(line: str) -> tuple[str, str] | None:
     return m.group(1), m.group(2)
 
 
-def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text: str, ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = __version__) -> dict[str, object]:
+def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text: str, ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = __version__, expected_backend_target: str | None = _ALLOWED_TARGET) -> dict[str, object]:
     blockers: list[str] = []
     warnings: list[str] = []
     unknown: list[str] = []
@@ -55,6 +55,8 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         blockers.append("phase_gate_mismatch")
     if expected_version != __version__:
         blockers.append("wrong_expected_version")
+    if expected_backend_target is None:
+        blockers.append("expected_backend_target_required")
 
     if re.search(r"(?:MPF|MPFBTC|MPFC_|MPFO_|\bmpf:|customer_)", ip6tables_save_text, flags=re.IGNORECASE):
         unknown.append("ipv6_mpf_or_customer_artifact_detected")
@@ -108,7 +110,10 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
                 unknown.append(f"mpf_nat_pre_unknown_port:{dport}")
                 continue
             exp = _ALLOWED[dport]
-            if target != _ALLOWED_TARGET:
+            expected_target = expected_backend_target
+            if expected_target is None:
+                unknown.append(f"dnat_target_unresolved:{dport}->{target}")
+            elif target != expected_target:
                 unknown.append(f"dnat_target_mismatch:{dport}->{target}")
             if cmt is None:
                 unknown.append("missing_or_invalid_nat_comment")
@@ -118,7 +123,7 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
                     unknown.append(f"unexpected_comment_suffix:{suffix}")
                 if customer != exp["customer"]:
                     unknown.append(f"unknown_customer_key:{customer}")
-            if target == _ALLOWED_TARGET and cmt and cmt[0] == exp["customer"] and cmt[1] == "customer_nat_redirect":
+            if expected_backend_target is not None and target == expected_backend_target and cmt and cmt[0] == exp["customer"] and cmt[1] == "customer_nat_redirect":
                 allowed.append(f"dnat:{dport}->{target}")
 
     unknown = sorted(set(unknown))
@@ -138,6 +143,7 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         "component": "phase11_current_controlled_artifact_gate",
         "expected_version": expected_version,
         "repository_version": __version__,
+        "expected_backend_target": expected_backend_target,
         "current_phase_gate_ok": phase_ok,
         "known_controlled_artifacts_present": known_present,
         "allowed_controlled_artifacts": sorted(set(allowed)),

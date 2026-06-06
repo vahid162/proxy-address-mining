@@ -1,0 +1,4 @@
+from __future__ import annotations
+from mpf.services.phase11_controlled_artifact_reapply_core import NoopOperationalMetadataRepo
+
+ControlledArtifactReapplyAuditRepo = NoopOperationalMetadataRepo

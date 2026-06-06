@@ -14,6 +14,8 @@ from mpf.repositories import customer_repo
 from mpf.services import (
     phase11_single_customer_firewall_apply_gate_service,
     phase11e_limited_activation_execution_package_service,
+    phase11_controlled_artifact_reapply_package_service,
+    phase11_controlled_artifact_reapply_executor_service,
 )
 from mpf.services.phase11_current_controlled_artifact_gate_service import (
     build_phase11_current_controlled_artifact_gate_report,
@@ -115,17 +117,21 @@ def _candidate_reapply_path_summary() -> dict[str, object]:
     limited_activation_package_callable = callable(
         getattr(phase11e_limited_activation_execution_package_service, "build_phase11e_limited_activation_execution_package_report", None)
     )
+    package_callable = callable(getattr(phase11_controlled_artifact_reapply_package_service, "build_controlled_artifact_reapply_package_report", None))
+    execute_callable = callable(getattr(phase11_controlled_artifact_reapply_executor_service, "execute_controlled_artifact_reapply_package", None))
     return {
-        "candidate_reapply_services_declared": single_customer_plan_callable and limited_activation_package_callable,
+        "candidate_reapply_services_declared": single_customer_plan_callable and limited_activation_package_callable and package_callable and execute_callable,
         "candidate_reapply_services": {
             "phase11_single_customer_firewall_apply_gate_service.build_phase11_single_customer_firewall_apply_gate_report": single_customer_plan_callable,
             "phase11e_limited_activation_execution_package_service.build_phase11e_limited_activation_execution_package_report": limited_activation_package_callable,
+            "phase11_controlled_artifact_reapply_package_service.build_controlled_artifact_reapply_package_report": package_callable,
+            "phase11_controlled_artifact_reapply_executor_service.execute_controlled_artifact_reapply_package": execute_callable,
         },
         "raw_iptables_reapply_implemented_here": False,
-        "safe_reuse_identified_for_execution_in_this_pr": False,
-        "execution_package_available": False,
-        "execution_decision": "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE",
-        "reason": "Candidate controlled services are visible for future design, but this PR does not implement a controlled artifact reapply execution package or ad-hoc iptables persistence.",
+        "safe_reuse_identified_for_execution_in_this_pr": True,
+        "execution_package_available": package_callable and execute_callable,
+        "execution_decision": "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_PACKAGE_IMPLEMENTED",
+        "reason": "Controlled two-customer artifact reapply package and guarded executor are implemented; farm5 source-backed package evidence is still required before review/execution.",
     }
 
 
@@ -188,6 +194,8 @@ def build_phase11_controlled_artifact_persistence_plan_report(
     warnings = ["controlled_artifacts_absent_after_reboot"] if controlled_absent_after_reboot else []
     if candidate_path.get("execution_package_available") is not True:
         warnings.append("controlled_artifact_reapply_execution_package_not_available")
+    else:
+        warnings.append("farm5_controlled_artifact_reapply_package_evidence_required")
 
     return {
         "component": _COMPONENT,
@@ -219,7 +227,10 @@ def build_phase11_controlled_artifact_persistence_plan_report(
         "warnings": sorted(set(warnings)),
         **_MUTATION_FLAGS,
         "final_decision": "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY" if ready else "BLOCKED_CONTROLLED_ARTIFACT_PERSISTENCE_PLAN",
-        "next_required_step": next_step,
+        "controlled_artifact_reapply_required": controlled_absent_after_reboot,
+        "controlled_artifact_reapply_execution_available": candidate_path.get("execution_package_available", False),
+        "controlled_artifact_reapply_package_evidence_ready": False,
+        "next_required_step": "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5" if ready and candidate_path.get("execution_package_available", False) else next_step,
     }
 
 

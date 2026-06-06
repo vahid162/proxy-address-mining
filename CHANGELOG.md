@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.249
+
+- Add the controlled Phase 11 two-customer artifact reapply resolver, read-only plan/package/verify/evidence surfaces, operator-gated executor, helper, and regression tests while keeping farm5 mutation, Full CLI Production Operations acceptance, Phase 12, worker enforcement, UI, Telegram, timers, and daemons blocked.
+
 ## 0.1.248
 
 - Fix Phase 11 restart/autostart persistence planning/package integration so healthy runtime state does not fabricate Docker repair needs, and record farm5 0.1.247 post-sync evidence.

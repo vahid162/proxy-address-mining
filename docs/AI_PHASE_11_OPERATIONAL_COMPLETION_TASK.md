@@ -1,3 +1,7 @@
+## 0.1.249 current step: sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5
+
+Version 0.1.249 implements the controlled artifact reapply capability but does not restore farm5 artifacts. A live source-backed READY package must now be collected and reviewed on farm5 before execution. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
+
 ## 0.1.248 current step: implement_controlled_artifact_reapply_execute_package
 
 Farm5 0.1.247 post-sync evidence showed healthy runtime containers/listeners and no Docker runtime repair requirement. Known controlled customer firewall artifacts are absent after reboot, so the active implementation step is the controlled artifact reapply execute package. Do not run Docker Compose, do not mutate firewall/DB/conntrack/systemd, and keep restart/autostart proof and Full CLI Production Operations unaccepted.

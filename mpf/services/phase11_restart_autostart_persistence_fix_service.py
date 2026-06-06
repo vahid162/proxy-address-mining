@@ -276,9 +276,11 @@ def _diagnosis_has_controlled_artifact_absent(diagnosis: dict[str, object], arti
 
 
 def _artifact_execution_available(artifact_gate_report: dict[str, object] | None) -> bool:
-    if artifact_gate_report is None:
-        return False
-    return bool(artifact_gate_report.get("execution_package_available"))
+    try:
+        from mpf.services import phase11_controlled_artifact_reapply_executor_service, phase11_controlled_artifact_reapply_package_service
+    except Exception:
+        return bool(artifact_gate_report and artifact_gate_report.get("execution_package_available"))
+    return callable(getattr(phase11_controlled_artifact_reapply_package_service, "build_controlled_artifact_reapply_package_report", None)) and callable(getattr(phase11_controlled_artifact_reapply_executor_service, "execute_controlled_artifact_reapply_package", None))
 
 
 def _snapshot_summary(plan: dict[str, object]) -> dict[str, object]:
@@ -402,6 +404,8 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         final_decision = "NO_RUNTIME_REPAIR_REQUIRED"
         if controlled_artifact_reapply_required and not controlled_artifact_reapply_execution_available:
             next_required_step = "implement_controlled_artifact_reapply_execute_package"
+        elif controlled_artifact_reapply_required:
+            next_required_step = "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
         else:
             next_required_step = "collect_restart_autostart_proof_after_persistence_fix"
 

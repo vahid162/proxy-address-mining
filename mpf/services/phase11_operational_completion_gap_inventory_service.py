@@ -26,12 +26,16 @@ def _next_step(restart_status: str, persistence_plan: dict[str, object] | None) 
         return "fix_restart_autostart_persistence_gap"
     if persistence_plan.get("runtime_repair_required") is True:
         return "run_restart_autostart_persistence_fix_on_farm5"
-    if (
-        persistence_plan.get("controlled_artifact_reapply_required") is True
-        and persistence_plan.get("controlled_artifact_reapply_execution_available") is False
-    ):
-        return "implement_controlled_artifact_reapply_execute_package"
-    return "collect_restart_autostart_proof_after_persistence_fix"
+    if persistence_plan.get("controlled_artifact_reapply_required") is True:
+        if persistence_plan.get("controlled_artifact_reapply_execution_available") is False:
+            return "implement_controlled_artifact_reapply_execute_package"
+        if persistence_plan.get("controlled_artifact_reapply_package_evidence_ready") is not True:
+            return "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
+        if persistence_plan.get("controlled_artifact_reapply_execution_reviewed") is not True:
+            return "review_and_run_controlled_artifact_reapply_on_farm5"
+        if persistence_plan.get("controlled_artifact_reapply_execution_verified") is True:
+            return "implement_reboot_safe_artifact_recovery_orchestration"
+    return "run_controlled_restart_autostart_proof_on_farm5"
 
 
 def build_phase11_operational_completion_gap_inventory_report(

@@ -25,7 +25,7 @@ from mpf.interfaces.cli import app
 from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
 
 RUNNER = CliRunner()
-VERSION = "0.1.248"
+VERSION = "0.1.249"
 
 
 PHASE_STATUS = """current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
@@ -553,10 +553,10 @@ def test_controlled_artifact_persistence_plan_ready_only_for_classified_local_re
     assert report["final_decision"] == "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY"
     assert report["known_controlled_artifacts_present"] is False
     assert report["controlled_artifacts_absent_after_reboot"] is True
-    assert report["next_required_step"] == "implement_controlled_artifact_reapply_execute_package"
-    assert report["safe_reuse_identified_for_execution_in_this_pr"] is False
-    assert report["execution_package_available"] is False
-    assert report["artifact_reapply_execution_decision"] == "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE"
+    assert report["next_required_step"] == "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
+    assert report["safe_reuse_identified_for_execution_in_this_pr"] is True
+    assert report["execution_package_available"] is True
+    assert report["artifact_reapply_execution_decision"] == "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_PACKAGE_IMPLEMENTED"
 
 
 def test_new_phase11_fix_plan_cli_surfaces_json() -> None:
@@ -806,8 +806,8 @@ def test_farm5_healthy_runtime_absent_artifact_plan_has_no_runtime_repair() -> N
     assert report["local_only_listener_state"]["blockers"] == []
     assert report["final_decision"] == "NO_RUNTIME_REPAIR_REQUIRED"
     assert report["controlled_artifact_reapply_required"] is True
-    assert report["controlled_artifact_reapply_execution_available"] is False
-    assert report["next_required_step"] == "implement_controlled_artifact_reapply_execute_package"
+    assert report["controlled_artifact_reapply_execution_available"] is True
+    assert report["next_required_step"] == "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
     assert report["phase12_start_allowed"] is False
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
@@ -916,7 +916,7 @@ def test_gap_inventory_chooses_controlled_artifact_reapply_for_farm5_fixture() -
 
     assert report["restart_autostart_proof"] == "missing_or_partial"
     assert report["full_cli_production_operations"] == "missing_or_partial"
-    assert report["next_required_step"] == "implement_controlled_artifact_reapply_execute_package"
+    assert report["next_required_step"] == "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
     assert report["phase12_start_allowed"] is False
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
