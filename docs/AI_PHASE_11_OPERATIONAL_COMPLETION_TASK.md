@@ -1,6 +1,6 @@
-## 0.1.249 current step: sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5
+## 0.1.249 current step: implement_source_backed_controlled_artifact_renderer_and_production_adapters
 
-Version 0.1.249 implements controlled artifact reapply read-only evidence/package surfaces but keeps production execute fail-closed until real adapters are implemented and tested; it does not restore farm5 artifacts. A live source-backed READY package must now be collected and reviewed on farm5 before execution. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
+Version 0.1.249 implements controlled artifact reapply read-only evidence/package surfaces but keeps production execute fail-closed until a source-backed artifact renderer and real live-preflight/lock/backup/PostgreSQL-audit/rollback/verification adapters are implemented and tested; it does not restore farm5 artifacts. `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=false`, `production_execution_available=false`, and `live_ready_package_available=false`, so farm5 READY package sync is intentionally deferred. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
 
 ## 0.1.248 current step: implement_controlled_artifact_reapply_execute_package
 
@@ -57,7 +57,7 @@ unrestricted production/miner expansion
 timers or daemon starts without a later explicit accepted gate
 ```
 
-The current required implementation step after farm5 0.1.247 post-sync evidence is `implement_controlled_artifact_reapply_execute_package`.
+The current required implementation step after the 0.1.249 fail-closed foundation is `implement_source_backed_controlled_artifact_renderer_and_production_adapters`.
 
 ## Progress Update (0.1.239)
 
@@ -109,4 +109,4 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - farm5 0.1.245 post-reboot evidence showed only partial runtime container return after reboot.
 - `mpf-v2raya-socks-bridge` was missing from the expected runtime container set.
 - Controlled Phase 11 firewall customer artifacts were absent after reboot while unknown MPF artifacts remained empty.
-- Keep `restart_autostart_proof: missing_or_partial` and `next_required_step: implement_controlled_artifact_reapply_execute_package` until controlled artifact persistence is implemented and source-backed evidence proves readiness.
+- Keep `restart_autostart_proof: missing_or_partial` and `next_required_step: implement_source_backed_controlled_artifact_renderer_and_production_adapters` until desired artifact semantics, production adapters, and source-backed evidence prove readiness.

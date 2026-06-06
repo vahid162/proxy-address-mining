@@ -129,6 +129,10 @@ def _candidate_reapply_path_summary() -> dict[str, object]:
             "phase11_controlled_artifact_reapply_executor_service.execute_controlled_artifact_reapply_package": execute_callable,
         },
         "raw_iptables_reapply_implemented_here": False,
+        "read_only_reapply_foundation_implemented": package_callable and execute_callable,
+        "desired_artifact_semantics_complete": False,
+        "production_execution_available": False,
+        "live_ready_package_available": False,
         "controlled_artifact_reapply_capability_implemented": package_callable and execute_callable,
         "safe_reuse_identified_for_execution_in_this_pr": False,
         "execution_package_available": False,
@@ -137,7 +141,7 @@ def _candidate_reapply_path_summary() -> dict[str, object]:
         "package_reviewed": False,
         "execution_verified": False,
         "execution_decision": "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_BLOCKED_UNTIL_REAL_ADAPTERS_AND_FARM5_READY_PACKAGE",
-        "reason": "Controlled read-only reapply surfaces are implemented, but production execute remains blocked until source-backed farm5 READY package evidence and real live-preflight/lock/backup/audit/rollback/verification adapters exist.",
+        "reason": "Controlled read-only reapply surfaces are implemented, but desired artifact semantics and production live-preflight/lock/backup/audit/rollback/verification adapters remain incomplete; farm5 READY package collection is intentionally deferred.",
     }
 
 
@@ -227,6 +231,10 @@ def build_phase11_controlled_artifact_persistence_plan_report(
         "customer_read_message": customer_read_message,
         "candidate_reapply_restore_path_reuse": candidate_path,
         "safe_reuse_identified_for_execution_in_this_pr": candidate_path.get("safe_reuse_identified_for_execution_in_this_pr", False),
+        "read_only_reapply_foundation_implemented": candidate_path.get("read_only_reapply_foundation_implemented", candidate_path.get("controlled_artifact_reapply_capability_implemented", False)),
+        "desired_artifact_semantics_complete": candidate_path.get("desired_artifact_semantics_complete", False),
+        "production_execution_available": candidate_path.get("production_execution_available", False),
+        "live_ready_package_available": candidate_path.get("live_ready_package_available", False),
         "controlled_artifact_reapply_capability_implemented": candidate_path.get("controlled_artifact_reapply_capability_implemented", False),
         "execution_package_available": candidate_path.get("execution_package_available", False),
         "artifact_reapply_execution_decision": candidate_path.get("execution_decision", "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_NOT_AVAILABLE"),
@@ -237,7 +245,7 @@ def build_phase11_controlled_artifact_persistence_plan_report(
         "controlled_artifact_reapply_required": controlled_absent_after_reboot,
         "controlled_artifact_reapply_execution_available": False,
         "controlled_artifact_reapply_package_evidence_ready": False,
-        "next_required_step": "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5" if ready and candidate_path.get("controlled_artifact_reapply_capability_implemented", False) else next_step,
+        "next_required_step": "implement_source_backed_controlled_artifact_renderer_and_production_adapters" if ready and candidate_path.get("read_only_reapply_foundation_implemented", candidate_path.get("controlled_artifact_reapply_capability_implemented", False)) else next_step,
     }
 
 

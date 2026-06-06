@@ -3941,6 +3941,8 @@ def production_controlled_artifact_reapply_execute(
 def production_controlled_artifact_reapply_verify(
     package_json: Path = typer.Option(..., "--package-json"),
     output: Literal["json"] = typer.Option("json", "--output"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     """Verify a controlled artifact reapply package read-only."""
 
@@ -3948,7 +3950,7 @@ def production_controlled_artifact_reapply_verify(
         package = json.loads(package_json.read_text(encoding="utf-8"))
         if not isinstance(package, dict):
             raise ValueError("package_json_must_be_object")
-        report = phase11_controlled_artifact_reapply_verification_service.build_controlled_artifact_reapply_verify_report(package=package)
+        report = phase11_controlled_artifact_reapply_verification_service.build_controlled_artifact_reapply_verify_report(package=package, config_path=_config_path(config), expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
         report = {"component": "phase11_controlled_artifact_reapply_verification", "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_VERIFY", "blockers": ["package_json_read_failed"], "error": str(exc), "mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))

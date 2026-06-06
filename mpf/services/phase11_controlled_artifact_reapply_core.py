@@ -365,7 +365,7 @@ def _present_lines(iptables_save_text: str) -> list[str]:
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
-        table = "nat" if " MPF_NAT_PRE " in f" {line} " or line in {":MPF_NAT_PRE - [0:0]", "-N MPF_NAT_PRE"} else "filter"
+        table = "nat" if any(token in f" {line} " for token in (" MPF_NAT_PRE ", " MPF_NAT_POST ")) or line in {":MPF_NAT_PRE - [0:0]", "-N MPF_NAT_PRE", ":MPF_NAT_POST - [0:0]", "-N MPF_NAT_POST"} else "filter"
         if line.startswith(":"):
             parts = line.split()
             present.append(f"{table}:-N {parts[0][1:]}")
@@ -396,11 +396,11 @@ def classify_controlled_artifacts(*, iptables_save_text: str, ip6tables_save_tex
         line = raw.strip()
         if not any(token in line for token in ("MPF", "mpf:", "customer_")):
             continue
-        normalized = f"nat:{line}" if " MPF_NAT_PRE " in f" {line} " or line in {":MPF_NAT_PRE - [0:0]", "-N MPF_NAT_PRE"} else f"filter:{line}"
+        normalized = f"nat:{line}" if any(token in f" {line} " for token in (" MPF_NAT_PRE ", " MPF_NAT_POST ")) or line in {":MPF_NAT_PRE - [0:0]", "-N MPF_NAT_PRE", ":MPF_NAT_POST - [0:0]", "-N MPF_NAT_POST"} else f"filter:{line}"
         if normalized not in desired_set:
             unknown.append(line)
         customer_ok = any(str(item["customer_key"]) in line for item in SCOPE)
-        chain_ok = any(chain in line for chain in ("MPF_NAT_PRE", "MPFC_20001", "MPFO_20001", "MPFC_20101", "MPFO_20101"))
+        chain_ok = any(chain in line for chain in ("MPF_INPUT", "MPF_CUSTOMERS", "MPF_GUARD", "MPF_ACCT_IN", "MPF_ACCT_OUT", "MPF_NAT_PRE", "MPF_NAT_POST", "MPFL_btc", "MPFC_20001", "MPFO_20001", "MPFC_20101", "MPFO_20101"))
         if "--to-destination" in line and current not in line:
             stale.append(line)
         if not customer_ok and "mpf:" in line:
@@ -459,7 +459,7 @@ def build_plan(*, lanes: list[dict[str, Any]], customers: list[dict[str, Any]], 
     elif not blockers and classification["status"] in {"exact_missing", "safe_exact_partial"}:
         decision = PACKAGE_READY
     snapshot_hashes = {"iptables_save_sha256": _text_sha(iptables_save_text), "ip6tables_save_sha256": _text_sha(ip6tables_save_text)}
-    return {"component": "phase11_controlled_artifact_reapply_plan", "repository_version": __version__, "expected_version": expected_version, "hostname": _hostname(), "phase_status": PHASE_SCOPE, "scope": list(SCOPE), "backend_target": backend_target, "desired_state": desired, "artifact_classification": classification, "payload": payload, "payload_sha256": payload_hash, "snapshot_hashes": snapshot_hashes, "db_customer_policy_snapshot_hash": _canonical_sha({"lanes": lanes, "customers": customers}), "desired_state_hash": desired.get("desired_state_hash"), "artifact_classification_hash": classification.get("classification_hash"), "blockers": sorted(set(blockers)), "warnings": [], "final_decision": decision, "mutation_performed": False, "next_required_step": "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5" if decision == PACKAGE_READY else "review_controlled_artifact_reapply_blockers"}
+    return {"component": "phase11_controlled_artifact_reapply_plan", "repository_version": __version__, "expected_version": expected_version, "hostname": _hostname(), "phase_status": PHASE_SCOPE, "scope": list(SCOPE), "backend_target": backend_target, "desired_state": desired, "artifact_classification": classification, "payload": payload, "payload_sha256": payload_hash, "snapshot_hashes": snapshot_hashes, "db_customer_policy_snapshot_hash": _canonical_sha({"lanes": lanes, "customers": customers}), "desired_state_hash": desired.get("desired_state_hash"), "artifact_classification_hash": classification.get("classification_hash"), "blockers": sorted(set(blockers)), "warnings": [], "final_decision": decision, "mutation_performed": False, "next_required_step": "implement_source_backed_controlled_artifact_renderer_and_production_adapters"}
 
 
 def build_package_from_plan(plan: dict[str, object]) -> dict[str, object]:
@@ -514,6 +514,8 @@ def verify_package(package: dict[str, object], *, live_plan: dict[str, object] |
     if plan is None:
         blockers.append("live_plan_required_for_verification")
     else:
+        plan_blockers = plan.get("blockers", []) if isinstance(plan.get("blockers"), list) else []
+        blockers.extend(str(blocker) for blocker in plan_blockers)
         if plan.get("final_decision") not in {PACKAGE_READY, NO_REAPPLY}:
             blockers.append("live_plan_not_safe")
         if plan.get("artifact_classification", {}).get("blockers"):
@@ -592,7 +594,10 @@ class FlockHostLock:
 
 def execute_package(*, package: dict[str, object], package_sha256: str, package_id: str, operator: str, reason: str, execute: bool = False, yes: bool = False, expected_version: str = __version__, live_plan_builder: Callable[[], dict[str, object]] | None = None, runner: Any | None = None, backup: Any | None = None, metadata_repo: Any | None = None, lock: Any | None = None, env: dict[str, str] | None = None, current_hostname: str | None = None) -> dict[str, object]:
     blockers: list[str] = []
-    restore_invoked = False
+    restore_test_invoked = False
+    apply_invoked = False
+    apply_succeeded = False
+    backup_result: dict[str, object] | None = None
     if not execute:
         blockers.append("execute_mode_required")
     if not yes:
@@ -631,7 +636,7 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
         blockers.append("real_iptables_restore_runner_required")
 
     if blockers:
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": sorted(set(blockers)), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": False, "rollback_required": False}
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": sorted(set(blockers)), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
 
     live_plan = live_plan_builder()
     drift = []
@@ -644,37 +649,41 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
     if live_plan.get("artifact_classification", {}).get("blockers"):
         drift.append("live_artifact_classification_blocked")
     if drift:
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": sorted(drift), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": False, "rollback_required": False}
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": sorted(drift), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
 
     if not lock.acquire():
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["exclusive_lock_unavailable"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": False, "rollback_required": False}
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["exclusive_lock_unavailable"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
     try:
         # A second live preflight must be collected after the lock.
         post_lock_plan = live_plan_builder()
         if post_lock_plan.get("snapshot_hashes") != live_plan.get("snapshot_hashes") or post_lock_plan.get("db_customer_policy_snapshot_hash") != live_plan.get("db_customer_policy_snapshot_hash"):
-            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["post_lock_live_preflight_drift"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": False, "rollback_required": False}
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["post_lock_live_preflight_drift"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
         iptables_text = str(post_lock_plan.get("iptables_save_text", ""))
         ip6tables_text = str(post_lock_plan.get("ip6tables_save_text", ""))
         backup_result = backup.prepare(package, iptables_save=iptables_text, ip6tables_save=ip6tables_text)
         metadata_repo.record_intent(package, operator, reason)
         payload = str(package.get("payload", ""))
         test = _run_stdout(runner, ["iptables-restore", "--test", "--noflush"], input_text=payload)
-        restore_invoked = True
+        restore_test_invoked = True
         if test.returncode != 0:
             metadata_repo.record_result(package, "FAILED_PRE_APPLY")
-            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["iptables_restore_test_failed"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "payload_bytes": len(payload)}
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["iptables_restore_test_failed"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "payload_bytes": len(payload)}
         apply = _run_stdout(runner, ["iptables-restore", "--noflush"], input_text=payload)
+        apply_invoked = True
+        apply_succeeded = apply.returncode == 0
         if apply.returncode != 0:
             metadata_repo.record_result(package, "FAILED_APPLY")
-            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_APPLY", "blockers": ["iptables_restore_apply_failed"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result}
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_APPLY", "blockers": ["iptables_restore_apply_failed"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result}
         verify = verify_package(package, live_plan=live_plan_builder())
         if verify["blockers"]:
             metadata_repo.record_result(package, "FAILED_POST_APPLY_VERIFICATION")
-            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_POST_APPLY_VERIFICATION", "blockers": verify["blockers"], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "rollback_plan": package.get("rollback_plan")}
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_POST_APPLY_VERIFICATION", "blockers": verify["blockers"], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "rollback_plan": package.get("rollback_plan")}
         metadata_repo.record_result(package, EXECUTED_PENDING_REVIEW)
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": EXECUTED_PENDING_REVIEW, "blockers": [], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result}
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": EXECUTED_PENDING_REVIEW, "blockers": [], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result}
     except Exception as exc:  # noqa: BLE001 - production executor must report fail-closed evidence.
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed"], "error": str(exc), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_invoked, "partial_apply_possible": False, "rollback_required": False}
+        if apply_succeeded:
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_POST_APPLY_VERIFICATION", "blockers": ["post_apply_dependency_failed"], "error": str(exc), "firewall_mutation_performed": True, "iptables_restore_invoked": True, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "rollback_plan": package.get("rollback_plan")}
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed"], "error": str(exc), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
     finally:
         lock.release()
 

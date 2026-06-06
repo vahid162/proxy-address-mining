@@ -553,7 +553,7 @@ def test_controlled_artifact_persistence_plan_ready_only_for_classified_local_re
     assert report["final_decision"] == "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY"
     assert report["known_controlled_artifacts_present"] is False
     assert report["controlled_artifacts_absent_after_reboot"] is True
-    assert report["next_required_step"] == "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
+    assert report["next_required_step"] == "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
     assert report["safe_reuse_identified_for_execution_in_this_pr"] is False
     assert report["execution_package_available"] is False
     assert report["artifact_reapply_execution_decision"] == "CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_BLOCKED_UNTIL_REAL_ADAPTERS_AND_FARM5_READY_PACKAGE"
@@ -807,7 +807,7 @@ def test_farm5_healthy_runtime_absent_artifact_plan_has_no_runtime_repair() -> N
     assert report["final_decision"] == "NO_RUNTIME_REPAIR_REQUIRED"
     assert report["controlled_artifact_reapply_required"] is True
     assert report["controlled_artifact_reapply_execution_available"] is False
-    assert report["next_required_step"] == "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
+    assert report["next_required_step"] == "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
     assert report["phase12_start_allowed"] is False
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
@@ -916,7 +916,7 @@ def test_gap_inventory_chooses_controlled_artifact_reapply_for_farm5_fixture() -
 
     assert report["restart_autostart_proof"] == "missing_or_partial"
     assert report["full_cli_production_operations"] == "missing_or_partial"
-    assert report["next_required_step"] == "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
+    assert report["next_required_step"] == "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
     assert report["phase12_start_allowed"] is False
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"

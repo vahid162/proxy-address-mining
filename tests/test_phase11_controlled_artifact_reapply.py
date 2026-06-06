@@ -220,3 +220,216 @@ def test_current_artifact_gate_requires_explicit_target_and_blocks_stale_default
     assert "expected_backend_target_required" in implicit["blockers"]
     stale = build_phase11_current_controlled_artifact_gate_report(iptables_save_text=line, phase_status_text=PHASE, expected_backend_target="172.19.0.6:60010")
     assert "unknown_mpf_artifacts_detected" in stale["blockers"]
+
+
+def _iptables_from_artifacts(artifacts):
+    return "\n".join(item.split(":", 1)[1] for item in artifacts)
+
+
+def test_classifier_accepts_full_expected_chain_set_and_nat_post_table():
+    plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), phase_status_text=PHASE)
+    desired = plan["desired_state"]
+    expected = {
+        "filter:-N MPF_INPUT",
+        "filter:-N MPF_CUSTOMERS",
+        "filter:-N MPF_GUARD",
+        "filter:-N MPF_ACCT_IN",
+        "filter:-N MPF_ACCT_OUT",
+        "nat:-N MPF_NAT_PRE",
+        "nat:-N MPF_NAT_POST",
+        "filter:-N MPFL_btc",
+        "filter:-N MPFC_20001",
+        "filter:-N MPFO_20001",
+        "filter:-N MPFC_20101",
+        "filter:-N MPFO_20101",
+    }
+    assert set(desired["artifact_lines"]) == expected
+    assert "nat:-N MPF_NAT_POST" in desired["artifact_lines"]
+    classification = classify_controlled_artifacts(
+        iptables_save_text=_iptables_from_artifacts(desired["artifact_lines"]),
+        ip6tables_save_text="",
+        desired_state=desired,
+    )
+    assert classification["status"] == "exact_present"
+    assert classification["unknown_mpf"] == []
+    assert classification["blockers"] == []
+
+
+def test_classifier_blocks_extra_unknown_chain_known_customer_unknown_action_and_duplicates():
+    plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), phase_status_text=PHASE)
+    desired = plan["desired_state"]
+    unknown_chain = _iptables_from_artifacts(desired["artifact_lines"]) + "\n-N MPF_SURPRISE"
+    assert "unknown_mpf_artifacts_detected" in classify_controlled_artifacts(iptables_save_text=unknown_chain, ip6tables_save_text="", desired_state=desired)["blockers"]
+    unknown_action = _iptables_from_artifacts(desired["artifact_lines"]) + '\n-A MPFC_20001 -p tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:unexpected_action" -j ACCEPT'
+    assert "unknown_mpf_artifacts_detected" in classify_controlled_artifacts(iptables_save_text=unknown_action, ip6tables_save_text="", desired_state=desired)["blockers"]
+    duplicated_chain = _iptables_from_artifacts([desired["artifact_lines"][0], desired["artifact_lines"][0]])
+    assert "duplicate_controlled_artifact_detected" in classify_controlled_artifacts(iptables_save_text=duplicated_chain, ip6tables_save_text="", desired_state=desired)["blockers"]
+    duplicated_rule = '-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.19.0.5:60010\n' * 2
+    assert "unknown_mpf_artifacts_detected" in classify_controlled_artifacts(iptables_save_text=duplicated_rule, ip6tables_save_text="", desired_state=desired)["blockers"]
+
+
+def _executable_live_plan(pkg):
+    plan = dict(pkg["plan"])
+    plan["final_decision"] = PACKAGE_READY
+    plan["blockers"] = []
+    backend = dict(plan.get("backend_target") or {})
+    backend["target_fingerprint"] = pkg["backend_target_fingerprint"]
+    plan["backend_target"] = backend
+    plan["db_customer_policy_snapshot_hash"] = pkg["db_customer_policy_snapshot_hash"]
+    plan["snapshot_hashes"] = {
+        "iptables_save_sha256": pkg["iptables_save_sha256"],
+        "ip6tables_save_sha256": pkg["ip6tables_save_sha256"],
+    }
+    plan["artifact_classification"] = {"blockers": []}
+    plan["payload_sha256"] = pkg["payload_sha256"]
+    plan["iptables_save_text"] = "*filter\nCOMMIT\n"
+    plan["ip6tables_save_text"] = "*filter\nCOMMIT\n"
+    return plan
+
+
+class ProductionRunner:
+    production_ready = True
+
+    def __init__(self, *, test_returncode=0, apply_returncode=0):
+        self.test_returncode = test_returncode
+        self.apply_returncode = apply_returncode
+        self.calls = []
+
+    def run(self, argv, input_text=None):
+        self.calls.append(argv)
+        if argv == ["iptables-restore", "--test", "--noflush"]:
+            return CommandResult(self.test_returncode, "", "test failed" if self.test_returncode else "")
+        if argv == ["iptables-restore", "--noflush"]:
+            return CommandResult(self.apply_returncode, "", "apply failed" if self.apply_returncode else "")
+        return CommandResult(1, "", "unexpected")
+
+
+class ProductionLock:
+    production_ready = True
+
+    def __init__(self):
+        self.acquired = False
+
+    def acquire(self):
+        self.acquired = True
+        return True
+
+    def release(self):
+        self.acquired = False
+
+
+class ProductionBackup:
+    production_ready = True
+
+    def prepare(self, package, *, iptables_save, ip6tables_save):
+        assert iptables_save.strip()
+        assert ip6tables_save.strip()
+        return {"backup_dir": "/tmp/mpf-test-backup", "manifest": {"iptables-save.txt": "sha"}}
+
+
+class ProductionMetadata:
+    production_ready = True
+
+    def __init__(self, *, fail_result=False):
+        self.fail_result = fail_result
+        self.writes = []
+
+    def record_intent(self, package, operator, reason):
+        self.writes.append(("intent", operator, reason))
+
+    def record_result(self, package, decision):
+        self.writes.append(("result", decision))
+        if self.fail_result:
+            raise RuntimeError("metadata result failed")
+
+
+def _execute_with_production_fakes(pkg, *, runner=None, live_plan_builder=None, metadata=None):
+    return execute_package(
+        package=pkg,
+        package_sha256="file-sha",
+        package_id=pkg["package_id"],
+        operator="op",
+        reason="reason",
+        execute=True,
+        yes=True,
+        env={},
+        current_hostname=pkg["hostname"],
+        live_plan_builder=live_plan_builder or (lambda: _executable_live_plan(pkg)),
+        runner=runner or ProductionRunner(),
+        lock=ProductionLock(),
+        backup=ProductionBackup(),
+        metadata_repo=metadata or ProductionMetadata(),
+    )
+
+
+def test_executor_failed_restore_test_records_no_apply_invocation():
+    pkg = readyish_package()
+    runner = ProductionRunner(test_returncode=1)
+    result = _execute_with_production_fakes(pkg, runner=runner)
+    assert result["final_decision"] == "FAILED_PRE_APPLY"
+    assert result["restore_test_invoked"] is True
+    assert result["apply_invoked"] is False
+    assert result["apply_succeeded"] is False
+    assert result["firewall_mutation_performed"] is False
+    assert ["iptables-restore", "--noflush"] not in runner.calls
+
+
+def test_executor_failed_apply_reports_apply_invoked_and_rollback_required():
+    pkg = readyish_package()
+    result = _execute_with_production_fakes(pkg, runner=ProductionRunner(apply_returncode=1))
+    assert result["final_decision"] == "FAILED_APPLY"
+    assert result["restore_test_invoked"] is True
+    assert result["apply_invoked"] is True
+    assert result["apply_succeeded"] is False
+    assert result["partial_apply_possible"] is True
+    assert result["rollback_required"] is True
+
+
+def test_executor_apply_success_live_verification_exception_is_post_apply_failure():
+    pkg = readyish_package()
+    calls = {"count": 0}
+
+    def live_plan_builder():
+        calls["count"] += 1
+        if calls["count"] >= 3:
+            raise RuntimeError("verification source failed")
+        return _executable_live_plan(pkg)
+
+    result = _execute_with_production_fakes(pkg, live_plan_builder=live_plan_builder)
+    assert result["final_decision"] == "FAILED_POST_APPLY_VERIFICATION"
+    assert result["firewall_mutation_performed"] is True
+    assert result["apply_succeeded"] is True
+    assert result["partial_apply_possible"] is True
+    assert result["rollback_required"] is True
+    assert result["backup"]["backup_dir"] == "/tmp/mpf-test-backup"
+    assert result["rollback_plan"] == pkg["rollback_plan"]
+
+
+def test_executor_apply_success_metadata_result_exception_is_post_apply_failure():
+    pkg = readyish_package()
+    result = _execute_with_production_fakes(pkg, metadata=ProductionMetadata(fail_result=True))
+    assert result["final_decision"] == "FAILED_POST_APPLY_VERIFICATION"
+    assert result["firewall_mutation_performed"] is True
+    assert result["apply_succeeded"] is True
+    assert result["partial_apply_possible"] is True
+    assert result["rollback_required"] is True
+
+
+def test_public_verification_service_builds_read_only_live_plan(monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_verification_service as service
+
+    pkg = readyish_package()
+
+    def fake_live_plan(config_path, *, expected_version):
+        assert expected_version == __version__
+        return {
+            **_executable_live_plan(pkg),
+            "final_decision": PACKAGE_BLOCKED,
+            "blockers": ["controlled_policy_artifact_semantics_unresolved"],
+        }
+
+    monkeypatch.setattr(service, "run_controlled_artifact_reapply_plan", fake_live_plan)
+    report = service.build_controlled_artifact_reapply_verify_report(package=pkg)
+    assert report["live_plan_source"] == "fresh_read_only_preflight"
+    assert "controlled_policy_artifact_semantics_unresolved" in report["blockers"]
+    assert report["final_decision"] == "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_VERIFY"

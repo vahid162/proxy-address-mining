@@ -29,6 +29,8 @@ def _next_step(restart_status: str, persistence_plan: dict[str, object] | None) 
     if persistence_plan.get("controlled_artifact_reapply_required") is True:
         if persistence_plan.get("controlled_artifact_reapply_capability_implemented") is not True:
             return "implement_controlled_artifact_reapply_execute_package"
+        if persistence_plan.get("desired_artifact_semantics_complete") is not True or persistence_plan.get("production_execution_available") is not True:
+            return "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
         if persistence_plan.get("controlled_artifact_reapply_package_evidence_ready") is not True:
             return "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
         if persistence_plan.get("controlled_artifact_reapply_execution_reviewed") is not True:
@@ -78,6 +80,10 @@ def build_phase11_operational_completion_gap_inventory_report(
             "runtime_repair_required": persistence_plan_report.get("runtime_repair_required") if persistence_plan_report else None,
             "runtime_repair_reasons": persistence_plan_report.get("runtime_repair_reasons", []) if persistence_plan_report else [],
             "controlled_artifact_reapply_required": persistence_plan_report.get("controlled_artifact_reapply_required") if persistence_plan_report else None,
+            "read_only_reapply_foundation_implemented": persistence_plan_report.get("read_only_reapply_foundation_implemented") if persistence_plan_report else None,
+            "desired_artifact_semantics_complete": persistence_plan_report.get("desired_artifact_semantics_complete") if persistence_plan_report else None,
+            "production_execution_available": persistence_plan_report.get("production_execution_available") if persistence_plan_report else None,
+            "live_ready_package_available": persistence_plan_report.get("live_ready_package_available") if persistence_plan_report else None,
             "controlled_artifact_reapply_capability_implemented": persistence_plan_report.get("controlled_artifact_reapply_capability_implemented") if persistence_plan_report else None,
             "controlled_artifact_reapply_execution_available": persistence_plan_report.get("controlled_artifact_reapply_execution_available") if persistence_plan_report else None,
         },

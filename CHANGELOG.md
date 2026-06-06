@@ -3,6 +3,7 @@
 ## 0.1.249
 
 - Add controlled Phase 11 two-customer artifact reapply resolver and read-only plan/package/verify/evidence surfaces, while keeping production execute fail-closed until real live preflight, lock, backup, PostgreSQL metadata, rollback, and verification adapters are implemented and tested.
+- Record the truthful progression flags: `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=false`, `production_execution_available=false`, and `live_ready_package_available=false`; the next step is `implement_source_backed_controlled_artifact_renderer_and_production_adapters`, not farm5 READY package sync.
 - Fix the controlled artifact reapply executor so injected empty environment mappings in CI are honored and drift checks are not masked by ambient CI variables.
 
 ## 0.1.248

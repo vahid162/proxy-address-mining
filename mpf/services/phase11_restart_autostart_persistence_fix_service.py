@@ -408,7 +408,7 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
     else:
         final_decision = "NO_RUNTIME_REPAIR_REQUIRED"
         if controlled_artifact_reapply_required and controlled_artifact_reapply_capability_implemented:
-            next_required_step = "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
+            next_required_step = "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
         elif controlled_artifact_reapply_required:
             next_required_step = "implement_controlled_artifact_reapply_execute_package"
         else:
@@ -445,6 +445,10 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         "runtime_repair_reasons": unique_runtime_repair,
         "runtime_reconciliation_execution_allowed": runtime_execution_allowed,
         "controlled_artifact_reapply_required": controlled_artifact_reapply_required,
+        "read_only_reapply_foundation_implemented": controlled_artifact_reapply_capability_implemented,
+        "desired_artifact_semantics_complete": False,
+        "production_execution_available": False,
+        "live_ready_package_available": False,
         "controlled_artifact_reapply_capability_implemented": controlled_artifact_reapply_capability_implemented,
         "controlled_artifact_reapply_execution_available": controlled_artifact_reapply_execution_available,
         "remaining_persistence_reasons": sorted(set(remaining_persistence_reasons)),
