@@ -3708,12 +3708,15 @@ def production_firewall_apply_rollback_operational_surface(
 @production_app.command("phase11-operational-completion-gap-inventory")
 def production_phase11_operational_completion_gap_inventory(
     output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
-    report = phase11_operational_completion_gap_inventory_service.build_phase11_operational_completion_gap_inventory_report()
+    report = phase11_operational_completion_gap_inventory_service.run_phase11_operational_completion_gap_inventory_report(
+        _config_path(config),
+    )
     if output == "json":
-        typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
         return
     for key, value in report.items():
         typer.echo(f"{key}: {value}")
@@ -3787,8 +3790,6 @@ def production_restart_autostart_persistence_fix_plan(
     except Exception as exc:  # noqa: BLE001 - operator plan must fail closed without traceback.
         report = phase11_restart_autostart_persistence_fix_service.build_phase11_restart_autostart_persistence_fix_plan_report(
             expected_version=expected_version,
-            actual_containers=[],
-            listening_sockets=[],
             diagnosis_report={"final_decision": "BLOCKED_READ_ONLY_INSPECTION_FAILED", "blockers": [str(exc)], "unknown_mpf_artifacts": []},
         )
         report["blockers"] = sorted(set([*report["blockers"], "configuration_or_read_only_inspection_failed"]))
@@ -3804,12 +3805,26 @@ def production_restart_autostart_persistence_fix_plan(
 def production_restart_autostart_persistence_fix_package(
     expected_version: str = typer.Option(__version__, "--expected-version"),
     output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     """Render the operator-reviewed controlled Docker Compose recovery package."""
 
-    report = phase11_restart_autostart_persistence_fix_service.build_phase11_restart_autostart_persistence_fix_package(
-        expected_version=expected_version,
-    )
+    try:
+        report = phase11_restart_autostart_persistence_fix_service.run_phase11_restart_autostart_persistence_fix_package(
+            _config_path(config),
+            expected_version=expected_version,
+        )
+    except Exception as exc:  # noqa: BLE001 - operator package must fail closed without traceback.
+        plan = phase11_restart_autostart_persistence_fix_service.build_phase11_restart_autostart_persistence_fix_plan_report(
+            expected_version=expected_version,
+            diagnosis_report={"final_decision": "BLOCKED_READ_ONLY_INSPECTION_FAILED", "blockers": [str(exc)], "unknown_mpf_artifacts": []},
+        )
+        report = phase11_restart_autostart_persistence_fix_service.build_phase11_restart_autostart_persistence_fix_package_from_plan(
+            plan,
+            expected_version=expected_version,
+        )
+        report["blockers"] = sorted(set([*report["blockers"], "configuration_or_read_only_inspection_failed"]))
+        report["configuration_error"] = str(exc)
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
         return

@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
+import subprocess
 from typing import Any
 
 import yaml
@@ -214,6 +215,87 @@ def _phase_gate_summary() -> dict[str, object]:
     }
 
 
+
+def _repository_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _canonical_compose_path() -> Path:
+    return _repository_root() / _COMPOSE_FILE
+
+
+def validate_compose_scope(configured_path: Path | str) -> dict[str, object]:
+    """Validate configured Compose path by canonical resolved file identity."""
+
+    configured = Path(configured_path)
+    canonical = _canonical_compose_path()
+    result: dict[str, object] = {
+        "configured_path": str(configured_path),
+        "canonical_path": _COMPOSE_FILE,
+        "configured_resolved_path": None,
+        "canonical_resolved_path": None,
+        "same_file": False,
+        "valid": False,
+        "blocker": None,
+    }
+    try:
+        canonical_resolved = canonical.resolve(strict=True)
+    except OSError:
+        result["blocker"] = "compose_file_missing"
+        return result
+    result["canonical_resolved_path"] = str(canonical_resolved)
+
+    try:
+        candidate = configured if configured.is_absolute() else (_repository_root() / configured)
+        configured_resolved = candidate.resolve(strict=True)
+    except OSError:
+        result["blocker"] = "compose_file_missing"
+        return result
+
+    result["configured_resolved_path"] = str(configured_resolved)
+    same_file = configured_resolved == canonical_resolved
+    result["same_file"] = same_file
+    result["valid"] = same_file
+    if not same_file:
+        result["blocker"] = "compose_scope_mismatch"
+    return result
+
+
+def _diagnosis_has_controlled_artifact_absent(diagnosis: dict[str, object], artifact_gate_report: dict[str, object] | None) -> bool:
+    blockers = [str(item) for item in _list_value(diagnosis.get("blockers"))]
+    if "post_reboot_known_controlled_phase11_artifacts_absent" in blockers:
+        return True
+    if diagnosis.get("known_controlled_phase11_artifacts_present") is False:
+        return True
+    gate_summary = diagnosis.get("current_controlled_artifact_gate_summary")
+    if isinstance(gate_summary, dict) and gate_summary.get("known_controlled_artifacts_present") is False:
+        return True
+    if artifact_gate_report is not None and artifact_gate_report.get("known_controlled_artifacts_present") is False:
+        return True
+    return False
+
+
+def _artifact_execution_available(artifact_gate_report: dict[str, object] | None) -> bool:
+    if artifact_gate_report is None:
+        return False
+    return bool(artifact_gate_report.get("execution_package_available"))
+
+
+def _snapshot_summary(plan: dict[str, object]) -> dict[str, object]:
+    listener_checks = plan.get("local_only_listener_state", {}).get("checks", {}) if isinstance(plan.get("local_only_listener_state"), dict) else {}
+    return {
+        "expected_runtime_containers": plan.get("expected_runtime_containers", []),
+        "actual_runtime_container_names": [item.get("name") for item in _list_value(plan.get("actual_runtime_containers")) if isinstance(item, dict)],
+        "missing_containers": plan.get("missing_containers", []),
+        "unhealthy_containers": plan.get("unhealthy_containers", []),
+        "unexpected_project_containers": plan.get("unexpected_project_containers", []),
+        "listener_checks": listener_checks,
+        "compose_scope_validation": plan.get("compose_scope_validation", {}),
+        "controlled_artifact_reapply_required": plan.get("controlled_artifact_reapply_required"),
+        "controlled_artifact_reapply_execution_available": plan.get("controlled_artifact_reapply_execution_available"),
+    }
+
+
 def build_phase11_restart_autostart_persistence_fix_plan_report(
     *,
     expected_containers: Iterable[str] | None = None,
@@ -224,50 +306,64 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
     compose_file: Path = Path(_COMPOSE_FILE),
     expected_version: str = __version__,
 ) -> dict[str, object]:
-    """Build the read-only controlled runtime persistence fix plan."""
+    """Build the read-only controlled runtime persistence fix plan from explicit observations."""
 
     expected = sorted(set(expected_containers or EXPECTED_RUNTIME_CONTAINERS))
-    containers = list(actual_containers or [])
+    safety_blockers: list[str] = []
+    warnings: list[str] = []
+    observations_supplied = actual_containers is not None and listening_sockets is not None
+    if not observations_supplied:
+        safety_blockers.append("runtime_observations_not_supplied")
+        containers: list[docker_compose.DockerContainerSummary] = []
+        socket_list: list[socket_inspector.ListeningSocket] = []
+    else:
+        containers = list(actual_containers)
+        socket_list = list(listening_sockets)
+
     actual_names = sorted(item.name for item in containers)
-    missing = sorted(set(expected) - set(actual_names))
+    missing = sorted(set(expected) - set(actual_names)) if observations_supplied else []
     health = _container_report(containers)
     unhealthy = sorted(
         item["name"] for item in health if item["name"] in expected and (not item["running"] or not item["healthy"])
-    )
-    unexpected = sorted(set(actual_names) - set(expected))
-    listeners = _local_only_listener_state(listening_sockets or [])
+    ) if observations_supplied else []
+    unexpected = sorted(set(actual_names) - set(expected)) if observations_supplied else []
+    listeners = _local_only_listener_state(socket_list) if observations_supplied else {"checks": {}, "blockers": ["runtime_observations_not_supplied"]}
     diagnosis = diagnosis_report or build_phase11_restart_autostart_persistence_diagnosis_report(
         expected_containers=expected,
         actual_containers=containers,
-        listening_sockets=listening_sockets or [],
+        listening_sockets=socket_list,
         artifact_gate_report=artifact_gate_report,
         expected_version=expected_version,
     )
 
-    repair_reasons: list[str] = []
-    safety_blockers: list[str] = []
-    warnings: list[str] = []
+    runtime_repair_reasons: list[str] = []
+    remaining_persistence_reasons: list[str] = []
 
     if expected_version != __version__:
         safety_blockers.append("wrong_expected_version")
 
-    repair_reasons.extend(f"missing_container:{name}" for name in missing)
-    repair_reasons.extend(f"unhealthy_container:{name}" for name in unhealthy)
+    runtime_repair_reasons.extend(f"missing_container:{name}" for name in missing)
+    runtime_repair_reasons.extend(f"unhealthy_container:{name}" for name in unhealthy)
 
     for listener_blocker in listeners["blockers"]:
         blocker = str(listener_blocker)
         if blocker.startswith("missing_listener:"):
-            repair_reasons.append(blocker)
-        else:
+            runtime_repair_reasons.append(blocker)
+        elif blocker != "runtime_observations_not_supplied":
             safety_blockers.append(blocker)
 
     if unexpected:
         safety_blockers.extend(f"unexpected_project_container:{name}" for name in unexpected)
-    if not compose_file.exists():
-        safety_blockers.append("compose_file_missing")
-    if str(compose_file) not in {_COMPOSE_FILE, f"./{_COMPOSE_FILE}"}:
-        safety_blockers.append("compose_scope_mismatch")
-    if "Phase 11 operational completion" not in Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8", errors="ignore"):
+
+    compose_scope_validation = validate_compose_scope(compose_file)
+    if compose_scope_validation.get("blocker"):
+        safety_blockers.append(str(compose_scope_validation["blocker"]))
+
+    try:
+        phase_status_text = (_repository_root() / "docs/PHASE_STATUS.md").read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        phase_status_text = ""
+    if "Phase 11 operational completion" not in phase_status_text:
         safety_blockers.append("phase_gate_mismatch")
     if _unknown_mpf_artifacts_detected(diagnosis=diagnosis, artifact_gate_report=artifact_gate_report):
         safety_blockers.append("unknown_mpf_artifacts_detected")
@@ -284,7 +380,31 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
     if phase_summary["telegram_allowed"] != "no":
         safety_blockers.append("telegram_opened")
 
-    ready = not safety_blockers
+    controlled_artifact_reapply_required = _diagnosis_has_controlled_artifact_absent(diagnosis, artifact_gate_report) and not _unknown_mpf_artifacts_detected(diagnosis=diagnosis, artifact_gate_report=artifact_gate_report)
+    controlled_artifact_reapply_execution_available = _artifact_execution_available(artifact_gate_report)
+    if controlled_artifact_reapply_required:
+        remaining_persistence_reasons.append("post_reboot_known_controlled_phase11_artifacts_absent")
+        if not controlled_artifact_reapply_execution_available:
+            remaining_persistence_reasons.append("controlled_artifact_reapply_execution_package_unavailable")
+
+    unique_safety = sorted(set(safety_blockers))
+    unique_runtime_repair = sorted(set(runtime_repair_reasons))
+    runtime_repair_required = bool(unique_runtime_repair)
+    runtime_execution_allowed = not unique_safety and runtime_repair_required
+
+    if unique_safety:
+        final_decision = "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN"
+        next_required_step = "fix_restart_autostart_persistence_gap"
+    elif runtime_repair_required:
+        final_decision = "RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN_READY"
+        next_required_step = "run_restart_autostart_persistence_fix_on_farm5"
+    else:
+        final_decision = "NO_RUNTIME_REPAIR_REQUIRED"
+        if controlled_artifact_reapply_required and not controlled_artifact_reapply_execution_available:
+            next_required_step = "implement_controlled_artifact_reapply_execute_package"
+        else:
+            next_required_step = "collect_restart_autostart_proof_after_persistence_fix"
+
     return {
         "component": _COMPONENT,
         "repository_version": __version__,
@@ -297,10 +417,11 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         "unhealthy_containers": unhealthy,
         "unexpected_project_containers": unexpected,
         "local_only_listener_state": listeners,
-        "docker_compose_dependency_summary": _docker_compose_dependency_summary(compose_file),
-        "socks_bridge_runtime_model": _socks_bridge_runtime_model(compose_file),
+        "compose_scope_validation": compose_scope_validation,
+        "docker_compose_dependency_summary": _docker_compose_dependency_summary(_canonical_compose_path()),
+        "socks_bridge_runtime_model": _socks_bridge_runtime_model(_canonical_compose_path()),
         "likely_socks_bridge_failure_reason": _likely_bridge_failure_reason(containers),
-        "recommended_controlled_recovery_commands": [_EXECUTE_COMMAND],
+        "recommended_controlled_recovery_commands": [_EXECUTE_COMMAND] if runtime_execution_allowed else [],
         "pre_restore_safety_checks": _PRE_CHECK_COMMANDS,
         "post_restore_safety_checks": _POST_CHECK_COMMANDS,
         "diagnosis_summary": {
@@ -309,31 +430,34 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
             "unknown_mpf_artifacts": diagnosis.get("unknown_mpf_artifacts", []),
             "current_controlled_artifact_gate_summary": diagnosis.get("current_controlled_artifact_gate_summary", {}),
             "unknown_mpf_artifacts_empty": diagnosis.get("unknown_mpf_artifacts_empty"),
+            "known_controlled_phase11_artifacts_present": diagnosis.get("known_controlled_phase11_artifacts_present"),
         },
-        "repair_reasons": sorted(set(repair_reasons)),
-        "safety_blockers": sorted(set(safety_blockers)),
-        "blockers": sorted(set([*repair_reasons, *safety_blockers])),
+        "runtime_repair_required": runtime_repair_required,
+        "runtime_repair_reasons": unique_runtime_repair,
+        "runtime_reconciliation_execution_allowed": runtime_execution_allowed,
+        "controlled_artifact_reapply_required": controlled_artifact_reapply_required,
+        "controlled_artifact_reapply_execution_available": controlled_artifact_reapply_execution_available,
+        "remaining_persistence_reasons": sorted(set(remaining_persistence_reasons)),
+        "backend_public_exposure_detected": diagnosis.get("backend_public_exposure_detected") is True,
+        "repair_reasons": unique_runtime_repair,
+        "safety_blockers": unique_safety,
+        "blockers": sorted(set([*unique_runtime_repair, *unique_safety, *remaining_persistence_reasons])),
         "warnings": sorted(set(warnings)),
         **_MUTATION_FLAGS,
-        "final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN_READY" if ready else "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN",
-        "next_required_step": "run_restart_autostart_persistence_fix_on_farm5" if ready else "fix_restart_autostart_persistence_gap",
+        "observations_supplied": observations_supplied,
+        "final_decision": final_decision,
+        "next_required_step": next_required_step,
     }
 
 
-def build_phase11_restart_autostart_persistence_fix_package(
+def build_phase11_restart_autostart_persistence_fix_package_from_plan(
+    plan_report: dict[str, object],
     *,
-    diagnosis_report: dict[str, object] | None = None,
-    artifact_gate_report: dict[str, object] | None = None,
     expected_version: str = __version__,
 ) -> dict[str, object]:
-    """Build an operator-reviewed controlled Docker Compose recovery package."""
+    """Build an operator package from the exact supplied plan report."""
 
-    plan = build_phase11_restart_autostart_persistence_fix_plan_report(
-        diagnosis_report=diagnosis_report,
-        artifact_gate_report=artifact_gate_report,
-        expected_version=expected_version,
-    )
-    safety_blockers = list(plan.get("safety_blockers", []))
+    safety_blockers = list(_list_value(plan_report.get("safety_blockers")))
     phase_summary = _phase_gate_summary()
     allowed_operation_set = ["controlled_docker_compose_runtime_reconciliation_up_no_build_pull_never"]
     command_scope = {
@@ -352,33 +476,61 @@ def build_phase11_restart_autostart_persistence_fix_package(
         safety_blockers.append("ui_opened")
     if phase_summary["telegram_allowed"] != "no":
         safety_blockers.append("telegram_opened")
-    diagnosis_summary = plan.get("diagnosis_summary", {})
-    if isinstance(diagnosis_summary, dict) and _unknown_mpf_artifacts_detected(diagnosis=diagnosis_summary, artifact_gate_report=artifact_gate_report):
-        safety_blockers.append("unknown_mpf_artifacts_detected")
-    if command_scope != {
+
+    compose_scope = plan_report.get("compose_scope_validation", {})
+    if not isinstance(compose_scope, dict) or compose_scope.get("valid") is not True:
+        safety_blockers.append(str(compose_scope.get("blocker") or "compose_scope_mismatch") if isinstance(compose_scope, dict) else "compose_scope_mismatch")
+    if plan_report.get("observations_supplied") is not True:
+        safety_blockers.append("runtime_observations_not_supplied")
+    if plan_report.get("backend_public_exposure_detected") is True:
+        safety_blockers.append("backend_public_exposure_detected")
+
+    runtime_repair_reasons = sorted(set(str(item) for item in _list_value(plan_report.get("runtime_repair_reasons", plan_report.get("repair_reasons", [])))))
+    runtime_repair_required = bool(plan_report.get("runtime_repair_required")) and bool(runtime_repair_reasons)
+    runtime_allowed = bool(plan_report.get("runtime_reconciliation_execution_allowed"))
+    unique_safety = sorted(set(safety_blockers))
+
+    exact_scope_ok = command_scope == {
         "project_name": "mpf-proxy",
         "compose_file": "compose/mpf-proxy.compose.yaml",
         "profile": "phase4-runtime",
         "execute_command": "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never",
-    }:
-        safety_blockers.append("compose_scope_mismatch")
-    package_ready = not sorted(set(safety_blockers))
+    }
+    if not exact_scope_ok:
+        unique_safety = sorted(set([*unique_safety, "compose_scope_mismatch"]))
+
+    package_ready = not unique_safety and runtime_repair_required and bool(runtime_repair_reasons) and runtime_allowed and exact_scope_ok
+    if unique_safety:
+        final_decision = "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE"
+        next_required_step = "fix_restart_autostart_persistence_gap"
+    elif package_ready:
+        final_decision = "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY"
+        next_required_step = "run_restart_autostart_persistence_fix_on_farm5"
+    else:
+        final_decision = "NO_RUNTIME_REPAIR_REQUIRED"
+        next_required_step = plan_report.get("next_required_step", "collect_restart_autostart_proof_after_persistence_fix")
+
     return {
         "package_type": "phase11_restart_autostart_persistence_fix",
         "repository_version": __version__,
         "expected_version": expected_version,
         "phase_gate_summary": phase_summary,
-        "fix_plan_final_decision": plan["final_decision"],
+        "fix_plan_final_decision": plan_report.get("final_decision"),
+        "source_plan_final_decision": plan_report.get("final_decision"),
+        "source_plan_runtime_repair_required": plan_report.get("runtime_repair_required"),
+        "source_plan_runtime_repair_reasons": runtime_repair_reasons,
+        "source_plan_safety_blockers": plan_report.get("safety_blockers", []),
+        "source_plan_snapshot_summary": _snapshot_summary(plan_report),
         "exact_allowed_operation_set": allowed_operation_set,
         "exact_docker_compose_command_plan": command_scope,
         "required_pre_check_commands": _PRE_CHECK_COMMANDS,
-        "required_execute_command": _EXECUTE_COMMAND,
-        "required_post_check_commands": _POST_CHECK_COMMANDS,
+        "required_execute_command": _EXECUTE_COMMAND if package_ready else None,
+        "required_post_check_commands": _POST_CHECK_COMMANDS if package_ready else [],
         "forbidden_operations": _FORBIDDEN_OPERATIONS,
         "rollback_note": "Code rollback is reverting this PR; runtime rollback must use reviewed operator evidence and existing controlled restore paths, not ad-hoc firewall or DB mutation.",
         "mutation_declaration": {
             **_MUTATION_FLAGS,
-            "package_helper_execute_mode_may_perform_reviewed_docker_compose_up": True,
+            "package_helper_execute_mode_may_perform_reviewed_docker_compose_up": package_ready,
             "normal_service_code_performs_mutation": False,
         },
         "operator_confirmation_requirements": [
@@ -386,24 +538,152 @@ def build_phase11_restart_autostart_persistence_fix_package(
             "operator confirmed farm5 Phase 11 operational completion gate is current",
             "operator confirmed Phase 12, worker enforcement, UI, Telegram, and public API remain blocked",
             "operator confirmed backend public exposure is false before execution",
-            "operator invokes helper with --execute --yes only after review",
+            "operator invokes helper with --execute --yes only when package final_decision is READY",
         ],
-        "repair_reasons": plan.get("repair_reasons", []),
-        "safety_blockers": sorted(set(safety_blockers)),
-        "blockers": sorted(set([*plan.get("repair_reasons", []), *safety_blockers])),
-        "warnings": plan["warnings"],
-        "final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY" if package_ready else "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE",
-        "next_required_step": "run_restart_autostart_persistence_fix_on_farm5" if package_ready else "fix_restart_autostart_persistence_gap",
+        "runtime_repair_required": runtime_repair_required,
+        "runtime_repair_reasons": runtime_repair_reasons,
+        "runtime_reconciliation_execution_allowed": package_ready,
+        "controlled_artifact_reapply_required": plan_report.get("controlled_artifact_reapply_required"),
+        "controlled_artifact_reapply_execution_available": plan_report.get("controlled_artifact_reapply_execution_available"),
+        "remaining_persistence_reasons": plan_report.get("remaining_persistence_reasons", []),
+        "repair_reasons": runtime_repair_reasons,
+        "safety_blockers": unique_safety,
+        "blockers": sorted(set([*runtime_repair_reasons, *unique_safety])),
+        "warnings": plan_report.get("warnings", []),
+        "observations_supplied": plan_report.get("observations_supplied") is True,
+        "backend_public_exposure_detected": plan_report.get("backend_public_exposure_detected", False),
+        "final_decision": final_decision,
+        "next_required_step": next_required_step,
     }
 
 
+def build_phase11_restart_autostart_persistence_fix_package(
+    *,
+    diagnosis_report: dict[str, object] | None = None,
+    artifact_gate_report: dict[str, object] | None = None,
+    expected_version: str = __version__,
+) -> dict[str, object]:
+    """Backward-compatible pure package builder that fails closed without observations."""
+
+    plan = build_phase11_restart_autostart_persistence_fix_plan_report(
+        diagnosis_report=diagnosis_report,
+        artifact_gate_report=artifact_gate_report,
+        expected_version=expected_version,
+    )
+    return build_phase11_restart_autostart_persistence_fix_package_from_plan(plan, expected_version=expected_version)
+
+
+
+def _collect_project_containers_read_only(project_name: str) -> tuple[bool, list[docker_compose.DockerContainerSummary], str | None]:
+    cmd = [
+        "docker",
+        "ps",
+        "-a",
+        "--filter",
+        f"label=com.docker.compose.project={project_name}",
+        "--format",
+        "{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}",
+    ]
+    try:
+        result = subprocess.run(cmd, text=True, capture_output=True)
+    except FileNotFoundError:
+        return False, [], "docker_command_not_available"
+    if result.returncode != 0:
+        return False, [], (result.stderr or result.stdout or "docker_read_failed").strip()
+    containers: list[docker_compose.DockerContainerSummary] = []
+    for line in result.stdout.splitlines():
+        if not line.strip():
+            continue
+        parts = line.split("\t")
+        while len(parts) < 4:
+            parts.append("")
+        containers.append(docker_compose.DockerContainerSummary(parts[0], parts[1], parts[2], parts[3]))
+    return True, containers, None
+
+
+def _split_socket_local(local: str) -> tuple[str, int | None]:
+    if local.startswith("[") and "]:" in local:
+        address, port_text = local.rsplit(":", 1)
+    elif ":" in local:
+        address, port_text = local.rsplit(":", 1)
+    else:
+        return local, None
+    try:
+        return address, int(port_text)
+    except ValueError:
+        return address, None
+
+
+def _collect_listening_sockets_read_only() -> tuple[bool, list[socket_inspector.ListeningSocket], str | None]:
+    try:
+        result = subprocess.run(["ss", "-lntp"], text=True, capture_output=True)
+    except FileNotFoundError:
+        return False, [], "ss_command_not_available"
+    if result.returncode != 0:
+        return False, [], (result.stderr or result.stdout or "socket_read_failed").strip()
+    sockets: list[socket_inspector.ListeningSocket] = []
+    for line in result.stdout.splitlines():
+        if not line.startswith("LISTEN"):
+            continue
+        parts = line.split()
+        if len(parts) < 4:
+            continue
+        address, port = _split_socket_local(parts[3])
+        if port is None:
+            continue
+        process = parts[-1] if len(parts) >= 7 else None
+        sockets.append(socket_inspector.ListeningSocket(address, port, process))
+    return True, sockets, None
+
+def _build_artifact_gate_report(expected_version: str) -> dict[str, object]:
+    from mpf.services.phase11_restart_autostart_persistence_diagnosis_service import _build_artifact_gate_report as build_gate
+
+    return build_gate(expected_version)
+
+
 def run_phase11_restart_autostart_persistence_fix_plan(config_path: Path = DEFAULT_CONFIG_PATH, *, expected_version: str = __version__) -> dict[str, object]:
-    """Inspect read-only Docker/socket state and return the fix plan."""
+    """Inspect read-only Docker/socket/config state once and return the fix plan."""
 
     cfg = load_config(config_path)
-    return build_phase11_restart_autostart_persistence_fix_plan_report(
-        actual_containers=docker_compose.list_project_containers(cfg.proxy.project_name),
-        listening_sockets=socket_inspector.list_listening_tcp_sockets(),
+    containers_ok, containers, containers_error = _collect_project_containers_read_only(cfg.proxy.project_name)
+    sockets_ok, sockets, sockets_error = _collect_listening_sockets_read_only()
+    artifact_gate = _build_artifact_gate_report(expected_version)
+    required_socket_ports = {2015, 60010}
+    required_sockets_seen = {socket.port for socket in sockets if socket.port in required_socket_ports}
+    empty_runtime_snapshot = containers_ok and sockets_ok and not containers and not required_sockets_seen
+    observations_ok = containers_ok and sockets_ok and not empty_runtime_snapshot
+    if empty_runtime_snapshot:
+        containers_error = containers_error or "runtime_observations_unavailable_or_empty_dev_snapshot"
+        sockets_error = sockets_error or "runtime_observations_unavailable_or_empty_dev_snapshot"
+    diagnosis = (
+        build_phase11_restart_autostart_persistence_diagnosis_report(
+            actual_containers=containers,
+            listening_sockets=sockets,
+            artifact_gate_report=artifact_gate,
+            expected_version=expected_version,
+        )
+        if observations_ok
+        else {
+            "final_decision": "BLOCKED_READ_ONLY_RUNTIME_OBSERVATIONS_UNAVAILABLE",
+            "blockers": [item for item in (containers_error, sockets_error) if item],
+            "unknown_mpf_artifacts": artifact_gate.get("unknown_mpf_artifacts", []),
+            "unknown_mpf_artifacts_empty": artifact_gate.get("unknown_mpf_artifacts") == [],
+        }
+    )
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=containers if observations_ok else None,
+        listening_sockets=sockets if observations_ok else None,
+        diagnosis_report=diagnosis,
+        artifact_gate_report=artifact_gate,
         compose_file=cfg.proxy.compose_file,
         expected_version=expected_version,
     )
+    report["runtime_observation_errors"] = [item for item in (containers_error, sockets_error) if item]
+    return report
+
+
+def run_phase11_restart_autostart_persistence_fix_package(config_path: Path = DEFAULT_CONFIG_PATH, *, expected_version: str = __version__) -> dict[str, object]:
+    """Build the package from the exact live read-only plan snapshot."""
+
+    plan = run_phase11_restart_autostart_persistence_fix_plan(config_path, expected_version=expected_version)
+    return build_phase11_restart_autostart_persistence_fix_package_from_plan(plan, expected_version=expected_version)

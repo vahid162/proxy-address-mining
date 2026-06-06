@@ -43,16 +43,28 @@ package_path, plan_path, expected, mode = sys.argv[1:5]
 package = json.load(open(package_path, encoding="utf-8"))
 plan = json.load(open(plan_path, encoding="utf-8"))
 required_command = "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never"
-if package.get("final_decision") != "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY":
-    raise SystemExit("package final_decision is not READY")
 if package.get("repository_version") != expected or package.get("expected_version") != expected:
     raise SystemExit("package version does not match repository version")
-if package.get("safety_blockers") != []:
-    raise SystemExit("package safety_blockers must be empty before execute")
-if plan.get("safety_blockers") != []:
-    raise SystemExit("plan safety_blockers must be empty before execute")
-if mode == "--execute" and not plan.get("repair_reasons"):
-    raise SystemExit("plan repair_reasons must identify a controlled runtime repair target")
+repair_reasons = package.get("runtime_repair_reasons") or package.get("repair_reasons") or []
+if mode == "--execute":
+    if package.get("final_decision") == "NO_RUNTIME_REPAIR_REQUIRED":
+        raise SystemExit("no Docker runtime repair is required; controlled execution refused")
+    if package.get("final_decision") != "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY":
+        raise SystemExit("package final_decision is not READY")
+    if package.get("safety_blockers") != []:
+        raise SystemExit("package safety_blockers must be empty before execute")
+    if plan.get("safety_blockers") != []:
+        raise SystemExit("plan safety_blockers must be empty before execute")
+    if package.get("runtime_repair_required") is not True:
+        raise SystemExit("no Docker runtime repair is required; controlled execution refused")
+    if package.get("runtime_reconciliation_execution_allowed") is not True:
+        raise SystemExit("runtime reconciliation execution is not allowed")
+    if not repair_reasons:
+        raise SystemExit("repair reasons must identify a controlled runtime repair target")
+    if plan.get("runtime_repair_required") is not True or plan.get("runtime_reconciliation_execution_allowed") is not True:
+        raise SystemExit("plan does not allow runtime reconciliation execution")
+    if plan.get("observations_supplied") is not True or package.get("observations_supplied") is not True:
+        raise SystemExit("runtime observations are unavailable")
 summary = package.get("phase_gate_summary", {})
 if summary.get("phase12_start_allowed") is not False:
     raise SystemExit("Phase 12 must remain blocked")
@@ -68,8 +80,10 @@ if plan.get("ui_allowed") != "no" or plan.get("telegram_allowed") != "no":
     raise SystemExit("plan opened UI/Telegram")
 if package.get("exact_allowed_operation_set") != ["controlled_docker_compose_runtime_reconciliation_up_no_build_pull_never"]:
     raise SystemExit("unexpected allowed operation set")
-if plan.get("backend_public_exposure_detected") is True:
+if mode == "--execute" and (plan.get("backend_public_exposure_detected") is True or package.get("backend_public_exposure_detected") is True):
     raise SystemExit("backend public exposure detected before execution")
+if mode == "--execute" and package.get("source_plan_safety_blockers") not in ([], None):
+    raise SystemExit("source plan safety_blockers must be empty before execute")
 cmd_plan = package.get("exact_docker_compose_command_plan", {})
 if cmd_plan.get("project_name") != "mpf-proxy":
     raise SystemExit("unexpected compose project name")
@@ -77,7 +91,9 @@ if cmd_plan.get("compose_file") != "compose/mpf-proxy.compose.yaml":
     raise SystemExit("unexpected compose file")
 if cmd_plan.get("profile") != "phase4-runtime":
     raise SystemExit("unexpected compose profile")
-if package.get("required_execute_command") != required_command:
+if cmd_plan.get("execute_command") != required_command:
+    raise SystemExit("unexpected compose execute command")
+if mode == "--execute" and package.get("required_execute_command") != required_command:
     raise SystemExit("unexpected execute command")
 commands = []
 for key in ("required_pre_check_commands", "required_post_check_commands"):

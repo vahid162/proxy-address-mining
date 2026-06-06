@@ -14,7 +14,9 @@ from mpf.services.phase11_restart_autostart_persistence_diagnosis_service import
 )
 from mpf.services.phase11_restart_autostart_persistence_fix_service import (
     build_phase11_restart_autostart_persistence_fix_package,
+    build_phase11_restart_autostart_persistence_fix_package_from_plan,
     build_phase11_restart_autostart_persistence_fix_plan_report,
+    validate_compose_scope,
 )
 from mpf.services.phase11_controlled_artifact_persistence_plan_service import (
     build_phase11_controlled_artifact_persistence_plan_report,
@@ -23,7 +25,7 @@ from mpf.interfaces.cli import app
 from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
 
 RUNNER = CliRunner()
-VERSION = "0.1.247"
+VERSION = "0.1.248"
 
 
 PHASE_STATUS = """current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
@@ -359,8 +361,10 @@ def test_restart_autostart_persistence_fix_plan_ready_for_fix_plan_only_when_run
         diagnosis_report={"final_decision": "RESTART_AUTOSTART_PERSISTENCE_READY", "blockers": [], "unknown_mpf_artifacts": []},
     )
 
-    assert report["final_decision"] == "RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN_READY"
-    assert report["next_required_step"] == "run_restart_autostart_persistence_fix_on_farm5"
+    assert report["final_decision"] == "NO_RUNTIME_REPAIR_REQUIRED"
+    assert report["runtime_repair_required"] is False
+    assert report["runtime_repair_reasons"] == []
+    assert report["next_required_step"] == "collect_restart_autostart_proof_after_persistence_fix"
     assert report["mutation_performed"] is False
 
 
@@ -587,6 +591,12 @@ def _write_fake_phase11_fix_mpf(path: Path, *, plan_safety_blockers: list[str], 
         "expected_version": VERSION,
         "safety_blockers": package_safety_blockers or [],
         "repair_reasons": repair_reasons,
+        "runtime_repair_required": bool(repair_reasons),
+        "runtime_repair_reasons": repair_reasons,
+        "runtime_reconciliation_execution_allowed": bool(repair_reasons) and not (package_safety_blockers or []),
+        "observations_supplied": True,
+        "source_plan_safety_blockers": plan_safety_blockers,
+        "backend_public_exposure_detected": False,
         "phase_gate_summary": {
             "phase12_start_allowed": False,
             "worker_enforcement_allowed": "no",
@@ -609,6 +619,11 @@ def _write_fake_phase11_fix_mpf(path: Path, *, plan_safety_blockers: list[str], 
         "telegram_allowed": "no",
         "safety_blockers": plan_safety_blockers,
         "repair_reasons": repair_reasons,
+        "runtime_repair_required": bool(repair_reasons),
+        "runtime_repair_reasons": repair_reasons,
+        "runtime_reconciliation_execution_allowed": bool(repair_reasons) and not plan_safety_blockers,
+        "observations_supplied": True,
+        "backend_public_exposure_detected": False,
         "local_only_listener_state": {
             "checks": {
                 "v2raya_ui": {"public_bind_detected": False},
@@ -724,3 +739,185 @@ def test_restart_autostart_fix_helper_refuses_execute_when_unknown_safety_blocke
     assert result.returncode != 0
     assert "package safety_blockers must be empty before execute" in result.stderr
     assert not docker_log.exists()
+
+
+def _farm5_absent_artifact_diagnosis() -> dict[str, object]:
+    return {
+        "final_decision": "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_GAP",
+        "blockers": ["post_reboot_known_controlled_phase11_artifacts_absent"],
+        "unknown_mpf_artifacts": [],
+        "unknown_mpf_artifacts_empty": True,
+        "known_controlled_phase11_artifacts_present": False,
+        "backend_public_exposure_detected": False,
+        "current_controlled_artifact_gate_summary": {
+            "known_controlled_artifacts_present": False,
+            "unknown_mpf_artifacts": [],
+        },
+    }
+
+
+def test_compose_scope_accepts_canonical_absolute_relative_dot_and_symlink(tmp_path: Path) -> None:
+    canonical = Path("compose/mpf-proxy.compose.yaml").resolve()
+    for candidate in (canonical, Path("compose/mpf-proxy.compose.yaml"), Path("./compose/mpf-proxy.compose.yaml")):
+        result = validate_compose_scope(candidate)
+        assert result["valid"] is True
+        assert result["same_file"] is True
+        assert result["blocker"] is None
+
+    link = tmp_path / "official-compose-link.yaml"
+    link.symlink_to(canonical)
+    result = validate_compose_scope(link)
+    assert result["valid"] is True
+    assert result["configured_resolved_path"] == result["canonical_resolved_path"]
+
+
+def test_compose_scope_rejects_unrelated_same_basename_and_suffix(tmp_path: Path) -> None:
+    other_dir = tmp_path / "other" / "compose"
+    other_dir.mkdir(parents=True)
+    other = other_dir / "mpf-proxy.compose.yaml"
+    other.write_text(Path("compose/mpf-proxy.compose.yaml").read_text(encoding="utf-8"), encoding="utf-8")
+
+    result = validate_compose_scope(other)
+    assert result["valid"] is False
+    assert result["blocker"] == "compose_scope_mismatch"
+
+    suffix_dir = tmp_path / "prefix" / "compose"
+    suffix_dir.mkdir(parents=True)
+    suffix = suffix_dir / "mpf-proxy.compose.yaml"
+    suffix.write_text("services: {}\n", encoding="utf-8")
+    result = validate_compose_scope(suffix)
+    assert result["valid"] is False
+    assert result["blocker"] == "compose_scope_mismatch"
+
+
+def test_farm5_healthy_runtime_absent_artifact_plan_has_no_runtime_repair() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report=_farm5_absent_artifact_diagnosis(),
+        artifact_gate_report=_artifact_gate(known_present=False),
+        compose_file=Path("compose/mpf-proxy.compose.yaml").resolve(),
+    )
+
+    assert report["safety_blockers"] == []
+    assert report["runtime_repair_required"] is False
+    assert report["runtime_repair_reasons"] == []
+    assert report["missing_containers"] == []
+    assert report["local_only_listener_state"]["blockers"] == []
+    assert report["final_decision"] == "NO_RUNTIME_REPAIR_REQUIRED"
+    assert report["controlled_artifact_reapply_required"] is True
+    assert report["controlled_artifact_reapply_execution_available"] is False
+    assert report["next_required_step"] == "implement_controlled_artifact_reapply_execute_package"
+    assert report["phase12_start_allowed"] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
+
+
+def test_farm5_healthy_runtime_package_uses_source_plan_and_disables_execute() -> None:
+    plan = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report=_farm5_absent_artifact_diagnosis(),
+        artifact_gate_report=_artifact_gate(known_present=False),
+        compose_file=Path("compose/mpf-proxy.compose.yaml").resolve(),
+    )
+    package = build_phase11_restart_autostart_persistence_fix_package_from_plan(plan)
+
+    assert package["source_plan_final_decision"] == plan["final_decision"]
+    assert package["source_plan_runtime_repair_required"] is False
+    assert package["source_plan_runtime_repair_reasons"] == []
+    assert package["final_decision"] == "NO_RUNTIME_REPAIR_REQUIRED"
+    assert package["runtime_reconciliation_execution_allowed"] is False
+    assert package["required_execute_command"] is None
+
+
+def test_missing_runtime_observations_fail_closed_without_fabricated_ready() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        diagnosis_report={"final_decision": "BLOCKED", "blockers": [], "unknown_mpf_artifacts": []},
+    )
+    package = build_phase11_restart_autostart_persistence_fix_package_from_plan(report)
+
+    assert "runtime_observations_not_supplied" in report["safety_blockers"]
+    assert report["missing_containers"] == []
+    assert report["runtime_repair_reasons"] == []
+    assert package["final_decision"] == "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE"
+    assert package["required_execute_command"] is None
+
+
+def test_unhealthy_socks_bridge_still_produces_controlled_runtime_repair_package() -> None:
+    containers = [
+        DockerContainerSummary(item.name, item.image, "Exited (1) 2 minutes ago", item.ports)
+        if item.name == "mpf-v2raya-socks-bridge"
+        else item
+        for item in _healthy_runtime_containers()
+    ]
+    plan = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=containers,
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report={"final_decision": "BLOCKED", "blockers": [], "unknown_mpf_artifacts": [], "unknown_mpf_artifacts_empty": True},
+        compose_file=Path("compose/mpf-proxy.compose.yaml"),
+    )
+    package = build_phase11_restart_autostart_persistence_fix_package_from_plan(plan)
+
+    assert plan["runtime_repair_required"] is True
+    assert "unhealthy_container:mpf-v2raya-socks-bridge" in plan["runtime_repair_reasons"]
+    assert package["final_decision"] == "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY"
+    assert package["required_execute_command"] is not None
+
+
+def test_public_exposure_remains_safety_blocker() -> None:
+    report = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=[ListeningSocket("0.0.0.0", 60010, "gost"), ListeningSocket("127.0.0.1", 2015, "v2raya")],
+        diagnosis_report={"final_decision": "BLOCKED", "blockers": [], "unknown_mpf_artifacts": [], "backend_public_exposure_detected": True},
+    )
+    assert "backend_public_exposure_detected" in report["safety_blockers"]
+    assert "non_local_listener:btc_backend:60010" in report["safety_blockers"]
+
+
+def test_helper_refuses_execute_when_no_runtime_repair_required(tmp_path: Path) -> None:
+    fake_mpf = tmp_path / "mpf"
+    fake_docker = tmp_path / "docker"
+    docker_log = tmp_path / "docker.log"
+    _write_fake_phase11_fix_mpf(fake_mpf, plan_safety_blockers=[], repair_reasons=[])
+    text = fake_mpf.read_text(encoding="utf-8")
+    text = text.replace('"final_decision": "RESTART_AUTOSTART_PERSISTENCE_FIX_PACKAGE_READY"', '"final_decision": "NO_RUNTIME_REPAIR_REQUIRED"')
+    text = text.replace('"required_execute_command": "docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime up -d --no-build --pull never"', '"required_execute_command": null')
+    fake_mpf.write_text(text, encoding="utf-8")
+    fake_mpf.chmod(0o755)
+    _write_fake_docker(fake_docker, docker_log)
+
+    result = subprocess.run(
+        ["scripts/phase11_run_restart_autostart_persistence_fix_package.sh", "--execute", "--yes", "--out-dir", str(tmp_path / "out")],
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "MPF_BIN": str(fake_mpf), "PATH": f"{tmp_path}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "no Docker runtime repair is required; controlled execution refused" in result.stderr
+    assert not docker_log.exists()
+
+
+def test_gap_inventory_chooses_controlled_artifact_reapply_for_farm5_fixture() -> None:
+    from mpf.services.phase11_operational_completion_gap_inventory_service import build_phase11_operational_completion_gap_inventory_report
+
+    plan = build_phase11_restart_autostart_persistence_fix_plan_report(
+        actual_containers=_healthy_runtime_containers(),
+        listening_sockets=_local_only_runtime_sockets(),
+        diagnosis_report=_farm5_absent_artifact_diagnosis(),
+        artifact_gate_report=_artifact_gate(known_present=False),
+        compose_file=Path("compose/mpf-proxy.compose.yaml"),
+    )
+    report = build_phase11_operational_completion_gap_inventory_report(persistence_plan_report=plan)
+
+    assert report["restart_autostart_proof"] == "missing_or_partial"
+    assert report["full_cli_production_operations"] == "missing_or_partial"
+    assert report["next_required_step"] == "implement_controlled_artifact_reapply_execute_package"
+    assert report["phase12_start_allowed"] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"

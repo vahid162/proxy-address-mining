@@ -1,3 +1,4 @@
+Phase 11 operational completion 0.1.248 note: farm5 0.1.247 post-sync evidence distinguishes healthy runtime container/listener persistence from unresolved controlled customer firewall artifact persistence. The current next implementation step is `implement_controlled_artifact_reapply_execute_package`; restart/autostart proof and Full CLI Production Operations remain unaccepted, and Phase 12/worker enforcement/UI/Telegram remain blocked.
 Phase 11 operational completion 0.1.247 note: the active step is `fix_restart_autostart_persistence_gap`. The repository now provides controlled repair planning/package/evidence tooling for the post-reboot persistence blockers (`unhealthy_container:mpf-v2raya-socks-bridge` and `post_reboot_known_controlled_phase11_artifacts_absent`) while keeping `restart_autostart_proof=missing_or_partial` until farm5 post-fix evidence proves recovery. `unknown_mpf_artifacts` remained `[]`, public backend exposure remained false, Phase 12, worker enforcement, UI, and Telegram remain blocked, and `full_cli_production_operations` remains not accepted.
 
 # Phase 11 operational completion — Full CLI Production Operations Gate
@@ -69,4 +70,4 @@ No worker enforcement, UI, Telegram, buyer panel, public API, public backend exp
 - farm5 0.1.245 post-reboot evidence found a restart/autostart persistence blocker: runtime containers only partially returned after reboot.
 - `mpf-v2raya-socks-bridge` was missing from the expected runtime container set while the local-only v2rayA UI and BTC backend listeners were visible.
 - The current controlled artifact gate reported no unknown MPF artifacts, but known controlled Phase 11 firewall customer artifacts were absent after reboot.
-- Restart/autostart proof stays `missing_or_partial`; the next required step is `fix_restart_autostart_persistence_gap`, not Phase 12 or Full CLI Production Operations acceptance.
+- Restart/autostart proof stays `missing_or_partial`; the next required step is `implement_controlled_artifact_reapply_execute_package`, not Phase 12 or Full CLI Production Operations acceptance.

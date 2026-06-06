@@ -5,6 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from mpf import __version__
+from mpf.config import DEFAULT_CONFIG_PATH
+from mpf.services.phase11_restart_autostart_persistence_fix_service import (
+    run_phase11_restart_autostart_persistence_fix_plan,
+)
 from mpf.services.phase11_restart_autostart_proof_service import (
     build_phase11_restart_autostart_proof_report,
 )
@@ -13,16 +17,33 @@ from mpf.services.phase11_restart_autostart_proof_service import (
 _MISSING_OR_PARTIAL = "missing_or_partial"
 
 
-def build_phase11_operational_completion_gap_inventory_report(evidence_dir: Path | str | None = None) -> dict[str, object]:
+def _next_step(restart_status: str, persistence_plan: dict[str, object] | None) -> str:
+    if restart_status == "ready":
+        return "implement_production_customer_lifecycle_execution"
+    if not persistence_plan:
+        return "fix_restart_autostart_persistence_gap"
+    if persistence_plan.get("safety_blockers"):
+        return "fix_restart_autostart_persistence_gap"
+    if persistence_plan.get("runtime_repair_required") is True:
+        return "run_restart_autostart_persistence_fix_on_farm5"
+    if (
+        persistence_plan.get("controlled_artifact_reapply_required") is True
+        and persistence_plan.get("controlled_artifact_reapply_execution_available") is False
+    ):
+        return "implement_controlled_artifact_reapply_execute_package"
+    return "collect_restart_autostart_proof_after_persistence_fix"
+
+
+def build_phase11_operational_completion_gap_inventory_report(
+    evidence_dir: Path | str | None = None,
+    *,
+    persistence_plan_report: dict[str, object] | None = None,
+) -> dict[str, object]:
     """Return the expanded post-acceptance Phase 11 gap inventory without mutation."""
 
     restart_report = build_phase11_restart_autostart_proof_report(evidence_dir) if evidence_dir else None
     restart_status = restart_report["restart_autostart_proof"] if restart_report else _MISSING_OR_PARTIAL
-    next_required_step = (
-        "implement_production_customer_lifecycle_execution"
-        if restart_status == "ready"
-        else "run_restart_autostart_persistence_fix_on_farm5"
-    )
+    next_required_step = _next_step(restart_status, persistence_plan_report)
 
     return {
         "component": "phase11_operational_completion_gap_inventory",
@@ -47,6 +68,14 @@ def build_phase11_operational_completion_gap_inventory_report(evidence_dir: Path
         "worker_enforcement_allowed": "no",
         "ui_allowed": "no",
         "telegram_allowed": "no",
+        "restart_autostart_persistence_fix_plan_summary": {
+            "final_decision": persistence_plan_report.get("final_decision") if persistence_plan_report else None,
+            "safety_blockers": persistence_plan_report.get("safety_blockers", []) if persistence_plan_report else [],
+            "runtime_repair_required": persistence_plan_report.get("runtime_repair_required") if persistence_plan_report else None,
+            "runtime_repair_reasons": persistence_plan_report.get("runtime_repair_reasons", []) if persistence_plan_report else [],
+            "controlled_artifact_reapply_required": persistence_plan_report.get("controlled_artifact_reapply_required") if persistence_plan_report else None,
+            "controlled_artifact_reapply_execution_available": persistence_plan_report.get("controlled_artifact_reapply_execution_available") if persistence_plan_report else None,
+        },
         "mutation_performed": False,
         "db_mutation_performed": False,
         "firewall_apply_performed": False,
@@ -57,3 +86,28 @@ def build_phase11_operational_completion_gap_inventory_report(evidence_dir: Path
         "next_required_step": next_required_step,
         "restart_autostart_proof_final_decision": restart_report["final_decision"] if restart_report else "BLOCKED_RESTART_AUTOSTART_PROOF_MISSING_OR_PARTIAL",
     }
+
+
+def run_phase11_operational_completion_gap_inventory_report(
+    config_path: Path = DEFAULT_CONFIG_PATH,
+    *,
+    evidence_dir: Path | str | None = None,
+) -> dict[str, object]:
+    """Read live persistence plan data and render the gap inventory without mutation."""
+
+    try:
+        persistence_plan = run_phase11_restart_autostart_persistence_fix_plan(config_path)
+    except Exception as exc:  # noqa: BLE001 - inventory must fail closed without traceback.
+        persistence_plan = {
+            "final_decision": "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN",
+            "safety_blockers": ["configuration_or_read_only_inspection_failed"],
+            "runtime_repair_required": None,
+            "runtime_repair_reasons": [],
+            "controlled_artifact_reapply_required": None,
+            "controlled_artifact_reapply_execution_available": None,
+            "configuration_error": str(exc),
+        }
+    return build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir,
+        persistence_plan_report=persistence_plan,
+    )
