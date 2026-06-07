@@ -18,7 +18,7 @@ def test_package_offline_flags_and_readiness() -> None:
 
 
 def test_package_includes_payload_and_contract_requirements() -> None:
-    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy()}])
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy(), "backend_target_host": "10.10.10.10"}])
     report = build_apply_package_report(plan)
     assert report.planner_customer_source == "unknown"
     assert report.db_customer_input_loaded is False
@@ -48,7 +48,7 @@ def test_package_safety_flags_and_deterministic_hash() -> None:
 
 
 def test_plan_error_visible_in_package_errors() -> None:
-    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy()}])
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy(), "backend_target_host": "10.10.10.10"}])
     report = build_apply_package_report(plan)
     assert report.applyable is False
     assert report.error_count > 0
@@ -65,7 +65,7 @@ def test_package_dedupes_config_only_warning() -> None:
 
 
 def test_package_dedupes_plan_errors() -> None:
-    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy()}])
+    plan = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy(), "backend_target_host": "10.10.10.10"}])
     report = build_apply_package_report(plan)
     signatures = {(e.severity, e.code, e.message) for e in report.errors}
     assert len(signatures) == len(report.errors)

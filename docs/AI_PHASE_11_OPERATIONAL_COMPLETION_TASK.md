@@ -1,6 +1,6 @@
-## 0.1.249 current step: implement_source_backed_controlled_artifact_renderer_and_production_adapters
+## 0.1.250 current step: prove_controlled_filter_packet_path_before_farm5_package_collection
 
-Version 0.1.249 implements controlled artifact reapply read-only evidence/package surfaces but keeps production execute fail-closed until a source-backed artifact renderer and real live-preflight/lock/backup/PostgreSQL-audit/rollback/verification adapters are implemented and tested; it does not restore farm5 artifacts. `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=false`, `production_execution_available=false`, and `live_ready_package_available=false`, so farm5 READY package sync is intentionally deferred. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
+Version 0.1.250 implements the source-backed controlled artifact renderer and real live-preflight/lock/backup/PostgreSQL-audit/rollback/verification adapter wiring; it does not restore farm5 artifacts and no READY farm5 package has been collected. `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=false`, `production_execution_available=false`, and `live_ready_package_available=false`, so farm5 READY package sync is intentionally deferred. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
 
 ## 0.1.248 current step: implement_controlled_artifact_reapply_execute_package
 
@@ -57,7 +57,7 @@ unrestricted production/miner expansion
 timers or daemon starts without a later explicit accepted gate
 ```
 
-The current required implementation step after the 0.1.249 fail-closed foundation is `implement_source_backed_controlled_artifact_renderer_and_production_adapters`.
+The current required implementation step after the 0.1.250 runtime-forward implementation is `prove_controlled_filter_packet_path_before_farm5_package_collection`.
 
 ## Progress Update (0.1.239)
 
@@ -109,4 +109,7 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 - farm5 0.1.245 post-reboot evidence showed only partial runtime container return after reboot.
 - `mpf-v2raya-socks-bridge` was missing from the expected runtime container set.
 - Controlled Phase 11 firewall customer artifacts were absent after reboot while unknown MPF artifacts remained empty.
-- Keep `restart_autostart_proof: missing_or_partial` and `next_required_step: implement_source_backed_controlled_artifact_renderer_and_production_adapters` until desired artifact semantics, production adapters, and source-backed evidence prove readiness.
+- Keep `restart_autostart_proof: missing_or_partial` and `next_required_step: prove_controlled_filter_packet_path_before_farm5_package_collection` until desired artifact semantics, production adapters, and source-backed evidence prove readiness.
+
+
+0.1.250 controlled runtime-forward note: the source-backed controlled artifact renderer, schema-faithful metadata wiring, and production adapters are implemented, but the filter packet path remains fail-closed until source-backed farm5 evidence proves the correct hook for exactly `canary-btc-001/btc/20001` and `limited-btc-001/btc/20101`. No farm5 mutation was performed, no live `iptables-restore` was executed during PR development or CI, and no READY farm5 package has been collected. Progression is now `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=false`, `production_execution_available=false`, `live_ready_package_available=false`, and `controlled_artifact_reapply_package_evidence_ready=false`. The exact next step is `prove_controlled_filter_packet_path_before_farm5_package_collection`; server sync is allowed only for read-only package/evidence collection first, and controlled execution requires separate package review. `restart_autostart_proof` remains `missing_or_partial`; Full CLI Production Operations remains unaccepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`; Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.

@@ -1,12 +1,29 @@
 from __future__ import annotations
 
 from collections import Counter
+import hashlib
+import ipaddress
 
 from mpf.config import MPFConfig
 from mpf.domain.firewall import FirewallChainIntent, FirewallLiveSnapshot, FirewallPlanChange, FirewallPlanMessage, FirewallPlanResult, FirewallRuleIntent
 from mpf.repositories import firewall_planner_read_repo
 
 _REQUIRED_POLICY_FIELDS = ("miners", "farms", "maxconn", "rate_per_min", "burst", "ips_mode")
+
+
+def _stable_hashlimit_name(customer_key: str, port: int) -> str:
+    digest = hashlib.sha256(f"{customer_key}:{port}".encode()).hexdigest()[:12]
+    return f"mpf_{port}_{digest}"[:31]
+
+
+def _normalized_sources(raw_sources: object) -> list[str]:
+    if not isinstance(raw_sources, (list, tuple, set)):
+        return []
+    normalized = []
+    for raw in raw_sources:
+        network = ipaddress.ip_network(str(raw), strict=False)
+        normalized.append(str(network))
+    return sorted(set(normalized), key=lambda x: (ipaddress.ip_network(x, strict=False).version, int(ipaddress.ip_network(x, strict=False).network_address), ipaddress.ip_network(x, strict=False).prefixlen))
 
 
 def _policy_missing_or_incomplete(policy: dict | None) -> tuple[bool, list[str]]:
@@ -151,6 +168,14 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
             plan.errors.append(FirewallPlanMessage(code="incomplete_current_policy", message=f"customer {customer_key} current policy incomplete: missing={','.join(missing)}", severity="error")); continue
 
         backend_port = int(known_lanes[lane_name]["backend_port"])
+        try:
+            maxconn = int(policy["maxconn"])
+            rate_per_min = int(policy["rate_per_min"])
+            burst = int(policy["burst"])
+        except (TypeError, ValueError):
+            plan.errors.append(FirewallPlanMessage(code="invalid_current_policy", message=f"customer {customer_key} current policy numeric fields invalid", severity="error")); continue
+        if maxconn <= 0 or rate_per_min <= 0 or burst <= 0:
+            plan.errors.append(FirewallPlanMessage(code="invalid_current_policy", message=f"customer {customer_key} current policy numeric fields must be positive", severity="error")); continue
         plan.customer_coverage.append(customer_key)
         plan.affected_customers.append(customer_key)
         plan.customer_policy_references.append(f"{customer_key}:policy")
@@ -159,21 +184,56 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
             FirewallChainIntent(id=f"filter:MPFC_{cport}", table="filter", chain=f"MPFC_{cport}", owner="mpf", purpose="customer_filter", lane=lane_name, customer_key=customer_key, customer_port=cport, group="customer"),
             FirewallChainIntent(id=f"filter:MPFO_{cport}", table="filter", chain=f"MPFO_{cport}", owner="mpf", purpose="customer_policy", lane=lane_name, customer_key=customer_key, customer_port=cport, group="customer"),
         ])
-        kinds = ["customer_dispatch", "customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_accounting_out", "customer_nat_redirect"]
+        kinds = ["customer_dispatch"]
         if policy.get("ips_mode") == "whitelist":
-            kinds.append("customer_whitelist_allow")
+            kinds.extend(["customer_whitelist_allow", "customer_whitelist_reject"])
+        kinds.extend(["customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_nat_redirect"])
+        if policy.get("accounting_out_required") is True:
+            kinds.append("customer_accounting_out")
+        if policy.get("ips_mode") == "whitelist":
             whitelist = policy.get("ip_whitelist") or customer.get("ip_whitelist") or []
             if not whitelist:
                 plan.warnings.append(FirewallPlanMessage(code="whitelist_missing_sources", message=f"customer {customer_key} ips_mode=whitelist but no whitelist sources provided in planner input", severity="warning"))
         for i, kind in enumerate(kinds):
             is_nat = kind == "customer_nat_redirect"
-            action_json = {"target_backend": backend_port} if is_nat else {"intent": kind}
-            match_json = {"port": cport}
-            if kind == "customer_whitelist_allow":
-                whitelist = policy.get("ip_whitelist") or customer.get("ip_whitelist") or []
+            table = "nat" if is_nat else "filter"
+            chain = "MPF_NAT_PRE" if is_nat else f"MPFC_{cport}"
+            action_json = {"intent": kind, "action": "RETURN"}
+            match_json = {"protocol": "tcp", "port": cport}
+            if kind == "customer_dispatch":
+                chain = "MPF_CUSTOMERS"
+                action_json = {"action": "jump", "jump_chain": f"MPFC_{cport}"}
+            elif kind == "customer_connlimit_reject":
+                chain = f"MPFO_{cport}"
+                match_json["connlimit_above"] = maxconn
+                match_json["connlimit_mask"] = 32
+                action_json = {"action": "REJECT", "reject_with": "tcp-reset"}
+            elif kind == "customer_hashlimit_reject":
+                chain = f"MPFO_{cport}"
+                match_json.update({"hashlimit_rate_per_min": rate_per_min, "hashlimit_burst": burst, "hashlimit_mode": "srcip", "hashlimit_name": _stable_hashlimit_name(customer_key, cport)})
+                action_json = {"action": "REJECT", "reject_with": "tcp-reset"}
+            elif kind == "customer_accounting_in":
+                chain = "MPF_ACCT_IN"
+                action_json = {"action": "RETURN", "accounting_role": "incoming"}
+            elif kind == "customer_accounting_out":
+                chain = "MPF_ACCT_OUT"
+                action_json = {"action": "RETURN", "accounting_role": "outgoing"}
+            elif kind == "customer_whitelist_allow":
+                try:
+                    whitelist = _normalized_sources(customer.get("ip_whitelist") or [])
+                except ValueError as exc:
+                    plan.errors.append(FirewallPlanMessage(code="invalid_whitelist_source", message=f"customer {customer_key} whitelist invalid: {exc}", severity="error")); continue
+                if not whitelist:
+                    plan.errors.append(FirewallPlanMessage(code="whitelist_missing_sources", message=f"customer {customer_key} ips_mode=whitelist but no enabled customer_ip_pins were loaded", severity="error")); continue
                 match_json["sources"] = whitelist
-                action_json["whitelist_required"] = True
-            plan.rules.append(FirewallRuleIntent(id=f"{customer_key}:{kind}", table="nat" if is_nat else "filter", chain="MPF_NAT_PRE" if is_nat else f"MPFC_{cport}", rule_key=f"mpf:{customer_key}:{kind}", rule_kind=kind, priority=100 + i, lane=lane_name, customer_key=customer_key, customer_id=customer.get("id"), customer_port=cport, backend_port=backend_port, accounting_role="customer_usage" if "accounting" in kind else None, match_json=match_json, action_json=action_json, detail=f"planned intent {kind}"))
+                action_json = {"action": "jump", "jump_chain": f"MPFO_{cport}", "whitelist_required": True}
+            elif kind == "customer_whitelist_reject":
+                action_json = {"action": "REJECT", "reject_with": "tcp-reset", "whitelist_default_deny": True}
+            elif is_nat:
+                action_json = {"action": "DNAT", "target_backend": backend_port, "target_backend_port": backend_port}
+                if customer.get("backend_target_host"):
+                    action_json["target_backend_host"] = str(customer.get("backend_target_host"))
+            plan.rules.append(FirewallRuleIntent(id=f"{customer_key}:{kind}", table=table, chain=chain, rule_key=f"mpf:{customer_key}:{kind}", rule_kind=kind, priority=100 + i, lane=lane_name, customer_key=customer_key, customer_id=customer.get("id"), customer_port=cport, backend_port=backend_port, accounting_role="customer_usage" if "accounting" in kind else None, match_json=match_json, action_json=action_json, detail=f"source-backed executable intent {kind}"))
         plan.changes.append(FirewallPlanChange(kind="create", object_type="rule_intent", object_id=f"customer:{customer_key}", detail="planned structured customer intents"))
     desired_chain_keys = {(c.table, c.chain) for c in plan.chains}
     for r in plan.rules:

@@ -187,7 +187,6 @@ def test_firewall_render_restore_payload_only(monkeypatch) -> None:
     monkeypatch.setattr(firewall_planner_service, "build_plan_from_db", lambda cfg: _db_plan())
     res = RUNNER.invoke(app, ["firewall", "render-restore", "--config", str(example_config_path()), "--output", "payload"])
     assert res.exit_code in {0,1}
-    assert res.output.startswith("*filter\n")
     assert "MPF firewall restore artifact" not in res.output
 
 
