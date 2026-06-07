@@ -65,13 +65,20 @@ class ControlledArtifactReapplyAuditRepo:
                     ("iptables", pre_iptables_save, _sha(pre_iptables_save), operator, reason),
                 )
                 snapshot_before_id = cur.fetchone()[0]
+                backup_metadata = {
+                    "package_id": package.get("package_id"),
+                    "backup_manifest_sha256": manifest_hash,
+                    "canonical_package_sha256": package.get("package_sha256"),
+                    "payload_sha256": package.get("payload_sha256"),
+                    "backup_dir": backup_dir,
+                }
                 cur.execute(
                     """
-                    insert into backups (backup_type, path, checksum, status, created_by, verified_at, verify_message)
-                    values (%s, %s, %s, %s, %s, now(), %s)
+                    insert into backups (backup_type, path, checksum, status, created_by, verified_at, error_message, metadata_json)
+                    values (%s, %s, %s, %s, %s, now(), %s, %s::jsonb)
                     returning id
                     """,
-                    ("firewall", backup_dir, manifest_hash, "prepared", operator, "phase11 controlled artifact reapply backup prepared"),
+                    ("firewall", backup_dir, manifest_hash, "prepared", operator, None, _json(backup_metadata)),
                 )
                 backup_id = cur.fetchone()[0]
                 cur.execute(
