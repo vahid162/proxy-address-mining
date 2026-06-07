@@ -18,14 +18,14 @@ def test_render_empty_deterministic_sections() -> None:
 
 
 def test_active_customer_renders_nat_redirect_in_nat_pre() -> None:
-    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy()}])
+    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy(), "backend_target_host": "10.10.10.10"}])
     c = render_restore_contract(p)
     assert "-A MPF_NAT_PRE -p tcp --dport 20001" in c.restore_payload.payload
     assert '--comment "mpf:c1:customer_nat_redirect"' in c.restore_payload.payload
 
 
 def test_payload_hash_and_ordering_deterministic() -> None:
-    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy()}])
+    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy(), "backend_target_host": "10.10.10.10"}])
     c1 = render_restore_contract(p)
     c2 = render_restore_contract(p)
     assert c1.restore_payload.payload == c2.restore_payload.payload
@@ -39,7 +39,7 @@ def test_paused_placeholder_is_comment_only() -> None:
 
 
 def test_validation_fails_for_plan_errors() -> None:
-    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy()}])
+    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"customer_key": "x", "lane": "LTC", "port": 20001, "status": "active", "policy": _policy(), "backend_target_host": "10.10.10.10"}])
     c = render_restore_contract(p)
     assert c.renderable is False
     assert c.restore_payload is None

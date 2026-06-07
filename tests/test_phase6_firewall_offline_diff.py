@@ -10,7 +10,7 @@ def _policy() -> dict:
 def _plan(snapshot: FirewallLiveSnapshot | None = None):
     return build_plan(
         lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}],
-        customers=[{"customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy()}],
+        customers=[{"customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy(), "backend_target_host": "10.10.10.10"}],
         live_snapshot=snapshot,
     )
 
@@ -41,7 +41,7 @@ COMMIT
 *nat
 :MPF_NAT_PRE - [0:0]
 :MPF_NAT_POST - [0:0]
--A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:c1:customer_nat_redirect" -j DNAT --to-destination 127.0.0.1:60010
+-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:c1:customer_nat_redirect" -j DNAT --to-destination 10.10.10.10:60010
 COMMIT
 """
     )
@@ -54,7 +54,7 @@ def test_file_backed_snapshot_wrong_nat_target_sets_error_and_not_applyable() ->
         """
 *nat
 :MPF_NAT_PRE - [0:0]
--A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:c1:customer_nat_redirect" -j DNAT --to-destination 127.0.0.1:60011
+-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:c1:customer_nat_redirect" -j DNAT --to-destination 10.10.10.10:60011
 COMMIT
 """
     )

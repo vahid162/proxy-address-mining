@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.250
+- Implemented source-backed Phase 11 controlled artifact renderer, live classification, production adapters, gated execution wiring, and focused tests without farm5 mutation.
+
 ## 0.1.249
 
 - Add controlled Phase 11 two-customer artifact reapply resolver and read-only plan/package/verify/evidence surfaces, while keeping production execute fail-closed until real live preflight, lock, backup, PostgreSQL metadata, rollback, and verification adapters are implemented and tested.

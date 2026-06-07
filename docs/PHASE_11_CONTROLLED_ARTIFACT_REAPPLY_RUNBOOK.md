@@ -1,6 +1,6 @@
-# Phase 11 Controlled Artifact Reapply Runbook (0.1.249)
+# Phase 11 Controlled Artifact Reapply Runbook (0.1.250)
 
-Version `0.1.249` implements controlled artifact reapply read-only package evidence surfaces for exactly the accepted BTC customers `canary-btc-001:20001` and `limited-btc-001:20101`.
+Version `0.1.250` implements controlled artifact reapply source-backed renderer and production adapter surfaces for exactly the accepted BTC customers `canary-btc-001:20001` and `limited-btc-001:20101`.
 
 No farm5 mutation was performed by this PR. Package generation is read-only, but this version cannot produce a READY package because desired firewall artifact semantics remain unresolved. Server sync for READY package collection must wait for the next runtime-forward PR that implements the source-backed renderer and production adapters.
 
@@ -24,6 +24,9 @@ The execution path must not restart Docker, call systemd, flush conntrack, mutat
 
 ## Current progression
 
-The next step before server sync or execution is `implement_source_backed_controlled_artifact_renderer_and_production_adapters`. Current flags are `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=false`, `production_execution_available=false`, and `live_ready_package_available=false`.
+The next step before execution is `sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5`. Current flags are `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=true`, `production_execution_available=true`, `live_ready_package_available=false`, and `controlled_artifact_reapply_package_evidence_ready=false`.
 
 `restart_autostart_proof` remains `missing_or_partial`; Full CLI Production Operations remains unaccepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`; Phase 12, worker enforcement, UI, Telegram, and timer/daemon automation remain blocked.
+
+
+0.1.250 controlled runtime-forward note: the source-backed controlled artifact renderer and production adapters are implemented for exactly `canary-btc-001/btc/20001` and `limited-btc-001/btc/20101`. No farm5 mutation was performed, no live `iptables-restore` was executed during PR development or CI, and no READY farm5 package has been collected. Progression is now `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=true`, `production_execution_available=true`, `live_ready_package_available=false`, and `controlled_artifact_reapply_package_evidence_ready=false`. The exact next step is `sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5`; server sync is allowed only for read-only package/evidence collection first, and controlled execution requires separate package review. `restart_autostart_proof` remains `missing_or_partial`; Full CLI Production Operations remains unaccepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`; Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.

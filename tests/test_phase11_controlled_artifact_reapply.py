@@ -120,12 +120,17 @@ def test_backend_resolver_blocks_invalid_ip_classes_and_recreation_changes_finge
     assert target(cid="old")["target_fingerprint"] != target(cid="new")["target_fingerprint"]
 
 
-def test_plan_fails_closed_until_policy_artifact_semantics_are_resolved():
+def test_plan_renders_source_backed_executable_artifacts_ready_when_missing():
     plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), iptables_save_text="", ip6tables_save_text="", phase_status_text=PHASE)
-    assert plan["final_decision"] == PACKAGE_BLOCKED
-    assert "controlled_policy_artifact_semantics_unresolved" in plan["blockers"]
+    assert plan["final_decision"] == PACKAGE_READY
+    assert plan["blockers"] == []
+    assert "--connlimit-above" in plan["payload"]
+    assert "--hashlimit-above" in plan["payload"]
+    assert "--to-destination 172.19.0.5:60010" in plan["payload"]
+    assert "127.0.0.1" not in plan["payload"]
+    assert "172.18.0.3" not in plan["payload"]
     pkg = build_package_from_plan(plan)
-    assert pkg["final_decision"] == PACKAGE_BLOCKED
+    assert pkg["final_decision"] == PACKAGE_READY
 
 
 def test_strict_phase_gate_and_scope_policy_collisions_block():
@@ -204,11 +209,13 @@ def test_empty_backup_snapshot_and_audit_unavailable_block_before_apply(tmp_path
     assert "real_postgresql_operational_metadata_repo_required" in result["blockers"]
 
 
-def test_whitelist_and_policy_values_remain_source_backed_but_semantics_block_ready():
+def test_whitelist_and_policy_values_are_source_backed_and_rendered():
     plan = build_plan(lanes=lanes(), customers=customers(whitelist=True), backend_target=target(), phase_status_text=PHASE)
     planner_customers = plan["desired_state"]["planner"]["rules"]
     assert any(rule.get("rule_kind") == "customer_whitelist_allow" for rule in planner_customers)
-    assert "controlled_policy_artifact_semantics_unresolved" in plan["blockers"]
+    assert plan["blockers"] == []
+    assert "-s 203.0.113.10/32" in plan["payload"]
+    assert "-s 203.0.113.11/32" in plan["payload"]
 
 
 def test_current_artifact_gate_requires_explicit_target_and_blocks_stale_default():
@@ -243,8 +250,8 @@ def test_classifier_accepts_full_expected_chain_set_and_nat_post_table():
         "filter:-N MPFC_20101",
         "filter:-N MPFO_20101",
     }
-    assert set(desired["artifact_lines"]) == expected
-    assert "nat:-N MPF_NAT_POST" in desired["artifact_lines"]
+    assert expected.issubset(set(desired["artifact_lines"]))
+    assert any("customer_nat_redirect" in line and "172.19.0.5:60010" in line for line in desired["artifact_lines"])
     classification = classify_controlled_artifacts(
         iptables_save_text=_iptables_from_artifacts(desired["artifact_lines"]),
         ip6tables_save_text="",
@@ -265,7 +272,7 @@ def test_classifier_blocks_extra_unknown_chain_known_customer_unknown_action_and
     duplicated_chain = _iptables_from_artifacts([desired["artifact_lines"][0], desired["artifact_lines"][0]])
     assert "duplicate_controlled_artifact_detected" in classify_controlled_artifacts(iptables_save_text=duplicated_chain, ip6tables_save_text="", desired_state=desired)["blockers"]
     duplicated_rule = '-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.19.0.5:60010\n' * 2
-    assert "unknown_mpf_artifacts_detected" in classify_controlled_artifacts(iptables_save_text=duplicated_rule, ip6tables_save_text="", desired_state=desired)["blockers"]
+    assert "duplicate_controlled_artifact_detected" in classify_controlled_artifacts(iptables_save_text=duplicated_rule, ip6tables_save_text="", desired_state=desired)["blockers"]
 
 
 def _executable_live_plan(pkg):
@@ -352,7 +359,7 @@ def _execute_with_production_fakes(pkg, *, runner=None, live_plan_builder=None, 
         reason="reason",
         execute=True,
         yes=True,
-        env={},
+        env={"MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY":"allow", "MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE":"allow"},
         current_hostname=pkg["hostname"],
         live_plan_builder=live_plan_builder or (lambda: _executable_live_plan(pkg)),
         runner=runner or ProductionRunner(),
@@ -391,7 +398,7 @@ def test_executor_apply_success_live_verification_exception_is_post_apply_failur
 
     def live_plan_builder():
         calls["count"] += 1
-        if calls["count"] >= 3:
+        if calls["count"] >= 4:
             raise RuntimeError("verification source failed")
         return _executable_live_plan(pkg)
 

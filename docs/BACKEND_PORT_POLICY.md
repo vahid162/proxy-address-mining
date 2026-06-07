@@ -1,6 +1,6 @@
 # Backend Port Policy
 
-0.1.249 note: controlled artifact reapply resolves the current BTC backend target from the running `mpf-forwarder-btc` container on `mpf-proxy-internal`; historical Docker IPs are compatibility evidence only and are not current runtime truth. Host listener `60010` must remain local-only and public Docker publishes block execution.
+0.1.250 note: controlled artifact reapply resolves the current BTC backend target from the running `mpf-forwarder-btc` container on `mpf-proxy-internal`; historical Docker IPs are compatibility evidence only and are not current runtime truth. Host listener `60010` must remain local-only and public Docker publishes block execution.
 
 
 Status: active firewall and proxy contract
@@ -157,3 +157,6 @@ External backend exposure: OK/CRITICAL
 ```
 
 Do not collapse these into one vague backend status.
+
+
+0.1.250 controlled runtime-forward note: the source-backed controlled artifact renderer and production adapters are implemented for exactly `canary-btc-001/btc/20001` and `limited-btc-001/btc/20101`. No farm5 mutation was performed, no live `iptables-restore` was executed during PR development or CI, and no READY farm5 package has been collected. Progression is now `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=true`, `production_execution_available=true`, `live_ready_package_available=false`, and `controlled_artifact_reapply_package_evidence_ready=false`. The exact next step is `sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5`; server sync is allowed only for read-only package/evidence collection first, and controlled execution requires separate package review. `restart_autostart_proof` remains `missing_or_partial`; Full CLI Production Operations remains unaccepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`; Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.

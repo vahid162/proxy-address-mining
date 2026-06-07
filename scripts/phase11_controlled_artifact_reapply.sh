@@ -44,6 +44,9 @@ case "$MODE" in
     [[ -n "$PACKAGE_JSON" && -n "$PACKAGE_SHA256" && -n "$PACKAGE_ID" && -n "$OPERATOR" && -n "$REASON" ]] || {
       echo "execute requires --package-json, --package-sha256, --package-id, --operator, and --reason" >&2; exit 2;
     }
+    [[ "${MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY:-}" == "allow" && "${MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE:-}" == "allow" ]] || { echo "required environment gates are missing" >&2; exit 2; }
+    actual_sha="$(sha256sum "$PACKAGE_JSON" | awk '{print $1}')"
+    [[ "$actual_sha" == "$PACKAGE_SHA256" ]] || { echo "package sha256 mismatch" >&2; exit 2; }
     mpf production controlled-artifact-reapply-verify --package-json "$PACKAGE_JSON" --output json | tee "$OUT_DIR/pre-execute-verify.json" >/dev/null
     if ! python - "$OUT_DIR/pre-execute-verify.json" <<'PY'
 import json,sys
@@ -54,6 +57,8 @@ PY
       echo "verify did not pass; refusing execute" >&2
       exit 1
     fi
+    echo "About to run controlled mutation command:" >&2
+    echo "mpf production controlled-artifact-reapply-execute --package-json $PACKAGE_JSON --package-sha256 $PACKAGE_SHA256 --package-id $PACKAGE_ID --operator $OPERATOR --reason <redacted> --execute --yes --output json" >&2
     mpf production controlled-artifact-reapply-execute --package-json "$PACKAGE_JSON" --package-sha256 "$PACKAGE_SHA256" --package-id "$PACKAGE_ID" --operator "$OPERATOR" --reason "$REASON" --execute --yes --output json
     ;;
   *) echo "unsupported mode: $MODE" >&2; exit 2 ;;
