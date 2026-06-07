@@ -155,6 +155,11 @@ from mpf.services import (
     phase11_restart_autostart_persistence_diagnosis_service,
     phase11_restart_autostart_persistence_fix_service,
     phase11_controlled_artifact_persistence_plan_service,
+    phase11_controlled_backend_target_service,
+    phase11_controlled_artifact_reapply_package_service,
+    phase11_controlled_artifact_reapply_executor_service,
+    phase11_controlled_artifact_reapply_verification_service,
+    phase11_controlled_artifact_reapply_evidence_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3858,6 +3863,104 @@ def production_controlled_artifact_persistence_plan(
         return
     for key, value in report.items():
         typer.echo(f"{key}: {value}")
+
+
+@production_app.command("controlled-backend-target")
+def production_controlled_backend_target(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Resolve the current controlled BTC backend target read-only."""
+
+    report = phase11_controlled_backend_target_service.build_controlled_backend_target_report(expected_version=expected_version)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-plan")
+def production_controlled_artifact_reapply_plan(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Build the read-only controlled artifact reapply plan."""
+
+    try:
+        report = phase11_controlled_artifact_reapply_package_service.run_controlled_artifact_reapply_plan(_config_path(config), expected_version=expected_version)
+    except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
+        report = {"component": "phase11_controlled_artifact_reapply_plan", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["controlled_artifact_reapply_read_only_preflight_failed"], "error": str(exc), "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-package")
+def production_controlled_artifact_reapply_package(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Build the read-only controlled artifact reapply execution package."""
+
+    try:
+        report = phase11_controlled_artifact_reapply_package_service.run_controlled_artifact_reapply_package(_config_path(config), expected_version=expected_version)
+    except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
+        report = {"component": "phase11_controlled_artifact_reapply_package", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["controlled_artifact_reapply_package_preflight_failed"], "error": str(exc), "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-execute")
+def production_controlled_artifact_reapply_execute(
+    package_json: Path = typer.Option(..., "--package-json"),
+    package_sha256: str = typer.Option(..., "--package-sha256"),
+    package_id: str = typer.Option(..., "--package-id"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    execute: bool = typer.Option(False, "--execute"),
+    yes: bool = typer.Option(False, "--yes"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Execute an operator-reviewed controlled artifact reapply package."""
+
+    try:
+        import hashlib
+        package_bytes = package_json.read_bytes()
+        package_file_sha256 = hashlib.sha256(package_bytes).hexdigest()
+        if package_file_sha256 != package_sha256:
+            raise ValueError("package_file_sha256_mismatch")
+        package = json.loads(package_bytes.decode("utf-8"))
+        if not isinstance(package, dict):
+            raise ValueError("package_json_must_be_object")
+        package["__package_file_sha256"] = package_file_sha256
+    except Exception as exc:  # noqa: BLE001
+        report = {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["package_json_read_failed"], "error": str(exc), "firewall_mutation_performed": False, "iptables_restore_invoked": False}
+    else:
+        report = phase11_controlled_artifact_reapply_executor_service.execute_controlled_artifact_reapply_package(package=package, package_sha256=package_sha256, package_id=package_id, operator=operator, reason=reason, execute=execute, yes=yes, expected_version=expected_version)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-verify")
+def production_controlled_artifact_reapply_verify(
+    package_json: Path = typer.Option(..., "--package-json"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Verify a controlled artifact reapply package read-only."""
+
+    try:
+        package = json.loads(package_json.read_text(encoding="utf-8"))
+        if not isinstance(package, dict):
+            raise ValueError("package_json_must_be_object")
+        report = phase11_controlled_artifact_reapply_verification_service.build_controlled_artifact_reapply_verify_report(package=package, config_path=_config_path(config), expected_version=expected_version)
+    except Exception as exc:  # noqa: BLE001
+        report = {"component": "phase11_controlled_artifact_reapply_verification", "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_VERIFY", "blockers": ["package_json_read_failed"], "error": str(exc), "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-evidence")
+def production_controlled_artifact_reapply_evidence(output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Collect a read-only controlled artifact reapply evidence manifest."""
+
+    typer.echo(json.dumps(phase11_controlled_artifact_reapply_evidence_service.build_controlled_artifact_reapply_evidence_report(), indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("usage-report-check-operational-surface")
 def production_usage_report_check_operational_surface(

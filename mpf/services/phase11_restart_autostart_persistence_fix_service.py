@@ -275,10 +275,16 @@ def _diagnosis_has_controlled_artifact_absent(diagnosis: dict[str, object], arti
     return False
 
 
-def _artifact_execution_available(artifact_gate_report: dict[str, object] | None) -> bool:
-    if artifact_gate_report is None:
+def _artifact_capability_implemented() -> bool:
+    try:
+        from mpf.services import phase11_controlled_artifact_reapply_executor_service, phase11_controlled_artifact_reapply_package_service
+    except Exception:
         return False
-    return bool(artifact_gate_report.get("execution_package_available"))
+    return callable(getattr(phase11_controlled_artifact_reapply_package_service, "build_controlled_artifact_reapply_package_report", None)) and callable(getattr(phase11_controlled_artifact_reapply_executor_service, "execute_controlled_artifact_reapply_package", None))
+
+
+def _artifact_execution_available(artifact_gate_report: dict[str, object] | None) -> bool:
+    return bool(artifact_gate_report and artifact_gate_report.get("execution_package_available"))
 
 
 def _snapshot_summary(plan: dict[str, object]) -> dict[str, object]:
@@ -381,6 +387,7 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         safety_blockers.append("telegram_opened")
 
     controlled_artifact_reapply_required = _diagnosis_has_controlled_artifact_absent(diagnosis, artifact_gate_report) and not _unknown_mpf_artifacts_detected(diagnosis=diagnosis, artifact_gate_report=artifact_gate_report)
+    controlled_artifact_reapply_capability_implemented = _artifact_capability_implemented()
     controlled_artifact_reapply_execution_available = _artifact_execution_available(artifact_gate_report)
     if controlled_artifact_reapply_required:
         remaining_persistence_reasons.append("post_reboot_known_controlled_phase11_artifacts_absent")
@@ -400,7 +407,9 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         next_required_step = "run_restart_autostart_persistence_fix_on_farm5"
     else:
         final_decision = "NO_RUNTIME_REPAIR_REQUIRED"
-        if controlled_artifact_reapply_required and not controlled_artifact_reapply_execution_available:
+        if controlled_artifact_reapply_required and controlled_artifact_reapply_capability_implemented:
+            next_required_step = "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
+        elif controlled_artifact_reapply_required:
             next_required_step = "implement_controlled_artifact_reapply_execute_package"
         else:
             next_required_step = "collect_restart_autostart_proof_after_persistence_fix"
@@ -436,6 +445,11 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         "runtime_repair_reasons": unique_runtime_repair,
         "runtime_reconciliation_execution_allowed": runtime_execution_allowed,
         "controlled_artifact_reapply_required": controlled_artifact_reapply_required,
+        "read_only_reapply_foundation_implemented": controlled_artifact_reapply_capability_implemented,
+        "desired_artifact_semantics_complete": False,
+        "production_execution_available": False,
+        "live_ready_package_available": False,
+        "controlled_artifact_reapply_capability_implemented": controlled_artifact_reapply_capability_implemented,
         "controlled_artifact_reapply_execution_available": controlled_artifact_reapply_execution_available,
         "remaining_persistence_reasons": sorted(set(remaining_persistence_reasons)),
         "backend_public_exposure_detected": diagnosis.get("backend_public_exposure_detected") is True,

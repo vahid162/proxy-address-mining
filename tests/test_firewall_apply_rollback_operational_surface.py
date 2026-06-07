@@ -79,7 +79,7 @@ def _mock_safe_reads(monkeypatch) -> list[str]:
 
 def test_firewall_apply_rollback_operational_surface_returns_ready_without_mutation(monkeypatch) -> None:
     calls = _mock_safe_reads(monkeypatch)
-    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT)
+    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT, expected_backend_target="172.18.0.3:60010")
     assert report["component"] == "controlled_firewall_apply_rollback_operational_surface"
     assert report["status"] == "READY"
     assert report["final_decision"] == "FIREWALL_APPLY_ROLLBACK_SURFACE_READY"
@@ -136,7 +136,7 @@ def test_firewall_apply_rollback_operational_surface_returns_ready_without_mutat
 
 def test_firewall_apply_rollback_surface_blocks_on_db_failure(monkeypatch) -> None:
     monkeypatch.setattr(surface_service.db_service, "status", lambda _config: SimpleNamespace(ok=False, message="down"))
-    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT)
+    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT, expected_backend_target="172.18.0.3:60010")
     assert report["status"] == "BLOCKED"
     assert report["blockers"] == ["database_read_failed"]
     assert report["mutation_performed"] is False
@@ -147,13 +147,13 @@ def test_firewall_apply_rollback_surface_blocks_on_unsafe_config(monkeypatch) ->
     _mock_safe_reads(monkeypatch)
     config = cfg()
     config.firewall.apply_mode = "manual_apply"  # type: ignore[assignment]
-    report = surface_service.build_firewall_apply_rollback_operational_surface_report(config, snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT)
+    report = surface_service.build_firewall_apply_rollback_operational_surface_report(config, snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT, expected_backend_target="172.18.0.3:60010")
     assert report["status"] == "BLOCKED"
     assert "firewall_apply_mode_not_plan_only" in report["blockers"]
 
     config = cfg()
     config.proxy.runtime_activation_allowed = True
-    report = surface_service.build_firewall_apply_rollback_operational_surface_report(config, snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT)
+    report = surface_service.build_firewall_apply_rollback_operational_surface_report(config, snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT, expected_backend_target="172.18.0.3:60010")
     assert report["status"] == "BLOCKED"
     assert "proxy_runtime_activation_allowed_enabled" in report["blockers"]
 
@@ -171,6 +171,7 @@ def test_firewall_apply_rollback_surface_blocks_on_artifact_gate_risks(monkeypat
     report = surface_service.build_firewall_apply_rollback_operational_surface_report(
         cfg(),
         snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT,
+        expected_backend_target="172.18.0.3:60010",
         ip6tables_save_text=":MPF6_BAD - [0:0]",
     )
     assert report["status"] == "BLOCKED"
@@ -192,7 +193,7 @@ def test_firewall_apply_rollback_surface_blocks_for_forbidden_public_exposure(mo
             "forbidden_public_runtime_exposure": True,
         },
     )
-    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT)
+    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT, expected_backend_target="172.18.0.3:60010")
     assert report["status"] == "BLOCKED"
     assert report["forbidden_public_runtime_exposure"] is True
     assert "forbidden_public_runtime_exposure_detected" in report["blockers"]
@@ -234,7 +235,7 @@ def test_default_subprocess_empty_snapshot_blocks(monkeypatch) -> None:
 def test_phase_status_path_is_repo_root_anchored(monkeypatch, tmp_path) -> None:
     _mock_safe_reads(monkeypatch)
     monkeypatch.chdir(tmp_path)
-    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT)
+    report = surface_service.build_firewall_apply_rollback_operational_surface_report(cfg(), snapshot_reader=lambda: KNOWN_CONTROLLED_SNAPSHOT, expected_backend_target="172.18.0.3:60010")
     assert report["status"] == "READY"
     assert report["controlled_artifact_gate_status"] == "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS"
     assert surface_service._PHASE_STATUS_PATH.is_absolute()

@@ -1,5 +1,8 @@
 # Backend Port Policy
 
+0.1.249 note: controlled artifact reapply resolves the current BTC backend target from the running `mpf-forwarder-btc` container on `mpf-proxy-internal`; historical Docker IPs are compatibility evidence only and are not current runtime truth. Host listener `60010` must remain local-only and public Docker publishes block execution.
+
+
 Status: active firewall and proxy contract
 
 Backend ports are internal service ports used by MPF lanes.

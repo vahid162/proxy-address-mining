@@ -324,6 +324,8 @@ public_ip:<ui_port>
 Docker published UI without localhost bind
 ```
 
+0.1.249 controlled artifact reapply note: plan/package/verify/evidence defaults remain read-only, stale/unknown/duplicate/public artifacts fail closed, and public production execute remains blocked before `iptables-restore` until real live-preflight/lock/backup/audit/rollback/verification adapters are implemented and tested. No farm5 mutation was performed by the PR.
+
 ## Firewall Plan
 
 `mpf firewall plan` must produce:
