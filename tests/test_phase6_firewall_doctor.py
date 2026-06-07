@@ -16,7 +16,8 @@ def test_clean_plan_verdict_ok() -> None:
 
 
 def test_warnings_verdict_warn() -> None:
-    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy("whitelist")}], planner_customer_source="db_readonly", db_customer_input_loaded=True)
+    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy()}], planner_customer_source="db_readonly", db_customer_input_loaded=True)
+    p.warnings.append(FirewallPlanMessage(code="test_warning", message="x", severity="warning"))
     r = build_doctor_report(p).to_dict()
     assert r["final_verdict"] == "WARN"
 

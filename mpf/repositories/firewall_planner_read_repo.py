@@ -55,15 +55,33 @@ def load_firewall_planner_input(config: MPFConfig) -> FirewallPlannerInputLoadRe
         {"name": str(row["name"]), "enabled": str(row["enabled"]).lower() in {"true", "t", "1"}, "backend_port": int(row["backend_port"])}
         for row in lanes_result.rows
     ]
+    pins_sql = """
+        select customer_id, id, ip_cidr, enabled
+        from customer_ip_pins
+        order by customer_id, id
+    """
+    pins_result = query_database(config, pins_sql)
+    if not pins_result.ok:
+        return FirewallPlannerInputLoadResult(ok=False, lanes=[], customers=[], message=f"failed to load customer_ip_pins: {pins_result.message}")
+    pins_by_customer: dict[int, list[dict]] = {}
+    for row in pins_result.rows:
+        cid = int(row["customer_id"])
+        pins_by_customer.setdefault(cid, []).append({"id": int(row["id"]), "ip_cidr": str(row["ip_cidr"]), "enabled": str(row.get("enabled")).lower() in {"true", "t", "1"}})
+
     customers: list[dict] = []
     for row in customers_result.rows:
+        cid = int(row["id"])
+        enabled_pins = [pin for pin in pins_by_customer.get(cid, []) if pin.get("enabled")]
         customers.append(
             {
-                "id": int(row["id"]),
+                "id": cid,
                 "customer_key": row.get("customer_key"),
                 "lane": str(row["lane"]),
                 "port": int(row["port"]),
                 "status": str(row["status"]),
+                "ip_pins": pins_by_customer.get(cid, []),
+                "ip_whitelist": [pin["ip_cidr"] for pin in enabled_pins],
+                "ip_pin_identity": [{"id": pin["id"], "ip_cidr": pin["ip_cidr"]} for pin in enabled_pins],
                 "policy": {
                     "miners": int(row["miners"]) if row.get("miners") is not None else None,
                     "farms": int(row["farms"]) if row.get("farms") is not None else None,

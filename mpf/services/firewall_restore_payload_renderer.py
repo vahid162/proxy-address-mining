@@ -25,6 +25,7 @@ _SUPPORTED_KINDS = {
     "customer_accounting_in",
     "customer_accounting_out",
     "customer_whitelist_allow",
+    "customer_whitelist_reject",
     "customer_nat_redirect",
     "customer_pause_reject",
     "customer_expired_reject",
@@ -123,6 +124,8 @@ def _render_rule_line(rule: Any) -> FirewallRestoreRule:
         if not jump.startswith("MPFC_"):
             raise ValueError("dispatch_jump_invalid")
         line = f'{_base(rule)} -j {jump}'
+    elif kind == "customer_whitelist_reject":
+        line = f'{_base(rule)} -j REJECT --reject-with tcp-reset'
     elif kind == "customer_connlimit_reject":
         maxconn = _require_int(rule.match_json.get("connlimit_above"), "maxconn")
         line = f'{_base(rule)} -m connlimit --connlimit-above {maxconn} --connlimit-mask 32 -j REJECT --reject-with tcp-reset'
@@ -141,7 +144,8 @@ def _render_rule_line(rule: Any) -> FirewallRestoreRule:
         lines = []
         for source in sources:
             network = ipaddress.ip_network(str(source), strict=False)
-            lines.append(f'{_base(rule)} -s {network} -j RETURN')
+            jump = str(rule.action_json.get("jump_chain") or f"MPFO_{rule.customer_port}")
+            lines.append(f'{_base(rule)} -s {network} -j {jump}')
         line = "\n".join(lines)
     elif kind in {"customer_accounting_in", "customer_accounting_out"}:
         line = f'{_base(rule)} -j RETURN'
@@ -164,8 +168,8 @@ def render_restore_contract(plan: FirewallPlanResult) -> FirewallApplyContract:
     contract.errors.extend(plan.errors)
     contract.errors.extend(validation.errors)
     contract.renderable = validation.renderable
-    contract.applyable = False
-    contract.iptables_restore_allowed = False
+    contract.applyable = validation.renderable and any(r.customer_key for r in plan.rules) and not any(r.rule_kind in {"customer_pause_reject", "customer_expired_reject"} for r in plan.rules)
+    contract.iptables_restore_allowed = contract.applyable
     if not validation.renderable:
         return contract
 

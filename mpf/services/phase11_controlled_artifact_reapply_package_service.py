@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -12,12 +13,53 @@ from mpf.services.phase11_controlled_artifact_reapply_core import build_package_
 from mpf.services.phase11_controlled_backend_target_service import build_controlled_backend_target_report
 
 
-def _cmd(argv: list[str]) -> str:
+@dataclass(frozen=True)
+class FirewallSnapshotCommandResult:
+    argv: list[str]
+    command: str
+    returncode: int
+    stdout: str
+    stderr: str
+
+    @property
+    def ok(self) -> bool:
+        return self.returncode == 0
+
+
+def _cmd(argv: list[str]) -> FirewallSnapshotCommandResult:
     try:
         r = subprocess.run(argv, shell=False, check=False, capture_output=True, text=True)
-    except FileNotFoundError:
-        return ""
-    return r.stdout if r.returncode == 0 else ""
+    except FileNotFoundError as exc:
+        return FirewallSnapshotCommandResult(argv=argv, command=argv[0], returncode=127, stdout="", stderr=str(exc))
+    return FirewallSnapshotCommandResult(argv=argv, command=argv[0], returncode=r.returncode, stdout=r.stdout, stderr=r.stderr)
+
+
+def _snapshot_structure_blockers(result: FirewallSnapshotCommandResult, *, family: str) -> list[str]:
+    failed = f"{family}_save_read_failed"
+    invalid = f"{family}_snapshot_empty_or_invalid"
+    if not result.ok:
+        return [failed]
+    text = result.stdout.strip()
+    if not text:
+        return [invalid]
+    tables: list[str] = []
+    open_table = None
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("*"):
+            if open_table is not None:
+                return [invalid]
+            open_table = line[1:]
+            tables.append(open_table)
+        elif line == "COMMIT":
+            if open_table is None:
+                return [invalid]
+            open_table = None
+    if open_table is not None or not tables:
+        return [invalid]
+    return []
 
 
 def _phase_text() -> str:
@@ -41,11 +83,16 @@ def run_controlled_artifact_reapply_plan(config_path: Path = DEFAULT_CONFIG_PATH
     if not loaded.ok:
         return {"component": "phase11_controlled_artifact_reapply_plan", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["postgresql_planner_input_read_failed"], "message": loaded.message, "mutation_performed": False}
     backend = build_controlled_backend_target_report(expected_version=expected_version)
-    iptables_save_text = _cmd(["iptables-save"])
-    ip6tables_save_text = _cmd(["ip6tables-save"])
-    report = build_controlled_artifact_reapply_plan_report(lanes=loaded.lanes, customers=loaded.customers, backend_target=backend, iptables_save_text=iptables_save_text, ip6tables_save_text=ip6tables_save_text, phase_status_text=_phase_text(), expected_version=expected_version)
-    report["iptables_save_text"] = iptables_save_text
-    report["ip6tables_save_text"] = ip6tables_save_text
+    iptables_result = _cmd(["iptables-save"])
+    ip6tables_result = _cmd(["ip6tables-save"])
+    snapshot_blockers = [*_snapshot_structure_blockers(iptables_result, family="iptables"), *_snapshot_structure_blockers(ip6tables_result, family="ip6tables")]
+    report = build_controlled_artifact_reapply_plan_report(lanes=loaded.lanes, customers=loaded.customers, backend_target=backend, iptables_save_text=iptables_result.stdout, ip6tables_save_text=ip6tables_result.stdout, phase_status_text=_phase_text(), expected_version=expected_version)
+    report["iptables_save_text"] = iptables_result.stdout
+    report["ip6tables_save_text"] = ip6tables_result.stdout
+    report["firewall_snapshot_commands"] = {"iptables-save": iptables_result.__dict__, "ip6tables-save": ip6tables_result.__dict__}
+    if snapshot_blockers:
+        report["blockers"] = sorted(set([*report.get("blockers", []), *snapshot_blockers]))
+        report["final_decision"] = "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
     return report
 
 

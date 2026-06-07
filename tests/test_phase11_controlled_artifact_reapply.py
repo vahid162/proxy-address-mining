@@ -58,9 +58,12 @@ class Reach:
     def connect_ok(self, host, port): return self.ok
 
 
-def target(ip="172.19.0.5", cid="abc", *, ss_stdout=None):
+def target(ip="172.19.0.5", cid="abc", *, ss_stdout=None, filter_proven=True):
     runner = Runner(container(ip, cid=cid), ss_stdout=ss_stdout) if ss_stdout is not None else Runner(container(ip, cid=cid))
-    return ControlledBackendTargetResolver(runner=runner, reachability=Reach(), hostname="farm5").resolve()
+    report = ControlledBackendTargetResolver(runner=runner, reachability=Reach(), hostname="farm5").resolve()
+    if filter_proven:
+        report["filter_packet_path"] = "docker_user_forward_verified"
+    return report
 
 
 def lanes(extra_collision=False):
@@ -120,7 +123,10 @@ def test_backend_resolver_blocks_invalid_ip_classes_and_recreation_changes_finge
     assert target(cid="old")["target_fingerprint"] != target(cid="new")["target_fingerprint"]
 
 
-def test_plan_renders_source_backed_executable_artifacts_ready_when_missing():
+def test_plan_blocks_without_verified_filter_packet_path_and_ready_with_proof():
+    unresolved = build_plan(lanes=lanes(), customers=customers(), backend_target=target(filter_proven=False), iptables_save_text="", ip6tables_save_text="", phase_status_text=PHASE)
+    assert "controlled_filter_packet_path_unresolved" in unresolved["blockers"]
+    assert unresolved["final_decision"] == PACKAGE_BLOCKED
     plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), iptables_save_text="", ip6tables_save_text="", phase_status_text=PHASE)
     assert plan["final_decision"] == PACKAGE_READY
     assert plan["blockers"] == []
@@ -341,13 +347,15 @@ class ProductionMetadata:
         self.fail_result = fail_result
         self.writes = []
 
-    def record_intent(self, package, operator, reason):
-        self.writes.append(("intent", operator, reason))
+    def record_intent(self, package, operator, reason, **kwargs):
+        self.writes.append(("intent", operator, reason, kwargs))
+        return {"firewall_apply_id": 1, "backup_id": 2}
 
-    def record_result(self, package, decision):
-        self.writes.append(("result", decision))
+    def record_result(self, package, decision, **kwargs):
+        self.writes.append(("result", decision, kwargs))
         if self.fail_result:
             raise RuntimeError("metadata result failed")
+        return {"snapshot_after_id": 3}
 
 
 def _execute_with_production_fakes(pkg, *, runner=None, live_plan_builder=None, metadata=None):
@@ -440,3 +448,26 @@ def test_public_verification_service_builds_read_only_live_plan(monkeypatch):
     assert report["live_plan_source"] == "fresh_read_only_preflight"
     assert "controlled_policy_artifact_semantics_unresolved" in report["blockers"]
     assert report["final_decision"] == "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_VERIFY"
+
+
+def test_executor_generated_ready_package_verifies_post_apply_exact_present_no_reapply():
+    pre_plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), iptables_save_text="*filter\nCOMMIT\n", ip6tables_save_text="*filter\nCOMMIT\n", phase_status_text=PHASE)
+    pre_plan["iptables_save_text"] = "*filter\nCOMMIT\n"
+    pre_plan["ip6tables_save_text"] = "*filter\nCOMMIT\n"
+    assert pre_plan["final_decision"] == PACKAGE_READY
+    pkg = build_package_from_plan(pre_plan)
+    pkg["hostname"] = __import__("socket").gethostname()
+    pkg["package_sha256"] = _canonical_sha(_package_content_for_hash(pkg))
+    pkg["__package_file_sha256"] = "file-sha"
+    exact_text = _iptables_from_artifacts(pre_plan["desired_state"]["artifact_lines"])
+    post_plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), iptables_save_text=exact_text, ip6tables_save_text="*filter\nCOMMIT\n", phase_status_text=PHASE)
+    post_plan["iptables_save_text"] = exact_text
+    post_plan["ip6tables_save_text"] = "*filter\nCOMMIT\n"
+    assert post_plan["final_decision"] == "NO_CONTROLLED_ARTIFACT_REAPPLY_REQUIRED"
+    calls = {"count": 0}
+    def live_plan_builder():
+        calls["count"] += 1
+        return pre_plan if calls["count"] <= 3 else post_plan
+    result = _execute_with_production_fakes(pkg, live_plan_builder=live_plan_builder)
+    assert result["final_decision"] == "CONTROLLED_ARTIFACT_REAPPLY_EXECUTED_PENDING_FARM5_EVIDENCE_REVIEW"
+    assert result["rollback_required"] is False

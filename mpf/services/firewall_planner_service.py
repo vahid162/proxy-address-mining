@@ -184,9 +184,13 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
             FirewallChainIntent(id=f"filter:MPFC_{cport}", table="filter", chain=f"MPFC_{cport}", owner="mpf", purpose="customer_filter", lane=lane_name, customer_key=customer_key, customer_port=cport, group="customer"),
             FirewallChainIntent(id=f"filter:MPFO_{cport}", table="filter", chain=f"MPFO_{cport}", owner="mpf", purpose="customer_policy", lane=lane_name, customer_key=customer_key, customer_port=cport, group="customer"),
         ])
-        kinds = ["customer_dispatch", "customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_accounting_out", "customer_nat_redirect"]
+        kinds = ["customer_dispatch"]
         if policy.get("ips_mode") == "whitelist":
-            kinds.append("customer_whitelist_allow")
+            kinds.extend(["customer_whitelist_allow", "customer_whitelist_reject"])
+        kinds.extend(["customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_nat_redirect"])
+        if policy.get("accounting_out_required") is True:
+            kinds.append("customer_accounting_out")
+        if policy.get("ips_mode") == "whitelist":
             whitelist = policy.get("ip_whitelist") or customer.get("ip_whitelist") or []
             if not whitelist:
                 plan.warnings.append(FirewallPlanMessage(code="whitelist_missing_sources", message=f"customer {customer_key} ips_mode=whitelist but no whitelist sources provided in planner input", severity="warning"))
@@ -200,10 +204,12 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
                 chain = "MPF_CUSTOMERS"
                 action_json = {"action": "jump", "jump_chain": f"MPFC_{cport}"}
             elif kind == "customer_connlimit_reject":
+                chain = f"MPFO_{cport}"
                 match_json["connlimit_above"] = maxconn
                 match_json["connlimit_mask"] = 32
                 action_json = {"action": "REJECT", "reject_with": "tcp-reset"}
             elif kind == "customer_hashlimit_reject":
+                chain = f"MPFO_{cport}"
                 match_json.update({"hashlimit_rate_per_min": rate_per_min, "hashlimit_burst": burst, "hashlimit_mode": "srcip", "hashlimit_name": _stable_hashlimit_name(customer_key, cport)})
                 action_json = {"action": "REJECT", "reject_with": "tcp-reset"}
             elif kind == "customer_accounting_in":
@@ -214,11 +220,15 @@ def build_plan(*, lanes: list[dict], customers: list[dict], backend_exposed: boo
                 action_json = {"action": "RETURN", "accounting_role": "outgoing"}
             elif kind == "customer_whitelist_allow":
                 try:
-                    whitelist = _normalized_sources(policy.get("ip_whitelist") or customer.get("ip_whitelist") or [])
+                    whitelist = _normalized_sources(customer.get("ip_whitelist") or [])
                 except ValueError as exc:
                     plan.errors.append(FirewallPlanMessage(code="invalid_whitelist_source", message=f"customer {customer_key} whitelist invalid: {exc}", severity="error")); continue
+                if not whitelist:
+                    plan.errors.append(FirewallPlanMessage(code="whitelist_missing_sources", message=f"customer {customer_key} ips_mode=whitelist but no enabled customer_ip_pins were loaded", severity="error")); continue
                 match_json["sources"] = whitelist
-                action_json = {"action": "RETURN", "whitelist_required": True}
+                action_json = {"action": "jump", "jump_chain": f"MPFO_{cport}", "whitelist_required": True}
+            elif kind == "customer_whitelist_reject":
+                action_json = {"action": "REJECT", "reject_with": "tcp-reset", "whitelist_default_deny": True}
             elif is_nat:
                 action_json = {"action": "DNAT", "target_backend": backend_port, "target_backend_port": backend_port}
                 if customer.get("backend_target_host"):

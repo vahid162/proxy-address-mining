@@ -69,3 +69,29 @@ def test_render_payload_blocks_forbidden_operations_and_is_deterministic():
     assert b1 == []
     _, _, blockers = render_payload(["raw:-F INPUT"])
     assert "payload_table_not_allowed" in blockers
+
+
+def test_payload_declares_chains_before_references_and_whitelist_denies_non_members():
+    plan = _plan()
+    payload = plan["payload"]
+    lines = payload.splitlines()
+    positions = {line: idx for idx, line in enumerate(lines)}
+    assert positions["-N MPF_NAT_PRE"] < next(i for i, line in enumerate(lines) if line.startswith("-A PREROUTING") and "MPF_NAT_PRE" in line)
+    assert positions["-N MPF_INPUT"] < next(i for i, line in enumerate(lines) if line.startswith("-A INPUT") and "MPF_INPUT" in line)
+    assert positions["-N MPFC_20001"] < next(i for i, line in enumerate(lines) if line.startswith("-A MPF_CUSTOMERS") and "MPFC_20001" in line)
+    allow_idx = next(i for i, line in enumerate(lines) if "customer_whitelist_allow" in line and "203.0.113.10/32" in line)
+    deny_idx = next(i for i, line in enumerate(lines) if "customer_whitelist_reject" in line and "MPFC_20001" in line)
+    conn_idx = next(i for i, line in enumerate(lines) if "customer_connlimit_reject" in line and "MPFO_20001" in line)
+    assert allow_idx < deny_idx < conn_idx
+    assert "customer_whitelist_reject" in payload
+    assert "-j REJECT --reject-with tcp-reset" in payload
+
+
+def test_invalid_whitelist_cidr_blocks_and_pin_change_drifts_package_identity():
+    bad = build_plan(lanes=lanes(), customers=customers(whitelist=True)[:1] + [{**customers(whitelist=True)[1], "ip_whitelist": ["not-a-cidr"]}], backend_target=target(), phase_status_text=PHASE)
+    assert any(str(blocker).startswith("planner_error:invalid_whitelist_source") for blocker in bad["blockers"])
+    a = build_plan(lanes=lanes(), customers=customers(whitelist=True), backend_target=target(), phase_status_text=PHASE)
+    changed = customers(whitelist=True)
+    changed[0] = {**changed[0], "ip_whitelist": ["203.0.113.10/32", "203.0.113.20/32"], "ip_pin_identity": [{"id": 1, "ip_cidr": "203.0.113.10/32"}, {"id": 2, "ip_cidr": "203.0.113.20/32"}]}
+    b = build_plan(lanes=lanes(), customers=changed, backend_target=target(), phase_status_text=PHASE)
+    assert a["db_customer_policy_snapshot_hash"] != b["db_customer_policy_snapshot_hash"]

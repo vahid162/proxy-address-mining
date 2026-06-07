@@ -14,9 +14,9 @@ def test_base_chain_intents_present() -> None:
 
 
 def test_active_customer_generates_structured_rule_intents() -> None:
-    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy("whitelist")}])
+    p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "c1", "lane": "BTC", "port": 20001, "status": "active", "policy": _policy("whitelist"), "ip_whitelist": ["203.0.113.10/32"]}])
     kinds = {r.rule_kind for r in p.rules if r.customer_key == "c1"}
-    assert {"customer_dispatch", "customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_accounting_out", "customer_nat_redirect", "customer_whitelist_allow"} <= kinds
+    assert {"customer_dispatch", "customer_connlimit_reject", "customer_hashlimit_reject", "customer_accounting_in", "customer_nat_redirect", "customer_whitelist_allow"} <= kinds
     assert p.accounting_coverage["c1"] is True
 
 
@@ -34,12 +34,10 @@ def test_paused_and_expired_generate_placeholder_only() -> None:
     assert not any(r.rule_kind == "customer_nat_redirect" and r.customer_key in {"p1", "e1"} for r in p.rules)
 
 
-def test_whitelist_missing_sources_warns_and_not_open() -> None:
+def test_whitelist_missing_sources_blocks_and_not_open() -> None:
     p = build_plan(lanes=[{"name": "BTC", "enabled": True, "backend_port": 60010}], customers=[{"id": 1, "customer_key": "w1", "lane": "BTC", "port": 22001, "status": "active", "policy": _policy("whitelist")}])
-    wl = [r for r in p.rules if r.customer_key == "w1" and r.rule_kind == "customer_whitelist_allow"][0]
-    assert wl.action_json.get("whitelist_required") is True
-    assert wl.match_json.get("sources") == []
-    assert any(w.code == "whitelist_missing_sources" for w in p.warnings)
+    assert not [r for r in p.rules if r.customer_key == "w1" and r.rule_kind == "customer_whitelist_allow"]
+    assert any(e.code == "whitelist_missing_sources" for e in p.errors)
 
 
 def test_open_customer_has_no_whitelist_intent() -> None:

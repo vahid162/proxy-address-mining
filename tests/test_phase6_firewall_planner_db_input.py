@@ -13,6 +13,8 @@ def test_db_repo_maps_lanes_customers_and_policy_fields(monkeypatch) -> None:
     def fake_query(config, sql):
         if "from lanes" in sql:
             return DBQueryResult(True, [{"name": "BTC", "enabled": "t", "backend_port": "60010"}], "OK")
+        if "from customer_ip_pins" in sql:
+            return DBQueryResult(True, [{"customer_id": "1", "id": "10", "ip_cidr": "203.0.113.10/32", "enabled": "t"}], "OK")
         return DBQueryResult(
             True,
             [{
