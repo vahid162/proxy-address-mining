@@ -98,9 +98,14 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
         if not isinstance(meta, dict):
             blockers.append(f"manifest_missing_file:{name}")
             continue
-        if int(meta.get("size", -1)) != len(raw[name]):
+        try:
+            recorded_size = int(meta.get("size", -1))
+        except (TypeError, ValueError):
+            blockers.append(f"file_size_schema_invalid:{name}")
+            recorded_size = -1
+        if recorded_size != len(raw[name]):
             blockers.append(f"file_size_mismatch:{name}")
-        if meta.get("sha256") != sha256_bytes(raw[name]):
+        if not isinstance(meta.get("sha256"), str) or meta.get("sha256") != sha256_bytes(raw[name]):
             blockers.append(f"file_hash_mismatch:{name}")
 
     docs: dict[str, Any] = {}
@@ -113,9 +118,17 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
         blockers.append("evidence_schema_invalid")
     if not isinstance(docs["decision.json"], dict):
         blockers.append("decision_schema_invalid")
+    if not isinstance(docs["sanitized-backend-target.json"], dict):
+        blockers.append("backend_target_schema_invalid")
+    if not isinstance(docs["sanitized-docker-network.json"], dict):
+        blockers.append("docker_network_schema_invalid")
+    if not isinstance(docs["host-network-topology.json"], dict):
+        blockers.append("host_topology_schema_invalid")
     if not isinstance(docs["packet-path-graph.json"], dict):
         blockers.append("graph_schema_invalid")
     if not isinstance(docs["parsed-firewall.json"], dict):
+        blockers.append("parsed_firewall_schema_invalid")
+    elif not isinstance(docs["parsed-firewall.json"].get("ipv4"), dict) or not isinstance(docs["parsed-firewall.json"].get("ipv6"), dict):
         blockers.append("parsed_firewall_schema_invalid")
     if not isinstance(docs["command-results.json"], list):
         blockers.append("command_results_not_array")
@@ -127,7 +140,7 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
     graph = docs["packet-path-graph.json"]
     parsed = docs["parsed-firewall.json"]
     command_results = docs["command-results.json"]
-    _cross_check_manifest(manifest, evidence, decision, graph, parsed, raw, blockers)
+    _cross_check_manifest(manifest, evidence, decision, graph, parsed, docs, raw, blockers)
     _check_commands(command_results, decision, blockers)
     text_scan = b"\n".join(raw[name] for name in REQUIRED_BUNDLE_FILES if name not in {"iptables-save.txt", "ip6tables-save.txt"})
     for forbidden in (b"Config.Env", b'"Env"', b"PASSWORD", b"TOKEN", b"SECRET", b"HostConfig"):
@@ -153,7 +166,7 @@ def _load_json(raw: bytes, label: str, blockers: list[str]) -> Any:
     return None
 
 
-def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], decision: dict[str, Any], graph: dict[str, Any], parsed: dict[str, Any], raw: dict[str, bytes], blockers: list[str]) -> None:
+def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], decision: dict[str, Any], graph: dict[str, Any], parsed: dict[str, Any], docs: dict[str, Any], raw: dict[str, bytes], blockers: list[str]) -> None:
     pairs = [
         ("repository_version", __version__, "manifest_repository_version_mismatch"),
         ("expected_version", EXPECTED_VERSION, "manifest_expected_version_mismatch"),
@@ -171,7 +184,10 @@ def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], de
         blockers.append("evidence_repository_version_mismatch")
     if evidence.get("expected_version") != EXPECTED_VERSION:
         blockers.append("evidence_expected_version_mismatch")
-    for name, doc in {"decision.json": decision, "packet-path-graph.json": graph, "parsed-firewall.json": parsed}.items():
+    for name in ("decision.json", "packet-path-graph.json", "parsed-firewall.json", "sanitized-backend-target.json", "sanitized-docker-network.json", "host-network-topology.json"):
+        doc = docs.get(name)
+        if not isinstance(doc, dict):
+            continue
         if doc.get("collection_id", evidence.get("collection_id")) != evidence.get("collection_id"):
             blockers.append(f"collection_id_mismatch:{name}")
         if doc.get("hostname", evidence.get("hostname")) != evidence.get("hostname"):
@@ -184,10 +200,15 @@ def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], de
         blockers.append("ipv4_ruleset_hash_mismatch")
     if manifest.get("ipv6_ruleset_hash") != parsed.get("ipv6", {}).get("source_sha256"):
         blockers.append("ipv6_ruleset_hash_mismatch")
+    if parsed.get("ipv4", {}).get("source_sha256") != sha256_bytes(raw["iptables-save.txt"]):
+        blockers.append("ipv4_raw_ruleset_hash_mismatch")
+    if parsed.get("ipv6", {}).get("source_sha256") != sha256_bytes(raw["ip6tables-save.txt"]):
+        blockers.append("ipv6_raw_ruleset_hash_mismatch")
 
 
 def _check_commands(command_results: list[Any], decision: dict[str, Any], blockers: list[str]) -> None:
     required = {"hostname", "uname_kernel", "iptables_save", "ip6tables_save", "iptables_version", "ip6tables_version", "docker_inspect_backend", "docker_network_inspect", "docker_ps_compose", "ip_address", "ip_link", "ip_route_all", "ip_rule", "bridge_link", "ss_listeners", "ss_backend_listener"}
+    ready_required = {"ip_route_get_backend"}
     ids: list[str] = []
     for result in command_results:
         if not isinstance(result, dict):
@@ -197,6 +218,8 @@ def _check_commands(command_results: list[Any], decision: dict[str, Any], blocke
         ids.append(cid)
         if result.get("mutation_performed") is not False:
             blockers.append(f"command_mutation_not_false:{cid}")
+        if not isinstance(result.get("return_code"), int) or not isinstance(result.get("output_truncated"), bool) or not isinstance(result.get("mutation_performed"), bool):
+            blockers.append(f"command_result_field_schema_invalid:{cid}")
         if decision.get("final_decision") and str(decision.get("final_decision")).startswith("READY"):
             if result.get("return_code") != 0:
                 blockers.append(f"ready_with_failed_command:{cid}")
@@ -206,6 +229,9 @@ def _check_commands(command_results: list[Any], decision: dict[str, Any], blocke
         blockers.append("command_ids_not_unique")
     missing = sorted(required - set(ids))
     blockers.extend(f"required_command_missing:{item}" for item in missing)
+    if decision.get("final_decision") and str(decision.get("final_decision")).startswith("READY"):
+        missing_ready = sorted(ready_required - set(ids))
+        blockers.extend(f"ready_required_command_missing:{item}" for item in missing_ready)
 
 
 def _create_safe_dir(path: Path) -> None:

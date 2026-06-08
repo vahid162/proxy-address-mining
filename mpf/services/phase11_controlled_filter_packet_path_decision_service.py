@@ -26,6 +26,7 @@ class FlowResult:
     unresolved: list[str] = field(default_factory=list)
     hook_seen_any: bool = False
     edges: list[dict[str, Any]] = field(default_factory=list)
+    hook_entry_count: int = 0
 
 
 def decide_controlled_filter_packet_path(*, evidence: dict[str, Any], graph: dict[str, Any], parsed_firewall: dict[str, Any], command_results: list[dict[str, Any]]) -> PacketPathDecision:
@@ -79,12 +80,11 @@ def decide_controlled_filter_packet_path(*, evidence: dict[str, Any], graph: dic
         values.sort(key=lambda r: int(r.get("rule_index", 0)))
 
     packet = {"protocol": "tcp", "destination": backend_ip, "destination_port": BACKEND_PORT, "out_interface": bridge, "ingress_interface_known": False}
-    applicable_hook_count = sum(1 for rule in chain_map.get("FORWARD", []) if rule.get("jump_target") == HOOK and _rule_applies(rule, packet, target_is_hook=True) is True)
     flow = _walk_chain("FORWARD", 0, chain_map, policies, user_chains, packet, hook_seen=False, call_stack=[], steps=0)
     graph["verified_cfg_edges"] = flow.edges
     graph["future_mpf_entry_reachable"] = bool(flow.hook_seen_any and not flow.unresolved)
 
-    if applicable_hook_count > 1:
+    if flow.hook_entry_count > 1:
         blockers.append("docker_user_hook_duplicated_or_ambiguous")
     if flow.unresolved:
         blockers.extend(flow.unresolved)
@@ -184,8 +184,10 @@ def _topology_blockers(*, backend: dict[str, Any], network: dict[str, Any], topo
         blockers.append("backend_ipv4_mismatch_between_inspects")
     if not _bridge_exists(topology, bridge):
         blockers.append("docker_bridge_interface_missing")
-    if not topology.get("backend_bridge_membership_verified"):
+    if topology.get("backend_bridge_membership_verified") is not True:
         blockers.append("backend_bridge_membership_unverified")
+    if topology.get("backend_bridge_membership_status") != "verified":
+        blockers.append("backend_bridge_membership_unresolved")
     blockers.extend(_policy_routing_blockers(topology))
     if subnet:
         try:
@@ -207,16 +209,26 @@ def _policy_routing_blockers(topology: dict[str, Any]) -> list[str]:
     rules = topology.get("policy_rules", [])
     if not isinstance(rules, list):
         return ["policy_routing_rules_malformed"]
+    canonical_seen: list[tuple[int, str]] = []
     blockers: list[str] = []
+    canonical = {(0, "local"), (32766, "main"), (32767, "default")}
     for rule in rules:
         if not isinstance(rule, dict):
             blockers.append("policy_routing_rule_malformed")
             continue
-        table = str(rule.get("table", "main"))
-        priority = int(rule.get("priority", rule.get("pref", 32766))) if str(rule.get("priority", rule.get("pref", 32766))).isdigit() else 32766
-        selectors = {k for k in rule if k in {"from", "to", "fwmark", "iif", "oif", "uidrange", "ipproto", "sport", "dport"}}
-        if table not in {"main", "local", "default", "255", "254", "253"} or selectors or priority < 32766:
-            blockers.append("policy_routing_ambiguous")
+        try:
+            priority = int(rule.get("priority", rule.get("pref")))
+        except (TypeError, ValueError):
+            blockers.append("policy_routing_rule_malformed")
+            continue
+        table = str(rule.get("table"))
+        selectors = {k for k in rule if k in {"from", "to", "fwmark", "iif", "oif", "uidrange", "ipproto", "sport", "dport"} and str(rule.get(k)) not in {"all", "0.0.0.0/0", "::/0"}}
+        if (priority, table) in canonical and not selectors:
+            canonical_seen.append((priority, table))
+            continue
+        blockers.append("policy_routing_ambiguous")
+    if set(canonical_seen) != canonical or len(canonical_seen) != len(canonical):
+        blockers.append("policy_routing_canonical_rules_missing_or_duplicate")
     route = topology.get("route_get_backend", [])
     if not isinstance(route, list) or len(route) != 1 or not isinstance(route[0], dict):
         blockers.append("route_get_backend_ambiguous")
@@ -251,6 +263,7 @@ def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]
         if target == HOOK:
             local_hook = True
             result.hook_seen_any = True
+            result.hook_entry_count += 1
         if target in {"ACCEPT", "DROP", "REJECT"}:
             terminal = {"chain": chain, "rule_index": rule.get("rule_index"), "hook_seen": local_hook, "target": target, "rule_hash": rule.get("rule_hash")}
             if target == "ACCEPT":
@@ -268,6 +281,7 @@ def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]
             result.accepts.extend(child.accepts)
             result.drops.extend(child.drops)
             result.hook_seen_any = result.hook_seen_any or child.hook_seen_any
+            result.hook_entry_count += child.hook_entry_count
             if rule.get("jump_kind") == "goto":
                 result.returns.extend(child.returns)
                 return result
@@ -287,23 +301,44 @@ def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]
 
 
 def _rule_applies(rule: dict[str, Any], packet: dict[str, Any], *, target_is_hook: bool) -> bool | str:
+    unresolved = _unsupported_match_blocker(rule)
+    if unresolved:
+        return "unresolved"
     match = rule.get("match", {}) if isinstance(rule.get("match"), dict) else {}
-    proto = match.get("protocol")
-    if proto and proto != packet["protocol"]:
-        return False
-    dport = match.get("destination_port")
-    if dport is not None and dport != packet["destination_port"]:
-        return False
-    dst = match.get("destination")
-    if dst and not _ip_match(str(packet["destination"]), str(dst)):
-        return False
-    out_if = match.get("out_interface")
-    if out_if and out_if != packet.get("out_interface"):
-        return False
-    in_if = match.get("in_interface")
-    if in_if and target_is_hook:
-        return False
+    checks = [
+        ("protocol", lambda v: v == packet["protocol"]),
+        ("destination_port", lambda v: v == packet["destination_port"]),
+        ("destination", lambda v: _ip_match(str(packet["destination"]), str(v))),
+        ("out_interface", lambda v: v == packet.get("out_interface")),
+    ]
+    for key, fn in checks:
+        if key in match:
+            ok = fn(match[key])
+            if match.get(f"{key}_negated"):
+                ok = not ok
+            if not ok:
+                return False
+    if "source" in match:
+        # External source is intentionally unknown in this static proof; source
+        # matching cannot be conclusively evaluated and must fail closed.
+        return "unresolved"
+    if "in_interface" in match:
+        # Ingress interface is unknown for the future external packet class.
+        return "unresolved"
     return True
+
+
+def _unsupported_match_blocker(rule: dict[str, Any]) -> bool:
+    argv = [str(x) for x in rule.get("argv", []) if isinstance(x, str)]
+    supported_modules = {"tcp", "comment"}
+    unsupported_flags = {"--ctstate", "--state", "--mark", "--tcp-flags", "--ctorigdst", "--ctorigdstport"}
+    unsupported_prefixes = ("--physdev",)
+    for i, token in enumerate(argv):
+        if token == "-m" and i + 1 < len(argv) and argv[i + 1] not in supported_modules:
+            return True
+        if token in unsupported_flags or any(token.startswith(prefix) for prefix in unsupported_prefixes):
+            return True
+    return False
 
 
 def _ip_match(ip: str, pattern: str) -> bool:

@@ -68,12 +68,12 @@ def container(running=True, health="healthy", project="mpf-proxy", service="mpf-
         "State": {"Running": running, "Health": {"Status": health}},
         "Config": {"Labels": {"com.docker.compose.project": project, "com.docker.compose.service": service}, "ExposedPorts": {"60010/tcp": {}}},
         "HostConfig": {"NetworkMode": "mpf-proxy-internal", "RestartPolicy": {"Name": "unless-stopped"}},
-        "NetworkSettings": {"Ports": {"60010/tcp": publish}, "Networks": {"mpf-proxy-internal": {"NetworkID": "abcdef1234567890", "EndpointID": "ep123", "IPAddress": ip, "IPPrefixLen": 24}}},
+        "NetworkSettings": {"Ports": {"60010/tcp": publish}, "Networks": {"mpf-proxy-internal": {"NetworkID": "abcdef1234567890", "EndpointID": "ep123", "MacAddress": "02:42:ac:1e:00:05", "IPAddress": ip, "IPPrefixLen": 24}}},
     }])
 
 
 def network(unknown=False):
-    containers = {"cid123": {"Name": "mpf-forwarder-btc", "IPv4Address": "172.30.0.5/24"}}
+    containers = {"cid123": {"Name": "mpf-forwarder-btc", "EndpointID": "ep123", "MacAddress": "02:42:ac:1e:00:05", "IPv4Address": "172.30.0.5/24"}}
     if unknown:
         containers["bad"] = {"Name": "unknown", "IPv4Address": "172.30.0.9/24"}
     return json.dumps([{
@@ -104,8 +104,8 @@ def default_output(command_id):
         "iptables_version": "iptables v1.8\n", "ip6tables_version": "ip6tables v1.8\n",
         "docker_inspect_backend": container(), "docker_network_inspect": network(), "docker_ps_compose": "mpf-forwarder-btc\timage\tUp\t\n",
         "ip_address": json.dumps([{"ifname": "eth0", "addr_info": [{"family": "inet", "local": "203.0.113.10", "prefixlen": 24}]}]),
-        "ip_link": json.dumps([{"ifname": "br-abcdef123456"}]), "ip_route_all": json.dumps([]), "ip_rule": json.dumps([]),
-        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([{"ifname":"veth0","master":"br-abcdef123456"}]),
+        "ip_link": json.dumps([{"ifname": "br-abcdef123456"}]), "ip_route_all": json.dumps([]), "ip_rule": json.dumps([{"priority":0,"table":"local"},{"priority":32766,"table":"main"},{"priority":32767,"table":"default"}]),
+        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([{"ifname":"veth0","master":"br-abcdef123456","endpoint_id":"ep123"}]),
         "ss_listeners": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n", "ss_backend_listener": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n",
     }.get(command_id, "")
 
@@ -358,7 +358,7 @@ def test_malformed_required_json_is_invalid(command_id, blocker):
 
 
 @pytest.mark.parametrize("policy_rules,blocker", [
-    ([{"priority": 32766, "table": "main"}], None),
+    ([{"priority": 0, "table": "local"}, {"priority": 32766, "table": "main"}, {"priority": 32767, "table": "default"}], None),
     ([{"priority": 100, "from": "10.0.0.0/8", "table": "100"}], "policy_routing_ambiguous"),
     ([{"priority": 100, "fwmark": "0x1", "table": "100"}], "policy_routing_ambiguous"),
     ([{"priority": 100, "iif": "eth0", "table": "100"}], "policy_routing_ambiguous"),
@@ -440,3 +440,103 @@ def test_invalid_evidence_cannot_claim_future_reachability():
     assert summary["final_decision"] == BLOCKED
     assert summary["decision"]["future_mpf_entry_reachable"] is False
     assert summary["decision"]["original_destination_available_via_conntrack"] == "unresolved"
+
+
+@pytest.mark.parametrize("rule", [
+    "-A FORWARD -s 10.0.0.0/8 -j DOCKER-USER",
+    "-A FORWARD -m mark --mark 0x1 -j DOCKER-USER",
+    "-A FORWARD -m conntrack --ctstate ESTABLISHED -j DOCKER-USER",
+    "-A FORWARD ! -d 172.30.0.5/32 -j DOCKER-USER",
+    "-A FORWARD -m addrtype --dst-type LOCAL -j DOCKER-USER",
+])
+def test_unsupported_or_unresolved_match_rules_do_not_return_ready(rule):
+    text = IPT_READY.replace("-A FORWARD -j DOCKER-USER", rule)
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": text}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert summary["decision"]["verified_user_policy_hook"] is None
+
+
+def test_duplicate_indirect_hook_entries_block_ready():
+    text = IPT_READY.replace(
+        "-A FORWARD -j DOCKER-USER\n",
+        ":CHAIN_A - [0:0]\n:CHAIN_B - [0:0]\n-A FORWARD -j CHAIN_A\n-A FORWARD -j CHAIN_B\n-A CHAIN_A -j DOCKER-USER\n-A CHAIN_A -j RETURN\n-A CHAIN_B -j DOCKER-USER\n-A CHAIN_B -j RETURN\n",
+    )
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": text}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert "docker_user_hook_duplicated_or_ambiguous" in summary["blockers"]
+
+
+def test_unrelated_bridge_member_does_not_verify_backend_membership():
+    result = _collect(adapter=FakeAdapter(outputs={"bridge_link": json.dumps([{"ifname":"veth-other","master":"br-abcdef123456","endpoint_id":"other"}])}), phase_status_text=PHASE, write_dir=None)
+    summary = result["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert "backend_bridge_membership_unresolved" in summary["blockers"]
+    assert result["bundle"]["host_topology"]["backend_bridge_membership_status"] == "unresolved"
+
+
+def test_verifier_schema_wrong_types_do_not_raise(tmp_path):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    write_packet_path_bundle(bundle, tmp_path / "bundle")
+    manifest_path = tmp_path / "bundle" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["files"]["decision.json"]["size"] = "invalid"
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True) + "\n")
+    (tmp_path / "bundle" / "manifest.sha256").write_text(__import__('hashlib').sha256(manifest_path.read_bytes()).hexdigest()+"  manifest.json\n")
+    result = verify_packet_path_bundle(tmp_path / "bundle")
+    assert result["final_decision"] == INVALID
+    assert any("file_size_schema_invalid:decision.json" in b or "file_size_mismatch:decision.json" in b for b in result["blockers"])
+
+
+def test_verifier_rejects_wrong_doc_schemas_and_raw_hash_mismatch(tmp_path):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    write_packet_path_bundle(bundle, tmp_path / "bundle")
+    (tmp_path / "bundle" / "sanitized-backend-target.json").write_text("[]\n")
+    result = verify_packet_path_bundle(tmp_path / "bundle")
+    assert result["final_decision"] == INVALID
+
+    bundle2 = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    write_packet_path_bundle(bundle2, tmp_path / "bundle2")
+    parsed_path = tmp_path / "bundle2" / "parsed-firewall.json"
+    parsed = json.loads(parsed_path.read_text())
+    parsed["ipv4"]["source_sha256"] = "0" * 64
+    parsed_path.write_text(json.dumps(parsed, sort_keys=True) + "\n")
+    manifest_path = tmp_path / "bundle2" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["files"]["parsed-firewall.json"]["sha256"] = __import__('hashlib').sha256(parsed_path.read_bytes()).hexdigest()
+    manifest["files"]["parsed-firewall.json"]["size"] = len(parsed_path.read_bytes())
+    manifest["ipv4_ruleset_hash"] = "0" * 64
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True) + "\n")
+    (tmp_path / "bundle2" / "manifest.sha256").write_text(__import__('hashlib').sha256(manifest_path.read_bytes()).hexdigest()+"  manifest.json\n")
+    result2 = verify_packet_path_bundle(tmp_path / "bundle2")
+    assert result2["final_decision"] == INVALID
+    assert "ipv4_raw_ruleset_hash_mismatch" in result2["blockers"]
+
+
+def test_ready_bundle_requires_route_get_command(tmp_path):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    assert bundle["decision"]["final_decision"] == READY
+    bundle["command_results"] = [r for r in bundle["command_results"] if r["command_id"] != "ip_route_get_backend"]
+    write_packet_path_bundle(bundle, tmp_path / "bundle")
+    result = verify_packet_path_bundle(tmp_path / "bundle")
+    assert result["final_decision"] == INVALID
+    assert "ready_required_command_missing:ip_route_get_backend" in result["blockers"]
+
+@pytest.mark.parametrize("filename,content,blocker", [
+    ("sanitized-backend-target.json", "[]\n", "backend_target_schema_invalid"),
+    ("parsed-firewall.json", json.dumps({"ipv4": [], "ipv6": {}}) + "\n", "parsed_firewall_schema_invalid"),
+    ("command-results.json", json.dumps([{"command_id":"hostname","return_code":"0","output_truncated":"false","mutation_performed":"false"}]) + "\n", "command_result_field_schema_invalid:hostname"),
+])
+def test_verifier_rejects_malformed_schema_valid_json(tmp_path, filename, content, blocker):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    write_packet_path_bundle(bundle, tmp_path / "bundle")
+    target = tmp_path / "bundle" / filename
+    target.write_text(content)
+    manifest_path = tmp_path / "bundle" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["files"][filename]["sha256"] = __import__('hashlib').sha256(target.read_bytes()).hexdigest()
+    manifest["files"][filename]["size"] = len(target.read_bytes())
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True) + "\n")
+    (tmp_path / "bundle" / "manifest.sha256").write_text(__import__('hashlib').sha256(manifest_path.read_bytes()).hexdigest()+"  manifest.json\n")
+    result = verify_packet_path_bundle(tmp_path / "bundle")
+    assert result["final_decision"] == INVALID
+    assert any(blocker in b for b in result["blockers"])

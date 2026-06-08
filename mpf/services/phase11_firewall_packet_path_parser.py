@@ -156,19 +156,27 @@ def parse_iptables_save_topology(text: str, *, ipv6: bool = False) -> ParsedFire
 
 
 def _flag(argv: list[str], name: str) -> str | None:
+    value, _ = _flag_value_and_negation(argv, name)
+    return value
+
+
+def _flag_value_and_negation(argv: list[str], name: str) -> tuple[str | None, bool]:
     try:
         idx = argv.index(name)
     except ValueError:
-        return None
-    return argv[idx + 1] if idx + 1 < len(argv) else None
+        return None, False
+    negated = idx > 0 and argv[idx - 1] == "!"
+    return (argv[idx + 1] if idx + 1 < len(argv) else None), negated
 
 
 def _extract_match(argv: list[str]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for flag, key in (("-s", "source"), ("--source", "source"), ("-d", "destination"), ("--destination", "destination"), ("-p", "protocol"), ("-i", "in_interface"), ("--in-interface", "in_interface"), ("-o", "out_interface"), ("--out-interface", "out_interface"), ("--dport", "destination_port"), ("--destination-port", "destination_port"), ("--ctorigdst", "conntrack_original_destination"), ("--ctorigdstport", "conntrack_original_destination_port")):
-        val = _flag(argv, flag)
+        val, negated = _flag_value_and_negation(argv, flag)
         if val is not None:
             out[key] = int(val) if key.endswith("port") and val.isdigit() else val
+            if negated:
+                out[f"{key}_negated"] = True
     if "--ctorigdst" in argv or "--ctorigdstport" in argv:
         out["conntrack_original_destination_match"] = True
     return out

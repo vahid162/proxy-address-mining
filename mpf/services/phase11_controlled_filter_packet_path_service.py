@@ -114,7 +114,8 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
     ip_rule_json, e = _json_required("ip_rule", _stdout(ip_rule)); invalid.extend(e)
     route_get_json, e = _json_required("route_get", _stdout(route_get), required=route_get is not None); invalid.extend(e)
     bridge_json, e = _json_required("bridge_link", _stdout(bridge), required=bool(_stdout(bridge).strip()) and bridge.return_code == 0); invalid.extend(e)
-    backend_bridge_membership_verified = _backend_bridge_membership_verified(bridge_json, network)
+    membership = _backend_bridge_membership_status(bridge_json, backend, network)
+    backend_bridge_membership_verified = membership["verified"]
     host_topology = {
         "collection_id": collection_id,
         "hostname": hostname,
@@ -125,6 +126,8 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
         "route_get_backend": route_get_json,
         "bridge_links": bridge_json,
         "backend_bridge_membership_verified": backend_bridge_membership_verified,
+        "backend_bridge_membership_status": membership["status"],
+        "backend_bridge_membership_evidence": membership["evidence"],
         "ip_forward": _read_proc_value("/proc/sys/net/ipv4/ip_forward"),
         "bridge_nf_call_iptables": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-iptables", optional=True),
         "bridge_nf_call_ip6tables": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-ip6tables", optional=True),
@@ -227,23 +230,27 @@ def _json_required(command_id: str, text: str, *, required: bool = True) -> tupl
     return value, []
 
 
-def _backend_bridge_membership_verified(bridge_links: list[Any], network: dict[str, Any]) -> bool:
-    if not bridge_links:
-        return False
+def _backend_bridge_membership_status(bridge_links: list[Any], backend: dict[str, Any], network: dict[str, Any]) -> dict[str, Any]:
     bridge = str(network.get("bridge_name") or "")
-    connected = network.get("connected_allowlisted_mpf_containers", [])
-    backend_rows = [item for item in connected if isinstance(item, dict) and item.get("name") == BACKEND_CONTAINER]
-    if not bridge or not backend_rows:
-        return False
-    # bridge -json link output varies by iproute2 version. Require at least one
-    # link record whose master/ifname references the verified bridge; this proves
-    # host bridge membership evidence is present rather than synthesized.
+    endpoint_id = str(backend.get("endpoint_id") or "")
+    mac = str(backend.get("mac_address") or "").lower()
+    if not bridge_links or not bridge or not endpoint_id:
+        return {"verified": False, "status": "unresolved", "evidence": []}
+    evidence: list[dict[str, Any]] = []
     for item in bridge_links:
         if not isinstance(item, dict):
             continue
-        if item.get("master") == bridge or item.get("ifname") == bridge or item.get("link") == bridge:
-            return True
-    return False
+        if item.get("master") != bridge and item.get("ifname") != bridge and item.get("link") != bridge:
+            continue
+        item_endpoint = str(item.get("endpoint_id") or item.get("docker_endpoint_id") or "")
+        item_mac = str(item.get("address") or item.get("mac_address") or "").lower()
+        if item_endpoint and item_endpoint == endpoint_id:
+            evidence.append({"method": "endpoint_id", "ifname": item.get("ifname"), "endpoint_id": endpoint_id})
+        elif mac and item_mac and item_mac == mac:
+            evidence.append({"method": "mac_address", "ifname": item.get("ifname"), "mac_address": mac})
+    if evidence:
+        return {"verified": True, "status": "verified", "evidence": evidence}
+    return {"verified": False, "status": "unresolved", "evidence": []}
 
 
 def _read_phase_status_text() -> str:
@@ -317,6 +324,8 @@ def _sanitize_backend(raw: str, *, ss_backend_stdout: str) -> dict[str, Any]:
         "compose_service": labels.get("com.docker.compose.service"),
         "connected_networks": sorted({name: {"network_id": val.get("NetworkID"), "ipv4_address": val.get("IPAddress"), "prefix_len": val.get("IPPrefixLen")} for name, val in networks.items() if isinstance(val, dict)}.items()),
         "network_id": net.get("NetworkID"),
+        "endpoint_id": net.get("EndpointID"),
+        "mac_address": net.get("MacAddress"),
         "resolved_ipv4": ip,
         "container_ipv4_prefix": net.get("IPPrefixLen"),
         "backend_port": BACKEND_PORT,
@@ -378,7 +387,7 @@ def _sanitize_network(raw: str, *, docker_ps_stdout: str, expected_container_id:
         if not isinstance(info, dict):
             continue
         name = str(info.get("Name") or "")
-        row = {"container_id": cid, "name": name, "ipv4_address": str(info.get("IPv4Address") or "").split("/")[0], "raw_ipv4": info.get("IPv4Address")}
+        row = {"container_id": cid, "name": name, "endpoint_id": info.get("EndpointID"), "mac_address": info.get("MacAddress"), "ipv4_address": str(info.get("IPv4Address") or "").split("/")[0], "raw_ipv4": info.get("IPv4Address")}
         if name in allowed_names:
             connected.append(row)
         else:
