@@ -43,6 +43,22 @@ def test_known_match_grammar_remains_supported() -> None:
 
 
 @pytest.mark.parametrize(
+    ("argv", "match"),
+    [
+        (("-p", "all", "-j", "DOCKER-USER"), {"protocol": "all"}),
+        (("-p", "6", "-j", "DOCKER-USER"), {"protocol": "6"}),
+        (("-o", "br-+", "-j", "DOCKER-USER"), {"out_interface": "br-+"}),
+        (("-p", "tcp", "-m", "tcp", "--dport", "60000:60020", "-j", "DOCKER-USER"), {"protocol": "tcp", "destination_port": "60000:60020"}),
+    ],
+)
+def test_supported_protocol_interface_and_port_forms_apply(argv: tuple[str, ...], match: dict[str, object]) -> None:
+    rule = _rule(*argv)
+    rule["match"] = match
+    assert _unsupported_match_blocker(rule) is False
+    assert _rule_applies(rule, _PACKET, target_is_hook=True) is True
+
+
+@pytest.mark.parametrize(
     "unknown_tokens",
     [
         ("-p", "tcp", "-m", "tcp", "--sport", "12345", "-j", "DOCKER-USER"),
