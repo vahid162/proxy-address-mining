@@ -35,6 +35,7 @@ def write_packet_path_bundle(bundle: dict[str, Any], output_dir: Path | str) -> 
         "command-results.json": canonical_json_bytes(bundle["command_results"]),
     }
     manifest_files = {name: {"size": len(data), "sha256": sha256_bytes(data)} for name, data in sorted(files.items())}
+    backend_target = bundle["evidence"].get("backend_target") if isinstance(bundle.get("evidence"), dict) else None
     manifest = {
         "manifest_version": 1,
         "repository_version": __version__,
@@ -42,7 +43,7 @@ def write_packet_path_bundle(bundle: dict[str, Any], output_dir: Path | str) -> 
         "hostname": bundle["evidence"].get("hostname"),
         "collection_id": bundle["evidence"].get("collection_id"),
         "collection_timestamp": bundle["evidence"].get("collected_at"),
-        "backend_target_fingerprint": bundle["evidence"].get("backend_target", {}).get("target_fingerprint"),
+        "backend_target_fingerprint": backend_target.get("target_fingerprint") if isinstance(backend_target, dict) else None,
         "ipv4_ruleset_hash": bundle["parsed_firewall"].get("ipv4", {}).get("source_sha256"),
         "ipv6_ruleset_hash": bundle["parsed_firewall"].get("ipv6", {}).get("source_sha256"),
         "phase_state_hash": bundle["evidence"].get("phase_status_sha256"),
@@ -132,6 +133,8 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
         blockers.append("parsed_firewall_schema_invalid")
     if not isinstance(docs["command-results.json"], list):
         blockers.append("command_results_not_array")
+    if isinstance(docs["evidence.json"], dict) and not isinstance(docs["evidence.json"].get("backend_target"), dict):
+        blockers.append("evidence_backend_target_schema_invalid")
     if blockers:
         return _invalid(blockers)
 
@@ -167,13 +170,17 @@ def _load_json(raw: bytes, label: str, blockers: list[str]) -> Any:
 
 
 def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], decision: dict[str, Any], graph: dict[str, Any], parsed: dict[str, Any], docs: dict[str, Any], raw: dict[str, bytes], blockers: list[str]) -> None:
+    backend_target = evidence.get("backend_target")
+    if not isinstance(backend_target, dict):
+        blockers.append("evidence_backend_target_schema_invalid")
+        backend_target = {}
     pairs = [
         ("repository_version", __version__, "manifest_repository_version_mismatch"),
         ("expected_version", EXPECTED_VERSION, "manifest_expected_version_mismatch"),
         ("collection_id", evidence.get("collection_id"), "manifest_collection_id_mismatch"),
         ("hostname", evidence.get("hostname"), "manifest_hostname_mismatch"),
         ("collection_timestamp", evidence.get("collected_at"), "manifest_collection_timestamp_mismatch"),
-        ("backend_target_fingerprint", evidence.get("backend_target", {}).get("target_fingerprint"), "manifest_target_fingerprint_mismatch"),
+        ("backend_target_fingerprint", backend_target.get("target_fingerprint"), "manifest_target_fingerprint_mismatch"),
         ("phase_state_hash", evidence.get("phase_status_sha256"), "manifest_phase_hash_mismatch"),
         ("final_decision", decision.get("final_decision"), "manifest_final_decision_mismatch"),
     ]
