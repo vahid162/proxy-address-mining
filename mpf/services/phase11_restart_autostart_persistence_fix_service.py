@@ -22,6 +22,7 @@ from mpf.services.phase11_restart_autostart_persistence_diagnosis_service import
     build_phase11_restart_autostart_persistence_diagnosis_report,
 )
 from mpf.services.proxy_doctor_service import EXPECTED_RUNTIME_CONTAINERS
+from mpf.services.phase11_operational_completion_progression import active_progression
 
 _COMPONENT = "phase11_restart_autostart_persistence_fix"
 _SCOPE = "full_cli_production_operations"
@@ -408,7 +409,7 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
     else:
         final_decision = "NO_RUNTIME_REPAIR_REQUIRED"
         if controlled_artifact_reapply_required and controlled_artifact_reapply_capability_implemented:
-            next_required_step = "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
+            next_required_step = str(active_progression()["next_required_step"])
         elif controlled_artifact_reapply_required:
             next_required_step = "implement_controlled_artifact_reapply_execute_package"
         else:
@@ -445,10 +446,15 @@ def build_phase11_restart_autostart_persistence_fix_plan_report(
         "runtime_repair_reasons": unique_runtime_repair,
         "runtime_reconciliation_execution_allowed": runtime_execution_allowed,
         "controlled_artifact_reapply_required": controlled_artifact_reapply_required,
-        "read_only_reapply_foundation_implemented": controlled_artifact_reapply_capability_implemented,
-        "desired_artifact_semantics_complete": False,
-        "production_execution_available": False,
-        "live_ready_package_available": False,
+        "read_only_reapply_foundation_implemented": active_progression()["read_only_reapply_foundation_implemented"],
+        "controlled_filter_packet_path_evidence_capability_implemented": active_progression()["controlled_filter_packet_path_evidence_capability_implemented"],
+        "controlled_filter_packet_path_evidence_ready": active_progression()["controlled_filter_packet_path_evidence_ready"],
+        "controlled_filter_packet_path_verified": active_progression()["controlled_filter_packet_path_verified"],
+        "artifact_graph_binding_ready": active_progression()["artifact_graph_binding_ready"],
+        "desired_artifact_semantics_complete": active_progression()["desired_artifact_semantics_complete"],
+        "production_execution_available": active_progression()["production_execution_available"],
+        "live_ready_package_available": active_progression()["live_ready_package_available"],
+        "controlled_artifact_reapply_package_evidence_ready": active_progression()["controlled_artifact_reapply_package_evidence_ready"],
         "controlled_artifact_reapply_capability_implemented": controlled_artifact_reapply_capability_implemented,
         "controlled_artifact_reapply_execution_available": controlled_artifact_reapply_execution_available,
         "remaining_persistence_reasons": sorted(set(remaining_persistence_reasons)),

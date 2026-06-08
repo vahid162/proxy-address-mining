@@ -21,6 +21,7 @@ from mpf.services import (
 from mpf.services.phase11_current_controlled_artifact_gate_service import (
     build_phase11_current_controlled_artifact_gate_report,
 )
+from mpf.services.phase11_operational_completion_progression import active_progression
 
 _COMPONENT = "phase11_controlled_artifact_persistence_plan"
 _REQUIRED_CUSTOMERS = {
@@ -39,11 +40,13 @@ _MUTATION_FLAGS: dict[str, bool] = {
 
 def _read_command_stdout(command: list[str]) -> str:
     try:
-        result = subprocess.run(command, text=True, capture_output=True)
-    except FileNotFoundError:
-        return ""
+        result = subprocess.run(command, text=True, capture_output=True, shell=False, check=False)
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"required_snapshot_command_missing:{command[0]}") from exc
     if result.returncode != 0:
-        return ""
+        raise RuntimeError(f"required_snapshot_command_failed:{command[0]}:{result.returncode}")
+    if not result.stdout.strip():
+        raise RuntimeError(f"required_snapshot_command_empty:{command[0]}")
     return result.stdout
 
 
@@ -129,10 +132,14 @@ def _candidate_reapply_path_summary() -> dict[str, object]:
             "phase11_controlled_artifact_reapply_executor_service.execute_controlled_artifact_reapply_package": execute_callable,
         },
         "raw_iptables_reapply_implemented_here": False,
-        "read_only_reapply_foundation_implemented": package_callable and execute_callable,
-        "desired_artifact_semantics_complete": False,
-        "production_execution_available": False,
-        "live_ready_package_available": False,
+        "read_only_reapply_foundation_implemented": active_progression()["read_only_reapply_foundation_implemented"],
+        "controlled_filter_packet_path_evidence_capability_implemented": active_progression()["controlled_filter_packet_path_evidence_capability_implemented"],
+        "controlled_filter_packet_path_evidence_ready": active_progression()["controlled_filter_packet_path_evidence_ready"],
+        "controlled_filter_packet_path_verified": active_progression()["controlled_filter_packet_path_verified"],
+        "artifact_graph_binding_ready": active_progression()["artifact_graph_binding_ready"],
+        "desired_artifact_semantics_complete": active_progression()["desired_artifact_semantics_complete"],
+        "production_execution_available": active_progression()["production_execution_available"],
+        "live_ready_package_available": active_progression()["live_ready_package_available"],
         "controlled_artifact_reapply_capability_implemented": package_callable and execute_callable,
         "safe_reuse_identified_for_execution_in_this_pr": False,
         "execution_package_available": False,
@@ -244,8 +251,12 @@ def build_phase11_controlled_artifact_persistence_plan_report(
         "final_decision": "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY" if ready else "BLOCKED_CONTROLLED_ARTIFACT_PERSISTENCE_PLAN",
         "controlled_artifact_reapply_required": controlled_absent_after_reboot,
         "controlled_artifact_reapply_execution_available": False,
-        "controlled_artifact_reapply_package_evidence_ready": False,
-        "next_required_step": "implement_source_backed_controlled_artifact_renderer_and_production_adapters" if ready and candidate_path.get("read_only_reapply_foundation_implemented", candidate_path.get("controlled_artifact_reapply_capability_implemented", False)) else next_step,
+        "controlled_artifact_reapply_package_evidence_ready": active_progression()["controlled_artifact_reapply_package_evidence_ready"],
+        "controlled_filter_packet_path_evidence_capability_implemented": active_progression()["controlled_filter_packet_path_evidence_capability_implemented"],
+        "controlled_filter_packet_path_evidence_ready": active_progression()["controlled_filter_packet_path_evidence_ready"],
+        "controlled_filter_packet_path_verified": active_progression()["controlled_filter_packet_path_verified"],
+        "artifact_graph_binding_ready": active_progression()["artifact_graph_binding_ready"],
+        "next_required_step": active_progression()["next_required_step"] if ready and candidate_path.get("read_only_reapply_foundation_implemented", candidate_path.get("controlled_artifact_reapply_capability_implemented", False)) else next_step,
     }
 
 

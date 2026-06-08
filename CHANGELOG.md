@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.251
+- Add read-only Phase 11 controlled filter packet-path plan/collect/verify capability, sanitized evidence bundles, packet-path graph decisions, CLI/helper surfaces, and tests while keeping farm5 evidence, artifact graph binding, and production execution blocked.
+
 ## 0.1.250
 - Implemented source-backed Phase 11 controlled artifact renderer, live classification, production adapters, gated execution wiring, and focused tests without farm5 mutation.
 

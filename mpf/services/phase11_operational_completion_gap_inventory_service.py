@@ -12,6 +12,7 @@ from mpf.services.phase11_restart_autostart_persistence_fix_service import (
 from mpf.services.phase11_restart_autostart_proof_service import (
     build_phase11_restart_autostart_proof_report,
 )
+from mpf.services.phase11_operational_completion_progression import active_progression
 
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
@@ -20,24 +21,7 @@ _MISSING_OR_PARTIAL = "missing_or_partial"
 def _next_step(restart_status: str, persistence_plan: dict[str, object] | None) -> str:
     if restart_status == "ready":
         return "implement_production_customer_lifecycle_execution"
-    if not persistence_plan:
-        return "fix_restart_autostart_persistence_gap"
-    if persistence_plan.get("safety_blockers"):
-        return "fix_restart_autostart_persistence_gap"
-    if persistence_plan.get("runtime_repair_required") is True:
-        return "run_restart_autostart_persistence_fix_on_farm5"
-    if persistence_plan.get("controlled_artifact_reapply_required") is True:
-        if persistence_plan.get("controlled_artifact_reapply_capability_implemented") is not True:
-            return "implement_controlled_artifact_reapply_execute_package"
-        if persistence_plan.get("desired_artifact_semantics_complete") is not True or persistence_plan.get("production_execution_available") is not True:
-            return "implement_source_backed_controlled_artifact_renderer_and_production_adapters"
-        if persistence_plan.get("controlled_artifact_reapply_package_evidence_ready") is not True:
-            return "sync_and_collect_controlled_artifact_reapply_package_evidence_on_farm5"
-        if persistence_plan.get("controlled_artifact_reapply_execution_reviewed") is not True:
-            return "review_and_run_controlled_artifact_reapply_on_farm5"
-        if persistence_plan.get("controlled_artifact_reapply_execution_verified") is True:
-            return "implement_reboot_safe_artifact_recovery_orchestration"
-    return "run_controlled_restart_autostart_proof_on_farm5"
+    return str(active_progression()["next_required_step"])
 
 
 def build_phase11_operational_completion_gap_inventory_report(
@@ -86,6 +70,11 @@ def build_phase11_operational_completion_gap_inventory_report(
             "live_ready_package_available": persistence_plan_report.get("live_ready_package_available") if persistence_plan_report else None,
             "controlled_artifact_reapply_capability_implemented": persistence_plan_report.get("controlled_artifact_reapply_capability_implemented") if persistence_plan_report else None,
             "controlled_artifact_reapply_execution_available": persistence_plan_report.get("controlled_artifact_reapply_execution_available") if persistence_plan_report else None,
+            "controlled_filter_packet_path_evidence_capability_implemented": active_progression()["controlled_filter_packet_path_evidence_capability_implemented"],
+            "controlled_filter_packet_path_evidence_ready": active_progression()["controlled_filter_packet_path_evidence_ready"],
+            "controlled_filter_packet_path_verified": active_progression()["controlled_filter_packet_path_verified"],
+            "artifact_graph_binding_ready": active_progression()["artifact_graph_binding_ready"],
+            "controlled_artifact_reapply_package_evidence_ready": active_progression()["controlled_artifact_reapply_package_evidence_ready"],
         },
         "mutation_performed": False,
         "db_mutation_performed": False,

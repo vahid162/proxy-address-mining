@@ -14,19 +14,22 @@ _ALLOWED_SUFFIXES = {"customer_connlimit_reject", "customer_hashlimit_reject", "
 
 
 def _phase_gate_ok(phase_status_text: str) -> bool:
-    pre = (
-        "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5",
-        "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness",
-        "production_traffic: none", "firewall_apply_allowed: no", "abuse_automation_allowed: no", "customer_onboarding_allowed: db_only",
-    )
-    post = (
+    # Active runtime reports are authorizing only for the current accepted
+    # Phase 11 operational-completion state. Historical pre-acceptance
+    # fixtures remain non-authorizing and must not pass this active gate.
+    required = (
         "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
         "current_working_phase: Phase 11 operational completion — Full CLI Production Operations",
-        "production_traffic: controlled_cli_limited", "firewall_apply_allowed: controlled", "abuse_automation_allowed: controlled_operator_gated",
-        "customer_onboarding_allowed: controlled_cli_limited", "worker_enforcement_allowed: no", "ui_allowed: no", "telegram_allowed: no",
+        "production_traffic: controlled_cli_limited",
+        "firewall_apply_allowed: controlled",
+        "abuse_automation_allowed: controlled_operator_gated",
+        "customer_onboarding_allowed: controlled_cli_limited",
+        "worker_enforcement_allowed: no",
+        "ui_allowed: no",
+        "telegram_allowed: no",
         "phase12_start_allowed: no",
     )
-    return all(x in phase_status_text for x in pre) or all(x in phase_status_text for x in post)
+    return all(x in phase_status_text for x in required)
 
 
 def _parse_chain_decl(line: str) -> str | None:
@@ -151,6 +154,6 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         "production_gates_remain_closed": True,
         "blockers": sorted(set(blockers + (["unknown_mpf_artifacts_detected"] if unknown else []))),
         "warnings": sorted(set(warnings)),
-        "next_required_step": "phase11e_runtime_stratum_evidence_collection" if decision.startswith("PASS") else "remove_unknown_artifacts_and_recheck",
+        "next_required_step": "sync_and_collect_controlled_filter_packet_path_evidence_on_farm5" if decision.startswith("PASS") else "remove_unknown_artifacts_and_recheck",
         "final_decision": decision,
     }
