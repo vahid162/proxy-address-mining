@@ -160,6 +160,7 @@ from mpf.services import (
     phase11_controlled_artifact_reapply_executor_service,
     phase11_controlled_artifact_reapply_verification_service,
     phase11_controlled_artifact_reapply_evidence_service,
+    phase11_controlled_filter_packet_path_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3961,6 +3962,39 @@ def production_controlled_artifact_reapply_evidence(output: Literal["json"] = ty
     """Collect a read-only controlled artifact reapply evidence manifest."""
 
     typer.echo(json.dumps(phase11_controlled_artifact_reapply_evidence_service.build_controlled_artifact_reapply_evidence_report(), indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-filter-packet-path-plan")
+def production_controlled_filter_packet_path_plan(output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Collect read-only in-memory static packet-path evidence and print a fail-closed decision."""
+
+    try:
+        report = phase11_controlled_filter_packet_path_service.build_controlled_filter_packet_path_plan()
+    except Exception as exc:  # noqa: BLE001 - operator surface must fail closed without traceback.
+        report = {"component": "phase11_controlled_filter_packet_path", "repository_version": __version__, "final_decision": "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE", "blockers": ["controlled_filter_packet_path_plan_failed_closed"], "error": str(exc), "runtime_packet_observed": False, "post_apply_runtime_verified": False, "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-filter-packet-path-collect")
+def production_controlled_filter_packet_path_collect(output_dir: Path = typer.Option(..., "--output-dir"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Collect read-only static packet-path evidence and write a non-overwriting bundle."""
+
+    try:
+        report = phase11_controlled_filter_packet_path_service.collect_controlled_filter_packet_path_bundle(output_dir=output_dir)
+    except Exception as exc:  # noqa: BLE001 - fail closed; no raw rulesets printed.
+        report = {"component": "phase11_controlled_filter_packet_path", "repository_version": __version__, "final_decision": "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE", "blockers": ["controlled_filter_packet_path_collect_failed_closed"], "error": str(exc), "runtime_packet_observed": False, "post_apply_runtime_verified": False, "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-filter-packet-path-verify")
+def production_controlled_filter_packet_path_verify(evidence_dir: Path = typer.Option(..., "--evidence-dir"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Pure offline verification of a controlled filter packet-path evidence bundle."""
+
+    try:
+        report = phase11_controlled_filter_packet_path_service.verify_controlled_filter_packet_path_bundle(evidence_dir=evidence_dir)
+    except Exception as exc:  # noqa: BLE001 - verifier fails closed.
+        report = {"component": "phase11_controlled_filter_packet_path_bundle_verifier", "repository_version": __version__, "final_decision": "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE", "bundle_integrity_valid": False, "blockers": ["controlled_filter_packet_path_verify_failed_closed"], "error": str(exc), "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("usage-report-check-operational-surface")
 def production_usage_report_check_operational_surface(

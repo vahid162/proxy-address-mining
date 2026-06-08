@@ -1,6 +1,7 @@
 from mpf.services.phase11_current_controlled_artifact_gate_service import build_phase11_current_controlled_artifact_gate_report
 
-PHASE='''current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5\ncurrent_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\n'''
+PHASE='''current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5\ncurrent_working_phase: Phase 11 operational completion — Full CLI Production Operations\nproduction_traffic: controlled_cli_limited\nfirewall_apply_allowed: controlled\nabuse_automation_allowed: controlled_operator_gated\ncustomer_onboarding_allowed: controlled_cli_limited\nworker_enforcement_allowed: no\nui_allowed: no\ntelegram_allowed: no\nphase12_start_allowed: no\n'''
+HISTORICAL_PHASE='''current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5\ncurrent_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\n'''
 
 REAL_BASE='''*filter
 :MPFC_20001 - [0:0]
@@ -49,3 +50,9 @@ def test_wrong_expected_version_blocked_phase_mismatch():
     r=build_phase11_current_controlled_artifact_gate_report(iptables_save_text=REAL_BASE,phase_status_text=PHASE,expected_backend_target="172.18.0.3:60010",expected_version='0.1.208')
     assert r['final_decision']=='BLOCKED_PHASE_GATE_MISMATCH'
     assert 'wrong_expected_version' in r['blockers']
+
+
+def test_historical_pre_acceptance_phase_is_non_authorizing():
+    r=build_phase11_current_controlled_artifact_gate_report(iptables_save_text='*filter\nCOMMIT\n',phase_status_text=HISTORICAL_PHASE)
+    assert r['final_decision']=='BLOCKED_PHASE_GATE_MISMATCH'
+    assert 'phase_gate_mismatch' in r['blockers']
