@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from mpf import __version__
+from mpf.domain.phase11_controlled_filter_packet_path import EXPECTED_VERSION
+from mpf.services.phase11_controlled_filter_packet_path_bundle_service import _cross_check_manifest
 from mpf.services.phase11_controlled_filter_packet_path_decision_service import (
     _rule_applies,
     _unsupported_match_blocker,
@@ -90,3 +93,50 @@ def test_unknown_target_semantics_fail_closed() -> None:
     assert flow.accepts == []
     assert flow.hook_seen_any is False
     assert flow.unresolved == ["unsupported_target_semantics:FORWARD:0:NFQUEUE"]
+
+
+def test_manifest_cross_check_rejects_non_object_nested_backend_target() -> None:
+    blockers: list[str] = []
+    decision = {"final_decision": "BLOCKED_CONTROLLED_FILTER_PACKET_PATH_PROOF"}
+    evidence = {
+        "repository_version": __version__,
+        "expected_version": EXPECTED_VERSION,
+        "collection_id": "collection-1",
+        "hostname": "host-1",
+        "collected_at": "2026-06-08T00:00:00Z",
+        "phase_status_sha256": "0" * 64,
+        "backend_target": [],
+    }
+    parsed = {"ipv4": {"source_sha256": "a" * 64}, "ipv6": {"source_sha256": "b" * 64}}
+    manifest = {
+        "repository_version": __version__,
+        "expected_version": EXPECTED_VERSION,
+        "collection_id": "collection-1",
+        "hostname": "host-1",
+        "collection_timestamp": "2026-06-08T00:00:00Z",
+        "backend_target_fingerprint": None,
+        "phase_state_hash": "0" * 64,
+        "final_decision": decision["final_decision"],
+        "decision_hash": "",
+        "graph_hash": "",
+        "ipv4_ruleset_hash": "a" * 64,
+        "ipv6_ruleset_hash": "b" * 64,
+    }
+    raw = {
+        "decision.json": b"",
+        "packet-path-graph.json": b"",
+        "iptables-save.txt": b"",
+        "ip6tables-save.txt": b"",
+    }
+    docs = {
+        "decision.json": decision,
+        "packet-path-graph.json": {},
+        "parsed-firewall.json": parsed,
+        "sanitized-backend-target.json": {},
+        "sanitized-docker-network.json": {},
+        "host-network-topology.json": {},
+    }
+
+    _cross_check_manifest(manifest, evidence, decision, {}, parsed, docs, raw, blockers)
+
+    assert "evidence_backend_target_schema_invalid" in blockers
