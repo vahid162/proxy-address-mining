@@ -3973,6 +3973,8 @@ def production_controlled_filter_packet_path_plan(output: Literal["json"] = type
     except Exception as exc:  # noqa: BLE001 - operator surface must fail closed without traceback.
         report = {"component": "phase11_controlled_filter_packet_path", "repository_version": __version__, "final_decision": "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE", "blockers": ["controlled_filter_packet_path_plan_failed_closed"], "error": str(exc), "runtime_packet_observed": False, "post_apply_runtime_verified": False, "mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+    if report.get("final_decision") == "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE":
+        raise typer.Exit(2)
 
 
 @production_app.command("controlled-filter-packet-path-collect")
@@ -3984,6 +3986,8 @@ def production_controlled_filter_packet_path_collect(output_dir: Path = typer.Op
     except Exception as exc:  # noqa: BLE001 - fail closed; no raw rulesets printed.
         report = {"component": "phase11_controlled_filter_packet_path", "repository_version": __version__, "final_decision": "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE", "blockers": ["controlled_filter_packet_path_collect_failed_closed"], "error": str(exc), "runtime_packet_observed": False, "post_apply_runtime_verified": False, "mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+    if report.get("final_decision") == "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE" or report.get("bundle") is None:
+        raise typer.Exit(2)
 
 
 @production_app.command("controlled-filter-packet-path-verify")
@@ -3995,6 +3999,8 @@ def production_controlled_filter_packet_path_verify(evidence_dir: Path = typer.O
     except Exception as exc:  # noqa: BLE001 - verifier fails closed.
         report = {"component": "phase11_controlled_filter_packet_path_bundle_verifier", "repository_version": __version__, "final_decision": "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE", "bundle_integrity_valid": False, "blockers": ["controlled_filter_packet_path_verify_failed_closed"], "error": str(exc), "mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+    if report.get("final_decision") == "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE" or report.get("bundle_integrity_valid") is False:
+        raise typer.Exit(2)
 
 @production_app.command("usage-report-check-operational-surface")
 def production_usage_report_check_operational_surface(

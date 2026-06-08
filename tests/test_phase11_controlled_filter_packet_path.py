@@ -68,7 +68,7 @@ def container(running=True, health="healthy", project="mpf-proxy", service="mpf-
         "State": {"Running": running, "Health": {"Status": health}},
         "Config": {"Labels": {"com.docker.compose.project": project, "com.docker.compose.service": service}, "ExposedPorts": {"60010/tcp": {}}},
         "HostConfig": {"NetworkMode": "mpf-proxy-internal", "RestartPolicy": {"Name": "unless-stopped"}},
-        "NetworkSettings": {"Ports": {"60010/tcp": publish}, "Networks": {"mpf-proxy-internal": {"NetworkID": "net123", "EndpointID": "ep123", "IPAddress": ip, "IPPrefixLen": 24}}},
+        "NetworkSettings": {"Ports": {"60010/tcp": publish}, "Networks": {"mpf-proxy-internal": {"NetworkID": "abcdef1234567890", "EndpointID": "ep123", "IPAddress": ip, "IPPrefixLen": 24}}},
     }])
 
 
@@ -105,7 +105,7 @@ def default_output(command_id):
         "docker_inspect_backend": container(), "docker_network_inspect": network(), "docker_ps_compose": "mpf-forwarder-btc\timage\tUp\t\n",
         "ip_address": json.dumps([{"ifname": "eth0", "addr_info": [{"family": "inet", "local": "203.0.113.10", "prefixlen": 24}]}]),
         "ip_link": json.dumps([{"ifname": "br-abcdef123456"}]), "ip_route_all": json.dumps([]), "ip_rule": json.dumps([]),
-        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([]),
+        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([{"ifname":"veth0","master":"br-abcdef123456"}]),
         "ss_listeners": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n", "ss_backend_listener": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n",
     }.get(command_id, "")
 
@@ -260,3 +260,183 @@ def test_progression_and_active_gate_regressions():
     assert _phase_gate_ok(historical) is False
     report = build_phase11_controlled_artifact_persistence_plan_report(current_controlled_artifact_gate_result={"unknown_mpf_artifacts": [], "known_controlled_artifacts_present": False, "final_decision": "PASS_NO_CUSTOMER_ARTIFACTS"}, listening_sockets=[], customer_records=[], phase_status_text=PHASE, candidate_reapply_restore_path_reuse={"candidate_reapply_services_declared": True, "read_only_reapply_foundation_implemented": True, "execution_package_available": False})
     assert report["controlled_artifact_reapply_package_evidence_ready"] is False
+
+IPT_INDIRECT_READY = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", ":CUSTOM_HOOK - [0:0]\n-A FORWARD -j CUSTOM_HOOK\n-A CUSTOM_HOOK -j DOCKER-USER\n")
+IPT_CUSTOM_ACCEPT_BYPASS = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", ":CUSTOM_EARLY - [0:0]\n-A FORWARD -j CUSTOM_EARLY\n-A FORWARD -j DOCKER-USER\n-A CUSTOM_EARLY -d 172.30.0.5/32 -p tcp -m tcp --dport 60010 -j ACCEPT\n")
+IPT_GOTO_BYPASS = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", ":CUSTOM_GOTO - [0:0]\n-A FORWARD -g CUSTOM_GOTO\n-A FORWARD -j DOCKER-USER\n-A CUSTOM_GOTO -d 172.30.0.5/32 -p tcp -m tcp --dport 60010 -j ACCEPT\n")
+IPT_CYCLE = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", ":A - [0:0]\n:B - [0:0]\n-A FORWARD -j A\n-A A -j B\n-A B -j A\n-A FORWARD -j DOCKER-USER\n")
+IPT_MATCH_ACCEPT_NOT_APPLY = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", "-A FORWARD -d 172.30.0.99/32 -p tcp -m tcp --dport 60010 -j ACCEPT\n-A FORWARD -j DOCKER-USER\n")
+IPT_CONDITIONAL_HOOK_UNRELATED = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", "-A FORWARD -i unrelated0 -j DOCKER-USER\n")
+
+
+def test_false_ready_custom_chain_accept_before_docker_user_blocks():
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": IPT_CUSTOM_ACCEPT_BYPASS}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert "accept_bypass_before_docker_user" in summary["blockers"]
+
+
+def test_indirect_jump_to_docker_user_can_be_ready_when_all_paths_traverse_hook():
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": IPT_INDIRECT_READY}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == READY
+    assert summary["decision"]["docker_user_reachable"] is True
+
+
+def test_return_to_caller_then_accept_preserves_hook_seen():
+    summary = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == READY
+    assert summary["decision"]["hook_precedes_all_relevant_accept_paths"] is True
+
+
+def test_goto_semantics_accept_before_hook_blocks():
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": IPT_GOTO_BYPASS}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert "accept_bypass_before_docker_user" in summary["blockers"]
+
+
+def test_builtin_accept_policy_without_hook_blocks_and_drop_policy_blocks_no_accept():
+    accept_policy = IPT_READY.replace(":FORWARD DROP [0:0]", ":FORWARD ACCEPT [0:0]").replace("-A FORWARD -j DOCKER-USER\n-A FORWARD -j DOCKER-FORWARD\n", "")
+    drop_policy = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n-A FORWARD -j DOCKER-FORWARD\n", "")
+    a = _collect(adapter=FakeAdapter(outputs={"iptables_save": accept_policy}), phase_status_text=PHASE, write_dir=None)["summary"]
+    d = _collect(adapter=FakeAdapter(outputs={"iptables_save": drop_policy}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert "accept_bypass_before_docker_user" in a["blockers"]
+    assert "no_applicable_accept_path_to_backend" in d["blockers"]
+
+
+def test_cyclic_chain_graph_blocks_ready():
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": IPT_CYCLE}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert any("cfg_cycle_detected" in b for b in summary["blockers"])
+
+
+def test_multiple_paths_only_one_through_docker_user_blocks():
+    multi = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", "-A FORWARD -d 172.30.0.99/32 -j DOCKER-USER\n-A FORWARD -d 172.30.0.5/32 -p tcp -m tcp --dport 60010 -j ACCEPT\n")
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": multi}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert "accept_bypass_before_docker_user" in summary["blockers"]
+
+
+def test_match_specific_accept_that_does_not_apply_does_not_block_ready():
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": IPT_MATCH_ACCEPT_NOT_APPLY}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == READY
+
+
+def test_match_specific_hook_on_unrelated_interface_does_not_prove_ready():
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": IPT_CONDITIONAL_HOOK_UNRELATED}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert "docker_user_not_reachable_on_forward_path" in summary["blockers"]
+
+
+@pytest.mark.parametrize("override,blocker", [
+    ({"docker_network_inspect": network().replace('"Name": "mpf-proxy-internal"', '"Name": "wrong-net"')}, "docker_network_name_mismatch"),
+    ({"docker_network_inspect": network().replace('"Driver": "bridge"', '"Driver": "overlay"')}, "docker_network_driver_not_bridge"),
+    ({"docker_network_inspect": network().replace('"cid123"', '"othercid"')}, "backend_container_missing_from_network_inspect"),
+    ({"docker_network_inspect": network().replace('"172.30.0.5/24"', '"172.30.0.6/24"')}, "backend_ipv4_mismatch_between_inspects"),
+    ({"ip_link": json.dumps([{"ifname": "eth0"}])}, "docker_bridge_interface_missing"),
+    ({"bridge_link": json.dumps([])}, "backend_bridge_membership_unverified"),
+    ({"docker_inspect_backend": container().replace('"NetworkID": "abcdef1234567890"', '"NetworkID": "wrong"')}, "docker_network_id_mismatch"),
+])
+def test_docker_network_identity_mismatch_blocks_ready(override, blocker):
+    summary = _collect(adapter=FakeAdapter(outputs=override), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert blocker in summary["blockers"]
+
+
+@pytest.mark.parametrize("command_id,blocker", [
+    ("ip_address", "ip_address_json_invalid"),
+    ("ip_link", "ip_link_json_invalid"),
+    ("ip_route_all", "ip_route_all_json_invalid"),
+    ("ip_rule", "ip_rule_json_invalid"),
+    ("ip_route_get_backend", "route_get_json_invalid"),
+    ("bridge_link", "bridge_link_json_invalid"),
+    ("docker_inspect_backend", "docker_inspect_json_invalid"),
+    ("docker_network_inspect", "docker_network_inspect_json_invalid"),
+])
+def test_malformed_required_json_is_invalid(command_id, blocker):
+    summary = _collect(adapter=FakeAdapter(outputs={command_id: "{not-json"}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == INVALID
+    assert blocker in summary["blockers"]
+
+
+@pytest.mark.parametrize("policy_rules,blocker", [
+    ([{"priority": 32766, "table": "main"}], None),
+    ([{"priority": 100, "from": "10.0.0.0/8", "table": "100"}], "policy_routing_ambiguous"),
+    ([{"priority": 100, "fwmark": "0x1", "table": "100"}], "policy_routing_ambiguous"),
+    ([{"priority": 100, "iif": "eth0", "table": "100"}], "policy_routing_ambiguous"),
+])
+def test_policy_routing_behavior(policy_rules, blocker):
+    summary = _collect(adapter=FakeAdapter(outputs={"ip_rule": json.dumps(policy_rules)}), phase_status_text=PHASE, write_dir=None)["summary"]
+    if blocker is None:
+        assert summary["final_decision"] == READY
+    else:
+        assert summary["final_decision"] == BLOCKED
+        assert blocker in summary["blockers"]
+
+
+@pytest.mark.parametrize("route_type,blocker", [("unreachable", "route_get_backend_unreachable"), ("blackhole", "route_get_backend_blackhole"), ("prohibit", "route_get_backend_prohibit")])
+def test_unreachable_route_types_block(route_type, blocker):
+    summary = _collect(adapter=FakeAdapter(outputs={"ip_route_get_backend": json.dumps([{"dst":"172.30.0.5","dev":"br-abcdef123456","type":route_type}])}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert blocker in summary["blockers"]
+
+
+def test_adapter_rejects_invalid_dynamic_backend_ipv4():
+    for value in ["127.0.0.1", "169.254.1.1", "224.0.0.1", "0.0.0.0", "8.8.8.8", "172.18.0.3", "not-ip"]:
+        res = Phase11ReadOnlyCommandAdapter(run_func=lambda *a, **k: None).run("ip_route_get_backend", backend_ipv4=value)
+        assert res.return_code == 126
+
+
+def test_verifier_handles_malformed_json_without_exception(tmp_path):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    write_packet_path_bundle(bundle, tmp_path / "bundle")
+    (tmp_path / "bundle" / "manifest.json").write_text("{bad\n")
+    result = verify_packet_path_bundle(tmp_path / "bundle")
+    assert result["final_decision"] == INVALID
+    assert "manifest_json_invalid" in result["blockers"] or "manifest_sha256_mismatch" in result["blockers"]
+
+
+def test_verifier_cross_checks_manifest_metadata(tmp_path):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    write_packet_path_bundle(bundle, tmp_path / "bundle")
+    manifest_path = tmp_path / "bundle" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["final_decision"] = "BLOCKED_CONTROLLED_FILTER_PACKET_PATH_PROOF"
+    manifest_path.write_text(json.dumps(manifest, sort_keys=True) + "\n")
+    (tmp_path / "bundle" / "manifest.sha256").write_text(__import__('hashlib').sha256(manifest_path.read_bytes()).hexdigest()+"  manifest.json\n")
+    result = verify_packet_path_bundle(tmp_path / "bundle")
+    assert result["final_decision"] == INVALID
+    assert "manifest_final_decision_mismatch" in result["blockers"]
+
+
+def test_safe_output_directory_rejects_symlink_parent_and_target(tmp_path):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    real = tmp_path / "real"
+    real.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+    with pytest.raises(ValueError):
+        write_packet_path_bundle(bundle, link / "bundle")
+    target = tmp_path / "target"
+    target.symlink_to(real, target_is_directory=True)
+    with pytest.raises(FileExistsError):
+        write_packet_path_bundle(bundle, target)
+
+
+def test_bundle_file_symlink_and_precreated_file_rejected(tmp_path):
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    out = tmp_path / "bundle"
+    write_packet_path_bundle(bundle, out)
+    (out / "decision.json").unlink()
+    (out / "decision.json").symlink_to(out / "evidence.json")
+    assert verify_packet_path_bundle(out)["final_decision"] == INVALID
+    out2 = tmp_path / "bundle2"
+    out2.mkdir(mode=0o700)
+    (out2 / "evidence.json").write_text("x")
+    with pytest.raises(FileExistsError):
+        write_packet_path_bundle(bundle, out2)
+
+
+def test_invalid_evidence_cannot_claim_future_reachability():
+    summary = _collect(adapter=FakeAdapter(outputs={"iptables_save": IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", "")}), phase_status_text=PHASE, write_dir=None)["summary"]
+    assert summary["final_decision"] == BLOCKED
+    assert summary["decision"]["future_mpf_entry_reachable"] is False
+    assert summary["decision"]["original_destination_available_via_conntrack"] == "unresolved"

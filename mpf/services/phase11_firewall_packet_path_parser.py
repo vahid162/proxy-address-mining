@@ -14,7 +14,9 @@ class ParsedRule:
     raw: str
     argv: list[str]
     jump_target: str | None
+    jump_kind: str | None
     terminal_verdict: str | None
+    rule_hash: str
     match: dict[str, Any] = field(default_factory=dict)
     comment: str | None = None
 
@@ -116,6 +118,7 @@ def parse_iptables_save_topology(text: str, *, ipv6: bool = False) -> ParsedFire
             jump = _flag(argv, "-j") or _flag(argv, "--jump")
             goto = _flag(argv, "-g") or _flag(argv, "--goto")
             target = jump or goto
+            jump_kind = "goto" if goto else "jump" if jump else None
             terminal = target if target in _TERMINAL else None
             comment = _flag(argv, "--comment")
             match = _extract_match(argv)
@@ -123,7 +126,7 @@ def parse_iptables_save_topology(text: str, *, ipv6: bool = False) -> ParsedFire
                 mpf_unknown.append(f"unknown_rule_chain:{table}:{chain}:{idx}")
             if comment and ("mpf:" in comment or "customer_" in comment) and chain not in _ALLOWED_MPF:
                 mpf_unknown.append(f"unknown_mpf_comment:{table}:{chain}:{idx}:{comment}")
-            rules.append(ParsedRule(table=table, chain=chain, rule_index=idx, raw=line, argv=argv, jump_target=target, terminal_verdict=terminal, match=match, comment=comment))
+            rules.append(ParsedRule(table=table, chain=chain, rule_index=idx, raw=line, argv=argv, jump_target=target, jump_kind=jump_kind, terminal_verdict=terminal, rule_hash=hashlib.sha256(line.encode()).hexdigest(), match=match, comment=comment))
             continue
         errors.append(f"unsupported_line:{lineno}:{line[:40]}")
     if table is not None:
@@ -162,7 +165,7 @@ def _flag(argv: list[str], name: str) -> str | None:
 
 def _extract_match(argv: list[str]) -> dict[str, Any]:
     out: dict[str, Any] = {}
-    for flag, key in (("-s", "source"), ("--source", "source"), ("-d", "destination"), ("--destination", "destination"), ("-p", "protocol"), ("--dport", "destination_port"), ("--destination-port", "destination_port"), ("--ctorigdst", "conntrack_original_destination"), ("--ctorigdstport", "conntrack_original_destination_port")):
+    for flag, key in (("-s", "source"), ("--source", "source"), ("-d", "destination"), ("--destination", "destination"), ("-p", "protocol"), ("-i", "in_interface"), ("--in-interface", "in_interface"), ("-o", "out_interface"), ("--out-interface", "out_interface"), ("--dport", "destination_port"), ("--destination-port", "destination_port"), ("--ctorigdst", "conntrack_original_destination"), ("--ctorigdstport", "conntrack_original_destination_port")):
         val = _flag(argv, flag)
         if val is not None:
             out[key] = int(val) if key.endswith("port") and val.isdigit() else val

@@ -24,18 +24,31 @@ COLLECT_JSON="$(mktemp)"
 VERIFY_JSON="$(mktemp)"
 trap 'rm -f "${PLAN_JSON}" "${COLLECT_JSON}" "${VERIFY_JSON}"' EXIT
 
+set +e
 mpf production controlled-filter-packet-path-plan --output json >"${PLAN_JSON}"
+PLAN_RC=$?
+set -e
+python - "${PLAN_JSON}" <<'PY'
+import json, pathlib, sys
+p=json.loads(pathlib.Path(sys.argv[1]).read_text())
+print(f"plan_final_decision={p.get('final_decision')}")
+print(f"collection_preflight_safe={p.get('collection_preflight_safe')}")
+if p.get('collection_preflight_safe') is not True:
+    sys.exit(2)
+PY
+if [[ ${PLAN_RC} -ne 0 ]]; then
+  exit "${PLAN_RC}"
+fi
+
 mpf production controlled-filter-packet-path-collect --output-dir "${COLLECTION_DIR}" --output json >"${COLLECT_JSON}"
 mpf production controlled-filter-packet-path-verify --evidence-dir "${COLLECTION_DIR}" --output json >"${VERIFY_JSON}"
 
-python - "${PLAN_JSON}" "${COLLECT_JSON}" "${VERIFY_JSON}" "${COLLECTION_DIR}" <<'PY'
+python - "${COLLECT_JSON}" "${VERIFY_JSON}" "${COLLECTION_DIR}" <<'PY'
 import json, pathlib, sys
-plan=json.loads(pathlib.Path(sys.argv[1]).read_text())
-collect=json.loads(pathlib.Path(sys.argv[2]).read_text())
-verify=json.loads(pathlib.Path(sys.argv[3]).read_text())
-collection_dir=sys.argv[4]
+collect=json.loads(pathlib.Path(sys.argv[1]).read_text())
+verify=json.loads(pathlib.Path(sys.argv[2]).read_text())
+collection_dir=sys.argv[3]
 manifest=pathlib.Path(collection_dir)/"manifest.sha256"
-print(f"plan_final_decision={plan.get('final_decision')}")
 print(f"collect_final_decision={collect.get('final_decision')}")
 print(f"verify_final_decision={verify.get('final_decision')}")
 print(f"collection_dir={collection_dir}")

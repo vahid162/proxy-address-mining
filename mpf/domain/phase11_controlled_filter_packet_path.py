@@ -105,7 +105,7 @@ class PacketPathDecision:
     future_mpf_entry_reachable: bool = False
     packet_view_at_verified_hook: str = "unknown"
     destination_visible_at_verified_hook: dict[str, Any] = field(default_factory=dict)
-    original_destination_available_via_conntrack: bool = True
+    original_destination_available_via_conntrack: str = "unresolved"
     original_destination_match_required: bool = False
     current_customer_port_match_compatible: bool = False
     current_renderer_binding_compatible: bool = False

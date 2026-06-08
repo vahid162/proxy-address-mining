@@ -88,6 +88,9 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
     net_raw = _stdout(docker_net) if docker_net.return_code == 0 else ""
     backend = _sanitize_backend(docker_raw, ss_backend_stdout=_stdout(ss_backend))
     network = _sanitize_network(net_raw, docker_ps_stdout=_stdout(docker_ps), expected_container_id=str(backend.get("container_id") or ""))
+    backend = _join_backend_network_projection(backend, network)
+    invalid.extend(str(item) for item in backend.get("blockers", []) if str(item).endswith("json_invalid"))
+    invalid.extend(str(item) for item in network.get("blockers", []) if str(item).endswith("json_invalid"))
     backend_ip = str(backend.get("resolved_ipv4") or "")
     if backend_ip:
         try:
@@ -105,15 +108,23 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
 
     parsed4 = parse_iptables_save_topology(_stdout(ipt4), ipv6=False).to_dict()
     parsed6 = parse_iptables_save_topology(_stdout(ipt6), ipv6=True).to_dict()
+    ip_addr_json, e = _json_required("ip_address", _stdout(ip_addr)); invalid.extend(e)
+    ip_link_json, e = _json_required("ip_link", _stdout(ip_link)); invalid.extend(e)
+    ip_route_json, e = _json_required("ip_route_all", _stdout(ip_route_all)); invalid.extend(e)
+    ip_rule_json, e = _json_required("ip_rule", _stdout(ip_rule)); invalid.extend(e)
+    route_get_json, e = _json_required("route_get", _stdout(route_get), required=route_get is not None); invalid.extend(e)
+    bridge_json, e = _json_required("bridge_link", _stdout(bridge), required=bool(_stdout(bridge).strip()) and bridge.return_code == 0); invalid.extend(e)
+    backend_bridge_membership_verified = _backend_bridge_membership_verified(bridge_json, network)
     host_topology = {
         "collection_id": collection_id,
         "hostname": hostname,
-        "host_addresses": _host_addresses(_json_list(_stdout(ip_addr))),
-        "links": _json_list(_stdout(ip_link)),
-        "routes": _json_list(_stdout(ip_route_all)),
-        "policy_rules": _json_list(_stdout(ip_rule)),
-        "route_get_backend": _json_list(_stdout(route_get)) if route_get else [],
-        "bridge_links": _json_list(_stdout(bridge)) if bridge.return_code == 0 and _stdout(bridge).strip() else [],
+        "host_addresses": _host_addresses(ip_addr_json),
+        "links": ip_link_json,
+        "routes": ip_route_json,
+        "policy_rules": ip_rule_json,
+        "route_get_backend": route_get_json,
+        "bridge_links": bridge_json,
+        "backend_bridge_membership_verified": backend_bridge_membership_verified,
         "ip_forward": _read_proc_value("/proc/sys/net/ipv4/ip_forward"),
         "bridge_nf_call_iptables": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-iptables", optional=True),
         "bridge_nf_call_ip6tables": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-ip6tables", optional=True),
@@ -141,6 +152,7 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
         "phase_status_sha256": hashlib.sha256(phase_text.encode()).hexdigest(),
         "authoritative_current_phase_flags": phase_flags,
         "phase_gate_blockers": phase_blockers,
+        "parse_errors": invalid,
         "sanitized_config_projection": {"controlled_scope": list(CONTROLLED_CUSTOMERS), "backend_container": BACKEND_CONTAINER, "docker_network": DOCKER_NETWORK, "backend_port": BACKEND_PORT},
         "sanitized_config_projection_hash": sha256_bytes(canonical_json_bytes({"controlled_scope": list(CONTROLLED_CUSTOMERS), "backend_container": BACKEND_CONTAINER, "docker_network": DOCKER_NETWORK, "backend_port": BACKEND_PORT})),
         "backend_target": backend,
@@ -178,6 +190,7 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
         "collection_id": collection_id,
         "hostname": hostname,
         "final_decision": decision["final_decision"],
+        "collection_preflight_safe": decision["final_decision"] != INVALID,
         "proof_scope": decision["proof_scope"],
         "runtime_packet_observed": False,
         "post_apply_runtime_verified": False,
@@ -202,14 +215,35 @@ def _stdout(result: ReadOnlyCommandResult | None) -> str:
     return "" if result is None or result.stdout is None else result.stdout
 
 
-def _json_list(text: str) -> list[Any]:
+def _json_required(command_id: str, text: str, *, required: bool = True) -> tuple[list[Any], list[str]]:
     if not text.strip():
-        return []
+        return [], [] if not required else [f"{command_id}_json_empty"]
     try:
         value = json.loads(text)
-        return value if isinstance(value, list) else [value]
     except json.JSONDecodeError:
-        return []
+        return [], [f"{command_id}_json_invalid"]
+    if not isinstance(value, list):
+        return [], [f"{command_id}_json_not_array"]
+    return value, []
+
+
+def _backend_bridge_membership_verified(bridge_links: list[Any], network: dict[str, Any]) -> bool:
+    if not bridge_links:
+        return False
+    bridge = str(network.get("bridge_name") or "")
+    connected = network.get("connected_allowlisted_mpf_containers", [])
+    backend_rows = [item for item in connected if isinstance(item, dict) and item.get("name") == BACKEND_CONTAINER]
+    if not bridge or not backend_rows:
+        return False
+    # bridge -json link output varies by iproute2 version. Require at least one
+    # link record whose master/ifname references the verified bridge; this proves
+    # host bridge membership evidence is present rather than synthesized.
+    for item in bridge_links:
+        if not isinstance(item, dict):
+            continue
+        if item.get("master") == bridge or item.get("ifname") == bridge or item.get("link") == bridge:
+            return True
+    return False
 
 
 def _read_phase_status_text() -> str:
@@ -239,7 +273,7 @@ def _sanitize_backend(raw: str, *, ss_backend_stdout: str) -> dict[str, Any]:
         container = parsed[0] if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict) else {}
     except json.JSONDecodeError:
         container = {}
-        blockers.append("backend_container_inspect_invalid_json")
+        blockers.append("docker_inspect_json_invalid")
     if not container:
         blockers.append("backend_container_missing")
     state = container.get("State", {}) if isinstance(container.get("State"), dict) else {}
@@ -282,6 +316,7 @@ def _sanitize_backend(raw: str, *, ss_backend_stdout: str) -> dict[str, Any]:
         "compose_project": labels.get("com.docker.compose.project"),
         "compose_service": labels.get("com.docker.compose.service"),
         "connected_networks": sorted({name: {"network_id": val.get("NetworkID"), "ipv4_address": val.get("IPAddress"), "prefix_len": val.get("IPPrefixLen")} for name, val in networks.items() if isinstance(val, dict)}.items()),
+        "network_id": net.get("NetworkID"),
         "resolved_ipv4": ip,
         "container_ipv4_prefix": net.get("IPPrefixLen"),
         "backend_port": BACKEND_PORT,
@@ -299,6 +334,29 @@ def _sanitize_backend(raw: str, *, ss_backend_stdout: str) -> dict[str, Any]:
     }
 
 
+def _join_backend_network_projection(backend: dict[str, Any], network: dict[str, Any]) -> dict[str, Any]:
+    connected = network.get("connected_allowlisted_mpf_containers", [])
+    backend_id = str(backend.get("container_id") or "")
+    backend_ip = str(backend.get("resolved_ipv4") or "")
+    row = None
+    for item in connected if isinstance(connected, list) else []:
+        if isinstance(item, dict) and item.get("container_id") == backend_id:
+            row = item
+            break
+    backend["network_inspect_container_id_match"] = row is not None
+    backend["network_inspect_ipv4_match"] = bool(row and str(row.get("ipv4_address") or "") == backend_ip)
+    backend["network_id"] = backend.get("network_id") or network.get("network_id") if row is not None else backend.get("network_id")
+    if row is None:
+        backend.setdefault("blockers", []).append("backend_container_missing_from_network_inspect")
+    elif str(row.get("ipv4_address") or "") != backend_ip:
+        backend.setdefault("blockers", []).append("backend_ipv4_mismatch_between_inspects")
+    if network.get("status") != "ok":
+        backend["status"] = "blocked"
+    if backend.get("blockers"):
+        backend["status"] = "blocked"
+    return backend
+
+
 def _sanitize_network(raw: str, *, docker_ps_stdout: str, expected_container_id: str) -> dict[str, Any]:
     blockers: list[str] = []
     try:
@@ -306,7 +364,7 @@ def _sanitize_network(raw: str, *, docker_ps_stdout: str, expected_container_id:
         net = parsed[0] if isinstance(parsed, list) and parsed and isinstance(parsed[0], dict) else {}
     except json.JSONDecodeError:
         net = {}
-        blockers.append("docker_network_inspect_invalid_json")
+        blockers.append("docker_network_inspect_json_invalid")
     if not net:
         blockers.append("docker_network_missing")
     ipam = net.get("IPAM", {}) if isinstance(net.get("IPAM"), dict) else {}
@@ -327,19 +385,45 @@ def _sanitize_network(raw: str, *, docker_ps_stdout: str, expected_container_id:
             unknown.append(row)
     if unknown:
         blockers.append("unknown_connected_container")
+    if expected_container_id and not any(item.get("container_id") == expected_container_id for item in connected):
+        blockers.append("backend_container_id_missing_from_network")
+    if net.get("Name") != DOCKER_NETWORK:
+        blockers.append("docker_network_name_mismatch")
+    if net.get("Driver") != "bridge":
+        blockers.append("docker_network_driver_not_bridge")
     net_id = net.get("Id")
+    if not net_id:
+        blockers.append("docker_network_id_missing")
     bridge_name = (net.get("Options") or {}).get("com.docker.network.bridge.name") if isinstance(net.get("Options"), dict) else None
-    if not bridge_name and isinstance(net_id, str) and net_id:
-        bridge_name = f"br-{net_id[:12]}"
+    if not bridge_name:
+        blockers.append("docker_bridge_name_missing")
+    try:
+        if first_cfg.get("Subnet"):
+            ipaddress.ip_network(str(first_cfg.get("Subnet")), strict=False)
+        else:
+            blockers.append("docker_network_subnet_missing")
+    except ValueError:
+        blockers.append("docker_network_subnet_invalid")
+    gateway_invalid = False
+    try:
+        if first_cfg.get("Gateway"):
+            ipaddress.ip_address(str(first_cfg.get("Gateway")))
+        else:
+            gateway_invalid = True
+    except ValueError:
+        gateway_invalid = True
+    if gateway_invalid:
+        blockers.append("docker_network_gateway_invalid")
     return {
         "status": "ok" if not blockers else "blocked",
-        "network_name": net.get("Name") or DOCKER_NETWORK,
+        "network_name": net.get("Name"),
         "network_id": net_id,
         "driver": net.get("Driver"),
         "internal": net.get("Internal"),
         "attachable": net.get("Attachable"),
         "ipv4_subnet": first_cfg.get("Subnet"),
         "gateway": first_cfg.get("Gateway"),
+        "gateway_invalid": gateway_invalid,
         "bridge_name": bridge_name,
         "connected_allowlisted_mpf_containers": connected,
         "unknown_connected_containers": unknown,
