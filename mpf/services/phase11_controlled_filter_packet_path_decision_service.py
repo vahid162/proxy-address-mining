@@ -17,6 +17,54 @@ from mpf.services.phase11_controlled_filter_packet_path_graph_service import cla
 HOOK = "DOCKER-USER"
 MAX_STEPS = 512
 
+_SUPPORTED_MATCH_MODULES = {"tcp", "comment"}
+_SUPPORTED_VALUE_OPTIONS = {
+    "-s",
+    "--source",
+    "-d",
+    "--destination",
+    "-p",
+    "-i",
+    "--in-interface",
+    "-o",
+    "--out-interface",
+    "--dport",
+    "--destination-port",
+    "--comment",
+    "-m",
+    "--match",
+    "-j",
+    "--jump",
+    "-g",
+    "--goto",
+}
+_NEGATABLE_MATCH_OPTIONS = {
+    "-s",
+    "--source",
+    "-d",
+    "--destination",
+    "-p",
+    "-i",
+    "--in-interface",
+    "-o",
+    "--out-interface",
+    "--dport",
+    "--destination-port",
+}
+_OPTION_ALIASES = {
+    "--source": "source",
+    "-s": "source",
+    "--destination": "destination",
+    "-d": "destination",
+    "-p": "protocol",
+    "--in-interface": "in_interface",
+    "-i": "in_interface",
+    "--out-interface": "out_interface",
+    "-o": "out_interface",
+    "--destination-port": "destination_port",
+    "--dport": "destination_port",
+}
+
 
 @dataclass
 class FlowResult:
@@ -82,7 +130,6 @@ def decide_controlled_filter_packet_path(*, evidence: dict[str, Any], graph: dic
     packet = {"protocol": "tcp", "destination": backend_ip, "destination_port": BACKEND_PORT, "out_interface": bridge, "ingress_interface_known": False}
     flow = _walk_chain("FORWARD", 0, chain_map, policies, user_chains, packet, hook_seen=False, call_stack=[], steps=0)
     graph["verified_cfg_edges"] = flow.edges
-    graph["future_mpf_entry_reachable"] = bool(flow.hook_seen_any and not flow.unresolved)
 
     if flow.hook_entry_count > 1:
         blockers.append("docker_user_hook_duplicated_or_ambiguous")
@@ -107,6 +154,8 @@ def decide_controlled_filter_packet_path(*, evidence: dict[str, Any], graph: dic
         "conntrack_original_destination_match_requires_reviewed_artifact_graph_binding",
     ]
     final = READY if not blockers else BLOCKED
+    verified_future_reachability = final == READY
+    graph["future_mpf_entry_reachable"] = verified_future_reachability
     return PacketPathDecision(
         final_decision=final,
         post_dnat_route_class=route_class,
@@ -117,7 +166,7 @@ def decide_controlled_filter_packet_path(*, evidence: dict[str, Any], graph: dic
         docker_user_reachable=flow.hook_seen_any and not flow.unresolved,
         hook_precedes_all_relevant_accept_paths=bool(flow.accepts) and not bypass_accepts and not flow.unresolved,
         bypass_path_detected=bool(bypass_accepts),
-        future_mpf_entry_reachable=flow.hook_seen_any and not flow.unresolved and not bypass_accepts,
+        future_mpf_entry_reachable=verified_future_reachability,
         packet_view_at_verified_hook=packet_view,
         destination_visible_at_verified_hook=visible,
         original_destination_available_via_conntrack="unresolved",
@@ -289,6 +338,9 @@ def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]
                 return result
             local_hook = local_hook or child.hook_seen_any
             continue
+        if target is not None:
+            result.unresolved.append(f"unsupported_target_semantics:{chain}:{rule.get('rule_index')}:{target}")
+            return result
     policy = policies.get(chain)
     if policy == "ACCEPT":
         result.accepts.append({"chain": chain, "rule_index": "policy", "hook_seen": local_hook, "target": "ACCEPT"})
@@ -330,14 +382,36 @@ def _rule_applies(rule: dict[str, Any], packet: dict[str, Any], *, target_is_hoo
 
 def _unsupported_match_blocker(rule: dict[str, Any]) -> bool:
     argv = [str(x) for x in rule.get("argv", []) if isinstance(x, str)]
-    supported_modules = {"tcp", "comment"}
-    unsupported_flags = {"--ctstate", "--state", "--mark", "--tcp-flags", "--ctorigdst", "--ctorigdstport"}
-    unsupported_prefixes = ("--physdev",)
-    for i, token in enumerate(argv):
-        if token == "-m" and i + 1 < len(argv) and argv[i + 1] not in supported_modules:
+    if len(argv) < 2 or argv[0] != "-A":
+        return True
+
+    seen_match_options: set[str] = set()
+    index = 2
+    while index < len(argv):
+        token = argv[index]
+        negated = token == "!"
+        if negated:
+            index += 1
+            if index >= len(argv) or argv[index] not in _NEGATABLE_MATCH_OPTIONS:
+                return True
+            token = argv[index]
+
+        if token not in _SUPPORTED_VALUE_OPTIONS or index + 1 >= len(argv):
             return True
-        if token in unsupported_flags or any(token.startswith(prefix) for prefix in unsupported_prefixes):
+
+        value = argv[index + 1]
+        if token in {"-m", "--match"} and value not in _SUPPORTED_MATCH_MODULES:
             return True
+        if negated and token not in _NEGATABLE_MATCH_OPTIONS:
+            return True
+
+        normalized = _OPTION_ALIASES.get(token)
+        if normalized is not None:
+            if normalized in seen_match_options:
+                return True
+            seen_match_options.add(normalized)
+
+        index += 2
     return False
 
 
