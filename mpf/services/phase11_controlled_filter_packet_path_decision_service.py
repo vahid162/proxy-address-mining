@@ -358,17 +358,19 @@ def _rule_applies(rule: dict[str, Any], packet: dict[str, Any], *, target_is_hoo
         return "unresolved"
     match = rule.get("match", {}) if isinstance(rule.get("match"), dict) else {}
     checks = [
-        ("protocol", lambda v: v == packet["protocol"]),
-        ("destination_port", lambda v: v == packet["destination_port"]),
+        ("protocol", lambda v: _protocol_match(str(v), str(packet["protocol"]))),
+        ("destination_port", lambda v: _port_match(v, int(packet["destination_port"]))),
         ("destination", lambda v: _ip_match(str(packet["destination"]), str(v))),
-        ("out_interface", lambda v: v == packet.get("out_interface")),
+        ("out_interface", lambda v: _interface_match(str(v), str(packet.get("out_interface") or ""))),
     ]
     for key, fn in checks:
         if key in match:
-            ok = fn(match[key])
+            outcome = fn(match[key])
+            if outcome is None:
+                return "unresolved"
             if match.get(f"{key}_negated"):
-                ok = not ok
-            if not ok:
+                outcome = not outcome
+            if not outcome:
                 return False
     if "source" in match:
         # External source is intentionally unknown in this static proof; source
@@ -415,11 +417,51 @@ def _unsupported_match_blocker(rule: dict[str, Any]) -> bool:
     return False
 
 
-def _ip_match(ip: str, pattern: str) -> bool:
+def _protocol_match(value: str, packet_protocol: str) -> bool | None:
+    normalized = value.strip().lower()
+    packet = packet_protocol.strip().lower()
+    if normalized in {"all", "0"}:
+        return True
+    if packet == "tcp" and normalized in {"tcp", "6"}:
+        return True
+    if normalized in {"udp", "17", "icmp", "1", "icmpv6", "ipv6-icmp", "58", "sctp", "132", "gre", "47", "esp", "50", "ah", "51"}:
+        return False
+    return None
+
+
+def _port_match(value: object, packet_port: int) -> bool | None:
+    if isinstance(value, int):
+        return value == packet_port
+    text = str(value).strip()
+    if text.isdigit():
+        return int(text) == packet_port
+    if ":" not in text or text.count(":") != 1:
+        return None
+    start_text, end_text = text.split(":", 1)
+    if start_text and not start_text.isdigit():
+        return None
+    if end_text and not end_text.isdigit():
+        return None
+    start = int(start_text) if start_text else 0
+    end = int(end_text) if end_text else 65535
+    if not (0 <= start <= end <= 65535):
+        return None
+    return start <= packet_port <= end
+
+
+def _interface_match(pattern: str, interface: str) -> bool | None:
+    if not pattern or not interface:
+        return None
+    if pattern.endswith("+"):
+        return interface.startswith(pattern[:-1])
+    return pattern == interface
+
+
+def _ip_match(ip: str, pattern: str) -> bool | None:
     try:
         return ipaddress.ip_address(ip) in ipaddress.ip_network(pattern, strict=False)
     except ValueError:
-        return ip == pattern
+        return None
 
 
 def _decision(final: str, blockers: list[str], *, warnings: list[str]) -> PacketPathDecision:
