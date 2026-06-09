@@ -91,7 +91,7 @@ class FakeAdapter(Phase11ReadOnlyCommandAdapter):
 
     def run(self, command_id: str, *, backend_ipv4: str | None = None, ingress_ifname: str | None = None, bridge_name: str | None = None, pid: str | None = None, redact_stdout: bool = False, require_non_empty: bool = False):
         argv = allowed_argv(command_id, backend_ipv4=backend_ipv4, ingress_ifname=ingress_ifname, bridge_name=bridge_name, pid=pid)
-        stdout = self.outputs.get(command_id, default_output(command_id))
+        stdout = self.outputs.get(command_id, self.outputs.get(f"{command_id}:{ingress_ifname}", default_output(command_id)))
         rc = self.rc.get(command_id, 0)
         if require_non_empty and not stdout.strip() and rc == 0:
             rc = 65
@@ -101,11 +101,11 @@ class FakeAdapter(Phase11ReadOnlyCommandAdapter):
 def default_output(command_id):
     return {
         "hostname": "devhost\n", "uname_kernel": "6.1\n", "iptables_save": IPT_READY, "ip6tables_save": IP6_EMPTY,
-        "iptables_version": "iptables v1.8\n", "ip6tables_version": "ip6tables v1.8\n",
+        "iptables_version": "iptables v1.8.9 (nf_tables)\n", "ip6tables_version": "ip6tables v1.8.9 (nf_tables)\n",
         "docker_inspect_backend": container(), "docker_network_inspect": network(), "docker_ps_compose": "mpf-forwarder-btc\timage\tUp\t\n",
         "ip_address": json.dumps([{"ifname": "eth0", "addr_info": [{"family": "inet", "local": "203.0.113.10", "prefixlen": 24}]}]),
         "ip_link": json.dumps([{"ifname": "br-abcdef123456", "operstate": "UP", "flags": ["UP"]}, {"ifname":"veth0","ifindex":10,"master":"br-abcdef123456"}]), "ip_route_all": json.dumps([{"dst":"172.30.0.0/24","dev":"br-abcdef123456"}]), "ip_rule": json.dumps([{"priority":0,"table":"local"},{"priority":32766,"table":"main"},{"priority":32767,"table":"default"}]),
-        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([{"ifname":"veth0","master":"br-abcdef123456","endpoint_id":"123456abcdef"}]),
+        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "ip_route_get_backend_ingress": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([{"ifname":"veth0","master":"br-abcdef123456","endpoint_id":"123456abcdef"}]),
         "bridge_fdb_backend": json.dumps([{"mac":"02:42:ac:1e:00:05","dev":"veth0"}]),
         "ip_link_master_bridge": json.dumps([{"ifname":"veth0","ifindex":10,"master":"br-abcdef123456"}]),
         "ss_listeners": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n", "ss_backend_listener": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n",
@@ -115,7 +115,7 @@ def default_output(command_id):
 @pytest.fixture(autouse=True)
 def _stable_proc(monkeypatch):
     import mpf.services.phase11_controlled_filter_packet_path_service as svc
-    monkeypatch.setattr(svc, "_read_proc_value", lambda path, optional=False: "1")
+    monkeypatch.setattr(svc, "_read_proc_value", lambda path, optional=False: "2" if "rp_filter" in path else "1")
     monkeypatch.setattr(svc, "_route_localnet_values", lambda: {})
 
 

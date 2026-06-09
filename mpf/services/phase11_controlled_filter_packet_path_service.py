@@ -6,6 +6,7 @@ import ipaddress
 import json
 import socket
 import uuid
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -48,6 +49,7 @@ def verify_controlled_filter_packet_path_bundle(*, evidence_dir: Path | str) -> 
 def read_only_command_allowlist() -> dict[str, Any]:
     allowed = all_static_allowed_argv()
     allowed["ip_route_get_backend"] = ["ip", "-json", "route", "get", "<validated-current-backend-ipv4>"]
+    allowed["ip_route_get_backend_ingress"] = ["ip", "-json", "route", "get", "<validated-current-backend-ipv4>", "from", "198.51.100.77", "iif", "<validated-ingress-interface>"]
     return {"allowlist": allowed, "shell": False, "mutation_commands_allowed": False, "mutation_performed": False}
 
 
@@ -127,6 +129,21 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
     combined_links = ip_link_json + link_master_json
     membership = verify_backend_membership(bridge_name=str(network.get("bridge_name") or ""), backend=backend, links=combined_links, fdb_entries=fdb_json if fdb_json else bridge_json)
     backend_bridge_membership_verified = membership["verified"]
+    external_ingress_interfaces = _external_ingress_interfaces(ip_addr_json, str(network.get("bridge_name") or ""))
+    route_get_backend_by_ingress: dict[str, list[Any]] = {}
+    route_get_backend_by_ingress_refs: dict[str, dict[str, Any]] = {}
+    for ingress in external_ingress_interfaces:
+        ifname = str(ingress.get("ifname") or "")
+        if backend_ip and ifname:
+            res = adapter.run("ip_route_get_backend_ingress", backend_ipv4=backend_ip, ingress_ifname=ifname, require_non_empty=True)
+            res = replace(res, command_id=f"ip_route_get_backend_ingress:{ifname}")
+            commands.append(res)
+            rows, err = _json_required(f"route_get_backend_ingress:{ifname}", _stdout(res), required=True)
+            invalid.extend(err)
+            route_get_backend_by_ingress[ifname] = rows
+            route_get_backend_by_ingress_refs[ifname] = {"command_id": res.command_id, "stdout_sha256": res.stdout_sha256, "evidence_ref": f"command-results.json:{res.command_id}"}
+    firewall_backend = _firewall_backend_consistency(_stdout(next((c for c in commands if c.command_id == "iptables_version"), None)), _stdout(next((c for c in commands if c.command_id == "ip6tables_version"), None)))
+    nat_analysis = _nat_insertion_analysis(parsed4, external_ingress_interfaces)
     host_topology = {
         "collection_id": collection_id,
         "hostname": hostname,
@@ -137,18 +154,19 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
         "routes": ip_route_json,
         "policy_rules": ip_rule_json,
         "route_get_backend": route_get_json,
+        "route_get_backend_by_ingress": route_get_backend_by_ingress,
+        "route_get_backend_by_ingress_refs": route_get_backend_by_ingress_refs,
         "bridge_links": bridge_json,
         "backend_bridge_membership_verified": backend_bridge_membership_verified,
         "backend_bridge_membership_status": membership["status"],
         "backend_bridge_membership_evidence": membership.get("methods", membership.get("evidence", [])),
         "ip_forward": _read_proc_value("/proc/sys/net/ipv4/ip_forward"),
-        "sysctl": {"net.ipv4.ip_forward": _read_proc_value("/proc/sys/net/ipv4/ip_forward"), "net.bridge.bridge-nf-call-iptables": {"available": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-iptables", optional=True) is not None, "value": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-iptables", optional=True)}, "net.bridge.bridge-nf-call-ip6tables": {"available": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-ip6tables", optional=True) is not None, "value": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-ip6tables", optional=True)}},
-        "ip_forward": _read_proc_value("/proc/sys/net/ipv4/ip_forward"),
-        "bridge_nf_call_iptables": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-iptables", optional=True),
-        "bridge_nf_call_ip6tables": _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-ip6tables", optional=True),
+        "sysctl": _sysctl_evidence([str(item.get("ifname")) for item in external_ingress_interfaces if isinstance(item, dict)]),
         "route_localnet": _route_localnet_values(),
         "listening_sockets": _stdout(ss).splitlines(),
-        "external_ingress_interfaces": _external_ingress_interfaces(ip_addr_json, str(network.get("bridge_name") or "")),
+        "external_ingress_interfaces": external_ingress_interfaces,
+        "firewall_backend": firewall_backend,
+        "nat_insertion_analysis": nat_analysis,
         "mutation_performed": False,
     }
     parsed_firewall = {"collection_id": collection_id, "hostname": hostname, "ipv4": parsed4, "ipv6": parsed6, "mutation_performed": False}
@@ -178,7 +196,7 @@ def _collect(*, adapter: Phase11ReadOnlyCommandAdapter, phase_status_text: str |
         "docker_network": network,
         "host_topology": host_topology,
         "packet_path_schema_version": "0.1.252",
-        "component_statuses": {"backend_container_status": backend.get("status"), "docker_network_identity_status": "ok" if network.get("network_id") and network.get("network_name") == DOCKER_NETWORK else "blocked", "docker_bridge_resolution_status": "ok" if network.get("bridge_name_verified") else "blocked", "backend_route_status": "ok" if route_get_json else "blocked", "backend_bridge_membership_status": membership.get("status"), "firewall_parse_status": "ok" if not parsed4.get("errors") and not parsed6.get("errors") else "blocked", "packet_path_status": "pending_decision"},
+        "component_statuses": {"backend_container_status": backend.get("status"), "docker_network_identity_status": "ok" if network.get("network_id") and network.get("network_name") == DOCKER_NETWORK else "blocked", "docker_bridge_resolution_status": "ok" if network.get("bridge_name_verified") else "blocked", "backend_route_status": "ok" if route_get_json else "blocked", "backend_bridge_membership_status": membership.get("status"), "firewall_parse_status": "ok" if not parsed4.get("errors") and not parsed6.get("errors") else "blocked", "firewall_backend_status": firewall_backend.get("status"), "packet_path_status": "pending_decision"},
         "evidence_hashes": {"iptables_save_sha256": parsed4.get("source_sha256"), "ip6tables_save_sha256": parsed6.get("source_sha256")},
         "proof_scope": "static_pre_apply_topology_and_ruleset",
         "runtime_packet_observed": False,
@@ -381,8 +399,6 @@ def _join_backend_network_projection(backend: dict[str, Any], network: dict[str,
         backend.setdefault("blockers", []).append("backend_container_missing_from_network_inspect")
     elif str(row.get("ipv4_address") or "") != backend_ip:
         backend.setdefault("blockers", []).append("backend_ipv4_mismatch_between_inspects")
-    if network.get("status") != "ok":
-        backend["status"] = "blocked"
     if backend.get("blockers"):
         backend["status"] = "blocked"
     return backend
@@ -518,3 +534,64 @@ def _external_ingress_interfaces(ip_addr_json: list[Any], bridge: str) -> list[d
         if any(isinstance(a, dict) and a.get("family") == "inet" for a in item.get("addr_info", []) if isinstance(item.get("addr_info"), list)):
             out.append({"ifname": name, "source_class": "external_nonlocal_source"})
     return out
+
+
+def _sysctl_evidence(ingress_ifnames: list[str]) -> dict[str, Any]:
+    rp: dict[str, dict[str, Any]] = {}
+    for name in ["all", "default", *ingress_ifnames]:
+        path = f"/proc/sys/net/ipv4/conf/{name}/rp_filter"
+        value = _read_proc_value(path, optional=True)
+        rp[name] = {"available": value is not None, "value": value, "path": path}
+    bridge4 = _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-iptables", optional=True)
+    bridge6 = _read_proc_value("/proc/sys/net/bridge/bridge-nf-call-ip6tables", optional=True)
+    return {
+        "net.ipv4.ip_forward": _read_proc_value("/proc/sys/net/ipv4/ip_forward"),
+        "net.ipv4.conf.rp_filter": rp,
+        "net.bridge.bridge-nf-call-iptables": {"available": bridge4 is not None, "value": bridge4},
+        "net.bridge.bridge-nf-call-ip6tables": {"available": bridge6 is not None, "value": bridge6},
+    }
+
+
+def _classify_iptables_backend(version: str) -> str:
+    text = version.lower()
+    if "nf_tables" in text or "nf_tables" in text.replace("-", "_"):
+        return "nf_tables"
+    if "legacy" in text:
+        return "legacy"
+    return "unknown"
+
+
+def _firewall_backend_consistency(iptables_version: str, ip6tables_version: str) -> dict[str, Any]:
+    ipv4 = _classify_iptables_backend(iptables_version)
+    ipv6 = _classify_iptables_backend(ip6tables_version)
+    blockers: list[str] = []
+    if ipv4 == "unknown" or ipv6 == "unknown":
+        blockers.append("firewall_backend_unknown")
+    if ipv4 != ipv6:
+        blockers.append("firewall_backend_mixed")
+    return {"iptables_backend": ipv4, "ip6tables_backend": ipv6, "consistent": not blockers, "status": "ok" if not blockers else "blocked", "blockers": blockers}
+
+
+def _nat_insertion_analysis(parsed4: dict[str, Any], external_ingress_interfaces: list[dict[str, Any]]) -> dict[str, Any]:
+    rules = parsed4.get("rules", []) if isinstance(parsed4.get("rules"), list) else []
+    prerouting = [r for r in rules if isinstance(r, dict) and r.get("table") == "nat" and r.get("chain") == "PREROUTING"]
+    docker = [r for r in rules if isinstance(r, dict) and r.get("table") == "nat" and r.get("chain") == "DOCKER"]
+    docker_jump = any((r.get("jump_target") == "DOCKER") and (r.get("match", {}).get("addrtype_dst_type") == "LOCAL") for r in prerouting if isinstance(r.get("match"), dict))
+    future_ports = {20001, 20101}
+    consumed = []
+    for r in docker:
+        match = r.get("match", {}) if isinstance(r.get("match"), dict) else {}
+        if match.get("destination_port") in future_ports and r.get("jump_target") != "RETURN":
+            consumed.append({"rule_index": r.get("rule_index"), "port": match.get("destination_port")})
+    reachable = docker_jump and not consumed
+    return {
+        "proposed_nat_parent_chain": "PREROUTING",
+        "proposed_nat_insertion_mode": "append_after_existing_docker_jump",
+        "nat_insertion_point_reachable": reachable,
+        "nat_insertion_point_verified": reachable,
+        "nat_binding_ready": False,
+        "future_public_ports": sorted(future_ports),
+        "docker_prerouting_addrtype_local_jump": docker_jump,
+        "docker_future_port_consumers": consumed,
+        "external_ingress_interfaces": [i.get("ifname") for i in external_ingress_interfaces],
+    }

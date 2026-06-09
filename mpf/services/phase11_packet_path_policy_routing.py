@@ -5,6 +5,14 @@ import ipaddress
 from typing import Any
 
 SYNTHETIC_EXTERNAL_NONLOCAL_SOURCE = "198.51.100.77"
+_CANONICAL = {(0, "local"), (32766, "main"), (32767, "default")}
+_ALLOWED_FIELDS = {
+    "priority", "pref", "table", "src", "from", "dst", "to", "fwmark", "iif", "oif", "uidrange",
+    "ipproto", "sport", "dport", "protocol", "action", "goto", "not", "l3mdev", "suppress_prefixlength",
+    "suppress_ifgroup", "tun_id", "realms",
+}
+_BLOCK_FIELDS = {"action", "goto", "not", "l3mdev", "suppress_prefixlength", "suppress_ifgroup", "tun_id", "realms"}
+_SELECTOR_FIELDS = {"from", "to", "fwmark", "iif", "oif", "uidrange", "ipproto", "sport", "dport"}
 
 
 def normalize_rule(rule: dict[str, Any]) -> dict[str, Any]:
@@ -24,6 +32,7 @@ def policy_routing_blockers(*, topology: dict[str, Any], bridge: str, external_i
         return ["policy_routing_rules_malformed"], []
     blockers: list[str] = []
     warnings: list[str] = []
+    canonical_seen: list[tuple[int, str]] = []
     priorities: set[int] = set()
     host_sources = {str(a.get("local")) for a in topology.get("host_addresses", []) if isinstance(a, dict) and a.get("local")}
     for raw in rules:
@@ -31,6 +40,10 @@ def policy_routing_blockers(*, topology: dict[str, Any], bridge: str, external_i
             blockers.append("policy_routing_rule_malformed")
             continue
         rule = normalize_rule(raw)
+        unknown = sorted(set(rule) - _ALLOWED_FIELDS)
+        if unknown:
+            blockers.extend(f"policy_routing_unknown_field:{field}" for field in unknown)
+            blockers.append("policy_routing_ambiguous")
         try:
             priority = int(rule.get("priority"))
         except (TypeError, ValueError):
@@ -40,11 +53,20 @@ def policy_routing_blockers(*, topology: dict[str, Any], bridge: str, external_i
             blockers.append("policy_routing_duplicate_priority")
         priorities.add(priority)
         table = str(rule.get("table", ""))
-        selectors = {k: rule.get(k) for k in ("from", "to", "fwmark", "iif", "oif", "uidrange", "ipproto", "sport", "dport") if k in rule and str(rule.get(k)) not in {"all", "0.0.0.0/0", "::/0"}}
-        if not selectors and (priority, table) in {(0, "local"), (32766, "main"), (32767, "default")}:
+        selectors = {k: rule.get(k) for k in _SELECTOR_FIELDS if k in rule and str(rule.get(k)) not in {"all", "0.0.0.0/0", "::/0"}}
+        canonical = (priority, table) in _CANONICAL and not selectors and not any(k in rule for k in _BLOCK_FIELDS)
+        if canonical:
+            canonical_seen.append((priority, table))
             continue
+        if any(k in rule for k in _BLOCK_FIELDS):
+            blockers.extend(f"policy_routing_unsupported_field:{k}" for k in sorted(_BLOCK_FIELDS & set(rule)))
+            blockers.append("policy_routing_ambiguous")
         if "protocol" in rule and str(rule.get("protocol")) != "static":
             blockers.append("policy_routing_unknown_protocol_selector")
+            blockers.append("policy_routing_ambiguous")
+        if not selectors:
+            blockers.append("policy_routing_noncanonical_selector_free_rule")
+            blockers.append("policy_routing_ambiguous")
         if "fwmark" in selectors:
             blockers.extend(["policy_routing_fwmark_selector", "policy_routing_ambiguous"])
         if "to" in selectors:
@@ -53,13 +75,21 @@ def policy_routing_blockers(*, topology: dict[str, Any], bridge: str, external_i
             blockers.extend(["policy_routing_transport_or_uid_selector", "policy_routing_ambiguous"])
         if any(k in selectors for k in ("iif", "oif")):
             blockers.extend(["policy_routing_interface_selector", "policy_routing_ambiguous"])
-        if "from" in selectors and not _source_is_exact_host_local(str(selectors["from"]), host_sources):
-            blockers.extend(["policy_routing_unknown_source_selector", "policy_routing_ambiguous"])
+        if "from" in selectors:
+            src = str(selectors["from"])
+            if _source_is_exact_host_local(src, host_sources):
+                warnings.append(f"policy_routing_host_local_source_rule_not_applicable:{src}")
+            else:
+                blockers.extend(["policy_routing_unknown_source_selector", "policy_routing_ambiguous"])
+    if set(canonical_seen) != _CANONICAL or len(canonical_seen) != len(_CANONICAL):
+        blockers.append("policy_routing_canonical_rules_missing_or_duplicate")
     ext = external_interfaces or [str(i.get("ifname")) for i in topology.get("external_ingress_interfaces", []) if isinstance(i, dict)]
     route_map = topology.get("route_get_backend_by_ingress", {}) if isinstance(topology.get("route_get_backend_by_ingress"), dict) else {}
     for ifname in ext:
-        rows = route_map.get(ifname, topology.get("route_get_backend"))
-        route_blocker = _route_blocker(rows, bridge, suffix=f":{ifname}")
+        if ifname not in route_map:
+            blockers.append(f"route_get_backend_ingress_missing:{ifname}")
+            continue
+        route_blocker = _route_blocker(route_map.get(ifname), bridge, suffix=f":{ifname}")
         if route_blocker:
             blockers.append(route_blocker)
             blockers.append(route_blocker.split(":", 1)[0])

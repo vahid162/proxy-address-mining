@@ -130,7 +130,9 @@ def decide_controlled_filter_packet_path(*, evidence: dict[str, Any], graph: dic
         values.sort(key=lambda r: int(r.get("rule_index", 0)))
 
     ingress_list = topology.get("external_ingress_interfaces") if isinstance(topology.get("external_ingress_interfaces"), list) else []
-    ingress_names = [str(i.get("ifname")) for i in ingress_list if isinstance(i, dict) and i.get("ifname")] or [""]
+    ingress_names = [str(i.get("ifname")) for i in ingress_list if isinstance(i, dict) and i.get("ifname")]
+    if not ingress_names:
+        blockers.append("external_ingress_interfaces_missing")
     scenarios: list[dict[str, Any]] = []
     scenario_results: list[dict[str, Any]] = []
     graph_edges: list[dict[str, Any]] = []
@@ -234,8 +236,25 @@ def _topology_blockers(*, backend: dict[str, Any], network: dict[str, Any], topo
         blockers.append("backend_target_outside_expected_docker_subnet")
     if route_class != "forwarded":
         blockers.append(f"post_dnat_route_not_forwarded:{route_class}")
+    route = topology.get("route_get_backend")
+    if isinstance(route, list) and len(route) == 1 and isinstance(route[0], dict):
+        typ = str(route[0].get("type", "unicast"))
+        if typ in {"unreachable", "blackhole", "prohibit", "throw"}:
+            blockers.append(f"route_get_backend_{typ}")
     if str(topology.get("ip_forward", "")) != "1":
         blockers.append("ipv4_forwarding_disabled")
+    sysctl = topology.get("sysctl", {}) if isinstance(topology.get("sysctl"), dict) else {}
+    rp = sysctl.get("net.ipv4.conf.rp_filter", {}) if isinstance(sysctl.get("net.ipv4.conf.rp_filter"), dict) else {}
+    for name in ["all", "default", *[str(i.get("ifname")) for i in topology.get("external_ingress_interfaces", []) if isinstance(i, dict)]]:
+        row = rp.get(name) if isinstance(rp, dict) else None
+        value = row.get("value") if isinstance(row, dict) else None
+        if value is None:
+            blockers.append(f"rp_filter_missing:{name}")
+        elif str(value) not in {"0", "2"}:
+            blockers.append(f"rp_filter_strict_or_unsupported:{name}:{value}")
+    fw_backend = topology.get("firewall_backend", {}) if isinstance(topology.get("firewall_backend"), dict) else {}
+    if fw_backend.get("status") not in {None, "ok"}:
+        blockers.extend(str(b) for b in fw_backend.get("blockers", ["firewall_backend_invalid"]) if b)
     if network.get("unknown_connected_containers"):
         blockers.append("unknown_docker_network_containers_present")
     source = str(backend.get("backend_target_source") or "unknown")

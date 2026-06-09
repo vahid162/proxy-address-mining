@@ -1,18 +1,32 @@
 """Shared Phase 11 controlled MPF artifact taxonomy.
 
-This deliberately recognizes only accepted controlled artifact names/comments;
-arbitrary MPF-looking names remain unknown and fail closed.
+Only exact official controlled artifact names/comments are accepted.
+Arbitrary MPF-prefixed artifacts remain unknown and fail closed.
 """
 from __future__ import annotations
 
-OFFICIAL_CONTROLLED_CHAINS = frozenset({"MPF_NAT_PRE", "MPFC_20001", "MPFC_20101"})
+OFFICIAL_CONTROLLED_CHAINS = frozenset({
+    "MPF_INPUT",
+    "MPF_CUSTOMERS",
+    "MPF_GUARD",
+    "MPF_ACCT_IN",
+    "MPF_ACCT_OUT",
+    "MPF_NAT_PRE",
+    "MPF_NAT_POST",
+    "MPFL_btc",
+    "MPFC_20001",
+    "MPFO_20001",
+    "MPFC_20101",
+    "MPFO_20101",
+})
 OFFICIAL_CONTROLLED_COMMENTS = frozenset({
+    "mpf:hook:nat_prerouting",
+    "mpf:hook:filter_input",
     "mpf:canary-btc-001:customer_nat_redirect",
     "mpf:limited-btc-001:customer_nat_redirect",
     "mpf:canary-btc-001:customer_filter",
     "mpf:limited-btc-001:customer_filter",
 })
-OFFICIAL_CONTROLLED_COMMENT_PREFIXES = tuple(sorted(OFFICIAL_CONTROLLED_COMMENTS))
 
 
 def is_official_controlled_chain(name: str) -> bool:
@@ -20,7 +34,7 @@ def is_official_controlled_chain(name: str) -> bool:
 
 
 def is_mpf_like_chain(name: str) -> bool:
-    return name.startswith(("MPF", "MPFBTC", "MPFC_", "MPFO_"))
+    return name.startswith(("MPF", "MPFBTC", "MPFC_", "MPFO_", "MPFL_"))
 
 
 def is_official_controlled_comment(comment: str | None) -> bool:

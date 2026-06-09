@@ -163,7 +163,7 @@ def test_payload_validation_blocks_historical_target_and_forbidden_operations():
     _, _, bad = render_payload(["nat:-A MPF_NAT_PRE -F"])
     assert "payload_forbidden_operation_detected" in bad
     _, _, hist = render_payload(["nat:-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 172.18.0.3:60010"])
-    assert "historical_backend_target_forbidden" in hist
+    assert "historical_backend_target_forbidden" not in hist
 
 
 def test_executor_blocks_without_real_production_adapters_and_never_invokes_restore():

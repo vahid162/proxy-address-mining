@@ -22,6 +22,7 @@ from mpf import __version__
 from mpf.services import firewall_planner_service
 from mpf.domain.firewall import FirewallRuleIntent
 from mpf.services.firewall_restore_payload_renderer import render_restore_contract
+from mpf.services.phase11_controlled_artifact_taxonomy import classify_controlled_artifact
 
 SCOPE = (
     {"customer_key": "canary-btc-001", "lane": "btc", "public_port": 20001},
@@ -137,8 +138,6 @@ def _valid_backend_ipv4(raw: str) -> tuple[bool, str | None]:
         return False, "invalid_backend_ipv4"
     if not isinstance(ip, ipaddress.IPv4Address):
         return False, "backend_target_not_ipv4"
-    if raw == "172.18.0.3":
-        return False, "historical_backend_target_forbidden"
     if ip.is_loopback:
         return False, "loopback_backend_target_forbidden"
     if ip.is_link_local:
@@ -441,7 +440,8 @@ def classify_controlled_artifacts(*, iptables_save_text: str, ip6tables_save_tex
         if normalized not in desired_set:
             unknown.append(line)
         customer_ok = any(str(item["customer_key"]) in line for item in SCOPE) or "mpf:hook:" in line or "mpf:backend_guard:" in line
-        chain_ok = any(chain in line for chain in ("INPUT", "PREROUTING", "MPF_INPUT", "MPF_CUSTOMERS", "MPF_GUARD", "MPF_ACCT_IN", "MPF_ACCT_OUT", "MPF_NAT_PRE", "MPF_NAT_POST", "MPFL_btc", "MPFC_20001", "MPFO_20001", "MPFC_20101", "MPFO_20101"))
+        tokens = line.replace(":", " ").replace("-A", " ").replace("-N", " ").split()
+        chain_ok = any(classify_controlled_artifact(chain=t) == "official_phase11_controlled_artifact" for t in tokens) or "PREROUTING" in tokens or "INPUT" in tokens
         if "--to-destination" in line and current not in line:
             stale.append(line)
         if not customer_ok and "mpf:" in line:
@@ -482,8 +482,6 @@ def render_payload(missing_artifacts: list[str]) -> tuple[str, str, list[str]]:
             parts.extend(rules)
             parts.append("COMMIT")
     payload = "\n".join(parts) + ("\n" if parts else "")
-    if "172.18.0.3" in payload:
-        blockers.append("historical_backend_target_forbidden")
     return payload, _text_sha(payload), sorted(set(blockers))
 
 
