@@ -144,6 +144,7 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
     parsed = docs["parsed-firewall.json"]
     command_results = docs["command-results.json"]
     _cross_check_manifest(manifest, evidence, decision, graph, parsed, docs, raw, blockers)
+    _check_packet_path_schema(evidence, decision, graph, docs, blockers)
     _check_commands(command_results, decision, blockers)
     text_scan = b"\n".join(raw[name] for name in REQUIRED_BUNDLE_FILES if name not in {"iptables-save.txt", "ip6tables-save.txt"})
     for forbidden in (b"Config.Env", b'"Env"', b"PASSWORD", b"TOKEN", b"SECRET", b"HostConfig"):
@@ -155,6 +156,46 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
     if blockers:
         return _invalid(blockers)
     return {"component": "phase11_controlled_filter_packet_path_bundle_verifier", "repository_version": __version__, "final_decision": decision.get("final_decision"), "bundle_integrity_valid": True, "blockers": [], "mutation_performed": False, "manifest_sha256": manifest_sha_line}
+
+
+
+def _check_packet_path_schema(evidence: dict[str, Any], decision: dict[str, Any], graph: dict[str, Any], docs: dict[str, Any], blockers: list[str]) -> None:
+    schema = evidence.get("packet_path_schema_version")
+    final = str(decision.get("final_decision") or "")
+    if schema != "0.1.252":
+        blockers.append("legacy_packet_path_schema_recollection_required")
+        return
+    scenarios = graph.get("packet_scenarios")
+    if not isinstance(scenarios, list):
+        blockers.append("packet_scenarios_schema_invalid")
+        return
+    ids = [s.get("scenario_id") for s in scenarios if isinstance(s, dict)]
+    if len(ids) != len(set(ids)):
+        blockers.append("duplicate_scenario_id")
+    required_states = {"NEW", "ESTABLISHED"}
+    ingress = {str(s.get("ingress_interface")) for s in scenarios if isinstance(s, dict)}
+    for ifname in ingress:
+        states = {str(s.get("conntrack_state")) for s in scenarios if isinstance(s, dict) and str(s.get("ingress_interface")) == ifname}
+        if not required_states.issubset(states):
+            blockers.append(f"missing_required_scenario:{ifname}")
+    results = graph.get("scenario_results")
+    if final.startswith("READY") and isinstance(results, list):
+        for item in results:
+            if isinstance(item, dict) and item.get("ready") is not True:
+                blockers.append("ready_decision_with_unresolved_scenario")
+    backend = evidence.get("backend_target", {}) if isinstance(evidence.get("backend_target"), dict) else {}
+    network = evidence.get("docker_network", {}) if isinstance(evidence.get("docker_network"), dict) else {}
+    topology = evidence.get("host_topology", {}) if isinstance(evidence.get("host_topology"), dict) else {}
+    bridge = network.get("bridge_name")
+    if bridge and topology.get("route_get_backend") and isinstance(topology.get("route_get_backend"), list):
+        if any(isinstance(r, dict) and r.get("dev") not in {bridge, None} for r in topology.get("route_get_backend", [])):
+            blockers.append("selected_bridge_route_mismatch")
+    if backend.get("mac_address") and topology.get("backend_bridge_membership_verified") is True and not topology.get("backend_bridge_membership_evidence"):
+        blockers.append("backend_membership_evidence_missing")
+    nodes = graph.get("nodes") if isinstance(graph.get("nodes"), list) else []
+    node_ids = [n.get("id") for n in nodes if isinstance(n, dict)]
+    if len(node_ids) != len(set(node_ids)):
+        blockers.append("duplicate_graph_node_id")
 
 
 def _load_json(raw: bytes, label: str, blockers: list[str]) -> Any:

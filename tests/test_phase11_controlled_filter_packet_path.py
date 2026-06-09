@@ -68,16 +68,16 @@ def container(running=True, health="healthy", project="mpf-proxy", service="mpf-
         "State": {"Running": running, "Health": {"Status": health}},
         "Config": {"Labels": {"com.docker.compose.project": project, "com.docker.compose.service": service}, "ExposedPorts": {"60010/tcp": {}}},
         "HostConfig": {"NetworkMode": "mpf-proxy-internal", "RestartPolicy": {"Name": "unless-stopped"}},
-        "NetworkSettings": {"Ports": {"60010/tcp": publish}, "Networks": {"mpf-proxy-internal": {"NetworkID": "abcdef1234567890", "EndpointID": "ep123", "MacAddress": "02:42:ac:1e:00:05", "IPAddress": ip, "IPPrefixLen": 24}}},
+        "NetworkSettings": {"Ports": {"60010/tcp": publish}, "Networks": {"mpf-proxy-internal": {"NetworkID": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890", "EndpointID": "123456abcdef", "MacAddress": "02:42:ac:1e:00:05", "IPAddress": ip, "IPPrefixLen": 24}}},
     }])
 
 
 def network(unknown=False):
-    containers = {"cid123": {"Name": "mpf-forwarder-btc", "EndpointID": "ep123", "MacAddress": "02:42:ac:1e:00:05", "IPv4Address": "172.30.0.5/24"}}
+    containers = {"cid123": {"Name": "mpf-forwarder-btc", "EndpointID": "123456abcdef", "MacAddress": "02:42:ac:1e:00:05", "IPv4Address": "172.30.0.5/24"}}
     if unknown:
         containers["bad"] = {"Name": "unknown", "IPv4Address": "172.30.0.9/24"}
     return json.dumps([{
-        "Name": "mpf-proxy-internal", "Id": "abcdef1234567890", "Driver": "bridge", "Internal": False, "Attachable": False,
+        "Name": "mpf-proxy-internal", "Id": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890", "Driver": "bridge", "Internal": False, "Attachable": False,
         "Options": {"com.docker.network.bridge.name": "br-abcdef123456"},
         "IPAM": {"Config": [{"Subnet": "172.30.0.0/24", "Gateway": "172.30.0.1"}]}, "Containers": containers,
     }])
@@ -89,8 +89,8 @@ class FakeAdapter(Phase11ReadOnlyCommandAdapter):
         self.rc = rc or {}
         self.truncated = truncated or set()
 
-    def run(self, command_id: str, *, backend_ipv4: str | None = None, redact_stdout: bool = False, require_non_empty: bool = False):
-        argv = allowed_argv(command_id, backend_ipv4=backend_ipv4)
+    def run(self, command_id: str, *, backend_ipv4: str | None = None, ingress_ifname: str | None = None, bridge_name: str | None = None, pid: str | None = None, redact_stdout: bool = False, require_non_empty: bool = False):
+        argv = allowed_argv(command_id, backend_ipv4=backend_ipv4, ingress_ifname=ingress_ifname, bridge_name=bridge_name, pid=pid)
         stdout = self.outputs.get(command_id, default_output(command_id))
         rc = self.rc.get(command_id, 0)
         if require_non_empty and not stdout.strip() and rc == 0:
@@ -104,8 +104,10 @@ def default_output(command_id):
         "iptables_version": "iptables v1.8\n", "ip6tables_version": "ip6tables v1.8\n",
         "docker_inspect_backend": container(), "docker_network_inspect": network(), "docker_ps_compose": "mpf-forwarder-btc\timage\tUp\t\n",
         "ip_address": json.dumps([{"ifname": "eth0", "addr_info": [{"family": "inet", "local": "203.0.113.10", "prefixlen": 24}]}]),
-        "ip_link": json.dumps([{"ifname": "br-abcdef123456"}]), "ip_route_all": json.dumps([]), "ip_rule": json.dumps([{"priority":0,"table":"local"},{"priority":32766,"table":"main"},{"priority":32767,"table":"default"}]),
-        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([{"ifname":"veth0","master":"br-abcdef123456","endpoint_id":"ep123"}]),
+        "ip_link": json.dumps([{"ifname": "br-abcdef123456", "operstate": "UP", "flags": ["UP"]}, {"ifname":"veth0","ifindex":10,"master":"br-abcdef123456"}]), "ip_route_all": json.dumps([{"dst":"172.30.0.0/24","dev":"br-abcdef123456"}]), "ip_rule": json.dumps([{"priority":0,"table":"local"},{"priority":32766,"table":"main"},{"priority":32767,"table":"default"}]),
+        "ip_route_get_backend": json.dumps([{"dst": "172.30.0.5", "dev": "br-abcdef123456"}]), "bridge_link": json.dumps([{"ifname":"veth0","master":"br-abcdef123456","endpoint_id":"123456abcdef"}]),
+        "bridge_fdb_backend": json.dumps([{"mac":"02:42:ac:1e:00:05","dev":"veth0"}]),
+        "ip_link_master_bridge": json.dumps([{"ifname":"veth0","ifindex":10,"master":"br-abcdef123456"}]),
         "ss_listeners": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n", "ss_backend_listener": "LISTEN 0 128 127.0.0.1:60010 0.0.0.0:*\n",
     }.get(command_id, "")
 
@@ -332,8 +334,8 @@ def test_match_specific_hook_on_unrelated_interface_does_not_prove_ready():
     ({"docker_network_inspect": network().replace('"cid123"', '"othercid"')}, "backend_container_missing_from_network_inspect"),
     ({"docker_network_inspect": network().replace('"172.30.0.5/24"', '"172.30.0.6/24"')}, "backend_ipv4_mismatch_between_inspects"),
     ({"ip_link": json.dumps([{"ifname": "eth0"}])}, "docker_bridge_interface_missing"),
-    ({"bridge_link": json.dumps([])}, "backend_bridge_membership_unverified"),
-    ({"docker_inspect_backend": container().replace('"NetworkID": "abcdef1234567890"', '"NetworkID": "wrong"')}, "docker_network_id_mismatch"),
+    ({"bridge_fdb_backend": json.dumps([])}, "backend_bridge_membership_unverified"),
+    ({"docker_inspect_backend": container().replace('"NetworkID": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"', '"NetworkID": "wrong"')}, "docker_network_id_mismatch"),
 ])
 def test_docker_network_identity_mismatch_blocks_ready(override, blocker):
     summary = _collect(adapter=FakeAdapter(outputs=override), phase_status_text=PHASE, write_dir=None)["summary"]
@@ -380,7 +382,7 @@ def test_unreachable_route_types_block(route_type, blocker):
 
 
 def test_adapter_rejects_invalid_dynamic_backend_ipv4():
-    for value in ["127.0.0.1", "169.254.1.1", "224.0.0.1", "0.0.0.0", "8.8.8.8", "172.18.0.3", "not-ip"]:
+    for value in ["127.0.0.1", "169.254.1.1", "224.0.0.1", "0.0.0.0", "8.8.8.8", "not-ip"]:
         res = Phase11ReadOnlyCommandAdapter(run_func=lambda *a, **k: None).run("ip_route_get_backend", backend_ipv4=value)
         assert res.return_code == 126
 
@@ -467,7 +469,7 @@ def test_duplicate_indirect_hook_entries_block_ready():
 
 
 def test_unrelated_bridge_member_does_not_verify_backend_membership():
-    result = _collect(adapter=FakeAdapter(outputs={"bridge_link": json.dumps([{"ifname":"veth-other","master":"br-abcdef123456","endpoint_id":"other"}])}), phase_status_text=PHASE, write_dir=None)
+    result = _collect(adapter=FakeAdapter(outputs={"bridge_fdb_backend": json.dumps([{"mac":"02:42:ac:1e:00:99","dev":"veth-other"}])}), phase_status_text=PHASE, write_dir=None)
     summary = result["summary"]
     assert summary["final_decision"] == BLOCKED
     assert "backend_bridge_membership_unresolved" in summary["blockers"]

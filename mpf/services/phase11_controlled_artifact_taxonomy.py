@@ -1,0 +1,40 @@
+"""Shared Phase 11 controlled MPF artifact taxonomy.
+
+This deliberately recognizes only accepted controlled artifact names/comments;
+arbitrary MPF-looking names remain unknown and fail closed.
+"""
+from __future__ import annotations
+
+OFFICIAL_CONTROLLED_CHAINS = frozenset({"MPF_NAT_PRE", "MPFC_20001", "MPFC_20101"})
+OFFICIAL_CONTROLLED_COMMENTS = frozenset({
+    "mpf:canary-btc-001:customer_nat_redirect",
+    "mpf:limited-btc-001:customer_nat_redirect",
+    "mpf:canary-btc-001:customer_filter",
+    "mpf:limited-btc-001:customer_filter",
+})
+OFFICIAL_CONTROLLED_COMMENT_PREFIXES = tuple(sorted(OFFICIAL_CONTROLLED_COMMENTS))
+
+
+def is_official_controlled_chain(name: str) -> bool:
+    return name in OFFICIAL_CONTROLLED_CHAINS
+
+
+def is_mpf_like_chain(name: str) -> bool:
+    return name.startswith(("MPF", "MPFBTC", "MPFC_", "MPFO_"))
+
+
+def is_official_controlled_comment(comment: str | None) -> bool:
+    return bool(comment) and str(comment) in OFFICIAL_CONTROLLED_COMMENTS
+
+
+def is_mpf_like_comment(comment: str | None) -> bool:
+    text = str(comment or "")
+    return "mpf:" in text or "customer_" in text
+
+
+def classify_controlled_artifact(*, chain: str, comment: str | None = None) -> str:
+    if is_official_controlled_chain(chain) or is_official_controlled_comment(comment):
+        return "official_phase11_controlled_artifact"
+    if is_mpf_like_chain(chain) or is_mpf_like_comment(comment):
+        return "unknown_mpf_artifact"
+    return "not_mpf_artifact"
