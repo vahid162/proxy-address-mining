@@ -161,6 +161,7 @@ from mpf.services import (
     phase11_controlled_artifact_reapply_verification_service,
     phase11_controlled_artifact_reapply_evidence_service,
     phase11_controlled_filter_packet_path_service,
+    phase11_verified_filter_hook_binding_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3963,6 +3964,39 @@ def production_controlled_artifact_reapply_evidence(output: Literal["json"] = ty
 
     typer.echo(json.dumps(phase11_controlled_artifact_reapply_evidence_service.build_controlled_artifact_reapply_evidence_report(), indent=2, ensure_ascii=False, default=str))
 
+
+
+@production_app.command("verified-filter-hook-binding-plan")
+def production_verified_filter_hook_binding_plan(packet_path_evidence_dir: Path = typer.Option(..., "--packet-path-evidence-dir"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Bind a verified packet-path bundle to controlled artifact graph semantics, read-only."""
+
+    try:
+        report = phase11_verified_filter_hook_binding_service.build_verified_filter_hook_binding_report(packet_path_evidence_dir)
+    except Exception as exc:  # noqa: BLE001
+        report = {"component": "phase11_verified_filter_hook_binding", "repository_version": __version__, "final_decision": "BLOCKED_VERIFIED_FILTER_HOOK_BINDING", "blockers": ["verified_filter_hook_binding_failed_closed"], "error": str(exc), "production_execution_available": False, "iptables_restore_invocation_allowed": False, "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-package-plan")
+def production_controlled_artifact_reapply_package_plan(packet_path_evidence_dir: Path = typer.Option(..., "--packet-path-evidence-dir"), output_dir: Path = typer.Option(..., "--output-dir"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Generate non-executing controlled artifact reapply package evidence from verified binding."""
+
+    try:
+        report = phase11_verified_filter_hook_binding_service.build_package_evidence(packet_path_evidence_dir, output_dir)
+    except Exception as exc:  # noqa: BLE001
+        report = {"component": "phase11_controlled_artifact_reapply_package_evidence", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_EVIDENCE", "blockers": ["controlled_artifact_reapply_package_evidence_failed_closed"], "error": str(exc), "production_execution_available": False, "iptables_restore_invocation_allowed": False, "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-package-verify")
+def production_controlled_artifact_reapply_package_verify(package_dir: Path = typer.Option(..., "--package-dir"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Verify non-executing controlled artifact package evidence, read-only."""
+
+    try:
+        report = phase11_verified_filter_hook_binding_service.verify_package_evidence(package_dir)
+    except Exception as exc:  # noqa: BLE001
+        report = {"component": "phase11_controlled_artifact_reapply_package_evidence_verify", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_VERIFY_EVIDENCE", "blockers": ["controlled_artifact_reapply_package_verify_failed_closed"], "error": str(exc), "production_execution_available": False, "iptables_restore_invocation_allowed": False, "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("controlled-filter-packet-path-plan")
 def production_controlled_filter_packet_path_plan(output: Literal["json"] = typer.Option("json", "--output")) -> None:

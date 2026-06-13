@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.253
+
+- Bind the farm5 0.1.252 verified DOCKER-USER/FORWARD post-DNAT packet-path proof to explicit Phase 11 controlled artifact graph semantics and add read-only package evidence generation/verification while execution remains blocked.
+
 ## 0.1.252
 
 - fix(phase11): resolve packet-path topology proof blockers with schema-versioned bridge derivation, source-aware backend provenance, exact bridge membership correlation, scenario-level Docker filter traversal, and fail-closed legacy bundle recollection.

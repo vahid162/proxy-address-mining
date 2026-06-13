@@ -54,3 +54,8 @@ A future READY bundle must recommend `review_and_bind_verified_filter_hook_and_m
 ## 0.1.252 collection semantics
 
 The collector records independent component statuses, verifies Docker bridge identity from an explicit option or from the verified NetworkID-derived default, keeps NetworkID and EndpointID separate, correlates backend MAC/IP membership through FDB and optional namespace evidence, and evaluates per-ingress/per-conntrack-state packet scenarios. Missing bridge-nf sysctls are recorded as unavailable evidence rather than fabricated blockers for an otherwise routed Docker FORWARD path. This remains read-only and does not bind the renderer or enable package execution.
+
+
+## 0.1.253 verified binding/package evidence update
+
+A source-backed 0.1.252 farm5 packet-path READY bundle may now be consumed by `mpf production verified-filter-hook-binding-plan` to bind the verified `DOCKER-USER` / `FORWARD` / `post_dnat_forward_filter` hook to explicit Phase 11 controlled artifact graph semantics. `mpf production controlled-artifact-reapply-package-plan` and `mpf production controlled-artifact-reapply-package-verify` generate and verify package evidence only. Execution remains blocked: `production_execution_available=false`, `iptables_restore_invocation_allowed=false`, `runtime_packet_observed=false`, `post_apply_runtime_verified=false`, `restart_autostart_proof=missing_or_partial`, `full_cli_production_operations=missing_or_partial`, and Phase 12/worker/UI/Telegram remain blocked.

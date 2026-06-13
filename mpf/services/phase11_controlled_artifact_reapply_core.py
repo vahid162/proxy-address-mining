@@ -365,7 +365,7 @@ def build_controlled_desired_state(*, lanes: list[dict[str, Any]], customers: li
     plan = firewall_planner_service.build_plan(lanes=lanes, customers=scope_customers, backend_exposed=bool(backend_target.get("backend_public_exposure")), planner_customer_source="postgresql_snapshot", db_customer_input_loaded=True)
     if plan.errors:
         blockers.extend(f"planner_error:{e.code}" for e in plan.errors)
-    artifact_lines, renderer_blockers = _artifact_lines(plan, resolved_ip)
+    artifact_lines, renderer_blockers = _artifact_lines(plan, resolved_ip, binding_mode=str(backend_target.get("controlled_artifact_graph_binding_mode") or ""))
     blockers.extend(renderer_blockers)
     # The accepted repository evidence proves route-safe DNAT, but not a complete
     # filter hook path for Docker DNAT traffic. Until farm5 source evidence proves
@@ -391,7 +391,7 @@ def build_controlled_desired_state(*, lanes: list[dict[str, Any]], customers: li
     return desired
 
 
-def _artifact_lines(plan: Any, resolved_ip: str) -> tuple[list[str], list[str]]:
+def _artifact_lines(plan: Any, resolved_ip: str, *, binding_mode: str = "") -> tuple[list[str], list[str]]:
     blockers: list[str] = []
     try:
         typed_plan = plan
@@ -417,7 +417,18 @@ def _artifact_lines(plan: Any, resolved_ip: str) -> tuple[list[str], list[str]]:
     # Parent hooks are modeled as explicit artifacts and emitted after chain
     # declarations so iptables-restore never references a not-yet-declared chain.
     lines.append('nat:-A PREROUTING -p tcp -m comment --comment "mpf:hook:nat_prerouting" -j MPF_NAT_PRE')
-    lines.append('filter:-A INPUT -p tcp -m comment --comment "mpf:hook:filter_input" -j MPF_INPUT')
+    if binding_mode == "verified_docker_user_forward_post_dnat":
+        rebound: list[str] = []
+        for item in lines:
+            if item.startswith("filter:"):
+                item = item.replace("--dport 20001", "--dport 60010").replace("--dport 20101", "--dport 60010")
+            rebound.append(item)
+        lines = rebound
+        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD')
+        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:accounting" -j MPF_ACCT_IN')
+        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:customers" -j MPF_CUSTOMERS')
+    else:
+        lines.append('filter:-A INPUT -p tcp -m comment --comment "mpf:hook:filter_input" -j MPF_INPUT')
     return lines, blockers
 
 

@@ -1,3 +1,5 @@
+Phase 11 verified binding note (0.1.253): explicit DOCKER-USER/FORWARD post-DNAT artifact graph binding and non-executing controlled package evidence generation are implemented; execution, Phase 12, worker enforcement, UI, and Telegram remain blocked. See `docs/PHASE_11_FARM5_0_1_252_FILTER_PACKET_PATH_READY_EVIDENCE.md`.
+
 Phase 11 operational completion full CLI production scope note (0.1.245): Phase 11 remains accepted on farm5 for the controlled_cli_limited BTC boundary. The active working gate is now Phase 11 operational completion — Full CLI Production Operations; Phase 12 Worker Policy Enforcement is blocked until final operational completion acceptance.
 
 Phase 11 controlled-boundary clarification note (0.1.235): clarified README and agent-rule wording after final acceptance; runtime behavior and conservative config defaults remain unchanged.
