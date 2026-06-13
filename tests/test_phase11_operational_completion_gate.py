@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.253"
+    assert report["repository_version"] == "0.1.254"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False

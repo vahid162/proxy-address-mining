@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.254
+
+- Accept integrity-valid source-backed 0.1.252 packet-path bundles under the 0.1.254 verifier while keeping tamper, legacy recollection, and execution gates fail-closed.
+
 ## 0.1.253
 
 - Bind the farm5 0.1.252 verified DOCKER-USER/FORWARD post-DNAT packet-path proof to explicit Phase 11 controlled artifact graph semantics and add read-only package evidence generation/verification while execution remains blocked.

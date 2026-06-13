@@ -176,11 +176,115 @@ def test_helper_script_exits_nonzero_on_blocked_decisions(tmp_path):
 
 
 def test_version_docs_are_0253_after_bump():
-    assert __version__ == "0.1.253"
-    assert Path("VERSION").read_text().strip() == "0.1.253"
-    assert 'version = "0.1.253"' in Path("pyproject.toml").read_text()
-    assert "0.1.253" in Path("CHANGELOG.md").read_text()
+    assert __version__ == "0.1.254"
+    assert Path("VERSION").read_text().strip() == "0.1.254"
+    assert 'version = "0.1.254"' in Path("pyproject.toml").read_text()
+    assert "0.1.254" in Path("CHANGELOG.md").read_text()
     readme = Path("README.md").read_text()
     phase = Path("docs/PHASE_STATUS.md").read_text()
     assert "artifact_graph_binding_ready=true" in readme
     assert "controlled_artifact_reapply_package_evidence_ready=true" in phase
+
+
+def _rewrite_bundle_as_source_0252(bundle: Path) -> None:
+    from mpf.services.phase11_controlled_filter_packet_path_bundle_service import canonical_json_bytes, sha256_bytes
+    manifested = [
+        "evidence.json",
+        "decision.json",
+        "sanitized-backend-target.json",
+        "sanitized-docker-network.json",
+        "iptables-save.txt",
+        "ip6tables-save.txt",
+        "parsed-firewall.json",
+        "host-network-topology.json",
+        "packet-path-graph.json",
+        "command-results.json",
+    ]
+    evidence_path = bundle / "evidence.json"
+    evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    evidence["repository_version"] = "0.1.252"
+    evidence["expected_version"] = "0.1.252"
+    evidence_path.write_bytes(canonical_json_bytes(evidence))
+    manifest_path = bundle / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["repository_version"] = "0.1.252"
+    manifest["expected_version"] = "0.1.252"
+    manifest["files"] = {
+        name: {"size": (bundle / name).stat().st_size, "sha256": sha256_bytes((bundle / name).read_bytes())}
+        for name in manifested
+    }
+    manifest["decision_hash"] = manifest["files"]["decision.json"]["sha256"]
+    manifest["graph_hash"] = manifest["files"]["packet-path-graph.json"]["sha256"]
+    manifest_path.write_bytes(canonical_json_bytes(manifest))
+    manifest_sha = sha256_bytes(manifest_path.read_bytes())
+    (bundle / "manifest.sha256").write_text(f"{manifest_sha}  manifest.json\n", encoding="utf-8")
+
+
+def test_source_0252_bundle_verifies_under_0254_runtime_and_package_helpers(tmp_path, monkeypatch):
+    from mpf.services.phase11_controlled_filter_packet_path_bundle_service import verify_packet_path_bundle
+
+    bundle = _ready_bundle(tmp_path, monkeypatch)
+    _rewrite_bundle_as_source_0252(bundle)
+
+    verifier = verify_packet_path_bundle(bundle)
+    assert verifier["repository_version"] == "0.1.254"
+    assert verifier["source_repository_version"] == "0.1.252"
+    assert verifier["bundle_integrity_valid"] is True
+    assert verifier["readiness_eligible"] is True
+    assert verifier["recollection_required"] is False
+    assert verifier["final_decision"] == "READY_CONTROLLED_FILTER_PACKET_PATH_PROOF"
+    assert verifier["manifest_sha256"]
+
+    report = build_verified_filter_hook_binding_report(bundle)
+    assert report["final_decision"] == READY_BINDING
+    assert report["source_repository_version"] == "0.1.252"
+    assert report["production_execution_available"] is False
+    assert report["iptables_restore_invocation_allowed"] is False
+    assert report["controlled_artifact_execute_available"] is False
+    assert report["live_ready_package_available"] is False
+
+    package_dir = tmp_path / "source-0252-package"
+    package = build_package_evidence(bundle, package_dir)
+    assert package["final_decision"] == READY_PACKAGE_EVIDENCE
+    assert package["production_execution_available"] is False
+    assert package["iptables_restore_invocation_allowed"] is False
+    assert package["controlled_artifact_execute_available"] is False
+    assert package["live_ready_package_available"] is False
+    verify = verify_package_evidence(package_dir)
+    assert verify["final_decision"] == READY_VERIFY
+    assert verify["production_execution_available"] is False
+    assert verify["iptables_restore_invocation_allowed"] is False
+
+
+def test_source_0252_tamper_fails_closed_and_0251_still_recollects(tmp_path, monkeypatch):
+    from mpf.services.phase11_controlled_filter_packet_path_bundle_service import verify_packet_path_bundle
+
+    tampered = _ready_bundle(tmp_path / "tampered", monkeypatch)
+    _rewrite_bundle_as_source_0252(tampered)
+    decision = json.loads((tampered / "decision.json").read_text(encoding="utf-8"))
+    decision["verified_user_policy_hook"] = "INPUT"
+    (tampered / "decision.json").write_text(json.dumps(decision, sort_keys=True), encoding="utf-8")
+    tampered_result = verify_packet_path_bundle(tampered)
+    assert tampered_result["bundle_integrity_valid"] is False
+    assert "file_hash_mismatch:decision.json" in tampered_result["blockers"] or "decision_hash_mismatch" in tampered_result["blockers"]
+    assert build_verified_filter_hook_binding_report(tampered)["final_decision"] != READY_BINDING
+
+    legacy = _ready_bundle(tmp_path / "legacy", monkeypatch)
+    _rewrite_bundle_as_source_0252(legacy)
+    from mpf.services.phase11_controlled_filter_packet_path_bundle_service import canonical_json_bytes, sha256_bytes
+
+    evidence = json.loads((legacy / "evidence.json").read_text(encoding="utf-8"))
+    evidence["packet_path_schema_version"] = "0.1.251"
+    evidence["repository_version"] = "0.1.251"
+    (legacy / "evidence.json").write_bytes(canonical_json_bytes(evidence))
+    manifest = json.loads((legacy / "manifest.json").read_text(encoding="utf-8"))
+    manifest["repository_version"] = "0.1.251"
+    manifest["files"]["evidence.json"] = {"size": (legacy / "evidence.json").stat().st_size, "sha256": sha256_bytes((legacy / "evidence.json").read_bytes())}
+    (legacy / "manifest.json").write_bytes(canonical_json_bytes(manifest))
+    (legacy / "manifest.sha256").write_text(f"{sha256_bytes((legacy / 'manifest.json').read_bytes())}  manifest.json\n", encoding="utf-8")
+    legacy_result = verify_packet_path_bundle(legacy)
+    assert legacy_result["bundle_integrity_valid"] is True
+    assert legacy_result["readiness_eligible"] is False
+    assert legacy_result["recollection_required"] is True
+    assert "legacy_packet_path_schema_recollection_required" in legacy_result["blockers"]
+    assert build_verified_filter_hook_binding_report(legacy)["final_decision"] != READY_BINDING

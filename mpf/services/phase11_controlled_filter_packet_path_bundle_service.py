@@ -148,7 +148,7 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
         _check_commands(command_results, decision, blockers, legacy=True)
         if blockers:
             return _invalid(blockers)
-        return {"component": "phase11_controlled_filter_packet_path_bundle_verifier", "repository_version": __version__, "final_decision": decision.get("final_decision"), "bundle_integrity_valid": True, "readiness_eligible": False, "recollection_required": True, "blockers": ["legacy_packet_path_schema_recollection_required"], "mutation_performed": False, "manifest_sha256": manifest_sha_line}
+        return {"component": "phase11_controlled_filter_packet_path_bundle_verifier", "repository_version": __version__, "final_decision": decision.get("final_decision"), "bundle_integrity_valid": True, "readiness_eligible": False, "recollection_required": True, "blockers": ["legacy_packet_path_schema_recollection_required"], "mutation_performed": False, "manifest_sha256": manifest_sha_line, "source_repository_version": evidence.get("repository_version")}
     _cross_check_manifest(manifest, evidence, decision, graph, parsed, docs, raw, blockers)
     _check_packet_path_schema(evidence, decision, graph, docs, command_results, blockers)
     _check_commands(command_results, decision, blockers)
@@ -161,7 +161,7 @@ def verify_packet_path_bundle(evidence_dir: Path | str) -> dict[str, Any]:
         blockers.append("mutation_performed_not_false")
     if blockers:
         return _invalid(blockers)
-    return {"component": "phase11_controlled_filter_packet_path_bundle_verifier", "repository_version": __version__, "final_decision": decision.get("final_decision"), "bundle_integrity_valid": True, "readiness_eligible": True, "recollection_required": False, "blockers": [], "mutation_performed": False, "manifest_sha256": manifest_sha_line}
+    return {"component": "phase11_controlled_filter_packet_path_bundle_verifier", "repository_version": __version__, "final_decision": decision.get("final_decision"), "bundle_integrity_valid": True, "readiness_eligible": True, "recollection_required": False, "blockers": [], "mutation_performed": False, "manifest_sha256": manifest_sha_line, "source_repository_version": evidence.get("repository_version")}
 
 
 
@@ -324,15 +324,24 @@ def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], de
         ("phase_state_hash", evidence.get("phase_status_sha256"), "manifest_phase_hash_mismatch"),
         ("final_decision", decision.get("final_decision"), "manifest_final_decision_mismatch"),
     ]
+    source_bundle_compat = evidence.get("packet_path_schema_version") == EXPECTED_VERSION
     if not allow_legacy_version:
-        pairs.extend([
-            ("repository_version", __version__, "manifest_repository_version_mismatch"),
-            ("expected_version", EXPECTED_VERSION, "manifest_expected_version_mismatch"),
-        ])
+        if source_bundle_compat:
+            manifest_repository_versions = {__version__, EXPECTED_VERSION}
+            evidence_repository_versions = {__version__, EXPECTED_VERSION}
+            pairs.append(("expected_version", EXPECTED_VERSION, "manifest_expected_version_mismatch"))
+        else:
+            manifest_repository_versions = {__version__}
+            evidence_repository_versions = {__version__}
+            pairs.extend([
+                ("expected_version", EXPECTED_VERSION, "manifest_expected_version_mismatch"),
+            ])
+        if manifest.get("repository_version") not in manifest_repository_versions:
+            blockers.append("manifest_repository_version_mismatch")
     for key, expected, blocker in pairs:
         if manifest.get(key) != expected:
             blockers.append(blocker)
-    if not allow_legacy_version and evidence.get("repository_version") != __version__:
+    if not allow_legacy_version and evidence.get("repository_version") not in evidence_repository_versions:
         blockers.append("evidence_repository_version_mismatch")
     if not allow_legacy_version and evidence.get("expected_version") != EXPECTED_VERSION:
         blockers.append("evidence_expected_version_mismatch")
