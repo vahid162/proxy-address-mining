@@ -142,6 +142,7 @@ def build_verified_filter_hook_binding_report(packet_path_evidence_dir: Path | s
         "desired_artifact_semantics_complete": ready,
         "controlled_artifact_reapply_package_evidence_ready": ready,
         "production_execution_available": False,
+        "live_ready_package_available": False,
         "iptables_restore_invocation_allowed": False,
         "controlled_artifact_execute_available": False,
         "blockers": sorted(set(blockers)),

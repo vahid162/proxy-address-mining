@@ -127,6 +127,8 @@ Phase 11 planning/readiness note (0.1.195): canary runtime-path evidence now sup
 
 This file is the authoritative phase gate for humans and AI coding agents. It must be checked before changing code, scripts, deployment files, services, jobs, tests, migrations, or documentation.
 
+0.1.254 verifier compatibility note: source-backed 0.1.252 packet-path bundles may now be verified by the 0.1.254 runtime without requiring bundle repository_version fields to equal the runtime version. File/hash/schema/topology/scenario/command/secret/mutation checks remain strict; tampered bundles fail closed and legacy 0.1.251 bundles still require recollection. Execution remains blocked: production_execution_available=false, iptables_restore_invocation_allowed=false, controlled_artifact_execute_available=false, live_ready_package_available=false, phase12_start_allowed=no, worker_enforcement_allowed=no, ui_allowed=no, telegram_allowed=no, full_cli_production_operations=missing_or_partial, and restart_autostart_proof=missing_or_partial.
+
 ## Current State
 
 ```text
