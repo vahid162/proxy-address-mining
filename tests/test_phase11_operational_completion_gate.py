@@ -9,6 +9,7 @@ from mpf.interfaces.cli import app
 from mpf.services.phase11_operational_completion_gap_inventory_service import (
     build_phase11_operational_completion_gap_inventory_report,
 )
+from mpf.services.phase11_operational_completion_progression import active_progression
 
 RUNNER = CliRunner()
 
@@ -60,6 +61,26 @@ def test_runtime_forward_pr_rule_is_recorded() -> None:
         assert "No two consecutive PRs in the same active phase/subphase may be report-only" in text
 
 
+def test_active_progression_matches_verified_package_evidence_state() -> None:
+    progression = active_progression()
+
+    assert progression["controlled_filter_packet_path_evidence_capability_implemented"] is True
+    assert progression["controlled_filter_packet_path_evidence_ready"] is True
+    assert progression["controlled_filter_packet_path_verified"] is True
+    assert progression["artifact_graph_binding_ready"] is True
+    assert progression["desired_artifact_semantics_complete"] is True
+    assert progression["controlled_artifact_reapply_package_evidence_ready"] is True
+    assert progression["production_execution_available"] is False
+    assert progression["live_ready_package_available"] is False
+    assert progression["restart_autostart_proof"] == "missing_or_partial"
+    assert progression["full_cli_production_operations"] == "missing_or_partial"
+    assert progression["phase12_start_allowed"] == "no"
+    assert progression["worker_enforcement_allowed"] == "no"
+    assert progression["ui_allowed"] == "no"
+    assert progression["telegram_allowed"] == "no"
+    assert progression["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
+
+
 def test_gap_inventory_service_is_fail_closed_and_read_only() -> None:
     report = build_phase11_operational_completion_gap_inventory_report()
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
@@ -81,7 +102,7 @@ def test_gap_inventory_service_is_fail_closed_and_read_only() -> None:
         "production_traffic": "cli_production",
         "customer_onboarding_allowed": "cli_production",
     }
-    assert report["next_required_step"] == "sync_and_collect_controlled_filter_packet_path_evidence_on_farm5"
+    assert report["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
     assert report["restart_autostart_proof_final_decision"] == "BLOCKED_RESTART_AUTOSTART_PROOF_MISSING_OR_PARTIAL"
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
@@ -111,6 +132,6 @@ def test_gap_inventory_keeps_restart_autostart_blocked_on_persistence_gap() -> N
     report = build_phase11_operational_completion_gap_inventory_report()
 
     assert report["restart_autostart_proof"] == "missing_or_partial"
-    assert report["next_required_step"] == "sync_and_collect_controlled_filter_packet_path_evidence_on_farm5"
+    assert report["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
     assert report["full_cli_production_operations"] == "missing_or_partial"
     assert report["phase12_start_allowed"] is False
