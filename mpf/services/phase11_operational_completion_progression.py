@@ -1,18 +1,16 @@
 """Canonical active Phase 11 operational-completion progression state."""
 from __future__ import annotations
 
-from mpf.domain.phase11_controlled_filter_packet_path import NEXT_REQUIRED_STEP, FUTURE_READY_RECOMMENDATION
-
 ACTIVE_PROGRESSION: dict[str, object] = {
     "read_only_reapply_foundation_implemented": True,
     "controlled_filter_packet_path_evidence_capability_implemented": True,
-    "controlled_filter_packet_path_evidence_ready": False,
-    "controlled_filter_packet_path_verified": False,
-    "artifact_graph_binding_ready": False,
-    "desired_artifact_semantics_complete": False,
+    "controlled_filter_packet_path_evidence_ready": True,
+    "controlled_filter_packet_path_verified": True,
+    "artifact_graph_binding_ready": True,
+    "desired_artifact_semantics_complete": True,
     "production_execution_available": False,
     "live_ready_package_available": False,
-    "controlled_artifact_reapply_package_evidence_ready": False,
+    "controlled_artifact_reapply_package_evidence_ready": True,
     "restart_autostart_proof": "missing_or_partial",
     "full_cli_production_operations": "missing_or_partial",
     "production_traffic": "controlled_cli_limited",
@@ -24,8 +22,8 @@ ACTIVE_PROGRESSION: dict[str, object] = {
     "ui_allowed": "no",
     "telegram_allowed": "no",
     "phase12_start_allowed": "no",
-    "next_required_step": NEXT_REQUIRED_STEP,
-    "future_ready_recommendation": FUTURE_READY_RECOMMENDATION,
+    "next_required_step": "prepare_live_ready_controlled_artifact_reapply_package",
+    "future_ready_recommendation": "review_and_execute_controlled_artifact_reapply_package_after_operator_approval",
 }
 
 
