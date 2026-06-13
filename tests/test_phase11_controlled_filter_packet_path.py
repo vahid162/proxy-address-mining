@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 from pathlib import Path
@@ -95,7 +96,8 @@ class FakeAdapter(Phase11ReadOnlyCommandAdapter):
         rc = self.rc.get(command_id, 0)
         if require_non_empty and not stdout.strip() and rc == 0:
             rc = 65
-        return ReadOnlyCommandResult(command_id, argv, "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z", 1, rc, False, len(stdout), 0, "0"*64, "0"*64, command_id in self.truncated, redacted=redact_stdout, sanitized_projection_ref=("sanitized-backend-target.json" if command_id == "docker_inspect_backend" else None), stdout=stdout, stderr=None if redact_stdout else "")
+        stdout_hash = hashlib.sha256(stdout.encode()).hexdigest()
+        return ReadOnlyCommandResult(command_id, argv, "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z", 1, rc, False, len(stdout), 0, stdout_hash, hashlib.sha256(b"").hexdigest(), command_id in self.truncated, redacted=redact_stdout, sanitized_projection_ref=("sanitized-backend-target.json" if command_id == "docker_inspect_backend" else None), stdout=stdout, stderr=None if redact_stdout else "")
 
 
 def default_output(command_id):

@@ -296,3 +296,49 @@ def test_legacy_0251_manifest_integrity_stays_valid_despite_version_mismatch(tmp
     assert result["bundle_integrity_valid"] is True
     assert result["readiness_eligible"] is False
     assert result["recollection_required"] is True
+
+
+def test_zero_stdout_hash_is_invalid_for_ready_bundle(tmp_path, monkeypatch):
+    import mpf.services.phase11_controlled_filter_packet_path_service as svc
+    monkeypatch.setattr(svc, "_read_proc_value", lambda path, optional=False: "2" if "rp_filter" in path else "1")
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    for command in bundle["command_results"]:
+        if command["command_id"].startswith("ip_route_get_backend_ingress:"):
+            command["stdout_sha256"] = "0" * 64
+            break
+    write_packet_path_bundle(bundle, tmp_path / "zero_hash")
+    result = verify_packet_path_bundle(tmp_path / "zero_hash")
+    assert result["final_decision"] == INVALID
+    assert any("command_stdout_hash_zero" in b for b in result["blockers"])
+
+
+def test_route_and_fdb_stdout_hash_mismatch_are_invalid(tmp_path, monkeypatch):
+    import mpf.services.phase11_controlled_filter_packet_path_service as svc
+    monkeypatch.setattr(svc, "_read_proc_value", lambda path, optional=False: "2" if "rp_filter" in path else "1")
+    for dirname, command_prefix in [("route_hash", "ip_route_get_backend_ingress:"), ("fdb_hash", "bridge_fdb_backend")]:
+        bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+        for command in bundle["command_results"]:
+            if str(command["command_id"]).startswith(command_prefix):
+                command["stdout_sha256"] = "f" * 64
+                break
+        write_packet_path_bundle(bundle, tmp_path / dirname)
+        result = verify_packet_path_bundle(tmp_path / dirname)
+        assert result["final_decision"] == INVALID
+        assert any("command_stdout_hash_mismatch" in b for b in result["blockers"])
+
+
+def test_official_taxonomy_accepts_all_rendered_planner_comments_and_blocks_stale_comment():
+    import shlex
+    from tests.test_phase11_controlled_artifact_reapply import PHASE as REAPPLY_PHASE, build_plan, customers, lanes, target
+    plan = build_plan(lanes=lanes(), customers=customers(whitelist=True), backend_target=target(), phase_status_text=REAPPLY_PHASE)
+    comments = set()
+    for artifact in plan["desired_state"]["artifact_lines"]:
+        line = artifact.split(":", 1)[1]
+        if "--comment" not in line:
+            continue
+        tokens = shlex.split(line)
+        comments.add(tokens[tokens.index("--comment") + 1])
+    assert comments
+    for comment in comments:
+        assert classify_controlled_artifact(chain="MPF_CUSTOMERS", comment=comment) == "official_phase11_controlled_artifact"
+    assert classify_controlled_artifact(chain="MPF_CUSTOMERS", comment="mpf:canary-btc-001:customer_old_stale") == "unknown_mpf_artifact"

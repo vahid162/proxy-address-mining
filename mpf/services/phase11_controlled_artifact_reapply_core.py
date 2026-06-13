@@ -317,8 +317,12 @@ def build_controlled_desired_state(*, lanes: list[dict[str, Any]], customers: li
     source = str(backend_target.get("backend_target_source") or "unknown")
     if source not in {"docker_inspect_verified", "docker_network_inspect_verified", "operator_package_bound"}:
         blockers.append(f"backend_target_source_rejected:{source}")
-    if not backend_target.get("target_fingerprint") or not isinstance(backend_target.get("target_fingerprint_input"), dict):
+    fingerprint_input = backend_target.get("target_fingerprint_input")
+    fingerprint = backend_target.get("target_fingerprint")
+    if not fingerprint or not isinstance(fingerprint_input, dict):
         blockers.append("backend_target_fingerprint_missing")
+    elif fingerprint != _canonical_sha(fingerprint_input):
+        blockers.append("backend_target_fingerprint_mismatch")
     if not backend_target.get("network_id"):
         blockers.append("backend_target_network_id_missing")
     if backend_target.get("network_id") and backend_target.get("endpoint_id") and backend_target.get("network_id") == backend_target.get("endpoint_id"):

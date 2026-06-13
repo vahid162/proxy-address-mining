@@ -287,7 +287,11 @@ def _parse_stdout_json_array(command: dict[str, Any], command_id: str, blockers:
         blockers.append(f"command_stdout_json_not_array:{command_id}")
         return []
     recorded_hash = command.get("stdout_sha256")
-    if isinstance(recorded_hash, str) and set(recorded_hash) != {"0"} and recorded_hash != sha256_bytes(stdout.encode()):
+    if not isinstance(recorded_hash, str) or len(recorded_hash) != 64 or any(ch not in "0123456789abcdef" for ch in recorded_hash):
+        blockers.append(f"command_stdout_hash_invalid:{command_id}")
+    elif recorded_hash == "0" * 64:
+        blockers.append(f"command_stdout_hash_zero:{command_id}")
+    elif recorded_hash != sha256_bytes(stdout.encode()):
         blockers.append(f"command_stdout_hash_mismatch:{command_id}")
     return parsed
 

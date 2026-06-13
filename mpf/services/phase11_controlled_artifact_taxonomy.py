@@ -22,10 +22,23 @@ OFFICIAL_CONTROLLED_CHAINS = frozenset({
 OFFICIAL_CONTROLLED_COMMENTS = frozenset({
     "mpf:hook:nat_prerouting",
     "mpf:hook:filter_input",
+    "mpf:backend_guard:btc:60010",
+    "mpf:canary-btc-001:customer_dispatch",
+    "mpf:canary-btc-001:customer_connlimit_reject",
+    "mpf:canary-btc-001:customer_hashlimit_reject",
+    "mpf:canary-btc-001:customer_accounting_in",
+    "mpf:canary-btc-001:customer_accounting_out",
+    "mpf:canary-btc-001:customer_whitelist_allow",
+    "mpf:canary-btc-001:customer_whitelist_reject",
     "mpf:canary-btc-001:customer_nat_redirect",
+    "mpf:limited-btc-001:customer_dispatch",
+    "mpf:limited-btc-001:customer_connlimit_reject",
+    "mpf:limited-btc-001:customer_hashlimit_reject",
+    "mpf:limited-btc-001:customer_accounting_in",
+    "mpf:limited-btc-001:customer_accounting_out",
+    "mpf:limited-btc-001:customer_whitelist_allow",
+    "mpf:limited-btc-001:customer_whitelist_reject",
     "mpf:limited-btc-001:customer_nat_redirect",
-    "mpf:canary-btc-001:customer_filter",
-    "mpf:limited-btc-001:customer_filter",
 })
 
 
