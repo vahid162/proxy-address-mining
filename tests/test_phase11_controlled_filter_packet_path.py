@@ -252,9 +252,11 @@ def test_cli_plan_collect_verify_and_overwrite_guard(tmp_path, monkeypatch):
 def test_progression_and_active_gate_regressions():
     prog = active_progression()
     assert prog["controlled_filter_packet_path_evidence_capability_implemented"] is True
-    assert prog["controlled_filter_packet_path_evidence_ready"] is False
-    assert prog["artifact_graph_binding_ready"] is False
-    assert prog["controlled_artifact_reapply_package_evidence_ready"] is False
+    assert prog["controlled_filter_packet_path_evidence_ready"] is True
+    assert prog["controlled_filter_packet_path_verified"] is True
+    assert prog["artifact_graph_binding_ready"] is True
+    assert prog["desired_artifact_semantics_complete"] is True
+    assert prog["controlled_artifact_reapply_package_evidence_ready"] is True
     assert prog["restart_autostart_proof"] == "missing_or_partial"
     assert prog["full_cli_production_operations"] == "missing_or_partial"
     assert prog["production_traffic"] == "controlled_cli_limited"
@@ -263,7 +265,7 @@ def test_progression_and_active_gate_regressions():
     historical = "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5\ncurrent_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness\nproduction_traffic: none\nfirewall_apply_allowed: no\nabuse_automation_allowed: no\ncustomer_onboarding_allowed: db_only\n"
     assert _phase_gate_ok(historical) is False
     report = build_phase11_controlled_artifact_persistence_plan_report(current_controlled_artifact_gate_result={"unknown_mpf_artifacts": [], "known_controlled_artifacts_present": False, "final_decision": "PASS_NO_CUSTOMER_ARTIFACTS"}, listening_sockets=[], customer_records=[], phase_status_text=PHASE, candidate_reapply_restore_path_reuse={"candidate_reapply_services_declared": True, "read_only_reapply_foundation_implemented": True, "execution_package_available": False})
-    assert report["controlled_artifact_reapply_package_evidence_ready"] is False
+    assert report["controlled_artifact_reapply_package_evidence_ready"] is True
 
 IPT_INDIRECT_READY = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", ":CUSTOM_HOOK - [0:0]\n-A FORWARD -j CUSTOM_HOOK\n-A CUSTOM_HOOK -j DOCKER-USER\n")
 IPT_CUSTOM_ACCEPT_BYPASS = IPT_READY.replace("-A FORWARD -j DOCKER-USER\n", ":CUSTOM_EARLY - [0:0]\n-A FORWARD -j CUSTOM_EARLY\n-A FORWARD -j DOCKER-USER\n-A CUSTOM_EARLY -d 172.30.0.5/32 -p tcp -m tcp --dport 60010 -j ACCEPT\n")

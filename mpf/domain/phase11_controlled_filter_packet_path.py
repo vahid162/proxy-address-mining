@@ -8,7 +8,7 @@ READY = "READY_CONTROLLED_FILTER_PACKET_PATH_PROOF"
 BLOCKED = "BLOCKED_CONTROLLED_FILTER_PACKET_PATH_PROOF"
 INVALID = "INVALID_CONTROLLED_FILTER_PACKET_PATH_EVIDENCE"
 PROOF_SCOPE = "static_pre_apply_topology_and_ruleset"
-NEXT_REQUIRED_STEP = "sync_and_collect_controlled_filter_packet_path_evidence_on_farm5"
+NEXT_REQUIRED_STEP = "prepare_live_ready_controlled_artifact_reapply_package"
 FUTURE_READY_RECOMMENDATION = "review_and_bind_verified_filter_hook_and_match_semantics_to_controlled_artifact_graph"
 
 EXPECTED_VERSION = "0.1.252"

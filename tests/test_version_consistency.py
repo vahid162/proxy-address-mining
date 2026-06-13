@@ -6,7 +6,7 @@ import tomllib
 import mpf
 
 
-EXPECTED_VERSION = "0.1.254"
+EXPECTED_VERSION = "0.1.255"
 
 
 def test_version_sources_are_consistent() -> None:
