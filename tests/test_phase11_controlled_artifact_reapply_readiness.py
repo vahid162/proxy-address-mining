@@ -7,7 +7,7 @@ from typer.testing import CliRunner
 
 from mpf.interfaces.cli import app
 from mpf.services import phase11_controlled_artifact_reapply_readiness_service as readiness
-from mpf.services.phase11_controlled_artifact_reapply_core import build_package_from_plan, build_plan
+from mpf.services.phase11_controlled_artifact_reapply_core import NO_REAPPLY as CORE_NO_REAPPLY, build_plan
 from tests.test_phase11_controlled_artifact_reapply import PHASE, customers, lanes, target
 
 
@@ -23,12 +23,9 @@ def _plan(status="ready", *, unknown=False, public=False, blocked=False):
         plan["final_decision"] = "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
         plan["blockers"] = ["synthetic_live_plan_blocked"]
     if status == "exact_present":
-        plan["artifact_classification"]["status"] = "exact_present"
-        plan["artifact_classification"]["exact_missing"] = []
-        plan["payload"] = ""
-        plan["payload_sha256"] = __import__("hashlib").sha256(b"").hexdigest()
-        plan["final_decision"] = "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT"
-        plan["blockers"] = []
+        plan = build_plan(lanes=lanes(), customers=customers(), backend_target=backend, iptables_save_text=plan["payload"], ip6tables_save_text="*filter\nCOMMIT\n", phase_status_text=PHASE)
+        assert plan["final_decision"] == CORE_NO_REAPPLY
+        assert plan["artifact_classification"]["status"] == "exact_present"
     return plan
 
 
@@ -98,6 +95,37 @@ def test_no_reapply_path_when_exact_artifacts_present(monkeypatch):
     assert report["live_ready_package_available"] is False
 
 
+def test_verification_uses_fresh_second_live_plan_and_blocks_drift(monkeypatch):
+    ready_plan = _plan()
+    drifted_plan = dict(ready_plan)
+    drifted_plan["desired_state_hash"] = "fresh-live-plan-drift"
+    calls = iter([ready_plan, drifted_plan])
+    monkeypatch.setattr(readiness.gate_service, "build_phase11_current_controlled_artifact_gate_report", lambda **kwargs: {"blockers": [], "unknown_mpf_artifacts": [], "current_phase_gate_ok": True})
+    monkeypatch.setattr(readiness.fix_service, "run_phase11_restart_autostart_persistence_fix_plan", lambda config_path: {"safety_blockers": []})
+    monkeypatch.setattr(readiness.package_service, "run_controlled_artifact_reapply_plan", lambda config_path, expected_version=None: next(calls))
+
+    report = readiness.run_phase11_controlled_artifact_reapply_readiness()
+
+    assert report["final_decision"] == readiness.BLOCKED
+    assert "desired_state_hash_mismatch" in report["blockers"]
+
+
+def test_verification_uses_fresh_second_live_plan_and_blocks_fresh_plan_failure(monkeypatch):
+    ready_plan = _plan()
+    blocked_fresh_plan = dict(ready_plan)
+    blocked_fresh_plan["final_decision"] = "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
+    blocked_fresh_plan["blockers"] = ["fresh_live_plan_blocked"]
+    calls = iter([ready_plan, blocked_fresh_plan])
+    monkeypatch.setattr(readiness.gate_service, "build_phase11_current_controlled_artifact_gate_report", lambda **kwargs: {"blockers": [], "unknown_mpf_artifacts": [], "current_phase_gate_ok": True})
+    monkeypatch.setattr(readiness.fix_service, "run_phase11_restart_autostart_persistence_fix_plan", lambda config_path: {"safety_blockers": []})
+    monkeypatch.setattr(readiness.package_service, "run_controlled_artifact_reapply_plan", lambda config_path, expected_version=None: next(calls))
+
+    report = readiness.run_phase11_controlled_artifact_reapply_readiness()
+
+    assert report["final_decision"] == readiness.BLOCKED
+    assert "fresh_live_plan_blocked" in report["blockers"]
+
+
 def test_cli_json_command_stable_closed_flags(monkeypatch):
     monkeypatch.setattr(readiness, "run_phase11_controlled_artifact_reapply_readiness", lambda *a, **k: {"component": "phase11_controlled_artifact_reapply_readiness", "final_decision": readiness.BLOCKED, "production_execution_available": False, "controlled_artifact_execute_available": False, "iptables_restore_invocation_allowed": False, "phase12_start_allowed": False, "worker_enforcement_allowed": "no", "ui_allowed": "no", "telegram_allowed": "no", "mutation_performed": False, "blockers": ["x"]})
     result = CliRunner().invoke(app, ["production", "controlled-artifact-reapply-readiness", "--output", "json"])
@@ -106,6 +134,22 @@ def test_cli_json_command_stable_closed_flags(monkeypatch):
     assert data["component"] == "phase11_controlled_artifact_reapply_readiness"
     assert data["production_execution_available"] is False
     assert data["iptables_restore_invocation_allowed"] is False
+
+
+def test_cli_exception_fallback_returns_stable_closed_key_set(monkeypatch):
+    def boom(*args, **kwargs):
+        raise RuntimeError("boom")
+    monkeypatch.setattr(readiness, "run_phase11_controlled_artifact_reapply_readiness", boom)
+    result = CliRunner().invoke(app, ["production", "controlled-artifact-reapply-readiness", "--output", "json"])
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["final_decision"] == readiness.BLOCKED
+    assert data["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
+    for key in ["mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed", "production_execution_available", "controlled_artifact_execute_available", "iptables_restore_invocation_allowed", "phase12_start_allowed", "live_ready_package_available"]:
+        assert data[key] is False
+    assert data["worker_enforcement_allowed"] == "no"
+    assert data["ui_allowed"] == "no"
+    assert data["telegram_allowed"] == "no"
 
 
 def test_static_safety_no_readiness_execute_or_iptables_restore():
@@ -118,6 +162,7 @@ def test_static_safety_no_readiness_execute_or_iptables_restore():
     assert "controlled-artifact-reapply-execute" not in readiness_case
     assert "MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY" not in readiness_case
     assert "iptables-restore" not in readiness_case
+
 
 def test_script_readiness_mode_writes_json_and_manifest_without_execute_env_gates(tmp_path, monkeypatch):
     bin_dir = tmp_path / "bin"

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
-
 from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH
 from mpf.services.phase11_operational_completion_progression import active_progression
@@ -10,6 +8,7 @@ from mpf.services import phase11_current_controlled_artifact_gate_service as gat
 from mpf.services import phase11_restart_autostart_persistence_fix_service as fix_service
 from mpf.services import phase11_controlled_artifact_reapply_package_service as package_service
 from mpf.services import phase11_controlled_artifact_reapply_verification_service as verification_service
+from mpf.services.phase11_controlled_artifact_reapply_core import NO_REAPPLY as CORE_NO_REAPPLY
 
 READY = "READY_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
 BLOCKED = "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
@@ -20,7 +19,7 @@ def _as_list(value: object) -> list[object]:
     return list(value) if isinstance(value, list) else ([] if value in (None, "") else [value])
 
 
-def _blocked_report(expected_version: str, blockers: list[str], warnings: list[str] | None = None) -> dict[str, object]:
+def build_fail_closed_readiness_report(expected_version: str, blockers: list[str], warnings: list[str] | None = None) -> dict[str, object]:
     progression = active_progression()
     return {
         "component": "phase11_controlled_artifact_reapply_readiness",
@@ -104,7 +103,11 @@ def run_phase11_controlled_artifact_reapply_readiness(
     except Exception as exc:  # noqa: BLE001
         gate = {"blockers": ["current_controlled_artifact_gate_failed", str(exc)], "unknown_mpf_artifacts": [], "current_phase_gate_ok": False}
     package = package_service.build_controlled_artifact_reapply_package_report(plan=live_plan)
-    verify = verification_service.build_controlled_artifact_reapply_verify_report(package=package, live_plan=live_plan, config_path=config_path, expected_version=expected_version)
+    try:
+        verification_live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
+    except Exception as exc:  # noqa: BLE001
+        verification_live_plan = {"final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["verification_live_plan_collection_failed", str(exc)], "mutation_performed": False}
+    verify = verification_service.build_controlled_artifact_reapply_verify_report(package=package, live_plan=verification_live_plan, config_path=config_path, expected_version=expected_version)
 
     classification = live_plan.get("artifact_classification") if isinstance(live_plan.get("artifact_classification"), dict) else {}
     backend = live_plan.get("backend_target") if isinstance(live_plan.get("backend_target"), dict) else {}
@@ -113,7 +116,7 @@ def run_phase11_controlled_artifact_reapply_readiness(
     plan_decision = live_plan.get("final_decision")
     verification_ready = verify.get("final_decision") == "CONTROLLED_ARTIFACT_REAPPLY_VERIFY_READY"
     package_ready = package.get("final_decision") == "CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_READY"
-    no_reapply = plan_decision == "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT" or classification.get("status") == "exact_present"
+    no_reapply = plan_decision == CORE_NO_REAPPLY or classification.get("status") == "exact_present"
 
     blockers.extend(str(b) for b in _as_list(live_plan.get("blockers")))
     blockers.extend(str(b) for b in _as_list(package.get("blockers")))
@@ -129,14 +132,14 @@ def run_phase11_controlled_artifact_reapply_readiness(
     production_gates_closed = progression["production_traffic"] == "controlled_cli_limited" and progression["customer_onboarding_allowed"] == "controlled_cli_limited" and progression["phase12_start_allowed"] == "no"
     if not production_gates_closed:
         blockers.append("production_or_later_phase_gate_open")
-    if plan_decision not in {"CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_READY", "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT"}:
+    if plan_decision not in {"CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_READY", CORE_NO_REAPPLY}:
         blockers.append("live_plan_final_decision_blocked")
 
     final_decision = BLOCKED
     live_ready = False
     next_step = "prepare_live_ready_controlled_artifact_reapply_package"
-    if no_reapply and not unknown and not forbidden_public and production_gates_closed and plan_decision == "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT":
-        blockers = [b for b in blockers if b not in {"plan_not_ready", "package_not_ready", "package_payload_empty", "live_plan_not_safe", "live_plan_final_decision_blocked"}]
+    if no_reapply and not unknown and not forbidden_public and production_gates_closed and plan_decision == CORE_NO_REAPPLY:
+        blockers = [b for b in blockers if b not in {"plan_not_ready", "package_not_ready", "package_payload_empty", "no_reapply_package_cannot_execute", "live_plan_not_safe", "live_plan_final_decision_blocked"}]
         if not blockers:
             final_decision = NO_REAPPLY
     elif package_ready and verification_ready and not blockers:

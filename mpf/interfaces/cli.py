@@ -3891,7 +3891,10 @@ def production_controlled_artifact_reapply_readiness(
     try:
         report = phase11_controlled_artifact_reapply_readiness_service.run_phase11_controlled_artifact_reapply_readiness(_config_path(config), expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
-        report = {"component": "phase11_controlled_artifact_reapply_readiness", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["controlled_artifact_reapply_readiness_failed_closed"], "error": str(exc), "mutation_performed": False, "production_execution_available": False, "controlled_artifact_execute_available": False, "iptables_restore_invocation_allowed": False}
+        report = phase11_controlled_artifact_reapply_readiness_service.build_fail_closed_readiness_report(
+            expected_version,
+            ["controlled_artifact_reapply_readiness_failed_closed", str(exc)],
+        )
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("controlled-artifact-reapply-plan")
