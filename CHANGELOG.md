@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.252
+
+- fix(phase11): resolve packet-path topology proof blockers with schema-versioned bridge derivation, source-aware backend provenance, exact bridge membership correlation, scenario-level Docker filter traversal, and fail-closed legacy bundle recollection.
+
 ## 0.1.251
 - Add read-only Phase 11 controlled filter packet-path plan/collect/verify capability, sanitized evidence bundles, packet-path graph decisions, CLI/helper surfaces, and tests while keeping farm5 evidence, artifact graph binding, and production execution blocked.
 

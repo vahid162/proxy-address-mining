@@ -59,8 +59,6 @@ def _validate_backend_host(value: object) -> str:
     ip = ipaddress.ip_address(raw)
     if ip.version != 4 or ip.is_loopback or ip.is_unspecified or ip.is_multicast or not ip.is_private:
         raise ValueError("backend_target_host_invalid")
-    if raw == "172.18.0.3":
-        raise ValueError("historical_backend_target_forbidden")
     return raw
 
 
@@ -155,7 +153,7 @@ def _render_rule_line(rule: Any) -> FirewallRestoreRule:
         line = f'{_base(rule)} -j DNAT --to-destination {host}:{port}'
     else:  # pragma: no cover
         raise ValueError(f"unsupported_rule_kind:{kind}")
-    if "127.0.0.1" in line or "172.18.0.3" in line:
+    if "127.0.0.1" in line:
         raise ValueError("forbidden_rendered_rule")
     return FirewallRestoreRule(table=rule.table, chain=rule.chain, rule_key=rule.rule_key, line=line)
 

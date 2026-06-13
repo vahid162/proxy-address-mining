@@ -163,7 +163,7 @@ def test_payload_validation_blocks_historical_target_and_forbidden_operations():
     _, _, bad = render_payload(["nat:-A MPF_NAT_PRE -F"])
     assert "payload_forbidden_operation_detected" in bad
     _, _, hist = render_payload(["nat:-A MPF_NAT_PRE -p tcp --dport 20001 -j DNAT --to-destination 172.18.0.3:60010"])
-    assert "historical_backend_target_forbidden" in hist
+    assert "historical_backend_target_forbidden" not in hist
 
 
 def test_executor_blocks_without_real_production_adapters_and_never_invokes_restore():
@@ -471,3 +471,52 @@ def test_executor_generated_ready_package_verifies_post_apply_exact_present_no_r
     result = _execute_with_production_fakes(pkg, live_plan_builder=live_plan_builder)
     assert result["final_decision"] == "CONTROLLED_ARTIFACT_REAPPLY_EXECUTED_PENDING_FARM5_EVIDENCE_REVIEW"
     assert result["rollback_required"] is False
+
+
+def test_backend_target_fingerprint_is_recomputed_for_desired_state():
+    good = target()
+    ok = build_plan(lanes=lanes(), customers=customers(), backend_target=good, phase_status_text=PHASE)
+    assert "backend_target_fingerprint_mismatch" not in ok["blockers"]
+    tampered_fingerprint = dict(good)
+    tampered_fingerprint["target_fingerprint"] = "0" * 64
+    bad = build_plan(lanes=lanes(), customers=customers(), backend_target=tampered_fingerprint, phase_status_text=PHASE)
+    assert "backend_target_fingerprint_mismatch" in bad["blockers"]
+    tampered_input = dict(good)
+    tampered_input["target_fingerprint_input"] = dict(good["target_fingerprint_input"], resolved_ipv4="172.19.0.6")
+    bad_input = build_plan(lanes=lanes(), customers=customers(), backend_target=tampered_input, phase_status_text=PHASE)
+    assert "backend_target_fingerprint_mismatch" in bad_input["blockers"]
+
+
+def test_manual_backend_target_requires_valid_complete_fingerprint():
+    manual = {
+        "component": "phase11_controlled_backend_target_resolver",
+        "status": "ok",
+        "backend_target_source": "docker_inspect_verified",
+        "network_id": "net1",
+        "endpoint_id": "endpoint1",
+        "health_status": "healthy",
+        "running": True,
+        "target_port": 60010,
+        "resolved_ipv4": "172.19.0.5",
+        "target_host": "172.19.0.5",
+        "backend_public_exposure": False,
+        "filter_packet_path": "docker_user_forward_verified",
+    }
+    missing = build_plan(lanes=lanes(), customers=customers(), backend_target=manual, phase_status_text=PHASE)
+    assert "backend_target_fingerprint_missing" in missing["blockers"]
+    fingerprint_input = {
+        "repository_version": __version__,
+        "hostname": "manual",
+        "container_name": "/mpf-forwarder-btc",
+        "container_id": "abc",
+        "network_name": "mpf-proxy-internal",
+        "network_id": "net1",
+        "endpoint_id": "endpoint1",
+        "backend_target_source": "docker_inspect_verified",
+        "resolved_ipv4": "172.19.0.5",
+        "backend_port": 60010,
+    }
+    valid = dict(manual, target_fingerprint_input=fingerprint_input, target_fingerprint=_canonical_sha(fingerprint_input))
+    ok = build_plan(lanes=lanes(), customers=customers(), backend_target=valid, phase_status_text=PHASE)
+    assert "backend_target_fingerprint_missing" not in ok["blockers"]
+    assert "backend_target_fingerprint_mismatch" not in ok["blockers"]

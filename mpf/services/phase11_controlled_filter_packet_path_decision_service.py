@@ -13,6 +13,8 @@ from typing import Any
 
 from mpf.domain.phase11_controlled_filter_packet_path import BACKEND_PORT, BLOCKED, READY, INVALID, PacketPathDecision
 from mpf.services.phase11_controlled_filter_packet_path_graph_service import classify_route, ip_in_subnet
+from mpf.services.phase11_packet_path_match_semantics import PacketScenario, evaluate_rule_match, scenario_to_packet, unsupported_match_blockers
+from mpf.services.phase11_packet_path_policy_routing import policy_routing_blockers
 
 HOOK = "DOCKER-USER"
 MAX_STEPS = 512
@@ -127,23 +129,42 @@ def decide_controlled_filter_packet_path(*, evidence: dict[str, Any], graph: dic
     for values in chain_map.values():
         values.sort(key=lambda r: int(r.get("rule_index", 0)))
 
-    packet = {"protocol": "tcp", "destination": backend_ip, "destination_port": BACKEND_PORT, "out_interface": bridge, "ingress_interface_known": False}
-    flow = _walk_chain("FORWARD", 0, chain_map, policies, user_chains, packet, hook_seen=False, call_stack=[], steps=0)
-    graph["verified_cfg_edges"] = flow.edges
-
-    if flow.hook_entry_count > 1:
-        blockers.append("docker_user_hook_duplicated_or_ambiguous")
-    if flow.unresolved:
-        blockers.extend(flow.unresolved)
-    if not flow.hook_seen_any:
-        blockers.append("docker_user_not_reachable_on_forward_path")
-    bypass_accepts = [a for a in flow.accepts if not a.get("hook_seen")]
-    if bypass_accepts:
-        blockers.append("accept_bypass_before_docker_user")
-    if not flow.accepts:
-        blockers.append("no_applicable_accept_path_to_backend")
-    if any(a.get("hook_seen") is not True for a in flow.accepts):
-        blockers.append("docker_user_does_not_precede_accept_paths")
+    ingress_list = topology.get("external_ingress_interfaces") if isinstance(topology.get("external_ingress_interfaces"), list) else []
+    ingress_names = [str(i.get("ifname")) for i in ingress_list if isinstance(i, dict) and i.get("ifname")]
+    if not ingress_names:
+        blockers.append("external_ingress_interfaces_missing")
+    scenarios: list[dict[str, Any]] = []
+    scenario_results: list[dict[str, Any]] = []
+    graph_edges: list[dict[str, Any]] = []
+    for ingress in ingress_names:
+        for state in ("NEW", "ESTABLISHED"):
+            sid = f"external_nonlocal:{ingress or 'unknown'}:tcp:{state}:60010"
+            scenario = PacketScenario(sid, "external_nonlocal_source", ingress, bridge, "tcp", backend_ip, BACKEND_PORT, state, f"route_get_backend_by_ingress:{ingress}")
+            scenarios.append(scenario.__dict__)
+            flow_s = _walk_chain("FORWARD", 0, chain_map, policies, user_chains, scenario_to_packet(scenario), hook_seen=False, call_stack=[], steps=0, scenario_id=sid)
+            graph_edges.extend(flow_s.edges)
+            scenario_blockers: list[str] = []
+            if flow_s.hook_entry_count > 1:
+                scenario_blockers.append("docker_user_hook_duplicated_or_ambiguous")
+            if flow_s.unresolved:
+                scenario_blockers.extend(flow_s.unresolved)
+            if not flow_s.hook_seen_any:
+                scenario_blockers.append("docker_user_not_reachable_on_forward_path")
+            scenario_bypass = [a for a in flow_s.accepts if not a.get("hook_seen")]
+            if scenario_bypass:
+                scenario_blockers.append("accept_bypass_before_docker_user")
+            if not flow_s.accepts:
+                scenario_blockers.append("no_applicable_accept_path_to_backend")
+            if any(a.get("hook_seen") is not True for a in flow_s.accepts):
+                scenario_blockers.append("docker_user_does_not_precede_accept_paths")
+            scenario_results.append({"scenario_id": sid, "hook_entry_count": flow_s.hook_entry_count, "accepts": flow_s.accepts, "blockers": sorted(set(scenario_blockers)), "ready": not scenario_blockers})
+            blockers.extend(scenario_blockers)
+            blockers.extend(f"scenario:{sid}:{b}" for b in scenario_blockers)
+    graph["packet_scenarios"] = scenarios
+    graph["scenario_results"] = scenario_results
+    graph["verified_cfg_edges"] = graph_edges
+    bypass_accepts: list[dict[str, Any]] = []
+    flow = FlowResult(accepts=[a for r in scenario_results for a in r.get("accepts", [])], hook_seen_any=any(r.get("hook_entry_count") for r in scenario_results), hook_entry_count=max([int(r.get("hook_entry_count") or 0) for r in scenario_results] or [0]))
 
     packet_view = "post_dnat_forward_filter" if route_class == "forwarded" and flow.hook_seen_any and not flow.unresolved else "unknown"
     visible = {"ip": backend_ip if packet_view != "unknown" else None, "port": BACKEND_PORT if packet_view != "unknown" else None}
@@ -215,12 +236,30 @@ def _topology_blockers(*, backend: dict[str, Any], network: dict[str, Any], topo
         blockers.append("backend_target_outside_expected_docker_subnet")
     if route_class != "forwarded":
         blockers.append(f"post_dnat_route_not_forwarded:{route_class}")
+    route = topology.get("route_get_backend")
+    if isinstance(route, list) and len(route) == 1 and isinstance(route[0], dict):
+        typ = str(route[0].get("type", "unicast"))
+        if typ in {"unreachable", "blackhole", "prohibit", "throw"}:
+            blockers.append(f"route_get_backend_{typ}")
     if str(topology.get("ip_forward", "")) != "1":
         blockers.append("ipv4_forwarding_disabled")
+    sysctl = topology.get("sysctl", {}) if isinstance(topology.get("sysctl"), dict) else {}
+    rp = sysctl.get("net.ipv4.conf.rp_filter", {}) if isinstance(sysctl.get("net.ipv4.conf.rp_filter"), dict) else {}
+    for name in ["all", "default", *[str(i.get("ifname")) for i in topology.get("external_ingress_interfaces", []) if isinstance(i, dict)]]:
+        row = rp.get(name) if isinstance(rp, dict) else None
+        value = row.get("value") if isinstance(row, dict) else None
+        if value is None:
+            blockers.append(f"rp_filter_missing:{name}")
+        elif str(value) not in {"0", "2"}:
+            blockers.append(f"rp_filter_strict_or_unsupported:{name}:{value}")
+    fw_backend = topology.get("firewall_backend", {}) if isinstance(topology.get("firewall_backend"), dict) else {}
+    if fw_backend.get("status") not in {None, "ok"}:
+        blockers.extend(str(b) for b in fw_backend.get("blockers", ["firewall_backend_invalid"]) if b)
     if network.get("unknown_connected_containers"):
         blockers.append("unknown_docker_network_containers_present")
-    if backend.get("historical_hardcoded_target_assumed") is True or backend_ip == "172.18.0.3":
-        blockers.append("historical_backend_target_forbidden")
+    source = str(backend.get("backend_target_source") or "unknown")
+    if backend.get("historical_hardcoded_target_assumed") is True or source in {"historical_hardcoded_fallback", "unverified_static_fallback", "unknown"}:
+        blockers.append("backend_target_source_not_verified")
     if network.get("network_name") != "mpf-proxy-internal":
         blockers.append("docker_network_name_mismatch")
     if network.get("driver") != "bridge":
@@ -233,6 +272,8 @@ def _topology_blockers(*, backend: dict[str, Any], network: dict[str, Any], topo
         blockers.append("backend_ipv4_mismatch_between_inspects")
     if not _bridge_exists(topology, bridge):
         blockers.append("docker_bridge_interface_missing")
+    if network.get("bridge_name_verified") is not True:
+        blockers.append("docker_bridge_resolution_unverified")
     if topology.get("backend_bridge_membership_verified") is not True:
         blockers.append("backend_bridge_membership_unverified")
     if topology.get("backend_bridge_membership_status") != "verified":
@@ -255,38 +296,14 @@ def _bridge_exists(topology: dict[str, Any], bridge: str) -> bool:
 
 
 def _policy_routing_blockers(topology: dict[str, Any]) -> list[str]:
-    rules = topology.get("policy_rules", [])
-    if not isinstance(rules, list):
-        return ["policy_routing_rules_malformed"]
-    canonical_seen: list[tuple[int, str]] = []
-    blockers: list[str] = []
-    canonical = {(0, "local"), (32766, "main"), (32767, "default")}
-    for rule in rules:
-        if not isinstance(rule, dict):
-            blockers.append("policy_routing_rule_malformed")
-            continue
-        try:
-            priority = int(rule.get("priority", rule.get("pref")))
-        except (TypeError, ValueError):
-            blockers.append("policy_routing_rule_malformed")
-            continue
-        table = str(rule.get("table"))
-        selectors = {k for k in rule if k in {"from", "to", "fwmark", "iif", "oif", "uidrange", "ipproto", "sport", "dport"} and str(rule.get(k)) not in {"all", "0.0.0.0/0", "::/0"}}
-        if (priority, table) in canonical and not selectors:
-            canonical_seen.append((priority, table))
-            continue
-        blockers.append("policy_routing_ambiguous")
-    if set(canonical_seen) != canonical or len(canonical_seen) != len(canonical):
-        blockers.append("policy_routing_canonical_rules_missing_or_duplicate")
-    route = topology.get("route_get_backend", [])
-    if not isinstance(route, list) or len(route) != 1 or not isinstance(route[0], dict):
-        blockers.append("route_get_backend_ambiguous")
-    elif str(route[0].get("type", "unicast")) in {"unreachable", "blackhole", "prohibit"}:
-        blockers.append(f"route_get_backend_{route[0].get('type')}")
-    return sorted(set(blockers))
+    bridge = ""
+    route = topology.get("route_get_backend")
+    if isinstance(route, list) and route and isinstance(route[0], dict):
+        bridge = str(route[0].get("dev") or "")
+    blockers, _warnings = policy_routing_blockers(topology=topology, bridge=bridge)
+    return blockers
 
-
-def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]]], policies: dict[str, str | None], user_chains: set[str], packet: dict[str, Any], *, hook_seen: bool, call_stack: list[str], steps: int) -> FlowResult:
+def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]]], policies: dict[str, str | None], user_chains: set[str], packet: dict[str, Any], *, hook_seen: bool, call_stack: list[str], steps: int, scenario_id: str = "legacy") -> FlowResult:
     result = FlowResult(hook_seen_any=hook_seen or chain == HOOK)
     if steps > MAX_STEPS:
         result.unresolved.append("cfg_traversal_limit_exceeded")
@@ -307,7 +324,7 @@ def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]
         if applies is False:
             continue
         target = rule.get("jump_target")
-        edge = {"source_chain": chain, "rule_index": rule.get("rule_index"), "rule_hash": rule.get("rule_hash"), "target": target, "jump_kind": rule.get("jump_kind"), "hook_seen_before": local_hook}
+        edge = {"scenario_id": scenario_id, "source_chain": chain, "target_chain_or_verdict": target, "rule_index": rule.get("rule_index"), "rule_hash": rule.get("rule_hash"), "target": target, "jump_kind": rule.get("jump_kind"), "match_outcome": True, "evidence_reference": "parsed-firewall.json", "hook_seen_before": local_hook, "hook_seen_after": (local_hook or target == HOOK)}
         result.edges.append(edge)
         if target == HOOK:
             local_hook = True
@@ -324,7 +341,7 @@ def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]
             result.returns.append({"chain": chain, "rule_index": rule.get("rule_index"), "hook_seen": local_hook})
             return result
         if isinstance(target, str) and target in user_chains:
-            child = _walk_chain(target, 0, chain_map, policies, user_chains, packet, hook_seen=local_hook, call_stack=[*call_stack, chain], steps=steps + 1)
+            child = _walk_chain(target, 0, chain_map, policies, user_chains, packet, hook_seen=local_hook, call_stack=[*call_stack, chain], steps=steps + 1, scenario_id=scenario_id)
             result.edges.extend(child.edges)
             result.unresolved.extend(child.unresolved)
             result.accepts.extend(child.accepts)
@@ -353,69 +370,20 @@ def _walk_chain(chain: str, start: int, chain_map: dict[str, list[dict[str, Any]
 
 
 def _rule_applies(rule: dict[str, Any], packet: dict[str, Any], *, target_is_hook: bool) -> bool | str:
-    unresolved = _unsupported_match_blocker(rule)
-    if unresolved:
+    ev = evaluate_rule_match(rule, packet)
+    if ev.applies is None:
         return "unresolved"
+    if ev.applies is False:
+        return False
     match = rule.get("match", {}) if isinstance(rule.get("match"), dict) else {}
-    checks = [
-        ("protocol", lambda v: _protocol_match(str(v), str(packet["protocol"]))),
-        ("destination_port", lambda v: _port_match(v, int(packet["destination_port"]))),
-        ("destination", lambda v: _ip_match(str(packet["destination"]), str(v))),
-        ("out_interface", lambda v: _interface_match(str(v), str(packet.get("out_interface") or ""))),
-    ]
-    for key, fn in checks:
-        if key in match:
-            outcome = fn(match[key])
-            if outcome is None:
-                return "unresolved"
-            if match.get(f"{key}_negated"):
-                outcome = not outcome
-            if not outcome:
-                return False
+    # Source matching for the synthetic external class is only supported when
+    # fully modeled by policy routing; fail closed for raw source-only rules.
     if "source" in match:
-        # External source is intentionally unknown in this static proof; source
-        # matching cannot be conclusively evaluated and must fail closed.
-        return "unresolved"
-    if "in_interface" in match:
-        # Ingress interface is unknown for the future external packet class.
         return "unresolved"
     return True
 
-
 def _unsupported_match_blocker(rule: dict[str, Any]) -> bool:
-    argv = [str(x) for x in rule.get("argv", []) if isinstance(x, str)]
-    if len(argv) < 2 or argv[0] != "-A":
-        return True
-
-    seen_match_options: set[str] = set()
-    index = 2
-    while index < len(argv):
-        token = argv[index]
-        negated = token == "!"
-        if negated:
-            index += 1
-            if index >= len(argv) or argv[index] not in _NEGATABLE_MATCH_OPTIONS:
-                return True
-            token = argv[index]
-
-        if token not in _SUPPORTED_VALUE_OPTIONS or index + 1 >= len(argv):
-            return True
-
-        value = argv[index + 1]
-        if token in {"-m", "--match"} and value not in _SUPPORTED_MATCH_MODULES:
-            return True
-        if negated and token not in _NEGATABLE_MATCH_OPTIONS:
-            return True
-
-        normalized = _OPTION_ALIASES.get(token)
-        if normalized is not None:
-            if normalized in seen_match_options:
-                return True
-            seen_match_options.add(normalized)
-
-        index += 2
-    return False
-
+    return bool(unsupported_match_blockers(rule))
 
 def _protocol_match(value: str, packet_protocol: str) -> bool | None:
     normalized = value.strip().lower()

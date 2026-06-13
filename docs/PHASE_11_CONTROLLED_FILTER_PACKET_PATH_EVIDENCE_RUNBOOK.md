@@ -1,6 +1,6 @@
 # Phase 11 Controlled Filter Packet-Path Evidence Runbook
 
-Status: version 0.1.251 read-only runtime-evidence capability. `docs/PHASE_STATUS.md` remains authoritative.
+Status: version 0.1.252 read-only topology-proof evidence capability; legacy 0.1.251 bundles remain integrity-verifiable but require recollection for readiness. `docs/PHASE_STATUS.md` remains authoritative.
 
 ## Boundary
 
@@ -49,3 +49,8 @@ This PR collected no farm5 packet-path evidence, observed no runtime packet, pro
 - `next_required_step=sync_and_collect_controlled_filter_packet_path_evidence_on_farm5`
 
 A future READY bundle must recommend `review_and_bind_verified_filter_hook_and_match_semantics_to_controlled_artifact_graph`, not direct execution. Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
+
+
+## 0.1.252 collection semantics
+
+The collector records independent component statuses, verifies Docker bridge identity from an explicit option or from the verified NetworkID-derived default, keeps NetworkID and EndpointID separate, correlates backend MAC/IP membership through FDB and optional namespace evidence, and evaluates per-ingress/per-conntrack-state packet scenarios. Missing bridge-nf sysctls are recorded as unavailable evidence rather than fabricated blockers for an otherwise routed Docker FORWARD path. This remains read-only and does not bind the renderer or enable package execution.

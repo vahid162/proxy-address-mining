@@ -28,7 +28,7 @@ def test_renderer_outputs_executable_source_backed_rules_without_placeholders():
     assert "172.18.0.3" not in payload
 
 
-def test_renderer_rejects_duplicate_unsupported_and_historical_target():
+def test_renderer_rejects_duplicate_unsupported_and_allows_source_backed_dot3():
     plan = _plan()["desired_state"]["planner"]
     # Rebuild typed plan through service to avoid importing private helpers.
     from mpf.services import firewall_planner_service
@@ -41,8 +41,9 @@ def test_renderer_rejects_duplicate_unsupported_and_historical_target():
     typed.rules[0] = replace(typed.rules[0], rule_kind="unsupported")
     assert any(e.code == "unsupported_rule_kind" for e in render_restore_contract(typed).errors)
 
-    blocked = build_plan(lanes=lanes(), customers=customers(), backend_target=target(ip="172.18.0.3"), phase_status_text=PHASE)
-    assert "historical_backend_target_forbidden" in blocked["blockers"]
+    dot3 = build_plan(lanes=lanes(), customers=customers(), backend_target=target(ip="172.18.0.3"), phase_status_text=PHASE)
+    assert "historical_backend_target_forbidden" not in dot3["blockers"]
+    assert "--to-destination 172.18.0.3:60010" in dot3.get("payload", "")
 
 
 def test_classifier_exact_missing_partial_stale_duplicate_ipv6_and_unrelated_ignored():

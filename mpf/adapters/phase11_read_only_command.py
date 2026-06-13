@@ -22,7 +22,13 @@ _MAX = {
     "ip_route_all": 1_000_000,
     "ip_rule": 500_000,
     "ip_route_get_backend": 100_000,
+    "ip_route_get_backend_ingress": 100_000,
     "bridge_link": 1_000_000,
+    "bridge_fdb_backend": 1_000_000,
+    "ip_link_master_bridge": 1_000_000,
+    "docker_inspect_backend_pid": 50_000,
+    "nsenter_backend_eth0_link": 100_000,
+    "nsenter_backend_eth0_address": 100_000,
     "ss_listeners": 1_000_000,
     "ss_backend_listener": 100_000,
     "iptables_version": 50_000,
@@ -99,16 +105,50 @@ def _validate_backend_ipv4(value: str) -> str:
         raise ValueError("backend_ipv4_unspecified_forbidden")
     if not ip.is_private:
         raise ValueError("backend_ipv4_public_forbidden")
-    if str(ip) == "172.18.0.3":
-        raise ValueError("backend_ipv4_historical_forbidden")
     return str(ip)
 
 
-def allowed_argv(command_id: str, *, backend_ipv4: str | None = None) -> list[str]:
+def _validate_interface(value: str) -> str:
+    import re
+    if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,64}", value or ""):
+        raise ValueError("interface_name_invalid")
+    return value
+
+def _validate_bridge(value: str) -> str:
+    return _validate_interface(value)
+
+def _validate_pid(value: str) -> str:
+    if not str(value).isdigit() or int(value) <= 0:
+        raise ValueError("pid_invalid")
+    return str(int(value))
+
+def allowed_argv(command_id: str, *, backend_ipv4: str | None = None, ingress_ifname: str | None = None, bridge_name: str | None = None, pid: str | None = None) -> list[str]:
     if command_id == "ip_route_get_backend":
         if backend_ipv4 is None:
             raise ValueError("backend_ipv4_required")
         return ["ip", "-json", "route", "get", _validate_backend_ipv4(backend_ipv4)]
+    if command_id == "ip_route_get_backend_ingress":
+        if backend_ipv4 is None or ingress_ifname is None:
+            raise ValueError("backend_ipv4_and_ingress_required")
+        return ["ip", "-json", "route", "get", _validate_backend_ipv4(backend_ipv4), "from", "198.51.100.77", "iif", _validate_interface(ingress_ifname)]
+    if command_id == "bridge_fdb_backend":
+        if bridge_name is None:
+            raise ValueError("bridge_name_required")
+        return ["bridge", "-json", "fdb", "show", "br", _validate_bridge(bridge_name)]
+    if command_id == "ip_link_master_bridge":
+        if bridge_name is None:
+            raise ValueError("bridge_name_required")
+        return ["ip", "-json", "link", "show", "master", _validate_bridge(bridge_name)]
+    if command_id == "docker_inspect_backend_pid":
+        return ["docker", "inspect", "--format", "{{.State.Pid}}", "mpf-forwarder-btc"]
+    if command_id == "nsenter_backend_eth0_link":
+        if pid is None:
+            raise ValueError("pid_required")
+        return ["nsenter", "-t", _validate_pid(pid), "-n", "ip", "-json", "link", "show", "eth0"]
+    if command_id == "nsenter_backend_eth0_address":
+        if pid is None:
+            raise ValueError("pid_required")
+        return ["nsenter", "-t", _validate_pid(pid), "-n", "ip", "-json", "address", "show", "eth0"]
     if command_id not in _FIXED:
         raise ValueError(f"command_not_allowlisted:{command_id}")
     return list(_FIXED[command_id])
@@ -124,9 +164,9 @@ class Phase11ReadOnlyCommandAdapter:
         self.timeout = timeout
         self.env = {"PATH": _SAFE_PATH, "LC_ALL": "C", "LANG": "C"}
 
-    def run(self, command_id: str, *, backend_ipv4: str | None = None, redact_stdout: bool = False, require_non_empty: bool = False) -> ReadOnlyCommandResult:
+    def run(self, command_id: str, *, backend_ipv4: str | None = None, ingress_ifname: str | None = None, bridge_name: str | None = None, pid: str | None = None, redact_stdout: bool = False, require_non_empty: bool = False) -> ReadOnlyCommandResult:
         try:
-            argv = allowed_argv(command_id, backend_ipv4=backend_ipv4)
+            argv = allowed_argv(command_id, backend_ipv4=backend_ipv4, ingress_ifname=ingress_ifname, bridge_name=bridge_name, pid=pid)
         except ValueError as exc:
             return _synthetic_result(command_id, [], 126, str(exc))
         limit = _MAX[command_id]
@@ -142,6 +182,8 @@ class Phase11ReadOnlyCommandAdapter:
         try:
             if self._run is not None:
                 completed = self._run(argv, shell=False, check=False, capture_output=True, timeout=self.timeout, env=self.env, cwd="/")
+                if completed is None:
+                    raise FileNotFoundError(argv[0])
                 stdout = completed.stdout or b""
                 stderr = completed.stderr or b""
                 stdout_seen = len(stdout)

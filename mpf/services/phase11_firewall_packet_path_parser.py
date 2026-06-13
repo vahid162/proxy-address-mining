@@ -6,6 +6,8 @@ import shlex
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from mpf.services.phase11_controlled_artifact_taxonomy import classify_controlled_artifact, is_official_controlled_chain, is_mpf_like_chain
+
 @dataclass(frozen=True)
 class ParsedRule:
     table: str
@@ -47,7 +49,6 @@ class ParsedFirewall:
         return asdict(self)
 
 _TERMINAL = {"ACCEPT", "DROP", "REJECT", "DNAT", "SNAT", "MASQUERADE", "RETURN"}
-_ALLOWED_MPF = {"MPF_NAT_PRE", "MPFC_20001", "MPFC_20101"}
 
 
 def parse_iptables_save_topology(text: str, *, ipv6: bool = False) -> ParsedFirewall:
@@ -97,9 +98,9 @@ def parse_iptables_save_topology(text: str, *, ipv6: bool = False) -> ParsedFire
             built_in = policy != "-"
             chains.append(ParsedChain(table=table, name=name, order=order, built_in=built_in, policy=None if policy == "-" else policy))
             order += 1
-            if name.startswith(("MPF", "MPFBTC", "MPFC_", "MPFO_")):
+            if is_mpf_like_chain(name):
                 mpf_present.add(name)
-                if name not in _ALLOWED_MPF:
+                if not is_official_controlled_chain(name):
                     mpf_unknown.append(f"unknown_chain:{table}:{name}")
             continue
         if line.startswith("-A "):
@@ -122,9 +123,9 @@ def parse_iptables_save_topology(text: str, *, ipv6: bool = False) -> ParsedFire
             terminal = target if target in _TERMINAL else None
             comment = _flag(argv, "--comment")
             match = _extract_match(argv)
-            if chain.startswith(("MPF", "MPFBTC", "MPFC_", "MPFO_")) and chain not in _ALLOWED_MPF:
+            if classify_controlled_artifact(chain=chain, comment=None) == "unknown_mpf_artifact":
                 mpf_unknown.append(f"unknown_rule_chain:{table}:{chain}:{idx}")
-            if comment and ("mpf:" in comment or "customer_" in comment) and chain not in _ALLOWED_MPF:
+            if comment and classify_controlled_artifact(chain=chain, comment=comment) == "unknown_mpf_artifact":
                 mpf_unknown.append(f"unknown_mpf_comment:{table}:{chain}:{idx}:{comment}")
             rules.append(ParsedRule(table=table, chain=chain, rule_index=idx, raw=line, argv=argv, jump_target=target, jump_kind=jump_kind, terminal_verdict=terminal, rule_hash=hashlib.sha256(line.encode()).hexdigest(), match=match, comment=comment))
             continue
@@ -171,10 +172,13 @@ def _flag_value_and_negation(argv: list[str], name: str) -> tuple[str | None, bo
 
 def _extract_match(argv: list[str]) -> dict[str, Any]:
     out: dict[str, Any] = {}
-    for flag, key in (("-s", "source"), ("--source", "source"), ("-d", "destination"), ("--destination", "destination"), ("-p", "protocol"), ("-i", "in_interface"), ("--in-interface", "in_interface"), ("-o", "out_interface"), ("--out-interface", "out_interface"), ("--dport", "destination_port"), ("--destination-port", "destination_port"), ("--ctorigdst", "conntrack_original_destination"), ("--ctorigdstport", "conntrack_original_destination_port")):
+    for flag, key in (("-s", "source"), ("--source", "source"), ("-d", "destination"), ("--destination", "destination"), ("-p", "protocol"), ("-i", "in_interface"), ("--in-interface", "in_interface"), ("-o", "out_interface"), ("--out-interface", "out_interface"), ("--dport", "destination_port"), ("--destination-port", "destination_port"), ("--ctorigdst", "conntrack_original_destination"), ("--ctorigdstport", "conntrack_original_destination_port"), ("--ctstate", "conntrack_states"), ("--dst-type", "addrtype_dst_type")):
         val, negated = _flag_value_and_negation(argv, flag)
         if val is not None:
-            out[key] = int(val) if key.endswith("port") and val.isdigit() else val
+            if key == "conntrack_states":
+                out[key] = [part.strip().upper() for part in val.split(",") if part.strip()]
+            else:
+                out[key] = int(val) if key.endswith("port") and val.isdigit() else val
             if negated:
                 out[f"{key}_negated"] = True
     if "--ctorigdst" in argv or "--ctorigdstport" in argv:

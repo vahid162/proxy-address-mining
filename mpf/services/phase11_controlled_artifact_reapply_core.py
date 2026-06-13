@@ -22,6 +22,7 @@ from mpf import __version__
 from mpf.services import firewall_planner_service
 from mpf.domain.firewall import FirewallRuleIntent
 from mpf.services.firewall_restore_payload_renderer import render_restore_contract
+from mpf.services.phase11_controlled_artifact_taxonomy import classify_controlled_artifact
 
 SCOPE = (
     {"customer_key": "canary-btc-001", "lane": "btc", "public_port": 20001},
@@ -137,8 +138,6 @@ def _valid_backend_ipv4(raw: str) -> tuple[bool, str | None]:
         return False, "invalid_backend_ipv4"
     if not isinstance(ip, ipaddress.IPv4Address):
         return False, "backend_target_not_ipv4"
-    if raw == "172.18.0.3":
-        return False, "historical_backend_target_forbidden"
     if ip.is_loopback:
         return False, "loopback_backend_target_forbidden"
     if ip.is_link_local:
@@ -221,7 +220,9 @@ class ControlledBackendTargetResolver:
         if container:
             if not running:
                 blockers.append("backend_container_not_running")
-            if health is not None and health != "healthy":
+            if health is None:
+                blockers.append("backend_container_health_missing")
+            elif health != "healthy":
                 blockers.append("backend_container_unhealthy")
             project = labels.get("com.docker.compose.project")
             if project != COMPOSE_PROJECT:
@@ -251,7 +252,12 @@ class ControlledBackendTargetResolver:
         publish_public, publishes = _docker_publishes_public(network_settings, BACKEND_PORT)
         if publish_public:
             blockers.append("backend_docker_publish_public")
-        net_id = network.get("NetworkID") or network.get("EndpointID")
+        net_id = network.get("NetworkID")
+        endpoint_id = network.get("EndpointID")
+        if not net_id:
+            blockers.append("backend_network_id_missing")
+        if net_id and endpoint_id and net_id == endpoint_id:
+            blockers.append("network_id_endpoint_id_conflated")
         fingerprint_input = {
             "repository_version": __version__,
             "hostname": self.hostname,
@@ -259,6 +265,8 @@ class ControlledBackendTargetResolver:
             "container_id": container.get("Id"),
             "network_name": DOCKER_NETWORK,
             "network_id": net_id,
+            "endpoint_id": endpoint_id,
+            "backend_target_source": "docker_inspect_verified" if ip_ok and net_id else "unknown",
             "resolved_ipv4": ip_raw,
             "backend_port": BACKEND_PORT,
         }
@@ -276,6 +284,8 @@ class ControlledBackendTargetResolver:
             "compose_project": labels.get("com.docker.compose.project"),
             "network_name": DOCKER_NETWORK,
             "network_id": net_id,
+            "endpoint_id": endpoint_id,
+            "backend_target_source": "docker_inspect_verified" if ip_ok and net_id else "unknown",
             "resolved_ipv4": ip_raw or None,
             "target_host": ip_raw or None,
             "target_port": BACKEND_PORT,
@@ -300,8 +310,25 @@ def build_controlled_desired_state(*, lanes: list[dict[str, Any]], customers: li
         blockers.append("wrong_expected_version")
     if backend_target.get("status") != "ok":
         blockers.append("backend_target_unresolved")
+    if backend_target.get("component") != "phase11_controlled_backend_target_resolver":
+        blockers.append("backend_target_resolver_component_missing")
     if backend_target.get("target_port") != BACKEND_PORT:
         blockers.append("btc_backend_port_mismatch")
+    source = str(backend_target.get("backend_target_source") or "unknown")
+    if source not in {"docker_inspect_verified", "docker_network_inspect_verified", "operator_package_bound"}:
+        blockers.append(f"backend_target_source_rejected:{source}")
+    fingerprint_input = backend_target.get("target_fingerprint_input")
+    fingerprint = backend_target.get("target_fingerprint")
+    if not fingerprint or not isinstance(fingerprint_input, dict):
+        blockers.append("backend_target_fingerprint_missing")
+    elif fingerprint != _canonical_sha(fingerprint_input):
+        blockers.append("backend_target_fingerprint_mismatch")
+    if not backend_target.get("network_id"):
+        blockers.append("backend_target_network_id_missing")
+    if backend_target.get("network_id") and backend_target.get("endpoint_id") and backend_target.get("network_id") == backend_target.get("endpoint_id"):
+        blockers.append("network_id_endpoint_id_conflated")
+    if backend_target.get("health_status") != "healthy" or backend_target.get("running") is not True:
+        blockers.append("backend_target_health_not_verified")
     resolved_ip = str(backend_target.get("resolved_ipv4") or backend_target.get("target_host") or "")
     ok_ip, ip_blocker = _valid_backend_ipv4(resolved_ip) if resolved_ip else (False, "backend_target_ipv4_missing")
     if ip_blocker:
@@ -441,7 +468,8 @@ def classify_controlled_artifacts(*, iptables_save_text: str, ip6tables_save_tex
         if normalized not in desired_set:
             unknown.append(line)
         customer_ok = any(str(item["customer_key"]) in line for item in SCOPE) or "mpf:hook:" in line or "mpf:backend_guard:" in line
-        chain_ok = any(chain in line for chain in ("INPUT", "PREROUTING", "MPF_INPUT", "MPF_CUSTOMERS", "MPF_GUARD", "MPF_ACCT_IN", "MPF_ACCT_OUT", "MPF_NAT_PRE", "MPF_NAT_POST", "MPFL_btc", "MPFC_20001", "MPFO_20001", "MPFC_20101", "MPFO_20101"))
+        tokens = line.replace(":", " ").replace("-A", " ").replace("-N", " ").split()
+        chain_ok = any(classify_controlled_artifact(chain=t) == "official_phase11_controlled_artifact" for t in tokens) or "PREROUTING" in tokens or "INPUT" in tokens
         if "--to-destination" in line and current not in line:
             stale.append(line)
         if not customer_ok and "mpf:" in line:
@@ -482,8 +510,6 @@ def render_payload(missing_artifacts: list[str]) -> tuple[str, str, list[str]]:
             parts.extend(rules)
             parts.append("COMMIT")
     payload = "\n".join(parts) + ("\n" if parts else "")
-    if "172.18.0.3" in payload:
-        blockers.append("historical_backend_target_forbidden")
     return payload, _text_sha(payload), sorted(set(blockers))
 
 
