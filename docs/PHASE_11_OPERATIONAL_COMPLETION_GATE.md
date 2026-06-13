@@ -81,3 +81,12 @@ No worker enforcement, UI, Telegram, buyer panel, public API, public backend exp
 ## 0.1.253 verified binding/package evidence update
 
 A source-backed 0.1.252 farm5 packet-path READY bundle may now be consumed by `mpf production verified-filter-hook-binding-plan` to bind the verified `DOCKER-USER` / `FORWARD` / `post_dnat_forward_filter` hook to explicit Phase 11 controlled artifact graph semantics. `mpf production controlled-artifact-reapply-package-plan` and `mpf production controlled-artifact-reapply-package-verify` generate and verify package evidence only. Execution remains blocked: `production_execution_available=false`, `iptables_restore_invocation_allowed=false`, `runtime_packet_observed=false`, `post_apply_runtime_verified=false`, `restart_autostart_proof=missing_or_partial`, `full_cli_production_operations=missing_or_partial`, and Phase 12/worker/UI/Telegram remain blocked.
+
+
+## 0.1.256 Phase 11 live-ready controlled artifact reapply readiness package
+
+- Adds `mpf production controlled-artifact-reapply-readiness --output json` and `scripts/phase11_controlled_artifact_reapply.sh --readiness` as an operator-reviewable live-ready readiness/package review surface only.
+- This does not execute `iptables-restore`, does not apply firewall changes, does not call controlled artifact execute, and does not mutate DB, firewall, Docker, systemd, conntrack, customer, abuse, or policy state.
+- `restart_autostart_proof` and `full_cli_production_operations` remain `missing_or_partial`; production traffic and onboarding remain `controlled_cli_limited`.
+- Phase 12, worker enforcement, UI, Telegram, timers, daemons, public backend/API, and unrestricted production remain closed.
+- When readiness is READY, the next required step becomes `sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5`; otherwise it remains `prepare_live_ready_controlled_artifact_reapply_package`.

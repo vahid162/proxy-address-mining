@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.256
+
+- Add fail-closed live-ready controlled artifact reapply readiness/package review surface for Phase 11 operational completion while keeping live execution and later-phase gates closed.
+
 ## 0.1.255
 
 - Align Phase 11 operational completion progression with verified packet-path, filter-hook binding, and controlled artifact package evidence while keeping live execution and Phase 12 gates closed.
