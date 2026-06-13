@@ -11,6 +11,8 @@ Phase 11 planning/readiness note (0.1.205): recorded farm5 0.1.204 controlled si
 Phase 11 planning/readiness note (0.1.204): added controlled single-customer firewall apply execution package/execute path and recorded 0.1.203 apply-gate evidence while keeping global gates closed.
 # Documentation Index
 
+Phase 11 live-ready reapply readiness note (0.1.256): `mpf production controlled-artifact-reapply-readiness --output json` and `scripts/phase11_controlled_artifact_reapply.sh --readiness` create a review-only package surface. They do not run `iptables-restore`, apply firewall changes, mark restart/autostart READY, accept Full CLI Production Operations, or open Phase 12/worker/UI/Telegram/timer/daemon/public/unrestricted gates.
+
 Phase 11 controlled artifact reapply note (0.1.251): source-backed renderer, live classifier, read-only plan/package/verify/evidence surfaces, and production adapter wiring are implemented for exactly the two accepted BTC customers. No farm5 mutation has been performed. Next step: `sync_and_collect_controlled_filter_packet_path_evidence_on_farm5`; restart/autostart proof and Full CLI Production Operations remain unaccepted, Phase 12/worker enforcement/UI/Telegram remain blocked. See `docs/PHASE_11_CONTROLLED_ARTIFACT_REAPPLY_RUNBOOK.md`.
 
 Phase 11 persistence alignment note (0.1.248): farm5 0.1.247 post-sync evidence showed healthy runtime containers/listeners and absent controlled customer firewall artifacts. The next step is `implement_controlled_artifact_reapply_execute_package`; restart/autostart proof remains `missing_or_partial`, Full CLI Production Operations is not accepted, and Phase 12/worker enforcement/UI/Telegram remain blocked. See `docs/PHASE_11_FARM5_0_1_247_PERSISTENCE_POST_SYNC_EVIDENCE.md`.

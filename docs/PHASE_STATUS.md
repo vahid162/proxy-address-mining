@@ -3116,3 +3116,12 @@ telegram_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only
 ```
+
+
+## 0.1.256 Phase 11 live-ready controlled artifact reapply readiness package
+
+- Adds `mpf production controlled-artifact-reapply-readiness --output json` and `scripts/phase11_controlled_artifact_reapply.sh --readiness` as an operator-reviewable live-ready readiness/package review surface only.
+- This does not execute `iptables-restore`, does not apply firewall changes, does not call controlled artifact execute, and does not mutate DB, firewall, Docker, systemd, conntrack, customer, abuse, or policy state.
+- `restart_autostart_proof` and `full_cli_production_operations` remain `missing_or_partial`; production traffic and onboarding remain `controlled_cli_limited`.
+- Phase 12, worker enforcement, UI, Telegram, timers, daemons, public backend/API, and unrestricted production remain closed.
+- When readiness is READY, the next required step becomes `sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5`; otherwise it remains `prepare_live_ready_controlled_artifact_reapply_package`.

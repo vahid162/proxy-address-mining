@@ -13,6 +13,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --plan) MODE="plan"; shift ;;
     --package) MODE="package"; shift ;;
+    --readiness) MODE="readiness"; shift ;;
     --verify) MODE="verify"; PACKAGE_JSON="${2:-}"; shift 2 ;;
     --execute) MODE="execute"; shift ;;
     --package-json) PACKAGE_JSON="${2:-}"; shift 2 ;;
@@ -29,6 +30,10 @@ mkdir -p "$OUT_DIR"
 case "$MODE" in
   plan)
     mpf production controlled-artifact-reapply-plan --output json | tee "$OUT_DIR/controlled-artifact-reapply-plan.json"
+    ;;
+  readiness)
+    mpf production controlled-artifact-reapply-readiness --output json | tee "$OUT_DIR/controlled-artifact-reapply-readiness.json"
+    sha256sum "$OUT_DIR"/*.json > "$OUT_DIR/manifest.sha256"
     ;;
   package)
     mpf production controlled-backend-target --output json | tee "$OUT_DIR/controlled-backend-target.json" >/dev/null
