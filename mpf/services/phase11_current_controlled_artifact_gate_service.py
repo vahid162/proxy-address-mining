@@ -154,6 +154,6 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         "production_gates_remain_closed": True,
         "blockers": sorted(set(blockers + (["unknown_mpf_artifacts_detected"] if unknown else []))),
         "warnings": sorted(set(warnings)),
-        "next_required_step": "sync_and_collect_controlled_filter_packet_path_evidence_on_farm5" if decision.startswith("PASS") else "remove_unknown_artifacts_and_recheck",
+        "next_required_step": "prepare_live_ready_controlled_artifact_reapply_package" if decision.startswith("PASS") else "remove_unknown_artifacts_and_recheck",
         "final_decision": decision,
     }

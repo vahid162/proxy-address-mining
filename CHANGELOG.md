@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.255
+
+- Align Phase 11 operational completion progression with verified packet-path, filter-hook binding, and controlled artifact package evidence while keeping live execution and Phase 12 gates closed.
+
 ## 0.1.254
 
 - Accept integrity-valid source-backed 0.1.252 packet-path bundles under the 0.1.254 verifier while keeping tamper, legacy recollection, and execution gates fail-closed.
