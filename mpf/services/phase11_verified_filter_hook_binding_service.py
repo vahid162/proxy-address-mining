@@ -73,7 +73,6 @@ def build_verified_filter_hook_binding_report(packet_path_evidence_dir: Path | s
         blockers.append(f"bundle_document_read_failed:{type(exc).__name__}")
 
     backend = evidence.get("backend_target") if isinstance(evidence.get("backend_target"), dict) else {}
-    docker_net = evidence.get("docker_network") if isinstance(evidence.get("docker_network"), dict) else {}
     scenarios = graph.get("packet_scenarios") if isinstance(graph.get("packet_scenarios"), list) else []
     results = graph.get("scenario_results") if isinstance(graph.get("scenario_results"), list) else []
     scenario_pairs = [(str(s.get("ingress_interface")), str(s.get("conntrack_state"))) for s in scenarios if isinstance(s, dict)]
@@ -121,7 +120,7 @@ def build_verified_filter_hook_binding_report(packet_path_evidence_dir: Path | s
     ready = not blockers
     backend_ip = backend.get("resolved_ipv4") or backend.get("target_host") or backend.get("ip")
     graph_binding = _build_binding_graph(manifest, backend_ip=backend_ip)
-    return {
+    report = {
         "component": "phase11_verified_filter_hook_binding",
         "repository_version": __version__,
         "source_bundle_manifest_sha256": verifier.get("manifest_sha256"),
@@ -147,10 +146,11 @@ def build_verified_filter_hook_binding_report(packet_path_evidence_dir: Path | s
         "controlled_artifact_execute_available": False,
         "blockers": sorted(set(blockers)),
         "warnings": sorted(set(warnings)),
-        "binding_decision_sha256": "",
         "final_decision": READY_BINDING if ready else BLOCKED_BINDING,
         "mutation_performed": False,
     }
+    report["binding_decision_sha256"] = _canonical_sha(report)
+    return report
 
 
 def _build_binding_graph(manifest: dict[str, Any], *, backend_ip: Any) -> dict[str, Any]:
@@ -196,7 +196,7 @@ def build_package_evidence(packet_path_evidence_dir: Path | str, output_dir: Pat
     plan = build_plan(lanes=lanes, customers=customers, backend_target=binding_backend_target(binding), phase_status_text=phase_text)
     blockers.extend(plan.get("blockers", []) if isinstance(plan.get("blockers"), list) else [])
     package = build_package_from_plan(plan)
-    package.update({"final_decision": READY_PACKAGE_EVIDENCE if not blockers else BLOCKED_PACKAGE_EVIDENCE, "production_execution_available": False, "live_apply_available": False, "iptables_restore_invocation_allowed": False, "controlled_artifact_execute_available": False, "source_packet_path_bundle_manifest_sha256": binding.get("source_bundle_manifest_sha256"), "binding_decision_sha256": _canonical_sha(binding), "desired_artifact_graph_sha256": _canonical_sha(plan.get("desired_state", {})), "rollback_plan_sha256": _canonical_sha(package.get("rollback_plan", {})), "audit_requirements": {"required": True}, "verification_requirements": {"required": True}, "execution_blocked": True, "exact_two_customer_scope": list(SCOPE), "no_unknown_mpf_artifacts": True, "no_public_backend_exposure": True, "no_stale_target": True, "no_duplicate_controlled_artifacts": True, "mutation_performed": False, "blockers": sorted(set(blockers))})
+    package.update({"final_decision": READY_PACKAGE_EVIDENCE if not blockers else BLOCKED_PACKAGE_EVIDENCE, "package_evidence_kind": "template_only_from_verified_packet_path_binding", "package_template_only": True, "live_ready_package_available": False, "production_execution_available": False, "live_apply_available": False, "iptables_restore_invocation_allowed": False, "controlled_artifact_execute_available": False, "source_packet_path_bundle_manifest_sha256": binding.get("source_bundle_manifest_sha256"), "binding_decision_sha256": binding.get("binding_decision_sha256"), "desired_artifact_graph_sha256": _canonical_sha(plan.get("desired_state", {})), "rollback_plan_sha256": _canonical_sha(package.get("rollback_plan", {})), "audit_requirements": {"required": True}, "verification_requirements": {"required": True}, "execution_blocked": True, "exact_two_customer_scope": list(SCOPE), "no_unknown_mpf_artifacts": True, "no_public_backend_exposure": True, "no_stale_target": True, "no_duplicate_controlled_artifacts": True, "mutation_performed": False, "blockers": sorted(set(blockers))})
     package["package_sha256"] = _canonical_sha({k: v for k, v in package.items() if k != "package_sha256"})
     out = Path(output_dir)
     if out.exists() and not _safe_dir(out):
@@ -216,7 +216,7 @@ def build_package_evidence(packet_path_evidence_dir: Path | str, output_dir: Pat
         manifest[name] = _text_sha(text)
     manifest_text = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
     (out / "manifest.sha256.json").write_text(manifest_text, encoding="utf-8")
-    return {"component": "phase11_controlled_artifact_reapply_package_evidence", "repository_version": __version__, "package_dir": str(out), "manifest_sha256": _text_sha(manifest_text), "package_sha256": _sha_file(out / "package.json"), "binding_final_decision": binding.get("final_decision"), "package_final_decision": package.get("final_decision"), "final_decision": package.get("final_decision"), "production_execution_available": False, "iptables_restore_invocation_allowed": False, "mutation_performed": False, "blockers": sorted(set(blockers))}
+    return {"component": "phase11_controlled_artifact_reapply_package_evidence", "repository_version": __version__, "package_dir": str(out), "manifest_sha256": _text_sha(manifest_text), "package_sha256": _sha_file(out / "package.json"), "binding_final_decision": binding.get("final_decision"), "package_final_decision": package.get("final_decision"), "final_decision": package.get("final_decision"), "package_evidence_kind": "template_only_from_verified_packet_path_binding", "package_template_only": True, "live_ready_package_available": False, "production_execution_available": False, "controlled_artifact_execute_available": False, "iptables_restore_invocation_allowed": False, "mutation_performed": False, "blockers": sorted(set(blockers))}
 
 
 def verify_package_evidence(package_dir: Path | str) -> dict[str, Any]:
@@ -242,8 +242,12 @@ def verify_package_evidence(package_dir: Path | str) -> dict[str, Any]:
         blockers.append("binding_not_ready")
     if package.get("final_decision") != READY_PACKAGE_EVIDENCE:
         blockers.append("package_evidence_not_ready")
-    if package.get("production_execution_available") is not False or package.get("iptables_restore_invocation_allowed") is not False:
+    if package.get("production_execution_available") is not False or package.get("iptables_restore_invocation_allowed") is not False or package.get("controlled_artifact_execute_available") is not False:
         blockers.append("execution_not_blocked")
+    if package.get("live_ready_package_available") is not False or package.get("package_template_only") is not True:
+        blockers.append("package_evidence_template_only_flags_missing")
+    if package.get("binding_decision_sha256") != binding.get("binding_decision_sha256"):
+        blockers.append("binding_decision_sha256_mismatch")
     shape = verify_package({**package, "final_decision": "CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_READY"}, live_plan=plan)
     blockers.extend(b for b in shape.get("blockers", []) if b not in {"package_not_ready", "package_canonical_sha256_mismatch"})
-    return {"component": "phase11_controlled_artifact_reapply_package_evidence_verify", "repository_version": __version__, "package_dir": str(root), "package_sha256": _sha_file(root / "package.json") if (root / "package.json").exists() else None, "production_execution_available": False, "iptables_restore_invocation_allowed": False, "controlled_artifact_execute_available": False, "mutation_performed": False, "blockers": sorted(set(blockers)), "final_decision": READY_VERIFY if not blockers else BLOCKED_VERIFY}
+    return {"component": "phase11_controlled_artifact_reapply_package_evidence_verify", "repository_version": __version__, "package_dir": str(root), "package_sha256": _sha_file(root / "package.json") if (root / "package.json").exists() else None, "live_ready_package_available": False, "production_execution_available": False, "iptables_restore_invocation_allowed": False, "controlled_artifact_execute_available": False, "mutation_performed": False, "blockers": sorted(set(blockers)), "final_decision": READY_VERIFY if not blockers else BLOCKED_VERIFY}

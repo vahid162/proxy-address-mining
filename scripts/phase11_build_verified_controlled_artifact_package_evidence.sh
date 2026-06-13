@@ -37,4 +37,12 @@ print(f"verify_final_decision={v.get('final_decision')}")
 print(f"package_dir={p.get('package_dir')}")
 print(f"manifest_sha256={p.get('manifest_sha256')}")
 print(f"package_sha256={p.get('package_sha256')}")
+expected = (
+    b.get('final_decision') == 'READY_VERIFIED_FILTER_HOOK_BINDING'
+    and p.get('final_decision') == 'READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_EVIDENCE'
+    and v.get('final_decision') == 'READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_VERIFY_EVIDENCE'
+)
+if not expected:
+    print('blocked_decision_detected=true', file=sys.stderr)
+    sys.exit(70)
 PY

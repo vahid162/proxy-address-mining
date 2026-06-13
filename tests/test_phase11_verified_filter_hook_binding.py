@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -48,6 +50,12 @@ def test_binding_happy_path(tmp_path, monkeypatch):
     assert report["verified_builtin_filter_path"] == "FORWARD"
     assert report["production_execution_available"] is False
     assert report["iptables_restore_invocation_allowed"] is False
+    assert report["binding_decision_sha256"]
+    changed = dict(report)
+    original_sha = changed.pop("binding_decision_sha256")
+    changed["packet_view_at_hook"] = "changed"
+    from mpf.services.phase11_controlled_artifact_reapply_core import _canonical_sha
+    assert _canonical_sha(changed) != original_sha
 
 
 def test_package_evidence_happy_path_and_verify(tmp_path, monkeypatch):
@@ -56,8 +64,14 @@ def test_package_evidence_happy_path_and_verify(tmp_path, monkeypatch):
     report = build_package_evidence(bundle, package_dir)
     assert report["final_decision"] == READY_PACKAGE_EVIDENCE
     package = json.loads((package_dir / "package.json").read_text())
+    binding = build_verified_filter_hook_binding_report(bundle)
+    assert package["binding_decision_sha256"] == binding["binding_decision_sha256"]
     assert package["iptables_restore_invocation_allowed"] is False
     assert package["production_execution_available"] is False
+    assert package["controlled_artifact_execute_available"] is False
+    assert package["live_ready_package_available"] is False
+    assert package["package_template_only"] is True
+    assert package["package_evidence_kind"] == "template_only_from_verified_packet_path_binding"
     assert package["mutation_performed"] is False
     verify = verify_package_evidence(package_dir)
     assert verify["final_decision"] == READY_VERIFY
@@ -117,6 +131,48 @@ def test_helper_script_does_not_contain_iptables_restore_execute_surface():
     script = Path("scripts/phase11_build_verified_controlled_artifact_package_evidence.sh").read_text()
     assert "iptables-restore" not in script
     assert "controlled-artifact-reapply-execute" not in script
+    assert "sys.exit(70)" in script
+
+
+def test_helper_script_exits_nonzero_on_blocked_decisions(tmp_path):
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    fake_mpf = fake_bin / "mpf"
+    calls = tmp_path / "calls.log"
+    fake_mpf.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json, pathlib, sys\n"
+        f"calls = pathlib.Path({str(calls)!r})\n"
+        "line = ' '.join(sys.argv[1:]) + '\\n'\n"
+        "calls.write_text((calls.read_text() if calls.exists() else '') + line)\n"
+        "cmd = ' '.join(sys.argv[1:])\n"
+        "if 'verified-filter-hook-binding-plan' in cmd:\n"
+        "    print(json.dumps({'final_decision': 'BLOCKED_VERIFIED_FILTER_HOOK_BINDING'}))\n"
+        "elif 'controlled-artifact-reapply-package-plan' in cmd:\n"
+        "    out = pathlib.Path(sys.argv[sys.argv.index('--output-dir') + 1])\n"
+        "    out.mkdir(parents=True, exist_ok=True)\n"
+        "    print(json.dumps({'final_decision': 'BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_EVIDENCE', 'package_dir': str(out), 'manifest_sha256': 'm', 'package_sha256': 'p'}))\n"
+        "elif 'controlled-artifact-reapply-package-verify' in cmd:\n"
+        "    print(json.dumps({'final_decision': 'BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_VERIFY_EVIDENCE'}))\n"
+        "else:\n"
+        "    raise SystemExit(3)\n",
+        encoding="utf-8",
+    )
+    fake_mpf.chmod(0o755)
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    result = subprocess.run(
+        ["scripts/phase11_build_verified_controlled_artifact_package_evidence.sh", str(evidence), str(tmp_path / "out")],
+        cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ, "PATH": f"{fake_bin}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 70
+    assert "blocked_decision_detected=true" in result.stderr
+    assert "iptables-restore" not in calls.read_text(encoding="utf-8")
+    assert "controlled-artifact-reapply-execute" not in calls.read_text(encoding="utf-8")
 
 
 def test_version_docs_are_0253_after_bump():
