@@ -225,7 +225,14 @@ def _check_packet_path_schema(evidence: dict[str, Any], decision: dict[str, Any]
             blockers.append(f"scenario_route_command_missing:{ifname}")
         elif cmd.get("return_code") != 0 or cmd.get("output_truncated") is True:
             blockers.append(f"scenario_route_command_failed:{ifname}")
-        if ref and ifname not in ref:
+        else:
+            stdout_rows = _parse_stdout_json_array(cmd, cmd_id, blockers)
+            if stdout_rows != rows:
+                blockers.append(f"scenario_route_projection_stdout_mismatch:{ifname}")
+            if len(stdout_rows) != 1 or not isinstance(stdout_rows[0], dict) or stdout_rows[0].get("dev") != bridge:
+                blockers.append(f"scenario_route_command_bridge_mismatch:{ifname}")
+        expected_ref = str((route_refs.get(ifname) or {}).get("evidence_ref") or f"command-results.json:{cmd_id}")
+        if ref and ifname not in ref and ref != expected_ref:
             blockers.append(f"scenario_route_ref_mismatch:{ifname}")
     for item in results:
         if isinstance(item, dict) and ready and item.get("ready") is not True:
@@ -240,10 +247,21 @@ def _check_packet_path_schema(evidence: dict[str, Any], decision: dict[str, Any]
                 continue
             method = str(row.get("method") or "")
             if method == "fdb_mac_to_host_veth":
-                if "bridge_fdb_backend" not in command_by_id or "ip_link_master_bridge" not in command_by_id:
+                fdb_cmd = command_by_id.get("bridge_fdb_backend")
+                link_cmd = command_by_id.get("ip_link_master_bridge")
+                if fdb_cmd is None or link_cmd is None:
                     blockers.append("fdb_membership_required_commands_missing")
                 if row.get("mac_address") != backend.get("mac_address") or row.get("bridge") != bridge:
                     blockers.append("fdb_membership_backend_binding_mismatch")
+                if fdb_cmd is not None and link_cmd is not None:
+                    fdb_rows = _parse_stdout_json_array(fdb_cmd, "bridge_fdb_backend", blockers)
+                    link_rows = _parse_stdout_json_array(link_cmd, "ip_link_master_bridge", blockers)
+                    host_ifname = str(row.get("host_ifname") or "")
+                    mac = _norm_mac(backend.get("mac_address"))
+                    fdb_match = any(isinstance(x, dict) and _norm_mac(x.get("mac") or x.get("lladdr")) == mac and str(x.get("dev") or x.get("ifname") or "") == host_ifname for x in fdb_rows)
+                    link_match = any(isinstance(x, dict) and x.get("ifname") == host_ifname and x.get("master") == bridge for x in link_rows)
+                    if not fdb_match or not link_match:
+                        blockers.append("fdb_membership_source_record_mismatch")
             if method == "netns_eth0_iflink_to_host_veth":
                 if "nsenter_backend_eth0_link" not in command_by_id or "nsenter_backend_eth0_address" not in command_by_id:
                     blockers.append("netns_membership_required_commands_missing")
@@ -253,6 +271,29 @@ def _check_packet_path_schema(evidence: dict[str, Any], decision: dict[str, Any]
     node_ids = [n.get("id") for n in nodes if isinstance(n, dict)]
     if len(node_ids) != len(set(node_ids)):
         blockers.append("duplicate_graph_node_id")
+
+
+def _parse_stdout_json_array(command: dict[str, Any], command_id: str, blockers: list[str]) -> list[Any]:
+    stdout = command.get("stdout")
+    if not isinstance(stdout, str) or not stdout.strip():
+        blockers.append(f"command_stdout_missing:{command_id}")
+        return []
+    try:
+        parsed = json.loads(stdout)
+    except json.JSONDecodeError:
+        blockers.append(f"command_stdout_json_invalid:{command_id}")
+        return []
+    if not isinstance(parsed, list):
+        blockers.append(f"command_stdout_json_not_array:{command_id}")
+        return []
+    recorded_hash = command.get("stdout_sha256")
+    if isinstance(recorded_hash, str) and set(recorded_hash) != {"0"} and recorded_hash != sha256_bytes(stdout.encode()):
+        blockers.append(f"command_stdout_hash_mismatch:{command_id}")
+    return parsed
+
+
+def _norm_mac(value: Any) -> str:
+    return str(value or "").lower()
 
 def _load_json(raw: bytes, label: str, blockers: list[str]) -> Any:
     try:
@@ -272,8 +313,6 @@ def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], de
         blockers.append("evidence_backend_target_schema_invalid")
         backend_target = {}
     pairs = [
-        ("repository_version", __version__, "manifest_repository_version_mismatch"),
-        ("expected_version", EXPECTED_VERSION, "manifest_expected_version_mismatch"),
         ("collection_id", evidence.get("collection_id"), "manifest_collection_id_mismatch"),
         ("hostname", evidence.get("hostname"), "manifest_hostname_mismatch"),
         ("collection_timestamp", evidence.get("collected_at"), "manifest_collection_timestamp_mismatch"),
@@ -281,6 +320,11 @@ def _cross_check_manifest(manifest: dict[str, Any], evidence: dict[str, Any], de
         ("phase_state_hash", evidence.get("phase_status_sha256"), "manifest_phase_hash_mismatch"),
         ("final_decision", decision.get("final_decision"), "manifest_final_decision_mismatch"),
     ]
+    if not allow_legacy_version:
+        pairs.extend([
+            ("repository_version", __version__, "manifest_repository_version_mismatch"),
+            ("expected_version", EXPECTED_VERSION, "manifest_expected_version_mismatch"),
+        ])
     for key, expected, blocker in pairs:
         if manifest.get(key) != expected:
             blockers.append(blocker)

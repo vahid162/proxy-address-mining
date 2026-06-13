@@ -238,3 +238,61 @@ def test_nat_insertion_analysis_and_complete_taxonomy(monkeypatch):
     assert nat["nat_binding_ready"] is False
     for chain in {"MPF_INPUT","MPF_CUSTOMERS","MPF_GUARD","MPF_ACCT_IN","MPF_ACCT_OUT","MPF_NAT_PRE","MPF_NAT_POST","MPFL_btc","MPFC_20001","MPFO_20001","MPFC_20101","MPFO_20101"}:
         assert chain in OFFICIAL_CONTROLLED_CHAINS
+
+
+def test_taxonomy_unknown_comment_on_official_chain_is_not_laundered():
+    assert classify_controlled_artifact(chain="MPFC_20001", comment="mpf:canary-btc-001:unexpected_action") == "unknown_mpf_artifact"
+
+
+def test_verifier_binds_route_projection_to_command_stdout(tmp_path, monkeypatch):
+    import mpf.services.phase11_controlled_filter_packet_path_service as svc
+    monkeypatch.setattr(svc, "_read_proc_value", lambda path, optional=False: "2" if "rp_filter" in path else "1")
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    for command in bundle["command_results"]:
+        if command["command_id"].startswith("ip_route_get_backend_ingress:"):
+            command["stdout"] = json.dumps([{"dst":"172.30.0.5","dev":"eth-tampered"}])
+            command["stdout_sha256"] = "0" * 64
+            break
+    write_packet_path_bundle(bundle, tmp_path / "route_stdout_tamper")
+    result = verify_packet_path_bundle(tmp_path / "route_stdout_tamper")
+    assert result["final_decision"] == INVALID
+    assert any("scenario_route_projection_stdout_mismatch" in b for b in result["blockers"])
+
+
+def test_verifier_binds_fdb_membership_to_command_stdout(tmp_path, monkeypatch):
+    import mpf.services.phase11_controlled_filter_packet_path_service as svc
+    monkeypatch.setattr(svc, "_read_proc_value", lambda path, optional=False: "2" if "rp_filter" in path else "1")
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    for command in bundle["command_results"]:
+        if command["command_id"] == "bridge_fdb_backend":
+            command["stdout"] = json.dumps([{"mac":"02:42:ac:1e:00:99","dev":"veth0"}])
+            command["stdout_sha256"] = "0" * 64
+    write_packet_path_bundle(bundle, tmp_path / "fdb_stdout_tamper")
+    result = verify_packet_path_bundle(tmp_path / "fdb_stdout_tamper")
+    assert result["final_decision"] == INVALID
+    assert "fdb_membership_source_record_mismatch" in result["blockers"]
+
+
+def test_legacy_0251_manifest_integrity_stays_valid_despite_version_mismatch(tmp_path, monkeypatch):
+    import mpf.services.phase11_controlled_filter_packet_path_service as svc
+    monkeypatch.setattr(svc, "_read_proc_value", lambda path, optional=False: "2" if "rp_filter" in path else "1")
+    bundle = _collect(adapter=FakeAdapter(), phase_status_text=PHASE, write_dir=None)["bundle"]
+    bundle["evidence"] = dict(bundle["evidence"])
+    bundle["evidence"].pop("packet_path_schema_version", None)
+    bundle["evidence"]["repository_version"] = "0.1.251"
+    bundle["evidence"]["expected_version"] = "0.1.251"
+    # Simulate a real legacy bundle by writing with old manifest version fields
+    # while preserving all manifest/file hashes.
+    write_packet_path_bundle(bundle, tmp_path / "legacy0251")
+    manifest_path = tmp_path / "legacy0251" / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["repository_version"] = "0.1.251"
+    manifest["expected_version"] = "0.1.251"
+    from mpf.services.phase11_controlled_filter_packet_path_bundle_service import canonical_json_bytes, sha256_bytes
+    raw = canonical_json_bytes(manifest)
+    manifest_path.write_bytes(raw)
+    (tmp_path / "legacy0251" / "manifest.sha256").write_text(f"{sha256_bytes(raw)}  manifest.json\n")
+    result = verify_packet_path_bundle(tmp_path / "legacy0251")
+    assert result["bundle_integrity_valid"] is True
+    assert result["readiness_eligible"] is False
+    assert result["recollection_required"] is True

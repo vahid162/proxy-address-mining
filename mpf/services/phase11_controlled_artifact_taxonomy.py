@@ -47,7 +47,13 @@ def is_mpf_like_comment(comment: str | None) -> bool:
 
 
 def classify_controlled_artifact(*, chain: str, comment: str | None = None) -> str:
-    if is_official_controlled_chain(chain) or is_official_controlled_comment(comment):
+    # A known chain does not launder an unknown MPF/customer comment. Comments
+    # carry customer/action semantics, so an MPF-like comment must be exact.
+    if comment is not None and is_mpf_like_comment(comment) and not is_official_controlled_comment(comment):
+        return "unknown_mpf_artifact"
+    if is_official_controlled_chain(chain):
+        return "official_phase11_controlled_artifact"
+    if is_official_controlled_comment(comment):
         return "official_phase11_controlled_artifact"
     if is_mpf_like_chain(chain) or is_mpf_like_comment(comment):
         return "unknown_mpf_artifact"

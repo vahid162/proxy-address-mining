@@ -584,11 +584,14 @@ def _nat_insertion_analysis(parsed4: dict[str, Any], external_ingress_interfaces
         if match.get("destination_port") in future_ports and r.get("jump_target") != "RETURN":
             consumed.append({"rule_index": r.get("rule_index"), "port": match.get("destination_port")})
     reachable = docker_jump and not consumed
+    # This collector only proves the existing Docker jump shape and absence of
+    # exact future-port consumption. It does not install or execute an MPF NAT
+    # rule, so the insertion point remains review-only, not verified.
     return {
         "proposed_nat_parent_chain": "PREROUTING",
         "proposed_nat_insertion_mode": "append_after_existing_docker_jump",
         "nat_insertion_point_reachable": reachable,
-        "nat_insertion_point_verified": reachable,
+        "nat_insertion_point_verified": False,
         "nat_binding_ready": False,
         "future_public_ports": sorted(future_ports),
         "docker_prerouting_addrtype_local_jump": docker_jump,
