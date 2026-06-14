@@ -24,6 +24,62 @@ REQUIRED_SECTIONS = (
     "If evidence/docs exception",
 )
 RUNTIME_CLASSES = set(PR_CLASSES) - {"evidence/docs exception"}
+GENERIC_AI_SUMMARY_HEADINGS = {"motivation", "description", "testing"}
+REQUIRED_PR_BODY_TEMPLATE = """## Why
+
+<1-2 lines explaining why this PR is needed now.>
+
+## What
+
+- <2-5 concrete changes.>
+- <Name the runtime/verifier/doctor/package/acceptance artifact, not only docs.>
+
+## How to test
+
+- python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
+- python -m pytest -q <targeted tests>
+- python -m pytest -q
+
+Version: X.Y.Z -> A.B.C
+
+Risk + Rollback
+
+<Only include when risk exists. Explain rollback in one line.>
+
+## PR class
+
+- [ ] implementation
+- [ ] controlled-runtime
+- [ ] verifier-doctor-package
+- [ ] runtime-first bundle
+- [ ] acceptance-review
+- [ ] evidence/docs exception
+
+## Current blocker(s) being addressed
+
+<Concrete blocker from farm5 evidence, PHASE_STATUS, progression code, verifier, or doctor.>
+
+## next_required_step before this PR
+
+<Current next_required_step before this PR.>
+
+## next_required_step after this PR
+
+<Expected next_required_step after this PR.>
+
+## Runtime deliverable(s) in this PR
+
+- <Operator-reviewable runtime/verifier/doctor/package/acceptance artifact.>
+
+## Why this is not another report-only PR
+
+<Explain the executable artifact or tested runtime-first bundle created by this PR.>
+
+## If evidence/docs exception
+
+- Why runtime-first work is unsafe, blocked, or technically impossible:
+- Exact next runtime-first PR that must follow:
+"""
 
 
 def _normalize_heading(value: str) -> str:
@@ -68,9 +124,19 @@ def _field_after_label(body: str, label: str) -> str:
     return match.group(1).strip() if match else ""
 
 
+def _looks_like_generic_ai_summary(sections: dict[str, str]) -> bool:
+    return GENERIC_AI_SUMMARY_HEADINGS.issubset(set(sections))
+
+
 def validate(body: str) -> list[str]:
     errors: list[str] = []
     sections = _sections(body)
+    if _looks_like_generic_ai_summary(sections):
+        errors.append(
+            "Generic AI-generated PR body detected: replace Motivation/Description/Testing with "
+            "the repository runtime-first PR template before creating or updating the PR."
+        )
+
     for section in REQUIRED_SECTIONS:
         if section.lower() not in sections:
             errors.append(f"Missing required section: '{section}'. Add a markdown heading named exactly this.")
@@ -114,8 +180,12 @@ def validate(body: str) -> list[str]:
 
 
 def main(argv: list[str]) -> int:
+    if len(argv) == 2 and argv[1] == "--print-template":
+        print(REQUIRED_PR_BODY_TEMPLATE)
+        return 0
     if len(argv) != 2:
         print("Usage: validate_runtime_first_pr_body.py PATH_TO_PR_BODY.md", file=sys.stderr)
+        print("       validate_runtime_first_pr_body.py --print-template", file=sys.stderr)
         return 2
     path = Path(argv[1])
     if not path.exists():
@@ -126,6 +196,12 @@ def main(argv: list[str]) -> int:
         print("Runtime-first PR body validation failed:", file=sys.stderr)
         for error in errors:
             print(f"- {error}", file=sys.stderr)
+        print("\nRequired runtime-first PR body template:", file=sys.stderr)
+        print(REQUIRED_PR_BODY_TEMPLATE, file=sys.stderr)
+        print(
+            "\nFix the PR body, save it to /tmp/pr_body.md, rerun this validator, then create or update the PR body with the validated text.",
+            file=sys.stderr,
+        )
         return 1
     print("Runtime-first PR body validation passed.")
     return 0
