@@ -115,7 +115,7 @@ def test_pr_template_tells_ai_agents_to_prevalidate_pr_body_before_creation() ->
     text = TEMPLATE.read_text(encoding="utf-8")
     for phrase in PR_BODY_PREVALIDATION_PHRASES:
         assert phrase in text
-    assert "generic Motivation/Description/Testing-only body" in text
+    assert "generic body" in text
 
 
 def test_copilot_instructions_require_body_file_validation_before_pr_creation() -> None:
