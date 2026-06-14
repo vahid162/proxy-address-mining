@@ -15,6 +15,29 @@ For Phase 11 operational completion and later phases, once farm5 evidence, `docs
 - create a coherent runtime-first bundle that advances multiple related deliverables under the same operational gate;
 - use the evidence/docs exception and name why runtime-first work is unsafe, blocked, or technically impossible plus the exact next runtime-first PR that must follow.
 
+## Mandatory PR body validation before PR creation
+
+AI agents must validate the pull request body before creating any PR in this repository.
+
+Required flow:
+
+```bash
+cat > /tmp/pr_body.md <<'EOF'
+# final runtime-first PR body
+EOF
+python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
+gh pr create --body-file /tmp/pr_body.md
+```
+
+Rules:
+
+- Do not create a PR with a generic `Motivation` / `Description` / `Testing`-only body.
+- Do not run `gh pr create --body` with an unvalidated generated summary.
+- Do not replace the validated `/tmp/pr_body.md` content with an auto-generated summary.
+- If `python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md` fails, fix `/tmp/pr_body.md` and rerun it before creating the PR.
+- The PR body must contain exactly one checked PR class and all required runtime-first sections.
+- This local validation is mandatory even though CI validates the PR body again.
+
 ## No repeated report-only PRs
 
 Docs-only, evidence-only, report-only, or readiness-only PRs are allowed only as a single exception between runtime-first steps.
