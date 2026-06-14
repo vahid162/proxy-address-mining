@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.260
+
+- feat(phase11): add read-only controlled artifact reapply execution gate preflight without opening execute, iptables-restore, mutation, Phase 12, worker, UI, Telegram, timer, daemon, or unrestricted production gates.
+
 ## 0.1.259
 
 - fix(phase11): align live-ready package canonical SHA validation with executor preflight while preserving file SHA, operator gates, tamper detection, and closed runtime gates.

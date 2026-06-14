@@ -161,6 +161,7 @@ from mpf.services import (
     phase11_controlled_artifact_reapply_verification_service,
     phase11_controlled_artifact_reapply_evidence_service,
     phase11_controlled_artifact_reapply_readiness_service,
+    phase11_controlled_artifact_reapply_execution_gate_preflight_service,
     phase11_controlled_filter_packet_path_service,
     phase11_verified_filter_hook_binding_service,
     phase11_live_ready_reapply_package_service,
@@ -3945,6 +3946,29 @@ def production_controlled_artifact_reapply_package(
         report = phase11_controlled_artifact_reapply_package_service.run_controlled_artifact_reapply_package(_config_path(config), expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
         report = {"component": "phase11_controlled_artifact_reapply_package", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["controlled_artifact_reapply_package_preflight_failed"], "error": str(exc), "mutation_performed": False}
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-execution-gate-preflight")
+def production_controlled_artifact_reapply_execution_gate_preflight(
+    package_json: Path = typer.Option(..., "--package-json"),
+    package_sha256: str = typer.Option(..., "--package-sha256"),
+    package_id: str = typer.Option(..., "--package-id"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Preflight a live-ready controlled artifact reapply package for future guarded execution review only."""
+
+    report = phase11_controlled_artifact_reapply_execution_gate_preflight_service.run_execution_gate_preflight_report(
+        package_json=package_json,
+        package_sha256=package_sha256,
+        package_id=package_id,
+        operator=operator,
+        reason=reason,
+        expected_version=expected_version,
+    )
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 

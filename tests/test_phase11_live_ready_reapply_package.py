@@ -174,3 +174,96 @@ def test_cli_exception_fallback_returns_full_closed_shape(monkeypatch, tmp_path)
     assert data["worker_enforcement_allowed"] == "no"
     assert data["ui_allowed"] == "no"
     assert data["telegram_allowed"] == "no"
+
+
+def _execution_gate_package_file(tmp_path, monkeypatch):
+    import hashlib
+    bundle = _ready_bundle(tmp_path, monkeypatch)
+    out = tmp_path / "execution-gate"
+    report = svc.build_live_ready_reapply_package_report(packet_path_evidence_dir=bundle, lanes=LANES, customers=CUSTOMERS, phase_status_text=PHASE, output_dir=out)
+    assert report["final_decision"] == svc.READY
+    package_path = out / "controlled-artifact-reapply-package.json"
+    file_sha = hashlib.sha256(package_path.read_bytes()).hexdigest()
+    package = json.loads(package_path.read_text(encoding="utf-8"))
+    return package_path, file_sha, package
+
+
+def test_execution_gate_preflight_ready_for_live_ready_package(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_execution_gate_preflight_service as gate
+
+    package_path, file_sha, package = _execution_gate_package_file(tmp_path, monkeypatch)
+    report = gate.run_execution_gate_preflight_report(package_json=package_path, package_sha256=file_sha, package_id=package["package_id"], operator="op", reason="review")
+    assert report["final_decision"] == gate.READY
+    assert report["next_required_step"] == gate.NEXT_READY
+    assert report["package_integrity_ready"] is True
+    assert report["execution_gate_preflight_ready"] is True
+    assert report["backup_requirements_ready"] is True
+    assert report["rollback_plan_ready"] is True
+    assert report["lock_requirements_ready"] is True
+    assert report["operator_confirmations_ready"] is True
+    assert report["production_execution_available"] is False
+    assert report["controlled_artifact_execute_available"] is False
+    assert report["iptables_restore_invocation_allowed"] is False
+    for flag in ["mutation_performed", "firewall_apply_performed", "db_mutation_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed", "phase12_start_allowed"]:
+        assert report[flag] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
+    assert report["blockers"] == []
+
+
+def test_execution_gate_preflight_cli_ready(tmp_path, monkeypatch):
+    package_path, file_sha, package = _execution_gate_package_file(tmp_path, monkeypatch)
+    result = CliRunner().invoke(app, ["production", "controlled-artifact-reapply-execution-gate-preflight", "--package-json", str(package_path), "--package-sha256", file_sha, "--package-id", package["package_id"], "--operator", "op", "--reason", "review", "--output", "json"])
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["final_decision"] == "READY_CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_GATE_PREFLIGHT"
+    assert data["iptables_restore_invocation_allowed"] is False
+
+
+def test_execution_gate_preflight_blocks_wrong_file_sha_and_package_id(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_execution_gate_preflight_service as gate
+
+    package_path, file_sha, package = _execution_gate_package_file(tmp_path, monkeypatch)
+    wrong_sha = "0" * 64
+    report = gate.run_execution_gate_preflight_report(package_json=package_path, package_sha256=wrong_sha, package_id="wrong", operator="op", reason="review")
+    assert report["final_decision"] == gate.BLOCKED
+    assert "package_file_sha256_mismatch" in report["blockers"]
+    assert "package_id_mismatch" in report["blockers"]
+    assert report["package_integrity_ready"] is False
+
+
+def test_execution_gate_preflight_blocks_tampered_payload_preserved_embedded_hash(tmp_path, monkeypatch):
+    import hashlib
+    from mpf.services import phase11_controlled_artifact_reapply_execution_gate_preflight_service as gate
+
+    package_path, _, package = _execution_gate_package_file(tmp_path, monkeypatch)
+    package["payload"] = str(package["payload"]) + "# tamper\n"
+    package_path.write_text(json.dumps(package, indent=2, sort_keys=True), encoding="utf-8")
+    file_sha = hashlib.sha256(package_path.read_bytes()).hexdigest()
+    report = gate.run_execution_gate_preflight_report(package_json=package_path, package_sha256=file_sha, package_id=package["package_id"], operator="op", reason="review")
+    assert report["final_decision"] == gate.BLOCKED
+    assert "package_canonical_sha256_mismatch" in report["blockers"]
+
+
+def test_execution_gate_preflight_blocks_missing_safety_requirements_and_open_gates(tmp_path, monkeypatch):
+    import hashlib
+    from mpf.services import phase11_controlled_artifact_reapply_execution_gate_preflight_service as gate
+    from mpf.services.phase11_controlled_artifact_reapply_core import _canonical_sha, _package_content_for_hash
+
+    package_path, _, package = _execution_gate_package_file(tmp_path, monkeypatch)
+    package.pop("backup_requirements")
+    package.pop("rollback_plan")
+    package.pop("lock_requirements")
+    package["mutation_performed"] = True
+    package["controlled_artifact_execute_available"] = True
+    package["iptables_restore_invocation_allowed"] = True
+    package["phase12_start_allowed"] = True
+    package["worker_enforcement_allowed"] = "yes"
+    package["package_sha256"] = _canonical_sha(_package_content_for_hash(package))
+    package_path.write_text(json.dumps(package, indent=2, sort_keys=True), encoding="utf-8")
+    file_sha = hashlib.sha256(package_path.read_bytes()).hexdigest()
+    report = gate.run_execution_gate_preflight_report(package_json=package_path, package_sha256=file_sha, package_id=package["package_id"], operator="op", reason="review")
+    assert report["final_decision"] == gate.BLOCKED
+    for blocker in ["backup_requirements_missing", "rollback_plan_missing", "lock_requirements_missing", "mutation_performed_unexpected_true", "controlled_artifact_execute_available_unexpected_true", "iptables_restore_invocation_allowed_unexpected_true", "phase12_start_allowed_unexpected_true", "worker_enforcement_allowed_unexpected_open"]:
+        assert blocker in report["blockers"]
