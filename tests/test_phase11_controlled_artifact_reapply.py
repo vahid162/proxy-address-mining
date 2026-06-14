@@ -631,6 +631,53 @@ def test_execution_time_live_ready_plan_fails_closed_on_binding_mismatch(tmp_pat
     assert "packet_path_binding_mode_mismatch" in live_plan["blockers"]
 
 
+def test_execution_time_live_ready_plan_fails_closed_on_backend_fingerprint_drift(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+
+    class Loaded:
+        ok = True
+        lanes = LIVE_LANES
+        customers = LIVE_CUSTOMERS
+        message = "ok"
+
+    bound_target = pkg["plan"]["backend_target"]
+    drifted_target = dict(bound_target, target_fingerprint="f" * 64)
+    monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
+    monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: drifted_target)
+    monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
+    monkeypatch.setattr(executor_svc, "_cmd", lambda argv: type("R", (), {"argv": argv, "command": argv[0], "returncode": 0, "stdout": snapshot, "stderr": "", "ok": True})())
+
+    live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
+    assert live_plan["final_decision"] == PACKAGE_BLOCKED
+    assert "live_ready_binding_revalidation_failed" in live_plan["blockers"]
+    assert "backend_target_fingerprint_drift" in live_plan["blockers"]
+
+    runner = ProductionRunner()
+    result = execute_package(
+        package=pkg,
+        package_sha256=pkg["__package_file_sha256"],
+        package_id=pkg["package_id"],
+        operator="op",
+        reason="review",
+        execute=True,
+        yes=True,
+        env={"MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY": "allow", "MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE": "allow"},
+        current_hostname=pkg["hostname"],
+        live_plan_builder=lambda: live_plan,
+        runner=runner,
+        lock=ProductionLock(),
+        backup=ProductionBackup(),
+        metadata_repo=ProductionMetadata(),
+    )
+    assert result["final_decision"] == "FAILED_PRE_APPLY"
+    assert "live_plan_blocked" in result["blockers"]
+    assert result["iptables_restore_invoked"] is False
+    assert runner.calls == []
+
+
 def test_executor_generated_live_ready_package_preflight_only_operator_gates(tmp_path, monkeypatch):
     pkg = _live_ready_package_via_builder(tmp_path, monkeypatch)
     result = execute_package(

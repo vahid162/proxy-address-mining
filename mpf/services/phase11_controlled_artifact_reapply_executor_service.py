@@ -87,6 +87,10 @@ def build_execution_time_live_ready_reapply_plan(
     bound_ip = bound_target.get("resolved_ipv4") or bound_target.get("target_host")
     if current_ip != bound_ip or current_backend.get("target_port") != bound_target.get("target_port"):
         blockers.append("backend_target_runtime_drift")
+    current_fingerprint = current_backend.get("target_fingerprint")
+    bound_fingerprint = bound_target.get("target_fingerprint")
+    if not current_fingerprint or current_fingerprint != bound_fingerprint:
+        blockers.append("backend_target_fingerprint_drift")
 
     iptables_result = _cmd(["iptables-save"])
     ip6tables_result = _cmd(["ip6tables-save"])
@@ -114,6 +118,7 @@ def build_execution_time_live_ready_reapply_plan(
             "package_id": package.get("package_id"),
             "binding_mode": bound_target.get("controlled_artifact_graph_binding_mode"),
             "backend_target_fingerprint": bound_target.get("target_fingerprint"),
+            "current_backend_target_fingerprint": current_fingerprint,
             "current_backend_resolved_ipv4": current_ip,
             "current_backend_target_port": current_backend.get("target_port"),
             "iptables_save_sha256": (plan.get("snapshot_hashes") or {}).get("iptables_save_sha256") if isinstance(plan.get("snapshot_hashes"), dict) else None,
