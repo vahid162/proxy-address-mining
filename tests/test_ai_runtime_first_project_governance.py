@@ -169,3 +169,60 @@ def test_ci_validates_runtime_first_pr_body_before_tests() -> None:
     assert "PR_BODY: ${{ github.event.pull_request.body }}" in text
     assert "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md" in text
     assert text.index("name: Validate runtime-first PR body") < text.index("name: Run tests")
+
+
+
+def test_validator_accepts_required_pr_271_body(tmp_path: Path) -> None:
+    body = """
+## Why
+Prevent repeated report-only/docs-only/evidence-only PRs while allowing coherent runtime-first bundle PRs.
+
+## What
+- [x] Adds PR template governance fields.
+- [x] Adds executable PR body validator.
+- [x] Adds regression tests.
+- [x] Strengthens AGENTS and AI_RUNTIME_FIRST_PR_FLOW_RULE.
+- [x] Bumps version 0.1.257 -> 0.1.258.
+
+## How to test
+- python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
+- python -m pytest -q tests/test_ai_runtime_first_project_governance.py
+- python -m pytest -q
+
+Version: 0.1.257 -> 0.1.258
+
+Risk + Rollback
+Low risk. No runtime behavior, DB, firewall, Docker, systemd, conntrack, worker, UI, Telegram, or production gate changes. Rollback by reverting this PR.
+
+## PR class
+- [x] verifier-doctor-package
+- [ ] implementation
+- [ ] controlled-runtime
+- [ ] runtime-first bundle
+- [ ] acceptance-review
+- [ ] evidence/docs exception
+
+## Current blocker(s) being addressed
+AI agents could still create repeated report-only/docs-only/evidence-only PRs because runtime-first guidance was not enforceable against PR body content.
+
+## next_required_step before this PR
+enforce_runtime_first_project_governance
+
+## next_required_step after this PR
+create_next_phase11_runtime_first_bundle_for_controlled_reapply_package_or_doctor_acceptance
+
+## Runtime deliverable(s) in this PR
+- Executable PR body validator.
+- CI validation step for pull_request bodies.
+- Regression tests for runtime-first governance.
+- Updated PR template and AI governance rules.
+
+## Why this is not another report-only PR
+It adds executable validation and CI enforcement, not only documentation.
+
+## If evidence/docs exception
+- Why runtime-first work is unsafe, blocked, or technically impossible:
+- Exact next runtime-first PR that must follow:
+"""
+    result = _run_validator(tmp_path, body)
+    assert result.returncode == 0, result.stderr
