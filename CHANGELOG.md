@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.262
+- fix(phase11): revalidate live-ready packet-path binding semantics during guarded controlled artifact reapply execute while preserving fail-closed drift and operator gates.
+
 ## 0.1.261
 - feat(phase11): harden guarded controlled artifact reapply helper with execute-preflight, script-level --yes, evidence capture, manifest writing, and regression tests while keeping execution and later-phase gates closed.
 

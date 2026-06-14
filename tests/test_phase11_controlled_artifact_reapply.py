@@ -490,6 +490,147 @@ def _live_ready_package_via_builder(tmp_path, monkeypatch):
     return package
 
 
+def _live_ready_package_with_snapshots(tmp_path, monkeypatch):
+    import hashlib
+    from mpf.services import phase11_live_ready_reapply_package_service as live_svc
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+    from tests.test_phase11_verified_filter_hook_binding import _ready_bundle
+
+    snapshot = "*filter\nCOMMIT\n"
+    bundle = _ready_bundle(tmp_path, monkeypatch)
+    report = live_svc.build_live_ready_reapply_package_report(
+        packet_path_evidence_dir=bundle,
+        lanes=LIVE_LANES,
+        customers=LIVE_CUSTOMERS,
+        iptables_save_text=snapshot,
+        ip6tables_save_text=snapshot,
+        phase_status_text=PHASE,
+    )
+    assert report["final_decision"] == live_svc.READY
+    package = report["package"] if "package" in report else None
+    if package is None:
+        # The public report intentionally keeps the package in output files only;
+        # rebuild the same package directly from the embedded plan helper path.
+        out = tmp_path / "live-ready-snapshots"
+        live_svc.build_live_ready_reapply_package_report(
+            packet_path_evidence_dir=bundle,
+            lanes=LIVE_LANES,
+            customers=LIVE_CUSTOMERS,
+            iptables_save_text=snapshot,
+            ip6tables_save_text=snapshot,
+            phase_status_text=PHASE,
+            output_dir=out,
+        )
+        package = json.loads((out / "controlled-artifact-reapply-package.json").read_text())
+    package["__package_file_sha256"] = hashlib.sha256(json.dumps(package, sort_keys=True).encode()).hexdigest()
+    return package, snapshot
+
+
+def test_executor_plain_plan_reproduces_live_ready_binding_drift(tmp_path, monkeypatch):
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+    plain_target = target(filter_proven=False)
+    plain_plan = build_plan(
+        lanes=lanes(),
+        customers=customers(),
+        backend_target=plain_target,
+        iptables_save_text=snapshot,
+        ip6tables_save_text=snapshot,
+        phase_status_text=PHASE,
+    )
+    runner = ProductionRunner()
+    result = execute_package(
+        package=pkg,
+        package_sha256=pkg["__package_file_sha256"],
+        package_id=pkg["package_id"],
+        operator="op",
+        reason="review",
+        execute=True,
+        yes=True,
+        env={"MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY": "allow", "MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE": "allow"},
+        current_hostname=pkg["hostname"],
+        live_plan_builder=lambda: plain_plan,
+        runner=runner,
+        lock=ProductionLock(),
+        backup=ProductionBackup(),
+        metadata_repo=ProductionMetadata(),
+    )
+    assert result["final_decision"] == "FAILED_PRE_APPLY"
+    assert "live_plan_blocked" in result["blockers"]
+    assert "controlled_filter_packet_path_unresolved" in plain_plan["blockers"]
+    assert result["iptables_restore_invoked"] is False
+    assert runner.calls == []
+
+
+def test_execution_time_live_ready_plan_revalidates_bound_semantics(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
+
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+
+    class Loaded:
+        ok = True
+        lanes = LIVE_LANES
+        customers = LIVE_CUSTOMERS
+        message = "ok"
+
+    bound_target = pkg["plan"]["backend_target"]
+    monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
+    monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: dict(bound_target))
+    monkeypatch.setattr(executor_svc, "_phase_text", lambda: PHASE)
+    monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
+    monkeypatch.setattr(executor_svc, "_cmd", lambda argv: type("R", (), {"argv": argv, "command": argv[0], "returncode": 0, "stdout": snapshot, "stderr": "", "ok": True})())
+
+    live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
+    assert live_plan["final_decision"] == PACKAGE_READY
+    assert live_plan["execution_precondition_fingerprint"] == pkg["execution_precondition_fingerprint"]
+    assert live_plan["live_ready_binding_revalidated"] is True
+    assert live_plan["backend_target"]["controlled_artifact_graph_binding_mode"] == executor_svc.BOUND_PACKET_PATH_MODE
+
+    result = execute_package(
+        package=pkg,
+        package_sha256=pkg["__package_file_sha256"],
+        package_id=pkg["package_id"],
+        operator="op",
+        reason="reason",
+        execute=True,
+        yes=True,
+        env={"MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY": "allow", "MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE": "allow"},
+        current_hostname=pkg["hostname"],
+        live_plan_builder=lambda: live_plan,
+        runner=ProductionRunner(),
+        lock=ProductionLock(),
+        backup=ProductionBackup(),
+        metadata_repo=ProductionMetadata(),
+    )
+    assert result["restore_test_invoked"] is True
+    assert result["apply_invoked"] is True
+
+
+def test_execution_time_live_ready_plan_fails_closed_on_binding_mismatch(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
+
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+    pkg["plan"]["backend_target"]["controlled_artifact_graph_binding_mode"] = "plain"
+    pkg["package_sha256"] = _canonical_sha(_package_content_for_hash(pkg))
+
+    class Loaded:
+        ok = True
+        lanes = lanes()
+        customers = customers()
+        message = "ok"
+
+    monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
+    monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: dict(pkg["plan"]["backend_target"]))
+    monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
+    monkeypatch.setattr(executor_svc, "_cmd", lambda argv: type("R", (), {"argv": argv, "command": argv[0], "returncode": 0, "stdout": snapshot, "stderr": "", "ok": True})())
+
+    live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
+    assert live_plan["final_decision"] == PACKAGE_BLOCKED
+    assert "live_ready_binding_revalidation_failed" in live_plan["blockers"]
+    assert "packet_path_binding_mode_mismatch" in live_plan["blockers"]
+
+
 def test_executor_generated_live_ready_package_preflight_only_operator_gates(tmp_path, monkeypatch):
     pkg = _live_ready_package_via_builder(tmp_path, monkeypatch)
     result = execute_package(
