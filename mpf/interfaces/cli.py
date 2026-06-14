@@ -163,6 +163,7 @@ from mpf.services import (
     phase11_controlled_artifact_reapply_readiness_service,
     phase11_controlled_filter_packet_path_service,
     phase11_verified_filter_hook_binding_service,
+    phase11_live_ready_reapply_package_service,
     phase11_canary_evidence_pack_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
@@ -3717,11 +3718,13 @@ def production_firewall_apply_rollback_operational_surface(
 def production_phase11_operational_completion_gap_inventory(
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
 ) -> None:
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
     report = phase11_operational_completion_gap_inventory_service.run_phase11_operational_completion_gap_inventory_report(
         _config_path(config),
+        packet_path_evidence_dir=packet_path_evidence_dir,
     )
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
@@ -3885,16 +3888,34 @@ def production_controlled_artifact_reapply_readiness(
     expected_version: str = typer.Option(__version__, "--expected-version"),
     output: Literal["json"] = typer.Option("json", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
 ) -> None:
     """Build the read-only live-ready controlled artifact reapply readiness report."""
 
     try:
-        report = phase11_controlled_artifact_reapply_readiness_service.run_phase11_controlled_artifact_reapply_readiness(_config_path(config), expected_version=expected_version)
+        report = phase11_controlled_artifact_reapply_readiness_service.run_phase11_controlled_artifact_reapply_readiness(_config_path(config), expected_version=expected_version, packet_path_evidence_dir=packet_path_evidence_dir)
     except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
         report = phase11_controlled_artifact_reapply_readiness_service.build_fail_closed_readiness_report(
             expected_version,
             ["controlled_artifact_reapply_readiness_failed_closed", str(exc)],
         )
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("live-ready-controlled-artifact-reapply-package")
+def production_live_ready_controlled_artifact_reapply_package(
+    packet_path_evidence_dir: Path = typer.Option(..., "--packet-path-evidence-dir"),
+    output_dir: Path | None = typer.Option(None, "--output-dir"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Generate a read-only live-ready controlled artifact reapply package from verified packet-path evidence."""
+
+    try:
+        report = phase11_live_ready_reapply_package_service.run_live_ready_reapply_package_report(_config_path(config), packet_path_evidence_dir=packet_path_evidence_dir, output_dir=output_dir, expected_version=expected_version)
+    except Exception as exc:  # noqa: BLE001
+        report = phase11_live_ready_reapply_package_service.build_fail_closed_live_ready_reapply_package_report(expected_version, ["live_ready_reapply_package_failed_closed", str(exc)])
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("controlled-artifact-reapply-plan")

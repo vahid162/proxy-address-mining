@@ -9,6 +9,7 @@ from mpf.services import phase11_restart_autostart_persistence_fix_service as fi
 from mpf.services import phase11_controlled_artifact_reapply_package_service as package_service
 from mpf.services import phase11_controlled_artifact_reapply_verification_service as verification_service
 from mpf.services.phase11_controlled_artifact_reapply_core import NO_REAPPLY as CORE_NO_REAPPLY
+from mpf.services import phase11_live_ready_reapply_package_service as live_ready_service
 
 READY = "READY_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
 BLOCKED = "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
@@ -76,6 +77,8 @@ def run_phase11_controlled_artifact_reapply_readiness(
     config_path: Path = DEFAULT_CONFIG_PATH,
     *,
     expected_version: str = __version__,
+    packet_path_evidence_dir: Path | str | None = None,
+    output_dir: Path | str | None = None,
 ) -> dict[str, object]:
     progression = active_progression()
     blockers: list[str] = []
@@ -84,6 +87,9 @@ def run_phase11_controlled_artifact_reapply_readiness(
         fix_plan = fix_service.run_phase11_restart_autostart_persistence_fix_plan(config_path)
     except Exception as exc:  # noqa: BLE001
         fix_plan = {"final_decision": "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN", "safety_blockers": ["restart_autostart_persistence_fix_plan_failed", str(exc)]}
+    live_ready_report = None
+    if packet_path_evidence_dir is not None:
+        live_ready_report = live_ready_service.run_live_ready_reapply_package_report(config_path, packet_path_evidence_dir=packet_path_evidence_dir, output_dir=output_dir, expected_version=expected_version)
     try:
         live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
@@ -138,7 +144,15 @@ def run_phase11_controlled_artifact_reapply_readiness(
     final_decision = BLOCKED
     live_ready = False
     next_step = "prepare_live_ready_controlled_artifact_reapply_package"
-    if no_reapply and not unknown and not forbidden_public and production_gates_closed and plan_decision == CORE_NO_REAPPLY:
+    if live_ready_report is not None:
+        blockers.extend(str(b) for b in _as_list(live_ready_report.get("blockers")))
+        if live_ready_report.get("final_decision") == live_ready_service.READY and production_gates_closed:
+            blockers = [b for b in blockers if b not in {"controlled_filter_packet_path_unresolved", "plan_not_ready", "package_not_ready", "package_payload_empty", "blocked_package_cannot_execute", "live_plan_not_safe", "live_plan_final_decision_blocked"}]
+            if not blockers:
+                final_decision = READY
+                live_ready = True
+                next_step = "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"
+    elif no_reapply and not unknown and not forbidden_public and production_gates_closed and plan_decision == CORE_NO_REAPPLY:
         blockers = [b for b in blockers if b not in {"plan_not_ready", "package_not_ready", "package_payload_empty", "no_reapply_package_cannot_execute", "live_plan_not_safe", "live_plan_final_decision_blocked"}]
         if not blockers:
             final_decision = NO_REAPPLY
@@ -146,6 +160,19 @@ def run_phase11_controlled_artifact_reapply_readiness(
         final_decision = READY
         live_ready = True
         next_step = "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"
+
+    live_ready_report_ready = live_ready_report is not None and live_ready_report.get("final_decision") == live_ready_service.READY and final_decision == READY
+    if live_ready_report is not None and live_ready_report.get("package_id"):
+        package["package_id"] = live_ready_report.get("package_id")
+        package["package_sha256"] = live_ready_report.get("package_sha256")
+        package["execution_precondition_fingerprint"] = live_ready_report.get("execution_precondition_fingerprint")
+    package_generated = bool(live_ready_report.get("package_generated")) if live_ready_report_ready else (isinstance(package, dict) and package.get("component") == "phase11_controlled_artifact_reapply_package")
+    package_verified_against_live_plan = bool(live_ready_report.get("package_verified_against_live_plan")) if live_ready_report_ready else verification_ready
+    backup_requirements_ready = bool(live_ready_report.get("backup_requirements_ready")) if live_ready_report_ready else (bool((package.get("backup_requirements") or {}).get("required")) if isinstance(package.get("backup_requirements"), dict) else False)
+    rollback_plan_ready = bool(live_ready_report.get("rollback_plan_ready")) if live_ready_report_ready else (isinstance(package.get("rollback_plan"), dict) and bool((package.get("rollback_plan") or {}).get("manual_review_required")))
+    lock_requirements_ready = bool(live_ready_report.get("lock_requirements_ready")) if live_ready_report_ready else (bool((package.get("lock_requirements") or {}).get("exclusive_lock_required")) if isinstance(package.get("lock_requirements"), dict) else False)
+    operator_confirmations_required = live_ready_report.get("operator_confirmations_required", []) if live_ready_report_ready else package.get("operator_confirmations", [])
+    controlled_artifact_reapply_required = bool(live_ready_report.get("controlled_artifact_reapply_required")) if live_ready_report_ready else plan_decision == "CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_READY"
 
     return {
         "component": "phase11_controlled_artifact_reapply_readiness",
@@ -156,7 +183,7 @@ def run_phase11_controlled_artifact_reapply_readiness(
         "unknown_mpf_artifacts": unknown,
         "forbidden_public_runtime_exposure": forbidden_public,
         "production_gates_remain_closed": production_gates_closed,
-        "controlled_artifact_reapply_required": plan_decision == "CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_READY",
+        "controlled_artifact_reapply_required": controlled_artifact_reapply_required,
         "read_only_reapply_foundation_implemented": progression["read_only_reapply_foundation_implemented"],
         "controlled_filter_packet_path_evidence_ready": progression["controlled_filter_packet_path_evidence_ready"],
         "controlled_filter_packet_path_verified": progression["controlled_filter_packet_path_verified"],
@@ -164,8 +191,8 @@ def run_phase11_controlled_artifact_reapply_readiness(
         "desired_artifact_semantics_complete": progression["desired_artifact_semantics_complete"],
         "controlled_artifact_reapply_package_evidence_ready": progression["controlled_artifact_reapply_package_evidence_ready"],
         "live_plan_collected": isinstance(live_plan, dict) and live_plan.get("component") == "phase11_controlled_artifact_reapply_plan",
-        "package_generated": isinstance(package, dict) and package.get("component") == "phase11_controlled_artifact_reapply_package",
-        "package_verified_against_live_plan": verification_ready,
+        "package_generated": package_generated,
+        "package_verified_against_live_plan": package_verified_against_live_plan,
         "package_id": package.get("package_id"),
         "package_sha256": package.get("package_sha256"),
         "execution_precondition_fingerprint": package.get("execution_precondition_fingerprint"),
@@ -173,10 +200,10 @@ def run_phase11_controlled_artifact_reapply_readiness(
         "desired_state_hash": package.get("desired_state_hash"),
         "artifact_classification_hash": package.get("artifact_classification_hash"),
         "payload_sha256": package.get("payload_sha256"),
-        "backup_requirements_ready": bool((package.get("backup_requirements") or {}).get("required")) if isinstance(package.get("backup_requirements"), dict) else False,
-        "rollback_plan_ready": isinstance(package.get("rollback_plan"), dict) and bool((package.get("rollback_plan") or {}).get("manual_review_required")),
-        "lock_requirements_ready": bool((package.get("lock_requirements") or {}).get("exclusive_lock_required")) if isinstance(package.get("lock_requirements"), dict) else False,
-        "operator_confirmations_required": package.get("operator_confirmations", []),
+        "backup_requirements_ready": backup_requirements_ready,
+        "rollback_plan_ready": rollback_plan_ready,
+        "lock_requirements_ready": lock_requirements_ready,
+        "operator_confirmations_required": operator_confirmations_required,
         "live_ready_package_available": live_ready,
         "production_execution_available": False,
         "controlled_artifact_execute_available": False,

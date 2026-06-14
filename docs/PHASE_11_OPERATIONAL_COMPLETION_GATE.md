@@ -90,3 +90,8 @@ A source-backed 0.1.252 farm5 packet-path READY bundle may now be consumed by `m
 - `restart_autostart_proof` and `full_cli_production_operations` remain `missing_or_partial`; production traffic and onboarding remain `controlled_cli_limited`.
 - Phase 12, worker enforcement, UI, Telegram, timers, daemons, public backend/API, and unrestricted production remain closed.
 - When readiness is READY, the next required step becomes `sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5`; otherwise it remains `prepare_live_ready_controlled_artifact_reapply_package`.
+
+
+## 0.1.257 Phase 11 live-ready verified packet-path reapply package
+
+This update creates a live-ready package/review artifact from the verified packet-path/filter-hook binding. It still does not execute `iptables-restore`, does not apply firewall changes, does not accept restart/autostart proof, and does not accept Full CLI Production Operations. Phase 12, worker enforcement, UI, Telegram, timers, daemons, public backend/API, and unrestricted production remain closed; production traffic and customer onboarding remain `controlled_cli_limited`.

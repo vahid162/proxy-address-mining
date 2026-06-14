@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.256"
+    assert report["repository_version"] == "0.1.257"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -114,3 +114,37 @@ def test_gap_inventory_keeps_restart_autostart_blocked_on_persistence_gap() -> N
     assert report["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
     assert report["full_cli_production_operations"] == "missing_or_partial"
     assert report["phase12_start_allowed"] is False
+
+
+def test_gap_inventory_with_packet_path_evidence_advances_only_next_step(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    monkeypatch.setattr(svc, "run_phase11_restart_autostart_persistence_fix_plan", lambda config_path: {"final_decision": "x", "safety_blockers": [], "live_ready_package_available": False})
+    monkeypatch.setattr(svc, "run_phase11_controlled_artifact_reapply_readiness", lambda config_path, packet_path_evidence_dir=None: {"final_decision": svc.READINESS_READY, "live_ready_package_available": True, "package_id": "pkg", "package_sha256": "sha", "blockers": []})
+
+    report = svc.run_phase11_operational_completion_gap_inventory_report(packet_path_evidence_dir=tmp_path)
+
+    assert report["next_required_step"] == "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"
+    assert report["full_cli_production_operations"] == "missing_or_partial"
+    assert report["restart_autostart_proof"] == "missing_or_partial"
+    assert report["phase12_start_allowed"] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
+
+
+def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_path) -> None:
+    import mpf.interfaces.cli as cli
+
+    seen = {}
+
+    def fake_run(config_path, *, evidence_dir=None, packet_path_evidence_dir=None):
+        seen["packet_path_evidence_dir"] = packet_path_evidence_dir
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.257", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+
+    monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
+    result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
+
+    assert result.exit_code == 0, result.output
+    assert Path(seen["packet_path_evidence_dir"]) == tmp_path
+    assert json.loads(result.output)["next_required_step"] == "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"

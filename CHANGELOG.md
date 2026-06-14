@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.257
+
+- Bind verified Phase 11 packet-path/filter-hook evidence to a live-ready controlled artifact reapply package-review path while keeping execution and later-phase gates closed.
+
 ## 0.1.256
 
 - Add fail-closed live-ready controlled artifact reapply readiness/package review surface for Phase 11 operational completion while keeping live execution and later-phase gates closed.

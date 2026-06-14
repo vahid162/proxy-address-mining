@@ -188,3 +188,76 @@ def test_script_readiness_mode_writes_json_and_manifest_without_execute_env_gate
     assert (out / "controlled-artifact-reapply-readiness.json").exists()
     assert (out / "manifest.sha256").exists()
     assert "controlled-artifact-reapply-readiness" in calls.read_text(encoding="utf-8")
+
+
+def _live_ready_report(**overrides):
+    data = {
+        "final_decision": readiness.live_ready_service.READY,
+        "live_ready_package_available": True,
+        "package_verified_against_live_plan": True,
+        "package_generated": True,
+        "package_id": "live-ready-package-id",
+        "package_sha256": "live-ready-package-sha",
+        "execution_precondition_fingerprint": "live-ready-fingerprint",
+        "backup_requirements_ready": True,
+        "rollback_plan_ready": True,
+        "lock_requirements_ready": True,
+        "operator_confirmations_required": ["--review-only"],
+        "controlled_artifact_reapply_required": True,
+        "production_execution_available": False,
+        "controlled_artifact_execute_available": False,
+        "iptables_restore_invocation_allowed": False,
+        "mutation_performed": False,
+        "blockers": [],
+    }
+    data.update(overrides)
+    return data
+
+
+def test_readiness_with_valid_packet_path_evidence_uses_live_ready_report_fields(monkeypatch, tmp_path):
+    legacy = _plan(blocked=True)
+    legacy["blockers"] = ["controlled_filter_packet_path_unresolved", "plan_not_ready"]
+    _patch(monkeypatch, legacy)
+    monkeypatch.setattr(readiness.live_ready_service, "run_live_ready_reapply_package_report", lambda *a, **k: _live_ready_report())
+
+    report = readiness.run_phase11_controlled_artifact_reapply_readiness(packet_path_evidence_dir=tmp_path)
+
+    assert report["final_decision"] == readiness.READY
+    assert report["package_verified_against_live_plan"] is True
+    assert report["package_generated"] is True
+    assert report["live_ready_package_available"] is True
+    assert report["next_required_step"] == "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"
+    assert report["package_id"] == "live-ready-package-id"
+    assert report["package_sha256"] == "live-ready-package-sha"
+    assert report["execution_precondition_fingerprint"] == "live-ready-fingerprint"
+    assert report["backup_requirements_ready"] is True
+    assert report["rollback_plan_ready"] is True
+    assert report["lock_requirements_ready"] is True
+    assert report["operator_confirmations_required"] == ["--review-only"]
+    assert report["production_execution_available"] is False
+    assert report["controlled_artifact_execute_available"] is False
+    assert report["iptables_restore_invocation_allowed"] is False
+    for key in ["mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed", "phase12_start_allowed"]:
+        assert report[key] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
+
+
+def test_readiness_with_blocked_packet_path_evidence_stays_fail_closed(monkeypatch, tmp_path):
+    legacy = _plan(blocked=True)
+    _patch(monkeypatch, legacy)
+    monkeypatch.setattr(readiness.live_ready_service, "run_live_ready_reapply_package_report", lambda *a, **k: _live_ready_report(final_decision=readiness.live_ready_service.BLOCKED, live_ready_package_available=False, blockers=["binding_blocked"]))
+
+    report = readiness.run_phase11_controlled_artifact_reapply_readiness(packet_path_evidence_dir=tmp_path)
+
+    assert report["final_decision"] == readiness.BLOCKED
+    assert "binding_blocked" in report["blockers"]
+    assert report["production_execution_available"] is False
+    assert report["controlled_artifact_execute_available"] is False
+    assert report["iptables_restore_invocation_allowed"] is False
+    for key in ["mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed", "phase12_start_allowed"]:
+        assert report[key] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
