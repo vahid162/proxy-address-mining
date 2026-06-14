@@ -74,6 +74,43 @@ def test_stable_package_identity_and_fingerprint_drift(tmp_path, monkeypatch):
     assert c["final_decision"] == svc.BLOCKED
 
 
+def test_generated_live_ready_package_canonical_hash_matches_executor_helper(tmp_path, monkeypatch):
+    from mpf.services.phase11_controlled_artifact_reapply_core import _canonical_sha, _package_content_for_hash
+    import hashlib
+
+    bundle = _ready_bundle(tmp_path, monkeypatch)
+    out = tmp_path / "out"
+    report = svc.build_live_ready_reapply_package_report(packet_path_evidence_dir=bundle, lanes=LANES, customers=CUSTOMERS, phase_status_text=PHASE, output_dir=out)
+    package_path = out / "controlled-artifact-reapply-package.json"
+    package = json.loads(package_path.read_text(encoding="utf-8"))
+
+    assert report["final_decision"] == svc.READY
+    assert package["package_sha256"] == _canonical_sha(_package_content_for_hash(package))
+    assert report["package_sha256"] == package["package_sha256"]
+
+    file_sha = hashlib.sha256(package_path.read_bytes()).hexdigest()
+    assert file_sha != package["package_sha256"]
+    package["__package_file_sha256"] = file_sha
+    assert package["package_sha256"] == _canonical_sha(_package_content_for_hash(package))
+
+
+def test_generated_live_ready_package_hash_is_stable_with_file_sha_injection(tmp_path, monkeypatch):
+    from mpf.services.phase11_controlled_artifact_reapply_core import _canonical_sha, _package_content_for_hash
+
+    bundle = _ready_bundle(tmp_path, monkeypatch)
+    report = svc.build_live_ready_reapply_package_report(packet_path_evidence_dir=bundle, lanes=LANES, customers=CUSTOMERS, phase_status_text=PHASE)
+    from mpf.services.phase11_controlled_artifact_reapply_core import build_package_from_plan, build_plan
+    package = build_package_from_plan(build_plan(lanes=LANES, customers=CUSTOMERS, backend_target=binding_backend_target(build_verified_filter_hook_binding_report(bundle)), phase_status_text=PHASE))
+    package["production_execution_available"] = False
+    package["controlled_artifact_execute_available"] = False
+    package["iptables_restore_invocation_allowed"] = False
+    package["live_ready_package_available"] = True
+    package["package_sha256"] = _canonical_sha(_package_content_for_hash(package))
+    package["__package_file_sha256"] = "runtime-file-sha"
+
+    assert report["package_sha256"] == _canonical_sha(_package_content_for_hash(package))
+
+
 def test_cli_json_shape_stable(monkeypatch, tmp_path):
     monkeypatch.setattr(svc, "run_live_ready_reapply_package_report", lambda *a, **k: {"component": "phase11_live_ready_reapply_package", "final_decision": svc.READY, "live_ready_package_available": True, "production_execution_available": False, "controlled_artifact_execute_available": False, "iptables_restore_invocation_allowed": False, "mutation_performed": False})
     result = CliRunner().invoke(app, ["production", "live-ready-controlled-artifact-reapply-package", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])

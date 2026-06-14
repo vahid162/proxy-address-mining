@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.259
+
+- fix(phase11): align live-ready package canonical SHA validation with executor preflight while preserving file SHA, operator gates, tamper detection, and closed runtime gates.
+
 ## 0.1.258
 
 - Enforce AI runtime-first project governance with PR body validation, regression tests, and support for coherent runtime-first bundle PRs.

@@ -473,6 +473,91 @@ def test_executor_generated_ready_package_verifies_post_apply_exact_present_no_r
     assert result["rollback_required"] is False
 
 
+def _live_ready_package_via_builder(tmp_path, monkeypatch):
+    import hashlib
+    from mpf.services import phase11_live_ready_reapply_package_service as live_svc
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+    from tests.test_phase11_verified_filter_hook_binding import _ready_bundle
+
+    bundle = _ready_bundle(tmp_path, monkeypatch)
+    out = tmp_path / "live-ready"
+    report = live_svc.build_live_ready_reapply_package_report(packet_path_evidence_dir=bundle, lanes=LIVE_LANES, customers=LIVE_CUSTOMERS, phase_status_text=PHASE, output_dir=out)
+    assert report["final_decision"] == live_svc.READY
+    package_path = out / "controlled-artifact-reapply-package.json"
+    package_bytes = package_path.read_bytes()
+    package = json.loads(package_bytes.decode("utf-8"))
+    package["__package_file_sha256"] = hashlib.sha256(package_bytes).hexdigest()
+    return package
+
+
+def test_executor_generated_live_ready_package_preflight_only_operator_gates(tmp_path, monkeypatch):
+    pkg = _live_ready_package_via_builder(tmp_path, monkeypatch)
+    result = execute_package(
+        package=pkg,
+        package_sha256=pkg["__package_file_sha256"],
+        package_id=pkg["package_id"],
+        operator="op",
+        reason="review",
+        execute=False,
+        yes=False,
+        env={},
+        current_hostname=pkg["hostname"],
+        live_plan_builder=lambda: pkg["plan"],
+        runner=ProductionRunner(),
+        lock=ProductionLock(),
+        backup=ProductionBackup(),
+        metadata_repo=ProductionMetadata(),
+    )
+    assert result["final_decision"] == "FAILED_PRE_APPLY"
+    assert result["blockers"] == [
+        "controlled_artifact_reapply_env_gate_missing",
+        "controlled_artifact_reapply_execute_env_gate_missing",
+        "execute_mode_required",
+        "yes_confirmation_required",
+    ]
+    for absent in ["package_canonical_sha256_mismatch", "version_mismatch", "package_version_mismatch", "package_file_sha256_mismatch"]:
+        assert absent not in result["blockers"]
+    assert result["firewall_mutation_performed"] is False
+    assert result["iptables_restore_invoked"] is False
+    assert result["restore_test_invoked"] is False
+    assert result["apply_invoked"] is False
+    assert result["apply_succeeded"] is False
+    assert result["rollback_required"] is False
+
+
+def test_executor_generated_live_ready_package_tamper_preserved_embedded_hash_fails(tmp_path, monkeypatch):
+    pkg = _live_ready_package_via_builder(tmp_path, monkeypatch)
+    embedded = pkg["package_sha256"]
+    pkg["payload"] = str(pkg["payload"]) + "# tamper\n"
+    pkg["package_sha256"] = embedded
+    result = execute_package(
+        package=pkg,
+        package_sha256=pkg["__package_file_sha256"],
+        package_id=pkg["package_id"],
+        operator="op",
+        reason="review",
+        execute=False,
+        yes=False,
+        env={},
+        current_hostname=pkg["hostname"],
+    )
+    assert "package_canonical_sha256_mismatch" in result["blockers"]
+    assert result["firewall_mutation_performed"] is False
+    assert result["iptables_restore_invoked"] is False
+
+
+def test_executor_generated_live_ready_package_wrong_file_sha_fails(tmp_path, monkeypatch):
+    pkg = _live_ready_package_via_builder(tmp_path, monkeypatch)
+    result = execute_package(package=pkg, package_sha256="wrong", package_id=pkg["package_id"], operator="op", reason="review", execute=False, yes=False, env={}, current_hostname=pkg["hostname"])
+    assert "package_file_sha256_mismatch" in result["blockers"]
+
+
+def test_executor_generated_live_ready_package_wrong_package_id_fails(tmp_path, monkeypatch):
+    pkg = _live_ready_package_via_builder(tmp_path, monkeypatch)
+    result = execute_package(package=pkg, package_sha256=pkg["__package_file_sha256"], package_id="wrong", operator="op", reason="review", execute=False, yes=False, env={}, current_hostname=pkg["hostname"])
+    assert "package_id_mismatch" in result["blockers"]
+
+
 def test_backend_target_fingerprint_is_recomputed_for_desired_state():
     good = target()
     ok = build_plan(lanes=lanes(), customers=customers(), backend_target=good, phase_status_text=PHASE)

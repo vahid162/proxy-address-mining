@@ -15,7 +15,7 @@ from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH, load_config
 from mpf.repositories import firewall_planner_read_repo
 from mpf.services import phase11_controlled_artifact_reapply_package_service as package_service
-from mpf.services.phase11_controlled_artifact_reapply_core import SCOPE, _canonical_sha, _text_sha, build_package_from_plan, build_plan, verify_package
+from mpf.services.phase11_controlled_artifact_reapply_core import SCOPE, _canonical_sha, _package_content_for_hash, _text_sha, build_package_from_plan, build_plan, verify_package
 from mpf.services.phase11_verified_filter_hook_binding_service import READY_BINDING, binding_backend_target, build_verified_filter_hook_binding_report
 
 READY = "READY_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
@@ -119,14 +119,24 @@ def build_live_ready_reapply_package_report(
     blockers.extend(str(b) for b in plan.get("blockers", []) if isinstance(plan.get("blockers"), list))
     package = build_package_from_plan(plan)
     verify_plan = second_plan or build_plan(lanes=lanes, customers=customers, backend_target=backend_target, iptables_save_text=iptables_save_text, ip6tables_save_text=ip6tables_save_text, phase_status_text=phase_status_text, expected_version=expected_version)
-    verify = verify_package(package, live_plan=verify_plan)
-    if verify.get("final_decision") != VERIFY_READY:
-        blockers.append("package_verification_drift_or_blocked")
-    blockers.extend(str(b) for b in verify.get("blockers", []) if isinstance(verify.get("blockers"), list))
     classification = plan.get("artifact_classification") if isinstance(plan.get("artifact_classification"), dict) else {}
     unknown = classification.get("unknown_mpf", []) if isinstance(classification.get("unknown_mpf", []), list) else []
     if unknown:
         blockers.append("unknown_mpf_artifacts_present")
+    package["production_execution_available"] = False
+    package["controlled_artifact_execute_available"] = False
+    package["iptables_restore_invocation_allowed"] = False
+
+    # The live-ready builder adds review/execution-availability metadata after
+    # the core package builder creates the package. Keep that metadata in the
+    # canonical package hash, and use the same core helper as executor preflight.
+    package["live_ready_package_available"] = False
+    package["package_sha256"] = _canonical_sha(_package_content_for_hash(package))
+    verify = verify_package(package, live_plan=verify_plan)
+    if verify.get("final_decision") != VERIFY_READY and "package_verification_drift_or_blocked" not in blockers:
+        blockers.append("package_verification_drift_or_blocked")
+    blockers.extend(str(b) for b in verify.get("blockers", []) if isinstance(verify.get("blockers"), list))
+
     if blockers:
         final = BLOCKED
         live_ready = False
@@ -134,15 +144,14 @@ def build_live_ready_reapply_package_report(
         final = READY
         live_ready = True
     package["live_ready_package_available"] = live_ready
-    package["production_execution_available"] = False
-    package["controlled_artifact_execute_available"] = False
-    package["iptables_restore_invocation_allowed"] = False
+    package["package_sha256"] = _canonical_sha(_package_content_for_hash(package))
+    verify = verify_package(package, live_plan=verify_plan)
+    package_verified_against_live_plan = verify.get("final_decision") == VERIFY_READY
     backup_requirements_ready = bool((package.get("backup_requirements") or {}).get("required")) if isinstance(package.get("backup_requirements"), dict) else False
     rollback_plan_ready = isinstance(package.get("rollback_plan"), dict) and bool((package.get("rollback_plan") or {}).get("manual_review_required"))
     lock_requirements_ready = bool((package.get("lock_requirements") or {}).get("exclusive_lock_required")) if isinstance(package.get("lock_requirements"), dict) else False
     operator_confirmations_required = package.get("operator_confirmations", []) if isinstance(package.get("operator_confirmations"), list) else []
     package_generated = package.get("component") == "phase11_controlled_artifact_reapply_package"
-    package_verified_against_live_plan = verify.get("final_decision") == VERIFY_READY
     files_written: dict[str, str] = {}
     if output_dir:
         out = Path(output_dir)
