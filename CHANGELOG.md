@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.261
+- feat(phase11): harden guarded controlled artifact reapply helper with execute-preflight, script-level --yes, evidence capture, manifest writing, and regression tests while keeping execution and later-phase gates closed.
+
 ## 0.1.260
 
 - feat(phase11): add read-only controlled artifact reapply execution gate preflight without opening execute, iptables-restore, mutation, Phase 12, worker, UI, Telegram, timer, daemon, or unrestricted production gates.

@@ -4,6 +4,11 @@ Version `0.1.251` implements controlled artifact reapply source-backed renderer 
 
 No farm5 mutation was performed by this PR. Package generation is read-only, and this version must not produce a READY package in production until source-backed farm5 evidence proves the controlled filter packet path. Server sync for READY package collection must wait until `controlled_filter_packet_path_unresolved` is resolved with evidence.
 
+
+## 0.1.261 guarded helper hardening note
+
+0.1.261 adds guarded helper support for `--execute-preflight` and hardens `--execute`. This repository change does not execute controlled artifact reapply. Actual execute requires script-level `--yes` plus both externally supplied environment gates (`MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY=allow` and `MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE=allow`); the helper does not set those gates itself. The helper runs `controlled-artifact-reapply-execution-gate-preflight` immediately before execute, refuses any decision other than `READY_CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_GATE_PREFLIGHT`, captures preflight/execute JSON reports into the operator-provided `OUT_DIR`, and writes `OUT_DIR/manifest.sha256`. Phase 12, worker enforcement, UI, Telegram, timers, daemons, public exposure, unrestricted production, and unrestricted miner expansion remain closed.
+
 ## Read-only shape and evidence collection
 
 ```bash
