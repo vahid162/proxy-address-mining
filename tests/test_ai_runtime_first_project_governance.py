@@ -165,6 +165,7 @@ def test_runtime_first_rule_doc_contains_required_governance_rules() -> None:
 def test_ci_validates_runtime_first_pr_body_before_tests() -> None:
     text = WORKFLOW.read_text(encoding="utf-8")
     assert "name: Validate runtime-first PR body" in text
+    assert "types: [opened, synchronize, reopened, edited]" in text
     assert "if: github.event_name == 'pull_request'" in text
     assert "PR_BODY: ${{ github.event.pull_request.body }}" in text
     assert "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md" in text
