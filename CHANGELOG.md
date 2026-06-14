@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.258
+
+- Enforce AI runtime-first project governance with PR body validation, regression tests, and support for coherent runtime-first bundle PRs.
+
 ## 0.1.257
 
 - Bind verified Phase 11 packet-path/filter-hook evidence to a live-ready controlled artifact reapply package-review path while keeping execution and later-phase gates closed.
