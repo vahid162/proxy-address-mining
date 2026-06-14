@@ -7,6 +7,7 @@ PACKAGE_SHA256=""
 PACKAGE_ID=""
 OPERATOR=""
 REASON=""
+PACKET_PATH_EVIDENCE_DIR=""
 OUT_DIR="${OUT_DIR:-./phase11-controlled-artifact-reapply-evidence}"
 
 while [[ $# -gt 0 ]]; do
@@ -14,6 +15,7 @@ while [[ $# -gt 0 ]]; do
     --plan) MODE="plan"; shift ;;
     --package) MODE="package"; shift ;;
     --readiness) MODE="readiness"; shift ;;
+    --live-ready-package) MODE="live-ready-package"; shift ;;
     --verify) MODE="verify"; PACKAGE_JSON="${2:-}"; shift 2 ;;
     --execute) MODE="execute"; shift ;;
     --package-json) PACKAGE_JSON="${2:-}"; shift 2 ;;
@@ -22,6 +24,7 @@ while [[ $# -gt 0 ]]; do
     --operator) OPERATOR="${2:-}"; shift 2 ;;
     --reason) REASON="${2:-}"; shift 2 ;;
     --out-dir) OUT_DIR="${2:-}"; shift 2 ;;
+    --packet-path-evidence-dir) PACKET_PATH_EVIDENCE_DIR="${2:-}"; shift 2 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -34,6 +37,10 @@ case "$MODE" in
   readiness)
     mpf production controlled-artifact-reapply-readiness --output json | tee "$OUT_DIR/controlled-artifact-reapply-readiness.json"
     sha256sum "$OUT_DIR"/*.json > "$OUT_DIR/manifest.sha256"
+    ;;
+  live-ready-package)
+    [[ -n "$PACKET_PATH_EVIDENCE_DIR" ]] || { echo "--packet-path-evidence-dir is required for live-ready-package" >&2; exit 2; }
+    mpf production live-ready-controlled-artifact-reapply-package --packet-path-evidence-dir "$PACKET_PATH_EVIDENCE_DIR" --output-dir "$OUT_DIR" --output json | tee "$OUT_DIR/live-ready-controlled-artifact-reapply-package.json"
     ;;
   package)
     mpf production controlled-backend-target --output json | tee "$OUT_DIR/controlled-backend-target.json" >/dev/null
@@ -63,8 +70,9 @@ PY
       exit 1
     fi
     echo "About to run controlled mutation command:" >&2
-    echo "mpf production controlled-artifact-reapply-execute --package-json $PACKAGE_JSON --package-sha256 $PACKAGE_SHA256 --package-id $PACKAGE_ID --operator $OPERATOR --reason <redacted> --execute --yes --output json" >&2
-    mpf production controlled-artifact-reapply-execute --package-json "$PACKAGE_JSON" --package-sha256 "$PACKAGE_SHA256" --package-id "$PACKAGE_ID" --operator "$OPERATOR" --reason "$REASON" --execute --yes --output json
+    EXEC_CMD="controlled-artifact-reapply-${MODE}"
+    echo "mpf production $EXEC_CMD --package-json $PACKAGE_JSON --package-sha256 $PACKAGE_SHA256 --package-id $PACKAGE_ID --operator $OPERATOR --reason <redacted> --execute --yes --output json" >&2
+    mpf production "$EXEC_CMD" --package-json "$PACKAGE_JSON" --package-sha256 "$PACKAGE_SHA256" --package-id "$PACKAGE_ID" --operator "$OPERATOR" --reason "$REASON" --execute --yes --output json
     ;;
   *) echo "unsupported mode: $MODE" >&2; exit 2 ;;
 esac

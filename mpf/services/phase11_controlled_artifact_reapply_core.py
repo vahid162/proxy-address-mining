@@ -564,7 +564,7 @@ def build_plan(*, lanes: list[dict[str, Any]], customers: list[dict[str, Any]], 
 
 
 def build_package_from_plan(plan: dict[str, object]) -> dict[str, object]:
-    package_id = f"phase11-controlled-artifact-reapply-{plan.get('repository_version')}-{_canonical_sha(plan)[:12]}"
+    package_id = f"phase11-controlled-artifact-reapply-{plan.get('repository_version')}-{plan.get('execution_precondition_fingerprint', _canonical_sha(plan))[:12]}"
     ready = plan.get("final_decision") == PACKAGE_READY
     missing_delta = []
     classification = plan.get("artifact_classification") if isinstance(plan.get("artifact_classification"), dict) else {}

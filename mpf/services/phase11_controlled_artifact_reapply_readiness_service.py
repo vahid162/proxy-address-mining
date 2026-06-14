@@ -9,6 +9,7 @@ from mpf.services import phase11_restart_autostart_persistence_fix_service as fi
 from mpf.services import phase11_controlled_artifact_reapply_package_service as package_service
 from mpf.services import phase11_controlled_artifact_reapply_verification_service as verification_service
 from mpf.services.phase11_controlled_artifact_reapply_core import NO_REAPPLY as CORE_NO_REAPPLY
+from mpf.services import phase11_live_ready_reapply_package_service as live_ready_service
 
 READY = "READY_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
 BLOCKED = "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
@@ -76,6 +77,8 @@ def run_phase11_controlled_artifact_reapply_readiness(
     config_path: Path = DEFAULT_CONFIG_PATH,
     *,
     expected_version: str = __version__,
+    packet_path_evidence_dir: Path | str | None = None,
+    output_dir: Path | str | None = None,
 ) -> dict[str, object]:
     progression = active_progression()
     blockers: list[str] = []
@@ -84,6 +87,9 @@ def run_phase11_controlled_artifact_reapply_readiness(
         fix_plan = fix_service.run_phase11_restart_autostart_persistence_fix_plan(config_path)
     except Exception as exc:  # noqa: BLE001
         fix_plan = {"final_decision": "BLOCKED_RESTART_AUTOSTART_PERSISTENCE_FIX_PLAN", "safety_blockers": ["restart_autostart_persistence_fix_plan_failed", str(exc)]}
+    live_ready_report = None
+    if packet_path_evidence_dir is not None:
+        live_ready_report = live_ready_service.run_live_ready_reapply_package_report(config_path, packet_path_evidence_dir=packet_path_evidence_dir, output_dir=output_dir, expected_version=expected_version)
     try:
         live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
@@ -138,7 +144,15 @@ def run_phase11_controlled_artifact_reapply_readiness(
     final_decision = BLOCKED
     live_ready = False
     next_step = "prepare_live_ready_controlled_artifact_reapply_package"
-    if no_reapply and not unknown and not forbidden_public and production_gates_closed and plan_decision == CORE_NO_REAPPLY:
+    if live_ready_report is not None:
+        blockers.extend(str(b) for b in _as_list(live_ready_report.get("blockers")))
+        if live_ready_report.get("final_decision") == live_ready_service.READY and production_gates_closed:
+            blockers = [b for b in blockers if b not in {"controlled_filter_packet_path_unresolved", "plan_not_ready", "package_not_ready", "package_payload_empty", "blocked_package_cannot_execute", "live_plan_not_safe", "live_plan_final_decision_blocked"}]
+            if not blockers:
+                final_decision = READY
+                live_ready = True
+                next_step = "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"
+    elif no_reapply and not unknown and not forbidden_public and production_gates_closed and plan_decision == CORE_NO_REAPPLY:
         blockers = [b for b in blockers if b not in {"plan_not_ready", "package_not_ready", "package_payload_empty", "no_reapply_package_cannot_execute", "live_plan_not_safe", "live_plan_final_decision_blocked"}]
         if not blockers:
             final_decision = NO_REAPPLY
@@ -146,6 +160,11 @@ def run_phase11_controlled_artifact_reapply_readiness(
         final_decision = READY
         live_ready = True
         next_step = "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"
+
+    if live_ready_report is not None and live_ready_report.get("package_id"):
+        package["package_id"] = live_ready_report.get("package_id")
+        package["package_sha256"] = live_ready_report.get("package_sha256")
+        package["execution_precondition_fingerprint"] = live_ready_report.get("execution_precondition_fingerprint")
 
     return {
         "component": "phase11_controlled_artifact_reapply_readiness",
