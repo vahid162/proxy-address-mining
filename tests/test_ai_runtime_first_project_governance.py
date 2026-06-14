@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate_runtime_first_pr_body.py"
 TEMPLATE = ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md"
 RULE_DOC = ROOT / "docs" / "AI_RUNTIME_FIRST_PR_FLOW_RULE.md"
+WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 
 REQUIRED_FIELDS = [
     "PR class",
@@ -159,3 +160,12 @@ def test_runtime_first_rule_doc_contains_required_governance_rules() -> None:
         "preferred over unnecessary tiny PRs",
     ]:
         assert phrase in text
+
+
+def test_ci_validates_runtime_first_pr_body_before_tests() -> None:
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert "name: Validate runtime-first PR body" in text
+    assert "if: github.event_name == 'pull_request'" in text
+    assert "PR_BODY: ${{ github.event.pull_request.body }}" in text
+    assert "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md" in text
+    assert text.index("name: Validate runtime-first PR body") < text.index("name: Run tests")
