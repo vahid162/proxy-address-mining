@@ -506,6 +506,20 @@ Check:
 [ ] UI/API/Telegram exposure remains local/safe.
 ```
 
+
+## Runtime-first project governance
+
+For Phase 11 operational completion and all later phases, once farm5 evidence, PHASE_STATUS, or progression code names a concrete blocker, the next AI-generated PR must either:
+
+- close that blocker,
+- add the smallest safe runtime/verifier/doctor/package/acceptance-review primitive that directly advances it,
+- or create a coherent runtime-first bundle that advances multiple related deliverables under the same operational gate,
+- or use the evidence/docs exception and name the exact next runtime-first PR.
+
+Repeated report-only/docs-only/evidence-only PRs are forbidden.
+
+Runtime-first bundle PRs are allowed and preferred when they reduce churn and keep the change coherent, tested, and inside the current accepted safety gate.
+
 ## 20. Review Standard
 
 A change is not acceptable just because it works locally.
