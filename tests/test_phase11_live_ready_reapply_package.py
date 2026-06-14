@@ -120,3 +120,20 @@ def test_script_live_ready_package_writes_artifacts_without_env_gates(tmp_path):
     assert result.returncode == 0, result.stderr
     assert (out / "manifest.sha256.json").exists()
     assert "controlled-artifact-reapply-execute" not in result.stdout + result.stderr
+
+
+def test_cli_exception_fallback_returns_full_closed_shape(monkeypatch, tmp_path):
+    def boom(*args, **kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(svc, "run_live_ready_reapply_package_report", boom)
+    result = CliRunner().invoke(app, ["production", "live-ready-controlled-artifact-reapply-package", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["final_decision"] == svc.BLOCKED
+    assert "live_ready_reapply_package_failed_closed" in data["blockers"]
+    for key in ["live_ready_package_available", "production_execution_available", "controlled_artifact_execute_available", "iptables_restore_invocation_allowed", "mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed", "phase12_start_allowed"]:
+        assert data[key] is False
+    assert data["worker_enforcement_allowed"] == "no"
+    assert data["ui_allowed"] == "no"
+    assert data["telegram_allowed"] == "no"

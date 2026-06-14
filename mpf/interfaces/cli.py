@@ -3718,11 +3718,13 @@ def production_firewall_apply_rollback_operational_surface(
 def production_phase11_operational_completion_gap_inventory(
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
 ) -> None:
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
     report = phase11_operational_completion_gap_inventory_service.run_phase11_operational_completion_gap_inventory_report(
         _config_path(config),
+        packet_path_evidence_dir=packet_path_evidence_dir,
     )
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
@@ -3913,7 +3915,7 @@ def production_live_ready_controlled_artifact_reapply_package(
     try:
         report = phase11_live_ready_reapply_package_service.run_live_ready_reapply_package_report(_config_path(config), packet_path_evidence_dir=packet_path_evidence_dir, output_dir=output_dir, expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
-        report = {"component": "phase11_live_ready_reapply_package", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["live_ready_reapply_package_failed_closed", str(exc)], "production_execution_available": False, "controlled_artifact_execute_available": False, "iptables_restore_invocation_allowed": False, "mutation_performed": False}
+        report = phase11_live_ready_reapply_package_service.build_fail_closed_live_ready_reapply_package_report(expected_version, ["live_ready_reapply_package_failed_closed", str(exc)])
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("controlled-artifact-reapply-plan")

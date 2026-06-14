@@ -101,6 +101,7 @@ def run_phase11_operational_completion_gap_inventory_report(
     config_path: Path = DEFAULT_CONFIG_PATH,
     *,
     evidence_dir: Path | str | None = None,
+    packet_path_evidence_dir: Path | str | None = None,
 ) -> dict[str, object]:
     """Read live persistence plan data and render the gap inventory without mutation."""
 
@@ -117,7 +118,7 @@ def run_phase11_operational_completion_gap_inventory_report(
             "configuration_error": str(exc),
         }
     try:
-        readiness_report = run_phase11_controlled_artifact_reapply_readiness(config_path)
+        readiness_report = run_phase11_controlled_artifact_reapply_readiness(config_path, packet_path_evidence_dir=packet_path_evidence_dir)
     except Exception as exc:  # noqa: BLE001 - readiness summary must fail closed.
         readiness_report = {"final_decision": "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "live_ready_package_available": False, "blockers": ["readiness_summary_failed", str(exc)]}
     return build_phase11_operational_completion_gap_inventory_report(

@@ -57,13 +57,19 @@ def _load_planner_input(config_path: Path) -> tuple[list[dict[str, Any]], list[d
     return loaded.lanes, loaded.customers, _scope_blockers(loaded.customers)
 
 
-def _blocked(expected_version: str, blockers: list[str], *, binding: dict[str, Any] | None = None) -> dict[str, Any]:
+def build_fail_closed_live_ready_reapply_package_report(expected_version: str, blockers: list[str], *, binding: dict[str, Any] | None = None) -> dict[str, Any]:
     return {
         "component": "phase11_live_ready_reapply_package",
         "repository_version": __version__,
         "expected_version": expected_version,
         "binding_final_decision": (binding or {}).get("final_decision"),
         "live_ready_package_available": False,
+        "package_verified_against_live_plan": False,
+        "package_generated": False,
+        "backup_requirements_ready": False,
+        "rollback_plan_ready": False,
+        "lock_requirements_ready": False,
+        "operator_confirmations_required": [],
         "production_execution_available": False,
         "controlled_artifact_execute_available": False,
         "iptables_restore_invocation_allowed": False,
@@ -98,7 +104,7 @@ def build_live_ready_reapply_package_report(
     if expected_version != __version__:
         blockers.append("repository_version_mismatch")
     if packet_path_evidence_dir is None or not Path(packet_path_evidence_dir).is_dir():
-        return _blocked(expected_version, ["packet_path_evidence_dir_missing", *blockers])
+        return build_fail_closed_live_ready_reapply_package_report(expected_version, ["packet_path_evidence_dir_missing", *blockers])
     binding = build_verified_filter_hook_binding_report(packet_path_evidence_dir)
     if binding.get("final_decision") != READY_BINDING:
         blockers.append("verified_filter_hook_binding_not_ready")
@@ -131,11 +137,17 @@ def build_live_ready_reapply_package_report(
     package["production_execution_available"] = False
     package["controlled_artifact_execute_available"] = False
     package["iptables_restore_invocation_allowed"] = False
+    backup_requirements_ready = bool((package.get("backup_requirements") or {}).get("required")) if isinstance(package.get("backup_requirements"), dict) else False
+    rollback_plan_ready = isinstance(package.get("rollback_plan"), dict) and bool((package.get("rollback_plan") or {}).get("manual_review_required"))
+    lock_requirements_ready = bool((package.get("lock_requirements") or {}).get("exclusive_lock_required")) if isinstance(package.get("lock_requirements"), dict) else False
+    operator_confirmations_required = package.get("operator_confirmations", []) if isinstance(package.get("operator_confirmations"), list) else []
+    package_generated = package.get("component") == "phase11_controlled_artifact_reapply_package"
+    package_verified_against_live_plan = verify.get("final_decision") == VERIFY_READY
     files_written: dict[str, str] = {}
     if output_dir:
         out = Path(output_dir)
         if out.exists() and (not out.is_dir() or out.is_symlink()):
-            return _blocked(expected_version, ["unsafe_output_dir"], binding=binding)
+            return build_fail_closed_live_ready_reapply_package_report(expected_version, ["unsafe_output_dir"], binding=binding)
         out.mkdir(parents=True, exist_ok=True)
         human = "Phase 11 live-ready controlled artifact reapply package review only. No firewall execution.\n"
         machine = {"classification": classification, "payload_sha256": plan.get("payload_sha256")}
@@ -164,6 +176,13 @@ def build_live_ready_reapply_package_report(
         "unknown_mpf_artifacts": unknown,
         "forbidden_public_runtime_exposure": bool(backend_target.get("backend_public_exposure")),
         "live_ready_package_available": live_ready,
+        "package_verified_against_live_plan": package_verified_against_live_plan,
+        "package_generated": package_generated,
+        "backup_requirements_ready": backup_requirements_ready,
+        "rollback_plan_ready": rollback_plan_ready,
+        "lock_requirements_ready": lock_requirements_ready,
+        "operator_confirmations_required": operator_confirmations_required,
+        "controlled_artifact_reapply_required": plan.get("final_decision") == PACKAGE_READY,
         "output_dir": str(output_dir) if output_dir else None,
         "files_written": files_written,
         "production_execution_available": False,
@@ -187,7 +206,7 @@ def build_live_ready_reapply_package_report(
 def run_live_ready_reapply_package_report(config_path: Path = DEFAULT_CONFIG_PATH, *, packet_path_evidence_dir: Path | str | None, output_dir: Path | str | None = None, expected_version: str = __version__) -> dict[str, Any]:
     lanes, customers, blockers = _load_planner_input(config_path)
     if blockers:
-        return _blocked(expected_version, blockers)
+        return build_fail_closed_live_ready_reapply_package_report(expected_version, blockers)
     ipt = package_service._cmd(["iptables-save"])
     ip6 = package_service._cmd(["ip6tables-save"])
     phase_text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8") if Path("docs/PHASE_STATUS.md").exists() else ""
