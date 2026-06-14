@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.259"
+    assert report["repository_version"] == "0.1.260"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -140,7 +140,7 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
 
     def fake_run(config_path, *, evidence_dir=None, packet_path_evidence_dir=None):
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.259", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.260", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
