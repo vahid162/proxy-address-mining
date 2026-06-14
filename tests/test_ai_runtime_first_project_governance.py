@@ -176,16 +176,20 @@ def test_ci_validates_runtime_first_pr_body_before_tests() -> None:
 def test_validator_accepts_required_pr_271_body(tmp_path: Path) -> None:
     body = """
 ## Why
-Prevent repeated report-only/docs-only/evidence-only PRs while allowing coherent runtime-first bundle PRs.
+
+Prevent repeated report-only/docs-only/evidence-only PRs while allowing coherent runtime-first bundle PRs that advance multiple related deliverables safely under the current accepted gate.
 
 ## What
-- [x] Adds PR template governance fields.
-- [x] Adds executable PR body validator.
-- [x] Adds regression tests.
-- [x] Strengthens AGENTS and AI_RUNTIME_FIRST_PR_FLOW_RULE.
-- [x] Bumps version 0.1.257 -> 0.1.258.
+
+- Adds required runtime-first PR template fields.
+- Adds an executable PR body validator.
+- Wires the validator into CI for pull_request bodies before pytest.
+- Adds regression tests for weak PR bodies, valid implementation PRs, valid runtime-first bundle PRs, and valid evidence/docs exceptions.
+- Strengthens AGENTS.md and docs/AI_RUNTIME_FIRST_PR_FLOW_RULE.md.
+- Bumps version metadata from 0.1.257 to 0.1.258.
 
 ## How to test
+
 - python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
 - python -m pytest -q tests/test_ai_runtime_first_project_governance.py
 - python -m pytest -q
@@ -193,35 +197,44 @@ Prevent repeated report-only/docs-only/evidence-only PRs while allowing coherent
 Version: 0.1.257 -> 0.1.258
 
 Risk + Rollback
-Low risk. No runtime behavior, DB, firewall, Docker, systemd, conntrack, worker, UI, Telegram, or production gate changes. Rollback by reverting this PR.
+
+Low risk. This PR changes AI governance, PR validation, tests, documentation, and version metadata only. It does not change runtime behavior, DB mutation, firewall mutation, iptables-restore, Docker/systemd/conntrack behavior, production gates, Phase 12, worker enforcement, UI, or Telegram. Rollback by reverting this PR.
 
 ## PR class
-- [x] verifier-doctor-package
+
 - [ ] implementation
 - [ ] controlled-runtime
+- [x] verifier-doctor-package
 - [ ] runtime-first bundle
 - [ ] acceptance-review
 - [ ] evidence/docs exception
 
 ## Current blocker(s) being addressed
-AI agents could still create repeated report-only/docs-only/evidence-only PRs because runtime-first guidance was not enforceable against PR body content.
+
+AI agents could still create repeated report-only/docs-only/evidence-only PRs because runtime-first guidance was documented but not enforced against PR body content or CI.
 
 ## next_required_step before this PR
+
 enforce_runtime_first_project_governance
 
 ## next_required_step after this PR
+
 create_next_phase11_runtime_first_bundle_for_controlled_reapply_package_or_doctor_acceptance
 
 ## Runtime deliverable(s) in this PR
+
 - Executable PR body validator.
 - CI validation step for pull_request bodies.
 - Regression tests for runtime-first governance.
 - Updated PR template and AI governance rules.
+- Runtime-first bundle support so AI can take larger coherent steps without splitting work into repeated report-only PRs.
 
 ## Why this is not another report-only PR
-It adds executable validation and CI enforcement, not only documentation.
+
+It adds executable validation, CI enforcement, and regression tests. It is not only documentation or evidence recording.
 
 ## If evidence/docs exception
+
 - Why runtime-first work is unsafe, blocked, or technically impossible:
 - Exact next runtime-first PR that must follow:
 """
