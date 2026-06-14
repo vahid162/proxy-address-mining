@@ -20,3 +20,12 @@ This repository is in Phase 11 production/customer activation planning-readiness
 - Keep `firewall.apply_mode` in planning mode unless an explicit future gate changes it.
 - Do not create multiple consecutive report-only/docs-only PRs when the next safe runtime, verifier, doctor, or acceptance-review primitive is already known.
 - After an evidence/report PR, the next PR should move toward the smallest safe runtime-first step, verifier/doctor hardening, acceptance review, or exact farm5-reported missing primitive.
+
+## Mandatory PR creation contract for AI agents
+- Do not create a pull request with a generic `Motivation` / `Description` / `Testing`-only body.
+- Before creating any pull request, write the final pull request body to `/tmp/pr_body.md`.
+- Run `python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md`.
+- If validation fails, fix `/tmp/pr_body.md` and rerun the validator.
+- Only create the pull request after the validator passes.
+- Create the pull request with `gh pr create --body-file /tmp/pr_body.md`.
+- Do not replace the validated body with an auto-generated summary.
