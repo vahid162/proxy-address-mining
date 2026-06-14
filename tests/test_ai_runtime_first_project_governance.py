@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate_runtime_first_pr_body.py"
 TEMPLATE = ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md"
+COPILOT_INSTRUCTIONS = ROOT / ".github" / "copilot-instructions.md"
 RULE_DOC = ROOT / "docs" / "AI_RUNTIME_FIRST_PR_FLOW_RULE.md"
 WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 
@@ -26,6 +27,11 @@ REQUIRED_FIELDS = [
     "If evidence/docs exception",
     "Why runtime-first work is unsafe, blocked, or technically impossible",
     "Exact next runtime-first PR that must follow",
+]
+
+PR_BODY_PREVALIDATION_PHRASES = [
+    "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md",
+    "gh pr create --body-file /tmp/pr_body.md",
 ]
 
 
@@ -105,6 +111,21 @@ def test_pr_template_contains_all_runtime_first_required_fields() -> None:
         assert field in text
 
 
+def test_pr_template_tells_ai_agents_to_prevalidate_pr_body_before_creation() -> None:
+    text = TEMPLATE.read_text(encoding="utf-8")
+    for phrase in PR_BODY_PREVALIDATION_PHRASES:
+        assert phrase in text
+    assert "generic Motivation/Description/Testing-only body" in text
+
+
+def test_copilot_instructions_require_body_file_validation_before_pr_creation() -> None:
+    text = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
+    for phrase in PR_BODY_PREVALIDATION_PHRASES:
+        assert phrase in text
+    assert "Mandatory PR creation contract for AI agents" in text
+    assert "Do not replace the validated body with an auto-generated summary" in text
+
+
 def test_validator_rejects_weak_report_only_pr_body(tmp_path: Path) -> None:
     result = _run_validator(tmp_path, "## Why\n\nOnly records evidence.\n")
     assert result.returncode != 0
@@ -158,8 +179,17 @@ def test_runtime_first_rule_doc_contains_required_governance_rules() -> None:
         "acceptance-review artifact",
         "Runtime-first bundle PRs",
         "preferred over unnecessary tiny PRs",
+        "Mandatory PR body validation before PR creation",
     ]:
         assert phrase in text
+
+
+def test_runtime_first_rule_doc_requires_body_file_validation_before_pr_creation() -> None:
+    text = RULE_DOC.read_text(encoding="utf-8")
+    for phrase in PR_BODY_PREVALIDATION_PHRASES:
+        assert phrase in text
+    assert "Do not create a PR with a generic" in text
+    assert "This local validation is mandatory even though CI validates the PR body again" in text
 
 
 def test_ci_validates_runtime_first_pr_body_before_tests() -> None:
