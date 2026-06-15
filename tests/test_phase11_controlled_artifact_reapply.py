@@ -1141,3 +1141,54 @@ def test_execution_precondition_fingerprint_uses_structure_hash_not_raw_counter_
     assert first["snapshot_hashes"]["iptables_save_sha256"] != second["snapshot_hashes"]["iptables_save_sha256"]
     assert first["snapshot_hashes"]["iptables_structure_sha256"] == second["snapshot_hashes"]["iptables_structure_sha256"]
     assert first["execution_precondition_fingerprint"] == second["execution_precondition_fingerprint"]
+
+
+def test_post_dnat_bound_graph_uses_original_destination_and_any_policy_dispatch():
+    bt = target()
+    bt["controlled_artifact_graph_binding_mode"] = "verified_docker_user_forward_post_dnat"
+    plan = build_plan(lanes=lanes(), customers=customers(), backend_target=bt, phase_status_text=PHASE)
+    text = "\n".join(plan["desired_state"]["artifact_lines"])
+    assert plan["final_decision"] == PACKAGE_READY
+    assert "--dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20001" in text
+    assert "--dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20101" in text
+    assert 'mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD' in text
+    assert "--dport 60010 -m conntrack ! --ctstate DNAT" in text
+    assert 'mpf:canary-btc-001:customer_any_policy_dispatch" -j MPFO_20001' in text
+    assert 'mpf:limited-btc-001:customer_any_policy_dispatch" -j MPFO_20101' in text
+    assert text.index('verified_user_forward_post_dnat:accounting') < text.index('verified_user_forward_post_dnat:backend_guard')
+    assert text.index('verified_user_forward_post_dnat:customers') < text.index('verified_user_forward_post_dnat:backend_guard')
+
+
+def test_missing_conntrack_original_destination_support_blocks_readiness():
+    bt = target()
+    bt["controlled_artifact_graph_binding_mode"] = "verified_docker_user_forward_post_dnat"
+    bt["conntrack_original_destination_supported"] = False
+    plan = build_plan(lanes=lanes(), customers=customers(), backend_target=bt, phase_status_text=PHASE)
+    assert plan["final_decision"] == PACKAGE_BLOCKED
+    assert "conntrack_original_destination_match_unsupported" in plan["blockers"]
+
+
+def test_existing_0269_post_dnat_graph_is_stale_unsafe_for_runtime_path():
+    bt = target(ip="172.18.0.2")
+    bt["controlled_artifact_graph_binding_mode"] = "verified_docker_user_forward_post_dnat"
+    desired = build_plan(lanes=lanes(), customers=customers(), backend_target=bt, phase_status_text=PHASE)["desired_state"]
+    old = '''*filter
+:MPF_CUSTOMERS - [0:0]
+:MPF_GUARD - [0:0]
+:MPF_ACCT_IN - [0:0]
+:MPFC_20101 - [0:0]
+:MPFO_20101 - [0:0]
+-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD
+-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:accounting" -j MPF_ACCT_IN
+-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:customers" -j MPF_CUSTOMERS
+-A MPF_GUARD -p tcp --dport 60010 -m addrtype ! --src-type LOCAL -m comment --comment "mpf:backend_guard:btc:60010" -j REJECT --reject-with tcp-reset
+-A MPF_CUSTOMERS -p tcp --dport 60010 -m comment --comment "mpf:limited-btc-001:customer_dispatch" -j MPFC_20101
+COMMIT
+*nat
+:MPF_NAT_PRE - [0:0]
+-A MPF_NAT_PRE -p tcp --dport 20101 -m comment --comment "mpf:limited-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.2:60010
+COMMIT
+'''
+    c = classify_controlled_artifacts(iptables_save_text=old, ip6tables_save_text="", desired_state=desired)
+    assert c["status"] == "blocked"
+    assert "unknown_mpf_artifacts_detected" in c["blockers"]

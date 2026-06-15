@@ -27,6 +27,15 @@ def _read(path: Path | None) -> str:
         return ""
 
 
+
+def _farm5_graph_blocker(snapshot: str) -> bool:
+    has_nat_hit = bool(re.search(r"MPF_NAT_PRE.*--dport 20101", snapshot))
+    guard_reject = bool(re.search(r"\[([1-9][0-9]*|0x[1-9a-fA-F][0-9a-fA-F]*):[^]]+\].*MPF_GUARD.*REJECT", snapshot)) or bool(re.search(r"MPF_GUARD.*REJECT.*\[([1-9][0-9]*|0x[1-9a-fA-F][0-9a-fA-F]*):", snapshot))
+    acct_zero = bool(re.search(r":MPF_ACCT_IN - \[0:0\]", snapshot))
+    customers_zero = bool(re.search(r":MPF_CUSTOMERS - \[0:0\]", snapshot))
+    old_guard_hook = "verified_user_forward_post_dnat:backend_guard" in snapshot and "! --ctstate DNAT" not in snapshot
+    return has_nat_hit and guard_reject and acct_zero and customers_zero and old_guard_hook
+
 def build_phase11_single_customer_runtime_path_evidence_report(config: MPFConfig, **kwargs: object) -> dict[str, object]:
     blockers: list[str] = []
     expected_version = str(kwargs.get("expected_version", __version__))
@@ -113,6 +122,8 @@ def build_phase11_single_customer_runtime_path_evidence_report(config: MPFConfig
         try:
             snap = _read_live_snapshot(Path(str(live_snapshot_file)) if live_snapshot_file else None, collect_live, kwargs.get("live_snapshot_reader"))
             cls = _parse_snapshot(snap)
+            if _farm5_graph_blocker(snap):
+                blockers.append("runtime_graph_blocker")
             if not cls.get("has_canary_20001"):
                 blockers.append("missing_canary_20001")
             if int(cls.get("dnat_20101_exact_target_count", 0)) != 1:
@@ -164,6 +175,7 @@ def build_phase11_single_customer_runtime_path_evidence_report(config: MPFConfig
         "post_apply_evidence_ready": post.get("post_apply_evidence_ready") is True,
         "controlled_apply_recorded": post.get("controlled_apply_recorded") is True,
         "runtime_path_evidence_ready": ready,
+        "runtime_graph_blocker": "runtime_graph_blocker" in blockers,
         "stratum_transcript_ready": False,
         "visibility_bundle_ready": False,
         "production_traffic_enabled": False,

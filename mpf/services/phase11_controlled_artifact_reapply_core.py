@@ -283,6 +283,11 @@ class ControlledBackendTargetResolver:
         publish_public, publishes = _docker_publishes_public(network_settings, BACKEND_PORT)
         if publish_public:
             blockers.append("backend_docker_publish_public")
+        conntrack_payload = "*filter\n-A INPUT -p tcp -m conntrack --ctstate DNAT --ctorigdstport 20001 -j ACCEPT\n-A INPUT -p tcp -m conntrack ! --ctstate DNAT -j ACCEPT\nCOMMIT\n"
+        conntrack_test = _run_stdout(self.runner, ["iptables-restore", "--test", "--noflush"], input_text=conntrack_payload)
+        conntrack_supported = conntrack_test.returncode == 0
+        if not conntrack_supported:
+            blockers.append("conntrack_original_destination_match_unsupported")
         net_id = network.get("NetworkID")
         endpoint_id = network.get("EndpointID")
         if not net_id:
@@ -326,6 +331,8 @@ class ControlledBackendTargetResolver:
             "publish_classification": {"bindings": publishes, "public": publish_public},
             "reachability": {"tcp_connect_ok": reachable},
             "backend_public_exposure": listener_public or publish_public,
+            "conntrack_original_destination_supported": conntrack_supported,
+            "conntrack_original_destination_test": {"returncode": conntrack_test.returncode, "stderr": conntrack_test.stderr},
             "collected_at": collected_at,
             "blockers": sorted(set(blockers)),
             "warnings": sorted(set(warnings)),
@@ -360,6 +367,8 @@ def build_controlled_desired_state(*, lanes: list[dict[str, Any]], customers: li
         blockers.append("network_id_endpoint_id_conflated")
     if backend_target.get("health_status") != "healthy" or backend_target.get("running") is not True:
         blockers.append("backend_target_health_not_verified")
+    if backend_target.get("conntrack_original_destination_supported") is False:
+        blockers.append("conntrack_original_destination_match_unsupported")
     resolved_ip = str(backend_target.get("resolved_ipv4") or backend_target.get("target_host") or "")
     ok_ip, ip_blocker = _valid_backend_ipv4(resolved_ip) if resolved_ip else (False, "backend_target_ipv4_missing")
     if ip_blocker:
@@ -422,6 +431,22 @@ def build_controlled_desired_state(*, lanes: list[dict[str, Any]], customers: li
     return desired
 
 
+def _customer_for_comment(line: str) -> tuple[str, int] | None:
+    for item in SCOPE:
+        if f"mpf:{item['customer_key']}:" in line:
+            return str(item["customer_key"]), int(item["public_port"])
+    return None
+
+
+def _with_post_dnat_original_destination(line: str, original_port: int) -> str:
+    line = line.replace(f"--dport {original_port}", f"--dport {BACKEND_PORT}")
+    marker = f"--dport {BACKEND_PORT}"
+    match = f"-m conntrack --ctstate DNAT --ctorigdstport {original_port}"
+    if match not in line and marker in line:
+        line = line.replace(marker, f"{marker} {match}", 1)
+    return line
+
+
 def _artifact_lines(plan: Any, resolved_ip: str, *, binding_mode: str = "") -> tuple[list[str], list[str]]:
     blockers: list[str] = []
     try:
@@ -445,23 +470,34 @@ def _artifact_lines(plan: Any, resolved_ip: str, *, binding_mode: str = "") -> t
         for rule in table.rules:
             rules.append(f"{table.name}:{rule.line}")
     lines.extend(rules)
-    # Parent hooks are modeled as explicit artifacts and emitted after chain
-    # declarations so iptables-restore never references a not-yet-declared chain.
     lines.append('nat:-A PREROUTING -p tcp -m comment --comment "mpf:hook:nat_prerouting" -j MPF_NAT_PRE')
     if binding_mode == "verified_docker_user_forward_post_dnat":
         rebound: list[str] = []
+        any_policy_dispatch: list[str] = []
         for item in lines:
             if item.startswith("filter:"):
-                item = item.replace("--dport 20001", "--dport 60010").replace("--dport 20101", "--dport 60010")
+                line = item.split(":", 1)[1]
+                if 'mpf:backend_guard:btc:60010' in line:
+                    line = line.replace(f"--dport {BACKEND_PORT}", f"--dport {BACKEND_PORT} -m conntrack ! --ctstate DNAT", 1)
+                elif (cust := _customer_for_comment(line)) is not None:
+                    _customer_key, original_port = cust
+                    line = _with_post_dnat_original_destination(line, original_port)
+                    if "customer_dispatch" in line and "-A MPF_CUSTOMERS" in line:
+                        any_policy_dispatch.append(
+                            f'filter:-A MPFC_{original_port} -p tcp --dport {BACKEND_PORT} -m conntrack --ctstate DNAT --ctorigdstport {original_port} -m comment --comment "mpf:{_customer_key}:customer_any_policy_dispatch" -j MPFO_{original_port}'
+                        )
+                item = f"filter:{line}"
             rebound.append(item)
-        lines = rebound
-        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD')
-        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:accounting" -j MPF_ACCT_IN')
-        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:customers" -j MPF_CUSTOMERS')
+        # Keep customer-scoped accounting and dispatch before the direct-backend guard;
+        # the guard matches only non-DNAT traffic, so valid customer DNAT cannot be
+        # rejected before MPF_ACCT_IN/MPF_CUSTOMERS.
+        lines = rebound + any_policy_dispatch
+        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m conntrack --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:accounting" -j MPF_ACCT_IN')
+        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m conntrack --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:customers" -j MPF_CUSTOMERS')
+        lines.append('filter:-A DOCKER-USER -p tcp --dport 60010 -m conntrack ! --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD')
     else:
         lines.append('filter:-A INPUT -p tcp -m comment --comment "mpf:hook:filter_input" -j MPF_INPUT')
     return lines, blockers
-
 
 def _present_lines(iptables_save_text: str) -> list[str]:
     present: list[str] = []
@@ -597,7 +633,7 @@ def render_payload(missing_artifacts: list[str]) -> tuple[str, str, list[str]]:
         if table not in by_table:
             blockers.append("payload_table_not_allowed")
             continue
-        if any(bad in line for bad in (" -F", " -X", "*raw", "*mangle", "shell", "systemctl", "docker", "conntrack")):
+        if any(bad in line for bad in (" -F", " -X", "*raw", "*mangle", "shell", "systemctl", "docker")):
             blockers.append("payload_forbidden_operation_detected")
         bucket = "chains" if line.startswith("-N ") else "rules"
         by_table[table][bucket].append(line)

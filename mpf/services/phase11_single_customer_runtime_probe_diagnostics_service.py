@@ -34,6 +34,15 @@ def _check_hash(path: Path | None, expected: str | None, missing: str, mismatch:
         blockers.append(mismatch)
 
 
+
+def _farm5_graph_blocker(snapshot: str) -> bool:
+    has_nat_hit = bool(re.search(r"MPF_NAT_PRE.*--dport 20101", snapshot))
+    guard_reject = bool(re.search(r"\[([1-9][0-9]*|0x[1-9a-fA-F][0-9a-fA-F]*):[^]]+\].*MPF_GUARD.*REJECT", snapshot)) or bool(re.search(r"MPF_GUARD.*REJECT.*\[([1-9][0-9]*|0x[1-9a-fA-F][0-9a-fA-F]*):", snapshot))
+    acct_zero = bool(re.search(r":MPF_ACCT_IN - \[0:0\]", snapshot))
+    customers_zero = bool(re.search(r":MPF_CUSTOMERS - \[0:0\]", snapshot))
+    old_guard_hook = "verified_user_forward_post_dnat:backend_guard" in snapshot and "! --ctstate DNAT" not in snapshot
+    return has_nat_hit and guard_reject and acct_zero and customers_zero and old_guard_hook
+
 def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFConfig, **kwargs: object) -> dict[str, object]:
     blockers: list[str] = []
     expected_version = str(kwargs.get("expected_version", "0.1.209"))
@@ -122,6 +131,9 @@ def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFCo
                 blockers.append("live_snapshot_loopback_20101")
             if int(cls.get("unrelated_customer_nat_rule_count", 0)) > 0:
                 blockers.append("live_snapshot_unrelated_customer_nat")
+            snap_text = live.read_text(encoding="utf-8")
+            if _farm5_graph_blocker(snap_text):
+                blockers.append("runtime_graph_blocker")
             if cls.get("limited_20101_filter_primitives_verified") is not True:
                 blockers.append("live_snapshot_invalid")
         except Exception:
@@ -188,6 +200,7 @@ def build_phase11_single_customer_runtime_probe_diagnostics_report(config: MPFCo
         "controlled_apply_recorded": post.get("controlled_apply_recorded") is True,
         "probe_diagnostics_ready": probe_ready,
         "runtime_path_evidence_ready": False,
+        "runtime_graph_blocker": "runtime_graph_blocker" in blockers,
         "conntrack_assured_seen": conntrack_assured_seen,
         "conntrack_20101_unreplied_seen": conntrack_20101_unreplied_seen,
         "conntrack_backend_nat_seen": conntrack_backend_nat_seen,
