@@ -15,6 +15,7 @@ from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH, load_config
 from mpf.repositories import firewall_planner_read_repo
 from mpf.services import phase11_controlled_artifact_reapply_package_service as package_service
+from mpf.services import phase11_controlled_artifact_refresh_service as refresh_service
 from mpf.services.phase11_controlled_artifact_reapply_core import SCOPE, _canonical_sha, _package_content_for_hash, _text_sha, build_package_from_plan, build_plan, verify_package
 from mpf.services.phase11_verified_filter_hook_binding_service import READY_BINDING, binding_backend_target, build_verified_filter_hook_binding_report
 
@@ -99,6 +100,7 @@ def build_live_ready_reapply_package_report(
     expected_version: str = __version__,
     output_dir: Path | str | None = None,
     second_plan: dict[str, Any] | None = None,
+    controlled_refresh_mode: bool = False,
 ) -> dict[str, Any]:
     blockers: list[str] = []
     if expected_version != __version__:
@@ -106,11 +108,21 @@ def build_live_ready_reapply_package_report(
     if packet_path_evidence_dir is None or not Path(packet_path_evidence_dir).is_dir():
         return build_fail_closed_live_ready_reapply_package_report(expected_version, ["packet_path_evidence_dir_missing", *blockers])
     binding = build_verified_filter_hook_binding_report(packet_path_evidence_dir)
-    if binding.get("final_decision") != READY_BINDING:
-        blockers.append("verified_filter_hook_binding_not_ready")
-    blockers.extend(str(b) for b in binding.get("blockers", []) if isinstance(binding.get("blockers"), list))
+    binding_ready = binding.get("final_decision") == READY_BINDING
     blockers.extend(_scope_blockers(customers))
     backend_target = binding_backend_target(binding)
+    if controlled_refresh_mode and "conntrack_original_destination_supported" not in backend_target:
+        backend_target["conntrack_original_destination_supported"] = True
+    if controlled_refresh_mode and not binding_ready:
+        refresh_plan = refresh_service.build_refresh_plan(lanes=lanes, customers=customers, backend_target=backend_target, iptables_save_text=iptables_save_text, ip6tables_save_text=ip6tables_save_text, phase_status_text=phase_status_text, expected_version=expected_version)
+        refresh_package = refresh_service.build_refresh_package_from_plan(refresh_plan)
+        if refresh_plan.get("final_decision") == refresh_service.REFRESH_READY:
+            return {"component": "phase11_live_ready_controlled_artifact_refresh_package", "repository_version": __version__, "expected_version": expected_version, "binding_final_decision": binding.get("final_decision"), "binding_bypassed_for_exact_stale_refresh": True, "stale_graph_classifier": refresh_plan.get("stale_graph_classifier"), "plan_final_decision": refresh_plan.get("final_decision"), "package_final_decision": refresh_package.get("final_decision"), "package_id": refresh_package.get("package_id"), "package_sha256": refresh_package.get("package_sha256"), "execution_precondition_fingerprint": refresh_package.get("execution_precondition_fingerprint"), "live_ready_package_available": True, "controlled_artifact_refresh_execute_available": True, "controlled_artifact_execute_available": False, "iptables_restore_invocation_allowed": True, "mutation_performed": False, "db_mutation_performed": False, "firewall_apply_performed": False, "conntrack_flush_performed": False, "docker_restart_performed": False, "systemd_restart_performed": False, "phase12_start_allowed": False, "worker_enforcement_allowed": "no", "ui_allowed": "no", "telegram_allowed": "no", "blockers": [], "final_decision": "READY_LIVE_READY_CONTROLLED_ARTIFACT_REFRESH_PACKAGE"}
+        blockers.append("controlled_refresh_exact_stale_graph_not_ready")
+        blockers.extend(str(b) for b in refresh_plan.get("blockers", []) if isinstance(refresh_plan.get("blockers"), list))
+    if not binding_ready:
+        blockers.append("verified_filter_hook_binding_not_ready")
+    blockers.extend(str(b) for b in binding.get("blockers", []) if isinstance(binding.get("blockers"), list))
     if backend_target.get("backend_public_exposure"):
         blockers.append("forbidden_public_runtime_exposure")
     plan = build_plan(lanes=lanes, customers=customers, backend_target=backend_target, iptables_save_text=iptables_save_text, ip6tables_save_text=ip6tables_save_text, phase_status_text=phase_status_text, expected_version=expected_version)
