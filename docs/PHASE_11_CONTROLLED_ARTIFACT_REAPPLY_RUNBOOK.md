@@ -60,3 +60,12 @@ A source-backed 0.1.252 farm5 packet-path READY bundle may now be consumed by `m
 ## 0.1.257 Phase 11 live-ready verified packet-path reapply package
 
 This update creates a live-ready package/review artifact from the verified packet-path/filter-hook binding. It still does not execute `iptables-restore`, does not apply firewall changes, does not accept restart/autostart proof, and does not accept Full CLI Production Operations. Phase 12, worker enforcement, UI, Telegram, timers, daemons, public backend/API, and unrestricted production remain closed; production traffic and customer onboarding remain `controlled_cli_limited`.
+
+
+## 0.1.266 Phase 11 controlled reapply audit dependency hardening
+
+Farm5 0.1.265 moved past the prior structure-stable raw snapshot drift blockers: fresh packet-path evidence, live-ready package, and execute-preflight were READY. Guarded execute then failed safely before any `iptables-restore --test` or apply because operational audit metadata used direct local-peer PostgreSQL as root (`postgresql:///mpf`) and hit `role "root" does not exist`. A retry backup directory was already created with `iptables-save.txt`, `ip6tables-save.txt`, `package.json`, `payload.restore`, `rollback-plan.json`, and `manifest.sha256.json`, while `firewall_applies` remained unchanged. No restore test, apply, partial apply, rollback, or public exposure occurred; production gates stayed closed.
+
+Next required step: harden audit metadata local-peer root writes, make backup attempts retry-safe, and expose stage-specific pre-apply dependency evidence before re-running farm5 controlled execute.
+
+Operator diagnostic note: on farm5, do not run ad-hoc raw `python` diagnostics from outside the project environment; use the installed `mpf` wrapper or `/opt/mpf-py/.venv/bin/python` so dependencies such as Pydantic resolve consistently.

@@ -42,11 +42,21 @@ if not final_decision:
     print(f"missing final_decision in {report_path}", file=sys.stderr)
     sys.exit(1)
 blockers = report.get("blockers", [])
+def diag():
+    fields = {
+        "final_decision": final_decision,
+        "blockers": blockers,
+        "error": report.get("error"),
+        "error_stage": report.get("error_stage"),
+        "backup": report.get("backup"),
+        "raw_snapshot_drift_warnings": report.get("raw_snapshot_drift_warnings"),
+    }
+    print(f"decision diagnostics for {report_path}: " + json.dumps(fields, sort_keys=True), file=sys.stderr)
 if blockers:
-    print(f"blockers present in {report_path}: {blockers}", file=sys.stderr)
+    diag()
     sys.exit(1)
 if final_decision != expected:
-    print(f"unexpected final_decision in {report_path}: {final_decision}", file=sys.stderr)
+    diag()
     sys.exit(1)
 PY
 }

@@ -14,6 +14,7 @@ import os
 import re
 import socket
 import subprocess
+import uuid
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -685,7 +686,9 @@ class FileBackupAdapter:
     def prepare(self, package: dict[str, object], *, iptables_save: str, ip6tables_save: str) -> dict[str, object]:
         if not iptables_save.strip() or not ip6tables_save.strip():
             raise RuntimeError("empty_firewall_backup_snapshot_forbidden")
-        path = self.base_dir / str(package["package_id"])
+        package_id = str(package["package_id"])
+        attempt_id = f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}-{uuid.uuid4().hex[:12]}"
+        path = self.base_dir / f"{package_id}-{attempt_id}"
         path.mkdir(mode=0o700, parents=True, exist_ok=False)
         files = {"iptables-save.txt": iptables_save, "ip6tables-save.txt": ip6tables_save, "package.json": json.dumps(package, indent=2, sort_keys=True), "package-file-sha256.txt": str(package.get("__package_file_sha256", "")), "canonical-package-sha256.txt": str(package.get("package_sha256", "")), "payload.restore": str(package.get("payload", "")), "target-evidence.json": json.dumps((package.get("plan") or {}).get("backend_target", {}), indent=2, sort_keys=True), "db-snapshot-hash.txt": str(package.get("db_customer_policy_snapshot_hash", "")), "pre-apply-classification.json": json.dumps((package.get("plan") or {}).get("artifact_classification", {}), indent=2, sort_keys=True), "rollback-plan.json": json.dumps(package.get("rollback_plan", {}), indent=2, sort_keys=True)}
         manifest = {}
@@ -705,7 +708,7 @@ class FileBackupAdapter:
             os.close(fd)
         except OSError:
             pass
-        return {"backup_dir": str(path), "manifest": manifest}
+        return {"backup_dir": str(path), "package_id": package_id, "attempt_id": attempt_id, "manifest": manifest}
 
 
 class MemoryLock:
@@ -869,18 +872,33 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
         return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["exclusive_lock_unavailable"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
     try:
         # A second live preflight must be collected after the lock.
-        post_lock_plan = live_plan_builder()
+        try:
+            post_lock_plan = live_plan_builder()
+        except Exception as exc:  # noqa: BLE001
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed", "post_lock_live_plan_failed"], "error": str(exc), "error_stage": "post_lock_live_plan_failed", "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
         post_lock_drift = _execution_drift_blockers(post_lock_plan, package)
         if post_lock_drift:
             return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["post_lock_live_preflight_drift", *post_lock_drift], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, **_pre_apply_drift_evidence(post_lock_plan, package)}
         iptables_text = str(post_lock_plan.get("iptables_save_text", ""))
         ip6tables_text = str(post_lock_plan.get("ip6tables_save_text", ""))
-        backup_result = backup.prepare(package, iptables_save=iptables_text, ip6tables_save=ip6tables_text)
-        intent_refs = metadata_repo.record_intent(package, operator, reason, backup_result=backup_result, pre_iptables_save=iptables_text)
-        pre_restore_plan = live_plan_builder()
+        try:
+            backup_result = backup.prepare(package, iptables_save=iptables_text, ip6tables_save=ip6tables_text)
+        except Exception as exc:  # noqa: BLE001
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed", "backup_prepare_failed"], "error": str(exc), "error_stage": "backup_prepare_failed", "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
+        try:
+            intent_refs = metadata_repo.record_intent(package, operator, reason, backup_result=backup_result, pre_iptables_save=iptables_text)
+        except Exception as exc:  # noqa: BLE001
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed", "audit_record_intent_failed"], "error": str(exc), "error_stage": "audit_record_intent_failed", "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result}
+        try:
+            pre_restore_plan = live_plan_builder()
+        except Exception as exc:  # noqa: BLE001
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed", "pre_restore_live_plan_failed"], "error": str(exc), "error_stage": "pre_restore_live_plan_failed", "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "metadata": intent_refs}
         pre_restore_drift = _execution_drift_blockers(pre_restore_plan, package)
         if pre_restore_drift:
-            metadata_repo.record_result(package, "FAILED_PRE_APPLY", backup_result=backup_result, post_iptables_save=str(pre_restore_plan.get("iptables_save_text", "")), error_details={"blockers": pre_restore_drift}, partial_apply_possible=False, rollback_required=False)
+            try:
+                metadata_repo.record_result(package, "FAILED_PRE_APPLY", backup_result=backup_result, post_iptables_save=str(pre_restore_plan.get("iptables_save_text", "")), error_details={"blockers": pre_restore_drift}, partial_apply_possible=False, rollback_required=False)
+            except Exception as exc:  # noqa: BLE001
+                return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed", "audit_record_result_failed", "pre_restore_live_preflight_drift", *pre_restore_drift], "error": str(exc), "error_stage": "audit_record_result_failed", "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "metadata": intent_refs, **_pre_apply_drift_evidence(pre_restore_plan, package)}
             return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["pre_restore_live_preflight_drift", *pre_restore_drift], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "metadata": intent_refs, **_pre_apply_drift_evidence(pre_restore_plan, package)}
         payload = str(package.get("payload", ""))
         test = _run_stdout(runner, ["iptables-restore", "--test", "--noflush"], input_text=payload)
@@ -903,7 +921,7 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
     except Exception as exc:  # noqa: BLE001 - production executor must report fail-closed evidence.
         if apply_succeeded:
             return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_POST_APPLY_VERIFICATION", "blockers": ["post_apply_dependency_failed"], "error": str(exc), "firewall_mutation_performed": True, "iptables_restore_invoked": True, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "rollback_plan": package.get("rollback_plan")}
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed"], "error": str(exc), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["controlled_execution_pre_apply_dependency_failed"], "error": str(exc), "error_stage": "controlled_execution_pre_apply_dependency_failed", "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result}
     finally:
         lock.release()
 

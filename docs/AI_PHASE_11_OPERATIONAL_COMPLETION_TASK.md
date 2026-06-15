@@ -126,3 +126,10 @@ The controlled PostgreSQL-backed abuse repository now connects `mpf abuse status
 ## 0.1.253 verified binding/package evidence update
 
 A source-backed 0.1.252 farm5 packet-path READY bundle may now be consumed by `mpf production verified-filter-hook-binding-plan` to bind the verified `DOCKER-USER` / `FORWARD` / `post_dnat_forward_filter` hook to explicit Phase 11 controlled artifact graph semantics. `mpf production controlled-artifact-reapply-package-plan` and `mpf production controlled-artifact-reapply-package-verify` generate and verify package evidence only. Execution remains blocked: `production_execution_available=false`, `iptables_restore_invocation_allowed=false`, `runtime_packet_observed=false`, `post_apply_runtime_verified=false`, `restart_autostart_proof=missing_or_partial`, `full_cli_production_operations=missing_or_partial`, and Phase 12/worker/UI/Telegram remain blocked.
+
+
+## 0.1.266 Phase 11 controlled reapply audit dependency hardening
+
+Farm5 0.1.265 moved past the prior structure-stable raw snapshot drift blockers: fresh packet-path evidence, live-ready package, and execute-preflight were READY. Guarded execute then failed safely before any `iptables-restore --test` or apply because operational audit metadata used direct local-peer PostgreSQL as root (`postgresql:///mpf`) and hit `role "root" does not exist`. A retry backup directory was already created with `iptables-save.txt`, `ip6tables-save.txt`, `package.json`, `payload.restore`, `rollback-plan.json`, and `manifest.sha256.json`, while `firewall_applies` remained unchanged. No restore test, apply, partial apply, rollback, or public exposure occurred; production gates stayed closed.
+
+Next required step: harden audit metadata local-peer root writes, make backup attempts retry-safe, and expose stage-specific pre-apply dependency evidence before re-running farm5 controlled execute.
