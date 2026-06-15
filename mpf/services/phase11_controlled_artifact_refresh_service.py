@@ -37,6 +37,12 @@ BLOCKED_MIXED_UNKNOWN = "BLOCKED_MIXED_UNKNOWN_MPF_ARTIFACTS"
 BLOCKED_NOT_EXACT = "BLOCKED_STALE_GRAPH_NOT_EXACT"
 NO_STALE = "NO_STALE_CONTROLLED_GRAPH"
 NEXT_REQUIRED_STEP = "sync_0_1_271_to_farm5_run_read_only_refresh_package_preflight_then_operator_gated_controlled_refresh_execute_if_ready"
+PASS_READY_DECISIONS = {
+    "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS",
+    "PASS_NO_CUSTOMER_ARTIFACTS",
+    "CONTROLLED_ARTIFACT_REAPPLY_NOOP_READY",
+    REFRESH_VERIFY_READY,
+}
 
 SCOPE_PORTS = [int(item["public_port"]) for item in SCOPE]
 SCOPE_KEYS = [str(item["customer_key"]) for item in SCOPE]
@@ -315,36 +321,47 @@ def build_refresh_execute_preflight(package: dict[str, object], *, live_plan: di
         restore_test_invoked = True
         if int(restore_test_result.get("returncode", 1)) != 0:
             blockers.append("iptables_restore_test_failed")
-    return {"component": "phase11_controlled_artifact_refresh_execute_preflight", "repository_version": __version__, "package_id": package.get("package_id"), "package_sha256": package.get("package_sha256"), "execution_precondition_fingerprint": package.get("execution_precondition_fingerprint"), "restore_test_invoked": restore_test_invoked, "apply_invoked": False, "firewall_mutation_performed": False, "blockers": sorted(set(blockers)), "final_decision": REFRESH_PREFLIGHT_READY if not blockers else REFRESH_PREFLIGHT_BLOCKED}
+    return {"component": "phase11_controlled_artifact_refresh_execute_preflight", "repository_version": __version__, "package_id": package.get("package_id"), "package_sha256": package.get("package_sha256"), "execution_precondition_fingerprint": package.get("execution_precondition_fingerprint"), "restore_test_invoked": restore_test_invoked, "apply_invoked": False, "firewall_mutation_performed": False, "live_plan": live_plan, "blockers": sorted(set(blockers)), "final_decision": REFRESH_PREFLIGHT_READY if not blockers else REFRESH_PREFLIGHT_BLOCKED}
 
 
 def verify_post_apply_refresh(*, package: dict[str, object], post_apply_plan: dict[str, object], current_gate_report: dict[str, object] | None = None) -> dict[str, object]:
     blockers: list[str] = []
     text = str(post_apply_plan.get("iptables_save_text", ""))
     desired = post_apply_plan.get("desired_state") if isinstance(post_apply_plan.get("desired_state"), dict) else {}
-    corrected = classify_controlled_artifacts(iptables_save_text=text, ip6tables_save_text=str(post_apply_plan.get("ip6tables_save_text", "")), desired_state=desired)
     stale_after = classify_stale_0_1_269_graph(iptables_save_text=text, ip6tables_save_text=str(post_apply_plan.get("ip6tables_save_text", "")), desired_state=desired, backend_target=post_apply_plan.get("backend_target") if isinstance(post_apply_plan.get("backend_target"), dict) else {})
     stale_rules_after = [line for line in stale_after.get("known_stale_artifacts", []) if isinstance(line, str) and _known_stale_shape(line)]
     if stale_rules_after:
         blockers.append("stale_0_1_269_artifacts_still_present")
-    if corrected.get("blockers"):
-        blockers.append("corrected_graph_controlled_artifact_classification_blocked")
-    if corrected.get("status") != "exact_present":
-        blockers.append("corrected_graph_not_exact_present")
-    required_substrings = ["--ctstate DNAT --ctorigdstport 20001", "--ctstate DNAT --ctorigdstport 20101", "! --ctstate DNAT", "customer_any_policy_dispatch", "mpf:backend_guard:btc:60010"]
+    required_substrings = [
+        '-A DOCKER-USER -p tcp --dport 60010 -m conntrack --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:accounting" -j MPF_ACCT_IN',
+        '-A DOCKER-USER -p tcp --dport 60010 -m conntrack --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:customers" -j MPF_CUSTOMERS',
+        '-A DOCKER-USER -p tcp --dport 60010 -m conntrack ! --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD',
+        '-A MPF_GUARD -p tcp --dport 60010 -m conntrack ! --ctstate DNAT',
+        'mpf:backend_guard:btc:60010',
+        "--dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20001",
+        "--dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20101",
+        '-A MPFC_20001 -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20001 -m comment --comment "mpf:canary-btc-001:customer_any_policy_dispatch" -j MPFO_20001',
+        '-A MPFC_20101 -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20101 -m comment --comment "mpf:limited-btc-001:customer_any_policy_dispatch" -j MPFO_20101',
+    ]
+    normalized_text = text.replace("-p tcp -m tcp", "-p tcp")
     for substring in required_substrings:
-        if substring not in text:
+        if substring not in normalized_text:
             blockers.append(f"post_apply_missing:{substring}")
     if current_gate_report is None:
         blockers.append("current_controlled_artifact_gate_report_required")
     else:
-        if not str(current_gate_report.get("final_decision", "")).startswith("PASS") and not str(current_gate_report.get("final_decision", "")).endswith("READY"):
+        if str(current_gate_report.get("final_decision", "")) not in PASS_READY_DECISIONS and not str(current_gate_report.get("final_decision", "")).startswith("PASS") and not str(current_gate_report.get("final_decision", "")).endswith("READY"):
             blockers.append("current_controlled_artifact_gate_not_pass_ready")
+        if current_gate_report.get("current_phase_gate_ok") is not True:
+            blockers.append("current_controlled_artifact_gate_phase_not_ok")
         if current_gate_report.get("unknown_mpf_artifacts"):
             blockers.append("current_controlled_artifact_gate_unknown_mpf_artifacts")
         if current_gate_report.get("forbidden_public_runtime_exposure"):
             blockers.append("forbidden_public_runtime_exposure_detected")
-    return {"component": "phase11_controlled_artifact_refresh_post_apply_verification", "repository_version": __version__, "package_id": package.get("package_id"), "corrected_artifact_status": corrected.get("status"), "stale_graph_status": NO_STALE if not stale_rules_after else stale_after.get("final_decision"), "blockers": sorted(set(blockers)), "final_decision": REFRESH_VERIFY_READY if not blockers else REFRESH_VERIFY_BLOCKED, "mutation_performed": False}
+        if current_gate_report.get("production_gates_remain_closed") is not True:
+            blockers.append("production_gates_not_closed")
+    duplicate_count = int(current_gate_report.get("duplicate_nat_redirect_count", 0)) if isinstance(current_gate_report, dict) else 0
+    return {"component": "phase11_controlled_artifact_refresh_post_apply_verification", "repository_version": __version__, "package_id": package.get("package_id"), "corrected_artifact_status": "semantic_post_dnat_present" if not blockers else "blocked", "stale_graph_status": NO_STALE if not stale_rules_after else stale_after.get("final_decision"), "duplicate_nat_redirect_count": duplicate_count, "blockers": sorted(set(blockers)), "final_decision": REFRESH_VERIFY_READY if not blockers else REFRESH_VERIFY_BLOCKED, "mutation_performed": False}
 
 # Operator-facing read-only / guarded helpers. These functions keep interfaces thin:
 # CLI and scripts call here, while collection, package hashing, preflight, and
@@ -380,6 +397,15 @@ def _load_planner_input(config_path: Path) -> tuple[list[dict[str, Any]], list[d
 def _write_json(path: Path, data: object) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False, default=str) + "\n"
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.chmod(0o600)
+    os.replace(tmp, path)
+    return _text_sha(text)
+
+
+def _write_text(path: Path, text: str) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     tmp.chmod(0o600)
@@ -492,28 +518,46 @@ def run_refresh_execute_report(*, package_json: Path, package_sha256: str, yes: 
     restore_test_invoked = bool(preflight.get("restore_test_invoked"))
     apply_invoked = False
     backup_files: dict[str, str] = {}
+    out = Path(out_dir or "/var/backups/mpf/phase11-controlled-artifact-refresh")
+    out.mkdir(parents=True, exist_ok=True)
+    files_written: dict[str, str] = {}
+    live_plan = preflight.get("live_plan") if isinstance(preflight.get("live_plan"), dict) else None
+    if live_plan is not None:
+        files_written["live-refresh-plan.json"] = _write_json(out / "live-refresh-plan.json", live_plan)
+    files_written["refresh-execute-preflight.json"] = _write_json(out / "refresh-execute-preflight.json", preflight)
     if blockers:
-        return {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": sorted(set(blockers)), "final_decision": "FAILED_PRE_APPLY", "restore_test_invoked": restore_test_invoked, "apply_invoked": False, "firewall_mutation_performed": False, "conntrack_flush_performed": False, "docker_restart_performed": False, "systemd_restart_performed": False}
+        report = {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": sorted(set(blockers)), "final_decision": "FAILED_PRE_APPLY", "restore_test_invoked": restore_test_invoked, "apply_invoked": False, "firewall_mutation_performed": False, "conntrack_flush_performed": False, "docker_restart_performed": False, "systemd_restart_performed": False}
+        files_written["refresh-execute.json"] = _write_json(out / "refresh-execute.json", report)
+        report["files_written"] = _write_manifest(out, files_written)
+        report["output_dir"] = str(out)
+        return report
     lock = FlockHostLock("/run/lock/mpf-phase11-controlled-artifact-refresh.lock")
     if not lock.acquire():
         return {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": ["exclusive_lock_unavailable"], "final_decision": "FAILED_PRE_APPLY", "restore_test_invoked": restore_test_invoked, "apply_invoked": False, "firewall_mutation_performed": False}
     try:
-        out = Path(out_dir or "/var/backups/mpf/phase11-controlled-artifact-refresh")
-        out.mkdir(parents=True, exist_ok=True)
-        live_plan = preflight.get("live_plan") if isinstance(preflight.get("live_plan"), dict) else run_refresh_plan_report(config_path=config_path, phase_status_text=phase_status_text, expected_version=expected_version)
+        live_plan = live_plan if live_plan is not None else run_refresh_plan_report(config_path=config_path, phase_status_text=phase_status_text, expected_version=expected_version)
         backup_files = {
-            "pre-apply-iptables-save.txt": _write_json(out / "pre-apply-iptables-save.json", {"iptables_save_text": live_plan.get("iptables_save_text", "")}),
-            "pre-apply-ip6tables-save.txt": _write_json(out / "pre-apply-ip6tables-save.json", {"ip6tables_save_text": live_plan.get("ip6tables_save_text", "")}),
+            "pre-apply-iptables-save.txt": _write_text(out / "pre-apply-iptables-save.txt", str(live_plan.get("iptables_save_text", ""))),
+            "pre-apply-ip6tables-save.txt": _write_text(out / "pre-apply-ip6tables-save.txt", str(live_plan.get("ip6tables_save_text", ""))),
         }
+        files_written.update(backup_files)
         test = ProductionIptablesRestoreRunner().run(["iptables-restore", "--test", "--noflush"], input_text=str(package.get("payload", "")))
+        files_written["restore-test.json"] = _write_json(out / "restore-test.json", {"returncode": test.returncode, "stdout": test.stdout, "stderr": test.stderr})
         restore_test_invoked = True
         if test.returncode != 0:
-            return {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": ["iptables_restore_test_failed"], "final_decision": "FAILED_PRE_APPLY", "restore_test_invoked": True, "apply_invoked": False, "firewall_mutation_performed": False, "backup_files": backup_files}
+            report = {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": ["iptables_restore_test_failed"], "final_decision": "FAILED_PRE_APPLY", "restore_test_invoked": True, "apply_invoked": False, "firewall_mutation_performed": False, "backup_files": backup_files}
+            files_written["refresh-execute.json"] = _write_json(out / "refresh-execute.json", report)
+            report["files_written"] = _write_manifest(out, files_written); report["output_dir"] = str(out)
+            return report
         apply = ProductionIptablesRestoreRunner().run(["iptables-restore", "--noflush"], input_text=str(package.get("payload", "")))
         apply_invoked = True
         if apply.returncode != 0:
-            return {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": ["iptables_restore_apply_failed"], "final_decision": "FAILED_APPLY", "restore_test_invoked": True, "apply_invoked": True, "firewall_mutation_performed": False, "backup_files": backup_files, "rollback_required": True}
-        return {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": [], "final_decision": "CONTROLLED_ARTIFACT_REFRESH_EXECUTED_PENDING_FARM5_EVIDENCE_REVIEW", "restore_test_invoked": True, "apply_invoked": True, "firewall_mutation_performed": True, "backup_files": backup_files, "rollback_required": False}
+            report = {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": ["iptables_restore_apply_failed"], "final_decision": "FAILED_APPLY", "restore_test_invoked": True, "apply_invoked": True, "firewall_mutation_performed": False, "backup_files": backup_files, "rollback_required": True}
+        else:
+            report = {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "package_id": package.get("package_id"), "blockers": [], "final_decision": "CONTROLLED_ARTIFACT_REFRESH_EXECUTED_PENDING_FARM5_EVIDENCE_REVIEW", "restore_test_invoked": True, "apply_invoked": True, "firewall_mutation_performed": True, "backup_files": backup_files, "rollback_required": False}
+        files_written["refresh-execute.json"] = _write_json(out / "refresh-execute.json", report)
+        report["files_written"] = _write_manifest(out, files_written); report["output_dir"] = str(out)
+        return report
     finally:
         lock.release()
 
@@ -552,3 +596,68 @@ def run_refresh_rollback_test_report(*, package_json: Path, package_sha256: str,
         report["files_written"] = _write_manifest(out, {"refresh-rollback-test.json": _write_json(out / "refresh-rollback-test.json", report)})
         report["output_dir"] = str(out)
     return report
+
+
+def build_duplicate_nat_cleanup_package(*, current_gate_report: dict[str, object], backend_target: dict[str, object], restore_test_result: dict[str, object] | None = None, package_file_sha256: str | None = None) -> dict[str, object]:
+    """Build a targeted, operator-gated package for exact duplicate MPF NAT redirects.
+
+    This is a package/contract primitive only. It renders one exact `-D` for each
+    duplicate beyond the first and refuses mixed unknown artifacts, backend drift,
+    public exposure, phase mismatch, missing restore-test evidence, or missing
+    package hash evidence.
+    """
+    blockers: list[str] = []
+    duplicates = list(current_gate_report.get("duplicate_nat_redirects", [])) if isinstance(current_gate_report.get("duplicate_nat_redirects"), list) else []
+    if current_gate_report.get("unknown_mpf_artifacts"):
+        blockers.append("unknown_mpf_artifacts_detected")
+    if current_gate_report.get("forbidden_public_runtime_exposure"):
+        blockers.append("forbidden_public_runtime_exposure_detected")
+    if current_gate_report.get("current_phase_gate_ok") is not True:
+        blockers.append("current_phase_gate_not_ok")
+    expected = f"{backend_target.get('resolved_ipv4') or backend_target.get('target_host')}:{BACKEND_PORT}"
+    delete_lines: list[str] = []
+    for rule in duplicates:
+        if "MPF_NAT_PRE" not in rule or "customer_nat_redirect" not in rule or "-j DNAT" not in rule:
+            blockers.append("duplicate_nat_redirect_not_exact_mpf_owned")
+            continue
+        if expected not in rule:
+            blockers.append("backend_target_drift")
+            continue
+        if not any(f"--dport {port}" in rule for port in SCOPE_PORTS):
+            blockers.append("duplicate_nat_redirect_out_of_scope")
+            continue
+        delete_lines.append("-D " + rule.split("-A ", 1)[1])
+    if not duplicates:
+        blockers.append("no_duplicate_nat_redirects")
+    if restore_test_result is None:
+        blockers.append("restore_test_noflush_required")
+    elif int(restore_test_result.get("returncode", 1)) != 0:
+        blockers.append("restore_test_noflush_failed")
+    if not package_file_sha256:
+        blockers.append("package_file_hash_required")
+    payload = "*nat\n" + "\n".join(delete_lines) + ("\n" if delete_lines else "") + "COMMIT\n"
+    package = {
+        "component": "phase11_controlled_duplicate_nat_cleanup_package",
+        "repository_version": __version__,
+        "scope": list(SCOPE),
+        "duplicate_controlled_artifacts": current_gate_report.get("duplicate_controlled_artifacts", []),
+        "duplicate_controlled_artifact_count": current_gate_report.get("duplicate_controlled_artifact_count", 0),
+        "duplicate_nat_redirects": duplicates,
+        "duplicate_nat_redirect_count": len(duplicates),
+        "payload": payload,
+        "payload_sha256": _text_sha(payload),
+        "restore_test_invoked": restore_test_result is not None,
+        "package_file_sha256": package_file_sha256,
+        "execution_precondition_fingerprint": _canonical_sha({"duplicates": duplicates, "backend": expected, "scope": list(SCOPE)}),
+        "operator_gates": ["MPF_PHASE11_CONTROLLED_DUPLICATE_NAT_CLEANUP=allow", "--yes", "exclusive_lock", "pre_apply_backup"],
+        "rollback_plan": {"manual_review_required": True, "automatic_rollback_execution_available": False},
+        "blockers": sorted(set(blockers)),
+        "final_decision": "CONTROLLED_DUPLICATE_NAT_CLEANUP_PACKAGE_READY" if not blockers else "BLOCKED_CONTROLLED_DUPLICATE_NAT_CLEANUP_PACKAGE",
+        "mutation_performed": False,
+        "firewall_mutation_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
+    }
+    package["package_sha256"] = _canonical_sha(_package_content_for_hash(package))
+    return package

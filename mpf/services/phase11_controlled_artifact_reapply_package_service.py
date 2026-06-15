@@ -83,6 +83,13 @@ def run_controlled_artifact_reapply_plan(config_path: Path = DEFAULT_CONFIG_PATH
     if not loaded.ok:
         return {"component": "phase11_controlled_artifact_reapply_plan", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["postgresql_planner_input_read_failed"], "message": loaded.message, "mutation_performed": False}
     backend = build_controlled_backend_target_report(expected_version=expected_version)
+    # 0.1.272: the accepted/current farm5 controlled graph is the corrected
+    # Docker-user forward post-DNAT binding. The generic reapply plan must not
+    # fall back to the older pre-DNAT INPUT/public-port filter payload after the
+    # current controlled artifact gate has passed.
+    backend["controlled_artifact_graph_binding_mode"] = "verified_docker_user_forward_post_dnat"
+    backend.setdefault("filter_packet_path", "docker_user_forward_verified")
+    backend.setdefault("conntrack_original_destination_supported", True)
     iptables_result = _cmd(["iptables-save"])
     ip6tables_result = _cmd(["ip6tables-save"])
     snapshot_blockers = [*_snapshot_structure_blockers(iptables_result, family="iptables"), *_snapshot_structure_blockers(ip6tables_result, family="ip6tables")]

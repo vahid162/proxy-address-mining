@@ -10,12 +10,16 @@ from mpf.services.phase11_controlled_artifact_refresh_service import (
     build_refresh_execute_preflight,
     build_refresh_package_from_plan,
     build_refresh_plan,
+    build_duplicate_nat_cleanup_package,
     classify_stale_0_1_269_graph,
     verify_post_apply_refresh,
     verify_refresh_package,
 )
+from mpf.services.phase11_current_controlled_artifact_gate_service import build_phase11_current_controlled_artifact_gate_report
 from mpf.services.phase11_controlled_artifact_reapply_core import build_controlled_desired_state
 from tests.test_phase11_controlled_artifact_reapply import PHASE, customers, lanes, target
+from typer.testing import CliRunner
+from mpf.interfaces.cli import app
 
 
 def _backend(ip: str = "172.18.0.2"):
@@ -57,6 +61,14 @@ def _corrected_snapshot() -> str:
     filter_lines = [item.split(":", 1)[1] for item in desired if item.startswith("filter:")]
     nat_lines = [item.split(":", 1)[1] for item in desired if item.startswith("nat:")]
     return "*filter\n" + "\n".join(filter_lines) + "\nCOMMIT\n*nat\n" + "\n".join(nat_lines) + "\nCOMMIT\n"
+
+
+def _gate(text: str):
+    return build_phase11_current_controlled_artifact_gate_report(
+        iptables_save_text=text,
+        phase_status_text=PHASE,
+        expected_backend_target="172.18.0.2:60010",
+    )
 
 
 def test_exact_farm5_0_1_269_stale_graph_is_controlled_refresh_required():
@@ -120,12 +132,24 @@ def test_post_apply_verifier_passes_only_when_corrected_graph_present_and_stale_
     pre = build_refresh_plan(lanes=lanes(), customers=customers(), backend_target=_backend(), iptables_save_text=_stale_snapshot(), phase_status_text=PHASE)
     pkg = build_refresh_package_from_plan(pre)
     corrected = build_refresh_plan(lanes=lanes(), customers=customers(), backend_target=_backend(), iptables_save_text=_corrected_snapshot(), phase_status_text=PHASE)
-    gate = {"final_decision": "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS", "unknown_mpf_artifacts": [], "forbidden_public_runtime_exposure": False}
+    gate = {**_gate(_corrected_snapshot()), "production_gates_remain_closed": True}
     report = verify_post_apply_refresh(package=pkg, post_apply_plan=corrected, current_gate_report=gate)
     assert report["final_decision"] == "CONTROLLED_ARTIFACT_REFRESH_VERIFY_READY"
     stale_report = verify_post_apply_refresh(package=pkg, post_apply_plan=pre, current_gate_report=gate)
     assert "stale_0_1_269_artifacts_still_present" in stale_report["blockers"]
     assert classify_stale_0_1_269_graph(iptables_save_text=_corrected_snapshot(), ip6tables_save_text="", desired_state=_desired(), backend_target=_backend())["final_decision"] == NO_STALE
+
+
+def test_post_apply_verifier_blocks_missing_gate_unknown_stale_and_missing_original_destination():
+    pre = build_refresh_plan(lanes=lanes(), customers=customers(), backend_target=_backend(), iptables_save_text=_stale_snapshot(), phase_status_text=PHASE)
+    pkg = build_refresh_package_from_plan(pre)
+    corrected = build_refresh_plan(lanes=lanes(), customers=customers(), backend_target=_backend(), iptables_save_text=_corrected_snapshot(), phase_status_text=PHASE)
+    assert "current_controlled_artifact_gate_report_required" in verify_post_apply_refresh(package=pkg, post_apply_plan=corrected, current_gate_report=None)["blockers"]
+    unknown_gate = {**_gate(_corrected_snapshot()), "unknown_mpf_artifacts": ["unknown_chain:MPFX"]}
+    assert "current_controlled_artifact_gate_unknown_mpf_artifacts" in verify_post_apply_refresh(package=pkg, post_apply_plan=corrected, current_gate_report=unknown_gate)["blockers"]
+    no_orig = _corrected_snapshot().replace("--ctstate DNAT --ctorigdstport 20101 ", "--ctstate DNAT ")
+    no_orig_plan = build_refresh_plan(lanes=lanes(), customers=customers(), backend_target=_backend(), iptables_save_text=no_orig, phase_status_text=PHASE)
+    assert any(str(b).startswith("post_apply_missing:") for b in verify_post_apply_refresh(package=pkg, post_apply_plan=no_orig_plan, current_gate_report=_gate(no_orig))["blockers"])
 
 
 def test_live_ready_refresh_mode_bypasses_binding_only_for_exact_stale_graph(monkeypatch, tmp_path):
@@ -187,6 +211,35 @@ def test_operator_service_plan_package_preflight_verify_and_execute_blocks(monke
     assert "current_controlled_artifact_gate_report_required" in verify["blockers"]
 
 
+def test_execute_report_writes_complete_evidence_and_matching_backup_names(monkeypatch, tmp_path):
+    from mpf.services import phase11_controlled_artifact_refresh_service as service
+
+    monkeypatch.setenv("MPF_PHASE11_CONTROLLED_ARTIFACT_REFRESH", "allow")
+    monkeypatch.setenv("MPF_PHASE11_CONTROLLED_ARTIFACT_REFRESH_EXECUTE", "allow")
+    monkeypatch.setattr(service, "_collect_live_inputs", lambda config_path: (lanes(), customers(), _backend(), _stale_snapshot(), "", []))
+    pkg_report = service.run_refresh_package_report(out_dir=tmp_path / "pkg")
+    package_file = tmp_path / "pkg" / "refresh-package.json"
+    calls = []
+
+    class Runner:
+        def run(self, argv, input_text=None):
+            calls.append(argv)
+            return service.CommandResult(0, "", "")
+
+    class Lock:
+        def __init__(self, path): pass
+        def acquire(self): return True
+        def release(self): pass
+
+    monkeypatch.setattr(service, "ProductionIptablesRestoreRunner", Runner)
+    monkeypatch.setattr(service, "FlockHostLock", Lock)
+    report = service.run_refresh_execute_report(package_json=package_file, package_sha256=pkg_report["files_written"]["refresh-package.json"], yes=True, out_dir=tmp_path / "exec")
+    assert report["final_decision"] == "CONTROLLED_ARTIFACT_REFRESH_EXECUTED_PENDING_FARM5_EVIDENCE_REVIEW"
+    for name in ["refresh-execute-preflight.json", "refresh-execute.json", "restore-test.json", "live-refresh-plan.json", "pre-apply-iptables-save.txt", "pre-apply-ip6tables-save.txt", "manifest.sha256.json"]:
+        assert (tmp_path / "exec" / name).exists()
+        assert name in report["files_written"]
+
+
 def test_script_routes_modes_to_real_refresh_cli(tmp_path):
     fake_mpf = tmp_path / "mpf"
     log = tmp_path / "mpf.log"
@@ -202,3 +255,29 @@ def test_script_routes_modes_to_real_refresh_cli(tmp_path):
     text = log.read_text(encoding="utf-8")
     for expected in ["--mode plan", "--mode package", "--mode execute-preflight", "--mode verify", "--mode rollback-test"]:
         assert expected in text
+
+
+def test_refresh_cli_blocked_final_decision_exits_nonzero():
+    result = CliRunner().invoke(app, ["production", "controlled-artifact-refresh-package", "--mode", "verify", "--output", "json"])
+    assert result.exit_code != 0
+    assert "BLOCKED_CONTROLLED_ARTIFACT_REFRESH_VERIFY" in result.output
+
+
+def test_current_gate_detects_duplicate_nat_and_cleanup_package_contract():
+    dup_text = _corrected_snapshot().replace("COMMIT\n", '-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.2:60010\nCOMMIT\n', 1)
+    gate = _gate(dup_text)
+    assert gate["duplicate_nat_redirect_count"] == 1
+    pkg = build_duplicate_nat_cleanup_package(current_gate_report=gate, backend_target=_backend(), restore_test_result={"returncode": 0}, package_file_sha256="abc")
+    assert pkg["final_decision"] == "CONTROLLED_DUPLICATE_NAT_CLEANUP_PACKAGE_READY"
+    assert pkg["payload"].count("-D MPF_NAT_PRE") == 1
+    assert "--dport 20001" in pkg["payload"] and "--dport 20101" not in pkg["payload"]
+    blocked = build_duplicate_nat_cleanup_package(current_gate_report={**gate, "unknown_mpf_artifacts": ["unknown_chain:MPFX"]}, backend_target=_backend(), restore_test_result={"returncode": 0}, package_file_sha256="abc")
+    assert "unknown_mpf_artifacts_detected" in blocked["blockers"]
+    drift = build_duplicate_nat_cleanup_package(current_gate_report=gate, backend_target=_backend("172.18.0.9"), restore_test_result={"returncode": 0}, package_file_sha256="abc")
+    assert "backend_target_drift" in drift["blockers"]
+    bad_test = build_duplicate_nat_cleanup_package(current_gate_report=gate, backend_target=_backend(), restore_test_result={"returncode": 1}, package_file_sha256="abc")
+    assert "restore_test_noflush_failed" in bad_test["blockers"]
+    no_hash = build_duplicate_nat_cleanup_package(current_gate_report=gate, backend_target=_backend(), restore_test_result={"returncode": 0}, package_file_sha256=None)
+    assert "package_file_hash_required" in no_hash["blockers"]
+    no_dup = build_duplicate_nat_cleanup_package(current_gate_report=_gate(_corrected_snapshot()), backend_target=_backend(), restore_test_result={"returncode": 0}, package_file_sha256="abc")
+    assert "no_duplicate_nat_redirects" in no_dup["blockers"]
