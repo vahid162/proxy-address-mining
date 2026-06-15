@@ -68,15 +68,17 @@ OFFICIAL_FULL = '''*filter
 :MPFO_20001 - [0:0]
 :MPFC_20101 - [0:0]
 :MPFO_20101 - [0:0]
--A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD
--A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:accounting" -j MPF_ACCT_IN
--A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:customers" -j MPF_CUSTOMERS
--A MPF_CUSTOMERS -p tcp --dport 60010 -m comment --comment "mpf:canary-btc-001:customer_dispatch" -j MPFC_20001
--A MPF_CUSTOMERS -p tcp --dport 60010 -m comment --comment "mpf:limited-btc-001:customer_dispatch" -j MPFC_20101
--A MPFC_20001 -p tcp --dport 60010 -m comment --comment "mpf:canary-btc-001:customer_connlimit_reject" -j REJECT
--A MPFC_20101 -p tcp --dport 60010 -m comment --comment "mpf:limited-btc-001:customer_hashlimit_reject" -j REJECT
--A MPF_ACCT_IN -p tcp --dport 60010 -m comment --comment "mpf:canary-btc-001:customer_accounting_in" -j RETURN
--A MPF_ACCT_OUT -p tcp --dport 60010 -m comment --comment "mpf:limited-btc-001:customer_accounting_out" -j RETURN
+-A DOCKER-USER -p tcp --dport 60010 -m conntrack --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:accounting" -j MPF_ACCT_IN
+-A DOCKER-USER -p tcp --dport 60010 -m conntrack --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:customers" -j MPF_CUSTOMERS
+-A DOCKER-USER -p tcp --dport 60010 -m conntrack ! --ctstate DNAT -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD
+-A MPF_CUSTOMERS -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20001 -m comment --comment "mpf:canary-btc-001:customer_dispatch" -j MPFC_20001
+-A MPF_CUSTOMERS -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20101 -m comment --comment "mpf:limited-btc-001:customer_dispatch" -j MPFC_20101
+-A MPFC_20001 -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20001 -m comment --comment "mpf:canary-btc-001:customer_connlimit_reject" -j REJECT
+-A MPFC_20101 -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20101 -m comment --comment "mpf:limited-btc-001:customer_hashlimit_reject" -j REJECT
+-A MPF_ACCT_IN -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20001 -m comment --comment "mpf:canary-btc-001:customer_accounting_in" -j RETURN
+-A MPF_ACCT_OUT -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20101 -m comment --comment "mpf:limited-btc-001:customer_accounting_out" -j RETURN
+-A MPFC_20001 -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20001 -m comment --comment "mpf:canary-btc-001:customer_any_policy_dispatch" -j MPFO_20001
+-A MPFC_20101 -p tcp --dport 60010 -m conntrack --ctstate DNAT --ctorigdstport 20101 -m comment --comment "mpf:limited-btc-001:customer_any_policy_dispatch" -j MPFO_20101
 COMMIT
 *nat
 :MPF_NAT_PRE - [0:0]

@@ -16,6 +16,7 @@ _ALLOWED = {
 _ALLOWED_CUSTOMERS = {v["customer"]: port for port, v in _ALLOWED.items()}
 _ALLOWED_SUFFIXES = {
     "customer_dispatch",
+    "customer_any_policy_dispatch",
     "customer_connlimit_reject",
     "customer_hashlimit_reject",
     "customer_accounting_in",
@@ -72,6 +73,11 @@ def _target(line: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _ctorigdstport(line: str) -> int | None:
+    m = re.search(r"--ctorigdstport\s+(\d+)\b", line)
+    return int(m.group(1)) if m else None
+
+
 def _validate_rule(chain: str, line: str, expected_backend_target: str | None) -> tuple[list[str], list[str]]:
     unknown: list[str] = []
     allowed: list[str] = []
@@ -107,7 +113,10 @@ def _validate_rule(chain: str, line: str, expected_backend_target: str | None) -
             if not unknown:
                 allowed.append(f"dnat:{expected_port}->{target}")
         else:
-            if port is not None and port not in {expected_port, 60010}:
+            if port == 60010:
+                if "--ctstate DNAT" not in line or _ctorigdstport(line) != expected_port:
+                    unknown.append(f"post_dnat_customer_original_port_mismatch:{customer}:{_ctorigdstport(line)}")
+            elif port is not None and port != expected_port:
                 unknown.append(f"customer_port_mismatch:{customer}:{port}")
             expected_chains = {"MPF_CUSTOMERS", "MPF_ACCT_IN", "MPF_ACCT_OUT", _ALLOWED[expected_port]["chain"], _ALLOWED[expected_port]["out_chain"]}
             if chain not in expected_chains and not chain.startswith("MPFL_"):

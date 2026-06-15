@@ -182,3 +182,28 @@ def test_cli_smoke_json_human_and_hash_options(tmp_path, monkeypatch):
     runner = CliRunner()
     assert runner.invoke(app, base + ["--output", "json"]).exit_code == 0
     assert runner.invoke(app, base + ["--output", "human"]).exit_code == 0
+
+
+def test_farm5_0269_guard_counter_shape_is_runtime_graph_blocker(tmp_path, monkeypatch):
+    farm5_live = '''*filter
+:MPF_CUSTOMERS - [0:0]
+:MPF_GUARD - [0:0]
+:MPF_ACCT_IN - [0:0]
+:MPFC_20001 - [0:0]
+:MPFC_20101 - [0:0]
+-A DOCKER-USER -p tcp --dport 60010 -m comment --comment "mpf:hook:verified_user_forward_post_dnat:backend_guard" -j MPF_GUARD
+[3:180] -A MPF_GUARD -p tcp --dport 60010 -m addrtype ! --src-type LOCAL -m comment --comment "mpf:backend_guard:btc:60010" -j REJECT --reject-with tcp-reset
+-A MPFC_20101 -p tcp --dport 20101 -m connlimit --connlimit-above 10 -m comment --comment "mpf:limited-btc-001:customer_connlimit_reject" -j REJECT
+-A MPFC_20101 -p tcp --dport 20101 -m hashlimit --hashlimit-above 60/minute --hashlimit-burst 10 --hashlimit-mode srcip --hashlimit-name x -m comment --comment "mpf:limited-btc-001:customer_hashlimit_reject" -j REJECT
+COMMIT
+*nat
+:MPF_NAT_PRE - [1:60]
+-A MPF_NAT_PRE -p tcp --dport 20001 -m comment --comment "mpf:canary-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.3:60010
+[1:60] -A MPF_NAT_PRE -p tcp --dport 20101 -m comment --comment "mpf:limited-btc-001:customer_nat_redirect" -j DNAT --to-destination 172.18.0.3:60010
+COMMIT
+'''
+    r = _run(tmp_path, monkeypatch, live=farm5_live)
+    assert r["runtime_graph_blocker"] is True
+    assert "runtime_graph_blocker" in r["blockers"]
+    assert r["runtime_path_evidence_ready"] is False
+    assert r["final_decision"] == "BLOCKED"

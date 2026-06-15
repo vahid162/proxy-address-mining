@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.270 - Phase 11 post-DNAT customer graph original-destination routing
+
+- Fix verified Docker-user post-DNAT controlled artifact semantics to route 20001/20101 customer traffic by conntrack original destination before the direct backend guard.
+- Add any-mode MPFC_<port> -> MPFO_<port> policy dispatch and fail-closed diagnostics for the farm5 0.1.269 guard-before-accounting runtime graph blocker.
+
 ## 0.1.269 - Phase 11 post-apply semantic classification and AI PR wrapper
 
 - Fix 0.1.268 post-apply semantic classification mismatch: guarded execute applied successfully but failed post-apply verification because exact string comparison did not accept iptables-save canonicalized official rules.
