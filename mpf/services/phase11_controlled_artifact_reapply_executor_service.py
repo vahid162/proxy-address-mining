@@ -23,6 +23,10 @@ from mpf.services.phase11_controlled_backend_target_service import build_control
 
 
 BOUND_PACKET_PATH_MODE = "verified_docker_user_forward_post_dnat"
+REVIEWED_BINDING_SEMANTIC_FIELDS = (
+    "controlled_artifact_graph_binding_mode",
+    "filter_packet_path",
+)
 
 
 def _fail_closed_bound_live_plan(expected_version: str, blockers: list[str], *, diagnostics: dict[str, object] | None = None) -> dict[str, object]:
@@ -73,9 +77,26 @@ def _canonical_backend_binding_identity(target: dict[str, object]) -> dict[str, 
     return identity
 
 
+def _runtime_target_with_reviewed_binding_semantics(package_target: dict[str, object], runtime_target: dict[str, object]) -> dict[str, object]:
+    """Add package-reviewed packet-path semantics to runtime comparison input.
+
+    The Docker-backed runtime backend resolver proves the live container/network/IP/health/public-exposure
+    identity, but it does not own the reviewed packet-path binding fields.  Those fields are already
+    validated against the live-ready package before this comparison.  Carrying them into the runtime side
+    here keeps the field-by-field evidence explicit without treating resolver shape differences as drift.
+    """
+
+    out = dict(runtime_target)
+    for field in REVIEWED_BINDING_SEMANTIC_FIELDS:
+        if out.get(field) is None and package_target.get(field) is not None:
+            out[field] = package_target.get(field)
+    return out
+
+
 def _backend_binding_identity_comparison(package_target: dict[str, object], runtime_target: dict[str, object]) -> dict[str, object]:
+    runtime_with_reviewed_semantics = _runtime_target_with_reviewed_binding_semantics(package_target, runtime_target)
     package_identity = _canonical_backend_binding_identity(package_target)
-    runtime_identity = _canonical_backend_binding_identity(runtime_target)
+    runtime_identity = _canonical_backend_binding_identity(runtime_with_reviewed_semantics)
     if "container_id" in package_identity and "container_id" not in runtime_identity:
         package_identity.pop("container_id", None)
     if "container_id" in runtime_identity and "container_id" not in package_identity:
@@ -94,6 +115,7 @@ def _backend_binding_identity_comparison(package_target: dict[str, object], runt
         "canonical_backend_binding_identity_match": not mismatched,
         "compared_stable_fields": compared,
         "mismatched_fields": mismatched,
+        "reviewed_binding_semantic_fields": list(REVIEWED_BINDING_SEMANTIC_FIELDS),
         "package_backend_target_fingerprint": package_target.get("target_fingerprint"),
         "live_backend_target_fingerprint": runtime_target.get("target_fingerprint"),
     }
