@@ -69,6 +69,7 @@ Keep runtime-first governance enforceable.
 
 ## How to test
 
+python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
 python -m pytest -q tests/test_ai_runtime_first_project_governance.py
 
 Version: 0.1.257 -> 0.1.258
@@ -134,6 +135,8 @@ def test_runtime_first_pr_wrapper_exists_and_validates_before_gh_create() -> Non
     assert "set -Eeuo pipefail" in text
     assert "validate_runtime_first_pr_body.py" in text
     assert "gh pr create --body-file" in text
+    assert "gh pr view --json body --jq .body" in text
+    assert "/tmp/pr_body.github.md" in text
 
 
 def test_ai_instructions_forbid_direct_gh_pr_create_and_require_wrapper() -> None:
@@ -219,6 +222,8 @@ def test_runtime_first_rule_doc_requires_body_file_validation_before_pr_creation
 
 def test_ci_validates_runtime_first_pr_body_before_tests() -> None:
     text = WORKFLOW.read_text(encoding="utf-8")
+    assert "validate-pr-body:" in text
+    assert "tests:" in text
     assert "name: Validate runtime-first PR body" in text
     assert "types: [opened, synchronize, reopened, edited]" in text
     assert "if: github.event_name == 'pull_request'" in text
@@ -295,3 +300,107 @@ It adds executable validation, CI enforcement, and regression tests. It is not o
 """
     result = _run_validator(tmp_path, body)
     assert result.returncode == 0, result.stderr
+
+
+def test_validator_rejects_missing_version_line(tmp_path: Path) -> None:
+    body = _body("verifier-doctor-package").replace("Version: 0.1.257 -> 0.1.258\n", "")
+    result = _run_validator(tmp_path, body)
+    assert result.returncode != 0
+    assert "Missing required SemVer bump line" in result.stderr
+
+
+def test_validator_rejects_missing_validator_command_in_how_to_test(tmp_path: Path) -> None:
+    body = _body("verifier-doctor-package").replace(
+        "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md\n", ""
+    )
+    result = _run_validator(tmp_path, body)
+    assert result.returncode != 0
+    assert "How to test" in result.stderr
+    assert "validate_runtime_first_pr_body.py /tmp/pr_body.md" in result.stderr
+
+
+def test_validator_rejects_unofficial_pr_class_options(tmp_path: Path) -> None:
+    body = _body("verifier-doctor-package").replace(
+        "- [ ] evidence/docs exception", "- [ ] evidence/docs exception\n- [ ] docs/evidence-only\n- [ ] test-only\n- [ ] refactor-only"
+    )
+    result = _run_validator(tmp_path, body)
+    assert result.returncode != 0
+    assert "unofficial checkbox option" in result.stderr
+    assert "docs/evidence-only" in result.stderr
+    assert "test-only" in result.stderr
+    assert "refactor-only" in result.stderr
+
+
+def test_validator_rejects_approximate_codex_style_pr_body(tmp_path: Path) -> None:
+    body = """
+## Motivation
+
+Fix CI.
+
+## Description
+
+- Updates governance.
+
+## Testing
+
+- python -m pytest -q
+
+## PR class
+
+- [x] test-only
+"""
+    result = _run_validator(tmp_path, body)
+    assert result.returncode != 0
+    assert "Generic AI-generated PR body detected" in result.stderr
+    assert "unofficial checkbox option" in result.stderr
+
+
+def test_validator_rejects_pr_289_approximate_class_shape_until_converted(tmp_path: Path) -> None:
+    approximate = _body("verifier-doctor-package").replace(
+        "- [ ] implementation\n- [ ] controlled-runtime\n- [x] verifier-doctor-package\n- [ ] runtime-first bundle\n- [ ] acceptance-review\n- [ ] evidence/docs exception",
+        "- [ ] implementation\n- [x] docs/evidence-only\n- [ ] test-only\n- [ ] refactor-only",
+    )
+    rejected = _run_validator(tmp_path, approximate)
+    assert rejected.returncode != 0
+    assert "docs/evidence-only" in rejected.stderr
+
+    converted = _body("verifier-doctor-package")
+    accepted = _run_validator(tmp_path, converted)
+    assert accepted.returncode == 0, accepted.stderr
+
+
+def test_print_template_contains_only_official_pr_class_taxonomy() -> None:
+    result = subprocess.run(
+        [sys.executable, str(VALIDATOR), "--print-template"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert result.returncode == 0
+    pr_section = result.stdout.split("## PR class", 1)[1].split("## Current blocker", 1)[0]
+    options = [line.split("]", 1)[1].strip() for line in pr_section.splitlines() if line.strip().startswith("- [")]
+    assert options == [
+        "implementation",
+        "controlled-runtime",
+        "verifier-doctor-package",
+        "runtime-first bundle",
+        "acceptance-review",
+        "evidence/docs exception",
+    ]
+    assert "docs/evidence-only" not in pr_section
+    assert "test-only" not in pr_section
+    assert "refactor-only" not in pr_section
+
+
+def test_print_template_contains_version_line_and_validator_command() -> None:
+    result = subprocess.run(
+        [sys.executable, str(VALIDATOR), "--print-template"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert "Version: X.Y.Z -> A.B.C" in result.stdout
+    assert "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md" in result.stdout

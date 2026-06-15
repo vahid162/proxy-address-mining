@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.273 - AI runtime-first PR preflight hardening
+
+- Enforce strict runtime-first PR body validation, including the required `Version: X.Y.Z -> A.B.C` line, the validator command in `How to test`, exactly one official PR class, and rejection of unofficial `docs/evidence-only`, `test-only`, and `refactor-only` options.
+- Add post-create GitHub PR body verification to the runtime-first PR wrapper, add `scripts/codex_pre_pr_check.sh`, and split CI into `validate-pr-body` and `tests` jobs for clearer diagnosis.
+
 ## 0.1.272 - Phase 11 post-refresh verification and duplicate NAT cleanup
 
 - Fix post-refresh verification to use the current controlled artifact gate plus strict corrected post-DNAT semantics instead of legacy pre-DNAT exact reapply classification.
