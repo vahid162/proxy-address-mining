@@ -37,6 +37,9 @@ def build_exact_inverse_payload(rollback_plan: dict[str, object]) -> tuple[str, 
         if table not in {"filter", "nat"}:
             blockers.append(f"rollback_table_not_allowed:{table}")
             continue
+        if rule != rule.strip() or "\n" in rule or "\r" in rule or rule.startswith("*"):
+            blockers.append("rollback_rule_not_single_line")
+            continue
         if any(bad in rule for bad in ("*raw", "*mangle", "COMMIT", "iptables-restore", "systemctl", "docker", "conntrack")):
             blockers.append("broad_restore_refused")
             continue
