@@ -157,6 +157,7 @@ from mpf.services import (
     phase11_controlled_artifact_persistence_plan_service,
     phase11_controlled_backend_target_service,
     phase11_controlled_artifact_reapply_package_service,
+    phase11_controlled_artifact_refresh_service,
     phase11_controlled_artifact_reapply_executor_service,
     phase11_controlled_artifact_reapply_verification_service,
     phase11_controlled_artifact_reapply_evidence_service,
@@ -3918,6 +3919,13 @@ def production_live_ready_controlled_artifact_reapply_package(
         report = phase11_live_ready_reapply_package_service.run_live_ready_reapply_package_report(_config_path(config), packet_path_evidence_dir=packet_path_evidence_dir, output_dir=output_dir, expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
         report = phase11_live_ready_reapply_package_service.build_fail_closed_live_ready_reapply_package_report(expected_version, ["live_ready_reapply_package_failed_closed", str(exc)])
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-refresh-package")
+def production_controlled_artifact_refresh_package(output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    """Emit a fail-closed placeholder for the controlled stale-artifact refresh package path."""
+    report = {"component": "phase11_controlled_artifact_refresh_package_cli", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REFRESH_PACKAGE", "blockers": ["source_backed_refresh_package_inputs_required"], "mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("controlled-artifact-reapply-plan")
