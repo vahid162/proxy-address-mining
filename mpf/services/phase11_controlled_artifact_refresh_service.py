@@ -689,22 +689,27 @@ def _duplicate_cleanup_gate(*, backend: dict[str, object], iptables_save_text: s
 
 def run_duplicate_nat_cleanup_plan_report(*, config_path: Path = DEFAULT_CONFIG_PATH, out_dir: Path | None = None, iptables_save_file: Path | None = None, ip6tables_save_file: Path | None = None, expected_backend_target: str | None = None, phase_status_text: str = "", expected_version: str = __version__) -> dict[str, object]:
     lanes, customers, backend, live_ipt, live_ip6, collect_blockers = _collect_live_inputs(config_path)
-    if expected_backend_target:
-        host, _, port = expected_backend_target.partition(":")
-        backend.update({"status": "ok", "resolved_ipv4": host, "target_host": host, "target_port": int(port or BACKEND_PORT), "backend_public_exposure": False})
+    live_expected_backend_target = _expected_backend_target(backend)
     ipt = iptables_save_file.read_text(encoding="utf-8") if iptables_save_file else live_ipt
     ip6 = ip6tables_save_file.read_text(encoding="utf-8") if ip6tables_save_file else live_ip6
     phase_text = phase_status_text or (Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8") if Path("docs/PHASE_STATUS.md").exists() else "")
     gate = _duplicate_cleanup_gate(backend=backend, iptables_save_text=ipt, ip6tables_save_text=ip6, phase_status_text=phase_text, expected_version=expected_version)
-    package = build_duplicate_nat_cleanup_package(current_gate_report=gate, backend_target=backend, restore_test_result={"returncode": 0}, package_file_sha256="operator_package_file_hash_pending")
+    package = build_duplicate_nat_cleanup_package(current_gate_report=gate, backend_target=backend, restore_test_result=None, package_file_sha256="operator_package_file_hash_pending")
+    package["preview_only"] = True
+    package["restore_test_required"] = True
+    package["restore_test_invoked"] = False
+    package["final_decision"] = "CONTROLLED_DUPLICATE_NAT_CLEANUP_PACKAGE_PREVIEW" if package.get("blockers") == ["restore_test_noflush_required"] else package.get("final_decision")
     blockers = [*collect_blockers]
+    if expected_backend_target and expected_backend_target != live_expected_backend_target:
+        blockers.append("backend_target_drift")
     for key, code in (("unknown_mpf_artifacts", "unknown_mpf_artifacts_detected"),):
         if gate.get(key): blockers.append(code)
     if gate.get("forbidden_public_runtime_exposure"): blockers.append("forbidden_public_runtime_exposure_detected")
+    if backend.get("backend_public_exposure"): blockers.append("backend_public_exposure_detected")
     if gate.get("production_gates_remain_closed") is not True: blockers.append("production_gates_not_closed")
     if gate.get("current_phase_gate_ok") is not True: blockers.append("current_phase_gate_not_ok")
     blockers.extend(str(b) for b in package.get("blockers", []) if b != "restore_test_noflush_required")
-    report = {"component": "phase11_controlled_duplicate_nat_cleanup_plan", "repository_version": __version__, "expected_backend_target": _expected_backend_target(backend), "current_controlled_artifact_gate": gate, "iptables_save_text": ipt, "ip6tables_save_text": ip6, "package_preview": package, "duplicate_nat_redirect_count": gate.get("duplicate_nat_redirect_count", 0), "blockers": sorted(set(blockers)), "final_decision": DUP_READY if not blockers else DUP_BLOCKED, "mutation_performed": False, "controlled_duplicate_nat_cleanup_execute_available": not blockers, "phase12_start_allowed": False, "worker_enforcement_allowed": "no", "ui_allowed": "no", "telegram_allowed": "no"}
+    report = {"component": "phase11_controlled_duplicate_nat_cleanup_plan", "repository_version": __version__, "expected_backend_target": live_expected_backend_target, "operator_expected_backend_target": expected_backend_target, "backend_target": backend, "current_controlled_artifact_gate": gate, "iptables_save_text": ipt, "ip6tables_save_text": ip6, "package_preview": package, "restore_test_required": True, "restore_test_invoked": False, "duplicate_nat_redirect_count": gate.get("duplicate_nat_redirect_count", 0), "blockers": sorted(set(blockers)), "final_decision": DUP_READY if not blockers else DUP_BLOCKED, "mutation_performed": False, "controlled_duplicate_nat_cleanup_execute_available": False, "phase12_start_allowed": False, "worker_enforcement_allowed": "no", "ui_allowed": "no", "telegram_allowed": "no"}
     if out_dir:
         out=Path(out_dir); report["files_written"]=_write_manifest(out,{"duplicate-nat-cleanup-plan.json": _write_json(out/"duplicate-nat-cleanup-plan.json", report)}); report["output_dir"]=str(out)
     return report
@@ -713,11 +718,22 @@ def run_duplicate_nat_cleanup_plan_report(*, config_path: Path = DEFAULT_CONFIG_
 def run_duplicate_nat_cleanup_package_report(**kwargs: object) -> dict[str, object]:
     out_dir = kwargs.pop("out_dir", None)
     plan = run_duplicate_nat_cleanup_plan_report(**kwargs)
-    package = dict(plan["package_preview"])
-    package["blockers"] = [] if plan["final_decision"] == DUP_READY else plan["blockers"]
+    preview = dict(plan["package_preview"])
+    restore_result = None
+    if preview.get("payload"):
+        result = _run_iptables_restore_safe(["iptables-restore", "--test", "--noflush"], str(preview.get("payload", "")))
+        restore_result = {"returncode": result.returncode, "stdout": result.stdout, "stderr": result.stderr}
+    package = build_duplicate_nat_cleanup_package(current_gate_report=plan.get("current_controlled_artifact_gate", {}), backend_target=plan.get("backend_target", {}), restore_test_result=restore_result, package_file_sha256="operator_package_file_hash_pending")
+    blockers = [str(b) for b in plan.get("blockers", [])]
+    blockers.extend(str(b) for b in package.get("blockers", []))
+    if restore_result is not None and int(restore_result.get("returncode", 1)) != 0:
+        blockers.append("iptables_restore_test_failed")
+    package["restore_test_result"] = restore_result
+    package["restore_test_invoked"] = restore_result is not None
+    package["blockers"] = sorted(set(blockers))
     package["final_decision"] = DUP_READY if not package["blockers"] else DUP_BLOCKED
     package["package_sha256"] = _canonical_sha(_package_content_for_hash(package))
-    report = {"component": "phase11_controlled_duplicate_nat_cleanup_package_report", "repository_version": __version__, "plan": plan, "package": package, "package_sha256": package["package_sha256"], "blockers": package["blockers"], "final_decision": package["final_decision"], "mutation_performed": False}
+    report = {"component": "phase11_controlled_duplicate_nat_cleanup_package_report", "repository_version": __version__, "plan": plan, "restore_test_result": restore_result, "restore_test_invoked": restore_result is not None, "package": package, "package_sha256": package["package_sha256"], "blockers": package["blockers"], "final_decision": package["final_decision"], "mutation_performed": False}
     if out_dir:
         out=Path(out_dir); files={"duplicate-nat-cleanup-plan.json": _write_json(out/"duplicate-nat-cleanup-plan.json", plan), "duplicate-nat-cleanup-package.json": _write_json(out/"duplicate-nat-cleanup-package.json", package), "rollback-contract.json": _write_json(out/"rollback-contract.json", package.get("rollback_plan", {}))}; report["files_written"]=_write_manifest(out, files); report["output_dir"]=str(out)
     return report
