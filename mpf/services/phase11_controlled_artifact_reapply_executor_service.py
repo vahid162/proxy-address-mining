@@ -28,6 +28,37 @@ REVIEWED_BINDING_SEMANTIC_FIELDS = (
     "filter_packet_path",
 )
 
+PACKAGE_PLACEHOLDER_BACKEND_METADATA = {
+    "network_id": {"verified_packet_path_bundle"},
+    "endpoint_id": {"verified_packet_path_endpoint"},
+    "compose_project": {None},
+    "tcp_connect_ok": {None},
+}
+INFORMATIONAL_BACKEND_METADATA_FIELDS = tuple(PACKAGE_PLACEHOLDER_BACKEND_METADATA)
+HARD_BACKEND_BINDING_IDENTITY_FIELDS = (
+    "target_host",
+    "resolved_ipv4",
+    "target_port",
+    "btc_backend_port",
+    "container_name",
+    "running",
+    "health_status",
+    "backend_public_exposure",
+    "listener_public",
+    "publish_public",
+    "controlled_artifact_graph_binding_mode",
+    "filter_packet_path",
+)
+
+
+def _is_ignored_package_placeholder(field: str, package_value: object, runtime_value: object) -> bool:
+    placeholders = PACKAGE_PLACEHOLDER_BACKEND_METADATA.get(field)
+    if placeholders is None or package_value not in placeholders:
+        return False
+    if field == "tcp_connect_ok":
+        return package_value is None and runtime_value is True
+    return True
+
 
 def _fail_closed_bound_live_plan(expected_version: str, blockers: list[str], *, diagnostics: dict[str, object] | None = None) -> dict[str, object]:
     out = {
@@ -102,19 +133,42 @@ def _backend_binding_identity_comparison(package_target: dict[str, object], runt
     if "container_id" in runtime_identity and "container_id" not in package_identity:
         runtime_identity.pop("container_id", None)
     fields = sorted(set(package_identity) | set(runtime_identity))
-    compared = {
-        field: {
-            "package": package_identity.get(field),
-            "runtime": runtime_identity.get(field),
-            "match": package_identity.get(field) == runtime_identity.get(field),
+    compared = {}
+    hard_mismatched: list[str] = []
+    informational_mismatched: list[str] = []
+    ignored_placeholder_fields: list[str] = []
+    for field in fields:
+        package_value = package_identity.get(field)
+        runtime_value = runtime_identity.get(field)
+        raw_match = package_value == runtime_value
+        ignored_placeholder = False if raw_match else _is_ignored_package_placeholder(field, package_value, runtime_value)
+        hard_identity_field = field in HARD_BACKEND_BINDING_IDENTITY_FIELDS
+        canonical_match = raw_match or ignored_placeholder or not hard_identity_field
+        compared[field] = {
+            "package": package_value,
+            "runtime": runtime_value,
+            "match": raw_match,
+            "canonical_match": canonical_match,
+            "hard_identity_field": hard_identity_field,
+            "informational_field": field in INFORMATIONAL_BACKEND_METADATA_FIELDS,
+            "ignored_package_placeholder": ignored_placeholder,
         }
-        for field in fields
-    }
-    mismatched = [field for field, item in compared.items() if not item["match"]]
+        if ignored_placeholder:
+            ignored_placeholder_fields.append(field)
+        elif not raw_match and hard_identity_field:
+            hard_mismatched.append(field)
+        elif not raw_match:
+            informational_mismatched.append(field)
+    mismatched = sorted(set(hard_mismatched + informational_mismatched))
     return {
-        "canonical_backend_binding_identity_match": not mismatched,
+        "canonical_backend_binding_identity_match": not hard_mismatched,
         "compared_stable_fields": compared,
         "mismatched_fields": mismatched,
+        "hard_identity_mismatched_fields": sorted(hard_mismatched),
+        "informational_mismatched_fields": sorted(informational_mismatched),
+        "ignored_package_placeholder_fields": sorted(ignored_placeholder_fields),
+        "hard_identity_fields": list(HARD_BACKEND_BINDING_IDENTITY_FIELDS),
+        "informational_metadata_fields": list(INFORMATIONAL_BACKEND_METADATA_FIELDS),
         "reviewed_binding_semantic_fields": list(REVIEWED_BINDING_SEMANTIC_FIELDS),
         "package_backend_target_fingerprint": package_target.get("target_fingerprint"),
         "live_backend_target_fingerprint": runtime_target.get("target_fingerprint"),
