@@ -70,15 +70,18 @@ class ControlledArtifactReapplyAuditRepo:
 
     def _psql_json(self, sql: str) -> dict[str, object]:
         completed = subprocess.run(
-            ["sudo", "-u", "mpf", "psql", "-X", "-v", "ON_ERROR_STOP=1", "-d", self._psql_dbname(), "-t", "-A"],
+            ["sudo", "-u", "mpf", "psql", "-X", "-q", "-v", "ON_ERROR_STOP=1", "-d", self._psql_dbname(), "-t", "-A"],
             input=sql, text=True, capture_output=True, check=False, shell=False,
         )
         if completed.returncode != 0:
             raise RuntimeError(f"psql_operational_metadata_write_failed:{completed.stderr.strip() or completed.stdout.strip()}")
-        lines = [line for line in completed.stdout.splitlines() if line.strip()]
+        lines = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
         if not lines:
             return {}
-        return json.loads(lines[-1])
+        json_lines = [line for line in lines if line.startswith("{") and line.endswith("}")]
+        if not json_lines:
+            raise RuntimeError(f"psql_operational_metadata_write_returned_no_json:{completed.stdout.strip()}")
+        return json.loads(json_lines[-1])
 
     def record_intent(self, package: dict[str, object], operator: str, reason: str, *, backup_result: dict[str, object], pre_iptables_save: str) -> dict[str, object]:
         correlation_id = str(package.get("package_id"))[:64]
