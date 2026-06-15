@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.265
+- fix(phase11): use structure-stable iptables/ip6tables snapshot hashes for guarded controlled execute drift while keeping raw hashes as diagnostics.
+
 ## 0.1.264
 - fix(phase11): ignore package placeholder backend metadata during guarded execute identity checks while preserving hard safety drift failures.
 

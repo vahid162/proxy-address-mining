@@ -264,8 +264,8 @@ def build_execution_time_live_ready_reapply_plan(
             "current_backend_target_fingerprint": current_backend.get("target_fingerprint"),
             "current_backend_resolved_ipv4": current_ip,
             "current_backend_target_port": current_backend.get("target_port"),
-            "iptables_save_sha256": (plan.get("snapshot_hashes") or {}).get("iptables_save_sha256") if isinstance(plan.get("snapshot_hashes"), dict) else None,
-            "ip6tables_save_sha256": (plan.get("snapshot_hashes") or {}).get("ip6tables_save_sha256") if isinstance(plan.get("snapshot_hashes"), dict) else None,
+            "iptables_structure_sha256": (plan.get("snapshot_hashes") or {}).get("iptables_structure_sha256") if isinstance(plan.get("snapshot_hashes"), dict) else None,
+            "ip6tables_structure_sha256": (plan.get("snapshot_hashes") or {}).get("ip6tables_structure_sha256") if isinstance(plan.get("snapshot_hashes"), dict) else None,
         }
     )
     return plan
