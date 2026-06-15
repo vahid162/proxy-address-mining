@@ -73,6 +73,33 @@ def _target(line: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _canonical_rule(line: str) -> str:
+    return " ".join(line.replace("-p tcp -m tcp", "-p tcp").split())
+
+
+def _duplicate_controlled_artifacts(lines: list[str], expected_backend_target: str | None) -> tuple[list[str], list[str]]:
+    counts: dict[str, int] = {}
+    nat_counts: dict[str, int] = {}
+    for ln in lines:
+        if not ln.startswith("-A "):
+            continue
+        cm = re.search(r"^-A\s+(\S+)", ln)
+        if not cm:
+            continue
+        chain = cm.group(1)
+        comment = _parse_comment_text(ln)
+        unknown, allowed = _validate_rule(chain, ln, expected_backend_target)
+        if unknown or not allowed:
+            continue
+        key = _canonical_rule(ln)
+        counts[key] = counts.get(key, 0) + 1
+        if chain == "MPF_NAT_PRE" and comment and comment.endswith(":customer_nat_redirect"):
+            nat_counts[key] = nat_counts.get(key, 0) + 1
+    duplicates = sorted(rule for rule, count in counts.items() for _ in range(max(0, count - 1)))
+    nat_duplicates = sorted(rule for rule, count in nat_counts.items() for _ in range(max(0, count - 1)))
+    return duplicates, nat_duplicates
+
+
 def _ctorigdstport(line: str) -> int | None:
     m = re.search(r"--ctorigdstport\s+(\d+)\b", line)
     return int(m.group(1)) if m else None
@@ -190,6 +217,10 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         unknown.extend(rule_unknown)
         allowed.extend(rule_allowed)
 
+    duplicate_artifacts, duplicate_nat = _duplicate_controlled_artifacts(lines, expected_backend_target)
+    if duplicate_artifacts:
+        warnings.append("duplicate_controlled_artifacts_present")
+
     unknown = sorted(set(unknown))
     known_present = bool(allowed)
 
@@ -212,6 +243,10 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         "known_controlled_artifacts_present": known_present,
         "allowed_controlled_artifacts": sorted(set(allowed)),
         "unknown_mpf_artifacts": unknown,
+        "duplicate_controlled_artifacts": duplicate_artifacts,
+        "duplicate_controlled_artifact_count": len(duplicate_artifacts),
+        "duplicate_nat_redirects": duplicate_nat,
+        "duplicate_nat_redirect_count": len(duplicate_nat),
         "forbidden_public_runtime_exposure": False,
         "production_gates_remain_closed": True,
         "blockers": sorted(set(blockers + (["unknown_mpf_artifacts_detected"] if unknown else []))),

@@ -3961,6 +3961,8 @@ def production_controlled_artifact_refresh_package(
         else:
             report = phase11_controlled_artifact_refresh_service.run_refresh_rollback_test_report(package_json=package_json, package_sha256=package_sha256, out_dir=out_dir)
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+    if str(report.get("final_decision", "")).startswith(("BLOCKED_", "FAILED_")):
+        raise typer.Exit(1)
 
 @production_app.command("controlled-artifact-reapply-plan")
 def production_controlled_artifact_reapply_plan(

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.272 - Phase 11 post-refresh verification and duplicate NAT cleanup
+
+- Fix post-refresh verification to use the current controlled artifact gate plus strict corrected post-DNAT semantics instead of legacy pre-DNAT exact reapply classification.
+- Detect duplicate controlled MPF NAT redirects, add a targeted operator-gated duplicate NAT cleanup package contract, standardize execute evidence files, and return non-zero for BLOCKED/FAILED refresh CLI decisions.
+- Keep farm5 controlled_cli_limited; Phase 11 operational completion is not accepted and Phase 12, UI, Telegram, and worker enforcement remain closed.
+
 ## 0.1.271 - Phase 11 controlled stale-artifact refresh
 
 - Add an operator-gated controlled refresh/rollback-first package path for exact stale 0.1.269 post-DNAT artifacts while preserving controlled_cli_limited gates.
