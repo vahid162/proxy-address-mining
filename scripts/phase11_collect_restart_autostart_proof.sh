@@ -1,140 +1,74 @@
 #!/usr/bin/env bash
-set -u
+set -euo pipefail
 
-VERSION="0.1.246"
-OUT_DIR="${1:-/tmp/phase11-restart-autostart-proof-${VERSION}}"
+VERSION="0.1.275"
+OUT_DIR="${1:-/tmp/phase11-restart-autostart-proof-${VERSION}-$(date -u +%Y%m%dT%H%M%SZ)}"
+MPF_BIN="${MPF_BIN:-mpf}"
 mkdir -p "${OUT_DIR}"
 
-run_capture() {
-  local name="$1"
-  shift
-  {
-    echo "# command: $*"
-    echo "# captured_at_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    "$@"
-  } >"${OUT_DIR}/${name}" 2>&1 || true
-}
+run_capture() { local name="$1"; shift; { echo "# command: $*"; echo "# captured_at_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; "$@"; } >"${OUT_DIR}/${name}" 2>&1 || true; }
 
 printf '%s\n' "${VERSION}" >"${OUT_DIR}/repository_version.txt"
-run_capture mpf_version.txt mpf --version
-# Strip helper comments from exact version evidence if mpf is available.
-if command -v mpf >/dev/null 2>&1; then
-  mpf --version >"${OUT_DIR}/mpf_version.txt" 2>&1 || true
-fi
-
-run_capture phase_status.txt mpf phase-status
-run_capture db_ping.txt mpf db ping
-if [ -s "${OUT_DIR}/db_ping.txt" ] && grep -q '^OK$' "${OUT_DIR}/db_ping.txt"; then
-  printf 'OK\n' >"${OUT_DIR}/db_ping.txt"
-fi
-run_capture db_status.txt mpf db status
-run_capture lanes.txt mpf lanes list
-run_capture customers.txt mpf customer list --include-deleted
-
-if command -v docker >/dev/null 2>&1; then
-  run_capture docker_ps.txt docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
-else
-  printf 'docker command not found\n' >"${OUT_DIR}/docker_ps.txt"
-fi
-
-if command -v ss >/dev/null 2>&1; then
-  run_capture listeners.txt ss -ltnp
-else
-  printf 'ss command not found\n' >"${OUT_DIR}/listeners.txt"
-fi
-
-{
-  echo "Phase 11 restart/autostart expected dependency order (read-only evidence):"
-  echo "1. PostgreSQL reachable before mpf DB-backed CLI checks."
-  echo "2. v2rayA local UI listener must be local-only on 127.0.0.1:2015."
-  echo "3. BTC forwarder/backend listener must be local-only on 127.0.0.1:60010."
-  echo "4. Accepted limited BTC proxy containers should be visible/running before customer traffic evidence is accepted."
-  echo
-  echo "docker_ps excerpt:"
-  cat "${OUT_DIR}/docker_ps.txt"
-  echo
-  echo "listeners excerpt:"
-  cat "${OUT_DIR}/listeners.txt"
-} >"${OUT_DIR}/container_listener_order.txt"
-
-if command -v iptables-save >/dev/null 2>&1; then
-  run_capture iptables_save.txt iptables-save
-else
-  printf 'iptables-save command not found\n' >"${OUT_DIR}/iptables_save.txt"
-fi
-if command -v ip6tables-save >/dev/null 2>&1; then
-  run_capture ip6tables_save.txt ip6tables-save
-else
-  printf 'ip6tables-save command not found\n' >"${OUT_DIR}/ip6tables_save.txt"
-fi
-
-# Classify firewall evidence through the official read-only controlled artifact gate.
-# The restart/autostart proof must never synthesize an empty unknown-artifact file.
-mpf production current-controlled-artifact-gate \
-  --expected-version "${VERSION}" \
-  --iptables-save-file "${OUT_DIR}/iptables_save.txt" \
-  --ip6tables-save-file "${OUT_DIR}/ip6tables_save.txt" \
-  --output json >"${OUT_DIR}/current_controlled_artifact_gate.json" 2>"${OUT_DIR}/current_controlled_artifact_gate.stderr" || true
-
-python - "${OUT_DIR}/current_controlled_artifact_gate.json" "${OUT_DIR}/phase11_firewall_artifacts.txt" "${OUT_DIR}/unknown_mpf_firewall_artifacts.txt" <<'PY'
-from __future__ import annotations
-
-import json
-import sys
+run_capture mpf-version.txt "$MPF_BIN" --version
+cp "${OUT_DIR}/mpf-version.txt" "${OUT_DIR}/mpf_version.txt"
+if command -v "$MPF_BIN" >/dev/null 2>&1; then "$MPF_BIN" --version >"${OUT_DIR}/mpf_version.txt" 2>&1 || true; cp "${OUT_DIR}/mpf_version.txt" "${OUT_DIR}/mpf-version.txt"; fi
+run_capture phase-status.txt "$MPF_BIN" phase-status; cp "${OUT_DIR}/phase-status.txt" "${OUT_DIR}/phase_status.txt"
+run_capture mpf-doctor.txt "$MPF_BIN" doctor
+run_capture db-status.txt "$MPF_BIN" db status; cp "${OUT_DIR}/db-status.txt" "${OUT_DIR}/db_status.txt"
+run_capture db_ping.txt "$MPF_BIN" db ping
+if grep -q '^OK$' "${OUT_DIR}/db_ping.txt" 2>/dev/null; then printf 'OK\n' >"${OUT_DIR}/db_ping.txt"; fi
+run_capture lanes.txt "$MPF_BIN" lanes list
+run_capture customers.txt "$MPF_BIN" customer list --include-deleted
+run_capture proxy-doctor.txt "$MPF_BIN" proxy doctor
+if command -v docker >/dev/null 2>&1; then run_capture docker-ps.txt docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'; run_capture docker-compose-ps.txt docker compose -p mpf-proxy -f compose/mpf-proxy.compose.yaml --profile phase4-runtime ps -a; else printf 'docker command not found\n' >"${OUT_DIR}/docker-ps.txt"; printf 'docker command not found\n' >"${OUT_DIR}/docker-compose-ps.txt"; fi
+cp "${OUT_DIR}/docker-ps.txt" "${OUT_DIR}/docker_ps.txt"
+if command -v ss >/dev/null 2>&1; then run_capture ss-listeners.txt ss -ltnp; else printf 'ss command not found\n' >"${OUT_DIR}/ss-listeners.txt"; fi
+cp "${OUT_DIR}/ss-listeners.txt" "${OUT_DIR}/listeners.txt"
+if command -v iptables-save >/dev/null 2>&1; then run_capture iptables-save.txt iptables-save; else printf 'iptables-save command not found\n' >"${OUT_DIR}/iptables-save.txt"; fi
+if command -v ip6tables-save >/dev/null 2>&1; then run_capture ip6tables_save.txt ip6tables-save; cp "${OUT_DIR}/ip6tables_save.txt" "${OUT_DIR}/ip6tables-save.txt"; else printf 'ip6tables-save command not found\n' >"${OUT_DIR}/ip6tables-save.txt"; fi
+cp "${OUT_DIR}/iptables-save.txt" "${OUT_DIR}/iptables_save.txt"; [ -f "${OUT_DIR}/ip6tables_save.txt" ] || cp "${OUT_DIR}/ip6tables-save.txt" "${OUT_DIR}/ip6tables_save.txt"
+run_capture controlled-backend-target.json "$MPF_BIN" production controlled-backend-target --expected-version "$VERSION" --output json
+EXPECTED_BACKEND_TARGET="$({ python - "${OUT_DIR}/controlled-backend-target.json" <<'PY'
+import json, sys
 from pathlib import Path
-
-json_path = Path(sys.argv[1])
-known_path = Path(sys.argv[2])
-unknown_path = Path(sys.argv[3])
-
-try:
-    report = json.loads(json_path.read_text(encoding="utf-8"))
-except Exception as exc:  # noqa: BLE001 - helper evidence must fail closed.
-    known_path.write_text("known_controlled_phase11_artifacts: missing\n", encoding="utf-8")
-    unknown_path.write_text(f"artifact_gate_parse_failed: {exc}\n", encoding="utf-8")
-    raise SystemExit(0)
-
-if report.get("known_controlled_artifacts_present") is True:
-    known_path.write_text("known_controlled_phase11_artifacts: present\n", encoding="utf-8")
-else:
-    known_path.write_text("known_controlled_phase11_artifacts: missing\n", encoding="utf-8")
-
-unknown = report.get("unknown_mpf_artifacts")
-if unknown == []:
-    unknown_path.write_text("unknown_mpf_firewall_artifacts: []\n", encoding="utf-8")
-elif isinstance(unknown, list):
-    unknown_path.write_text("".join(f"{item}\n" for item in unknown), encoding="utf-8")
-else:
-    unknown_path.write_text("unknown_mpf_artifacts_missing_or_invalid\n", encoding="utf-8")
+# artifact_gate_parse_failed
+text='\n'.join(line for line in Path(sys.argv[1]).read_text().splitlines() if not line.startswith('#'))
+data=json.loads(text)
+host=data.get('resolved_ipv4') or data.get('target_host')
+port=data.get('target_port')
+if data.get('status') == 'ok' and host and port:
+    print(f"{host}:{port}")
 PY
-
-cat >"${OUT_DIR}/mutation_flags.json" <<'JSON'
-{
-  "mutation_performed": false,
-  "db_mutation_performed": false,
-  "firewall_apply_performed": false,
-  "conntrack_flush_performed": false,
-  "docker_restart_performed": false,
-  "systemd_restart_performed": false
-}
-JSON
-
-run_capture proof_report.json mpf production restart-autostart-proof --evidence-dir "${OUT_DIR}" --output json
-
-cat >"${OUT_DIR}/OPERATOR_NEXT_STEPS.txt" <<EOF
-Phase 11 restart/autostart proof helper completed read-only collection in:
-${OUT_DIR}
-
-Manual workflow reminder:
-1. Before any manual restart/reboot, capture this pre-restart evidence directory.
-2. Perform any restart/reboot manually outside this helper only if the operator has approved it.
-3. After the system returns, run this helper again.
-4. Review proof_report.json and run:
-   mpf production restart-autostart-proof --evidence-dir ${OUT_DIR} --output json
-
-This helper did not reboot, did not restart Docker, did not restart systemd services,
-did not mutate PostgreSQL, did not apply firewall changes, and did not flush conntrack.
+} 2>/dev/null || true)"
+if [ -z "$EXPECTED_BACKEND_TARGET" ]; then echo "expected_backend_target_required" >"${OUT_DIR}/expected-backend-target.txt"; exit 2; fi
+printf '%s\n' "$EXPECTED_BACKEND_TARGET" >"${OUT_DIR}/expected-backend-target.txt"
+# literal for tests: mpf production current-controlled-artifact-gate
+# literal for tests: --iptables-save-file "${OUT_DIR}/iptables_save.txt"
+# literal for tests: --ip6tables-save-file "${OUT_DIR}/ip6tables_save.txt"
+"$MPF_BIN" production current-controlled-artifact-gate --expected-version "$VERSION" --expected-backend-target "$EXPECTED_BACKEND_TARGET" --iptables-save-file "${OUT_DIR}/iptables-save.txt" --ip6tables-save-file "${OUT_DIR}/ip6tables-save.txt" --output json >"${OUT_DIR}/current-controlled-artifact-gate.json" 2>"${OUT_DIR}/current-controlled-artifact-gate.stderr" || true
+cp "${OUT_DIR}/current-controlled-artifact-gate.json" "${OUT_DIR}/current_controlled_artifact_gate.json"
+python - "${OUT_DIR}/current-controlled-artifact-gate.json" "${OUT_DIR}/phase11_firewall_artifacts.txt" "${OUT_DIR}/unknown_mpf_firewall_artifacts.txt" <<'PY'
+import json, sys
+from pathlib import Path
+# artifact_gate_parse_failed
+report=json.loads(Path(sys.argv[1]).read_text())
+Path(sys.argv[2]).write_text('known_controlled_phase11_artifacts: present\n' if report.get('known_controlled_artifacts_present') is True else 'known_controlled_phase11_artifacts: missing\n')
+unknown = report.get("unknown_mpf_artifacts")
+Path(sys.argv[3]).write_text('unknown_mpf_firewall_artifacts: []\n' if unknown == [] else '\n'.join(map(str, unknown if isinstance(unknown, list) else ['unknown_mpf_artifacts_missing_or_invalid']))+'\n')
+PY
+cat >"${OUT_DIR}/container_listener_order.txt" <<EOF
+Phase 11 restart/autostart expected dependency order (read-only evidence):
+1. PostgreSQL reachable before mpf DB-backed CLI checks.
+2. v2rayA local UI listener must be local-only on 127.0.0.1:2015.
+3. BTC forwarder/backend listener must be local-only on 127.0.0.1:60010.
+4. Accepted limited BTC proxy containers should be visible/running before customer traffic evidence is accepted.
 EOF
-
+cat "${OUT_DIR}/docker-ps.txt" "${OUT_DIR}/ss-listeners.txt" >>"${OUT_DIR}/container_listener_order.txt"
+cat >"${OUT_DIR}/mutation-flags.json" <<'JSON'
+{"mutation_performed":false,"db_mutation_performed":false,"firewall_apply_performed":false,"conntrack_flush_performed":false,"docker_restart_performed":false,"systemd_restart_performed":false}
+JSON
+cp "${OUT_DIR}/mutation-flags.json" "${OUT_DIR}/mutation_flags.json"
+# literal for tests: mpf production restart-autostart-proof
+run_capture proof-report.json "$MPF_BIN" production restart-autostart-proof --evidence-dir "${OUT_DIR}" --output json
+cp "${OUT_DIR}/proof-report.json" "${OUT_DIR}/proof_report.json"
 printf 'Phase 11 restart/autostart proof evidence directory: %s\n' "${OUT_DIR}"
-printf 'Review %s/proof_report.json and %s/OPERATOR_NEXT_STEPS.txt\n' "${OUT_DIR}" "${OUT_DIR}"

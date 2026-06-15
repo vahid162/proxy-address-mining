@@ -168,6 +168,7 @@ from mpf.services import (
     phase11_verified_filter_hook_binding_service,
     phase11_live_ready_reapply_package_service,
     phase11_canary_evidence_pack_service,
+    phase11_post_cleanup_restart_persistence_evidence_service,
     phase11_canary_db_visibility_activation_service,
     operator_execution_context_service,
 )
@@ -3884,6 +3885,30 @@ def production_controlled_backend_target(
     report = phase11_controlled_backend_target_service.build_controlled_backend_target_report(expected_version=expected_version)
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
+
+
+@production_app.command("phase11-post-cleanup-restart-persistence-evidence")
+def production_phase11_post_cleanup_restart_persistence_evidence(
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Compose read-only post-cleanup restart/autostart and persistence evidence readiness."""
+
+    try:
+        report = phase11_post_cleanup_restart_persistence_evidence_service.build_phase11_post_cleanup_restart_persistence_evidence_report(
+            _config_path(config), expected_version=expected_version, evidence_dir=evidence_dir
+        )
+    except Exception as exc:  # noqa: BLE001 - fail closed for operator bundle.
+        report = phase11_post_cleanup_restart_persistence_evidence_service.build_fail_closed_report(
+            expected_version=expected_version, blockers=["post_cleanup_restart_persistence_evidence_failed_closed", str(exc)]
+        )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    for key in ("component", "final_decision", "next_required_step", "blockers"):
+        typer.echo(f"{key}: {report.get(key)}")
 
 
 @production_app.command("controlled-artifact-reapply-readiness")
