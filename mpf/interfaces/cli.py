@@ -157,6 +157,7 @@ from mpf.services import (
     phase11_controlled_artifact_persistence_plan_service,
     phase11_controlled_backend_target_service,
     phase11_controlled_artifact_reapply_package_service,
+    phase11_controlled_artifact_refresh_service,
     phase11_controlled_artifact_reapply_executor_service,
     phase11_controlled_artifact_reapply_verification_service,
     phase11_controlled_artifact_reapply_evidence_service,
@@ -3918,6 +3919,47 @@ def production_live_ready_controlled_artifact_reapply_package(
         report = phase11_live_ready_reapply_package_service.run_live_ready_reapply_package_report(_config_path(config), packet_path_evidence_dir=packet_path_evidence_dir, output_dir=output_dir, expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
         report = phase11_live_ready_reapply_package_service.build_fail_closed_live_ready_reapply_package_report(expected_version, ["live_ready_reapply_package_failed_closed", str(exc)])
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-refresh-package")
+def production_controlled_artifact_refresh_package(
+    mode: Literal["plan", "package", "execute-preflight", "execute", "verify", "rollback-test"] = typer.Option("package", "--mode"),
+    out_dir: Path | None = typer.Option(None, "--out-dir"),
+    package_json: Path | None = typer.Option(None, "--package-json"),
+    package_sha256: str | None = typer.Option(None, "--package-sha256"),
+    current_gate_json: Path | None = typer.Option(None, "--current-gate-json"),
+    yes: bool = typer.Option(False, "--yes"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Build or preflight the controlled stale-artifact refresh path."""
+    cfg = _config_path(config)
+    if mode == "plan":
+        report = phase11_controlled_artifact_refresh_service.run_refresh_plan_report(config_path=cfg, out_dir=out_dir, expected_version=expected_version)
+    elif mode == "package":
+        report = phase11_controlled_artifact_refresh_service.run_refresh_package_report(config_path=cfg, out_dir=out_dir, expected_version=expected_version)
+    elif mode == "execute-preflight":
+        if package_json is None or not package_sha256:
+            report = {"component": "phase11_controlled_artifact_refresh_execute_preflight", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REFRESH_EXECUTE_PREFLIGHT", "blockers": ["package_json_and_sha256_required"], "mutation_performed": False}
+        else:
+            report = phase11_controlled_artifact_refresh_service.run_refresh_execute_preflight_report(package_json=package_json, package_sha256=package_sha256, config_path=cfg, out_dir=out_dir, expected_version=expected_version)
+    elif mode == "execute":
+        if package_json is None or not package_sha256:
+            report = {"component": "phase11_controlled_artifact_refresh_executor", "repository_version": __version__, "final_decision": "FAILED_PRE_APPLY", "blockers": ["package_json_and_sha256_required"], "firewall_mutation_performed": False}
+        else:
+            report = phase11_controlled_artifact_refresh_service.run_refresh_execute_report(package_json=package_json, package_sha256=package_sha256, yes=yes, config_path=cfg, out_dir=out_dir, expected_version=expected_version)
+    elif mode == "verify":
+        if package_json is None or not package_sha256:
+            report = {"component": "phase11_controlled_artifact_refresh_post_apply_verification", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REFRESH_VERIFY", "blockers": ["package_json_and_sha256_required"], "mutation_performed": False}
+        else:
+            report = phase11_controlled_artifact_refresh_service.run_refresh_verify_report(package_json=package_json, package_sha256=package_sha256, current_gate_json=current_gate_json, config_path=cfg, out_dir=out_dir, expected_version=expected_version)
+    else:
+        if package_json is None or not package_sha256:
+            report = {"component": "phase11_controlled_artifact_refresh_rollback_test", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REFRESH_ROLLBACK_TEST", "blockers": ["package_json_and_sha256_required"], "mutation_performed": False}
+        else:
+            report = phase11_controlled_artifact_refresh_service.run_refresh_rollback_test_report(package_json=package_json, package_sha256=package_sha256, out_dir=out_dir)
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 @production_app.command("controlled-artifact-reapply-plan")

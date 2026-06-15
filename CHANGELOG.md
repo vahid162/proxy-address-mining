@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.271 - Phase 11 controlled stale-artifact refresh
+
+- Add an operator-gated controlled refresh/rollback-first package path for exact stale 0.1.269 post-DNAT artifacts while preserving controlled_cli_limited gates.
+- Add explicit stale graph classification, execute-preflight, post-apply verification contract, and operator wrapper script guidance.
+
 ## 0.1.270 - Phase 11 post-DNAT customer graph original-destination routing
 
 - Fix verified Docker-user post-DNAT controlled artifact semantics to route 20001/20101 customer traffic by conntrack original destination before the direct backend guard.
