@@ -3,20 +3,32 @@ from __future__ import annotations
 import re
 
 from mpf import __version__
+from mpf.services.phase11_controlled_artifact_taxonomy import (
+    OFFICIAL_CONTROLLED_CHAINS,
+    classify_controlled_artifact,
+    is_mpf_like_chain,
+)
 
 _ALLOWED = {
-    20001: {"customer": "canary-btc-001", "chain": "MPFC_20001"},
-    20101: {"customer": "limited-btc-001", "chain": "MPFC_20101"},
+    20001: {"customer": "canary-btc-001", "chain": "MPFC_20001", "out_chain": "MPFO_20001"},
+    20101: {"customer": "limited-btc-001", "chain": "MPFC_20101", "out_chain": "MPFO_20101"},
 }
-_ALLOWED_CHAINS = {"MPFC_20001", "MPFC_20101", "MPF_NAT_PRE"}
-_ALLOWED_TARGET = "172.18.0.3:60010"
-_ALLOWED_SUFFIXES = {"customer_connlimit_reject", "customer_hashlimit_reject", "customer_nat_redirect"}
+_ALLOWED_CUSTOMERS = {v["customer"]: port for port, v in _ALLOWED.items()}
+_ALLOWED_SUFFIXES = {
+    "customer_dispatch",
+    "customer_connlimit_reject",
+    "customer_hashlimit_reject",
+    "customer_accounting_in",
+    "customer_accounting_out",
+    "customer_whitelist_allow",
+    "customer_whitelist_reject",
+    "customer_nat_redirect",
+}
+_BACKEND_GUARD_RE = re.compile(r"^mpf:backend_guard:btc:60010$")
+_HOOK_RE = re.compile(r"^mpf:hook:(nat_prerouting|filter_input|verified_user_forward_post_dnat:(backend_guard|accounting|customers))$")
 
 
 def _phase_gate_ok(phase_status_text: str) -> bool:
-    # Active runtime reports are authorizing only for the current accepted
-    # Phase 11 operational-completion state. Historical pre-acceptance
-    # fixtures remain non-authorizing and must not pass this active gate.
     required = (
         "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
         "current_working_phase: Phase 11 operational completion — Full CLI Production Operations",
@@ -40,11 +52,94 @@ def _parse_chain_decl(line: str) -> str | None:
     return m.group(1) if m else None
 
 
-def _parse_comment(line: str) -> tuple[str, str] | None:
-    m = re.search(r'--comment\s+"mpf:([^:\"]+):(customer_[a-z_]+)"', line)
-    if not m:
-        return None
-    return m.group(1), m.group(2)
+def _parse_comment_text(line: str) -> str | None:
+    m = re.search(r'--comment\s+"([^"]+)"', line)
+    return m.group(1) if m else None
+
+
+def _parse_customer_comment(comment: str | None) -> tuple[str, str] | None:
+    m = re.match(r"^mpf:([^:]+):(customer_[a-z_]+)$", comment or "")
+    return (m.group(1), m.group(2)) if m else None
+
+
+def _dport(line: str) -> int | None:
+    m = re.search(r"--dport\s+(\d+)\b", line)
+    return int(m.group(1)) if m else None
+
+
+def _target(line: str) -> str | None:
+    m = re.search(r"--to-destination\s+([0-9.]+:\d+)", line)
+    return m.group(1) if m else None
+
+
+def _validate_rule(chain: str, line: str, expected_backend_target: str | None) -> tuple[list[str], list[str]]:
+    unknown: list[str] = []
+    allowed: list[str] = []
+    comment = _parse_comment_text(line)
+    classification = classify_controlled_artifact(chain=chain, comment=comment)
+    if classification == "unknown_mpf_artifact":
+        unknown.append(f"unknown_rule:{chain}:{comment or 'no_comment'}")
+        return unknown, allowed
+    if classification != "official_phase11_controlled_artifact" and any(token in line for token in ("MPF", "mpf:", "customer_")):
+        unknown.append(f"unknown_rule:{chain}:{comment or 'no_comment'}")
+        return unknown, allowed
+
+    customer_comment = _parse_customer_comment(comment)
+    port = _dport(line)
+    if customer_comment:
+        customer, suffix = customer_comment
+        if customer not in _ALLOWED_CUSTOMERS:
+            unknown.append(f"unknown_customer_key:{customer}")
+            return unknown, allowed
+        expected_port = _ALLOWED_CUSTOMERS[customer]
+        if suffix not in _ALLOWED_SUFFIXES:
+            unknown.append(f"unexpected_comment_suffix:{suffix}")
+        if suffix == "customer_nat_redirect":
+            if chain != "MPF_NAT_PRE" or "-j DNAT" not in line:
+                unknown.append(f"nat_comment_in_unexpected_chain:{chain}")
+            if port != expected_port:
+                unknown.append(f"nat_port_mismatch:{customer}:{port}")
+            target = _target(line)
+            if expected_backend_target is None:
+                unknown.append(f"dnat_target_unresolved:{expected_port}->{target or 'missing'}")
+            elif target != expected_backend_target:
+                unknown.append(f"dnat_target_mismatch:{expected_port}->{target or 'missing'}")
+            if not unknown:
+                allowed.append(f"dnat:{expected_port}->{target}")
+        else:
+            if port is not None and port not in {expected_port, 60010}:
+                unknown.append(f"customer_port_mismatch:{customer}:{port}")
+            expected_chains = {"MPF_CUSTOMERS", "MPF_ACCT_IN", "MPF_ACCT_OUT", _ALLOWED[expected_port]["chain"], _ALLOWED[expected_port]["out_chain"]}
+            if chain not in expected_chains and not chain.startswith("MPFL_"):
+                unknown.append(f"customer_rule_unexpected_chain:{customer}:{chain}")
+            if not unknown:
+                allowed.append(f"comment:{customer}:{suffix}")
+        return unknown, allowed
+
+    if comment:
+        if _BACKEND_GUARD_RE.match(comment):
+            if port not in {None, 60010}:
+                unknown.append(f"backend_guard_port_mismatch:{port}")
+            elif chain not in {"MPF_GUARD", "DOCKER-USER", "INPUT", "MPF_INPUT"}:
+                unknown.append(f"backend_guard_unexpected_chain:{chain}")
+            else:
+                allowed.append(f"comment:{comment}")
+            return unknown, allowed
+        if _HOOK_RE.match(comment):
+            allowed.append(f"comment:{comment}")
+            return unknown, allowed
+        if "mpf:" in comment or "customer_" in comment:
+            unknown.append(f"unknown_comment:{comment}")
+            return unknown, allowed
+
+    if chain == "MPF_NAT_PRE" and ("-j DNAT" not in line or _target(line) is None):
+        unknown.append("mpf_nat_pre_non_dnat_or_incomplete_rule")
+    elif is_mpf_like_chain(chain):
+        if chain in OFFICIAL_CONTROLLED_CHAINS:
+            allowed.append(f"chain_ref:{chain}")
+        else:
+            unknown.append(f"unknown_chain_ref:{chain}")
+    return unknown, allowed
 
 
 def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text: str, ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = __version__, expected_backend_target: str | None = None) -> dict[str, object]:
@@ -63,14 +158,17 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         unknown.append("ipv6_mpf_or_customer_artifact_detected")
 
     lines = [ln.strip() for ln in iptables_save_text.splitlines() if ln.strip()]
+    has_dnat = any("MPF_NAT_PRE" in ln and "-j DNAT" in ln and "--to-destination" in ln for ln in lines)
+    if has_dnat and expected_backend_target is None:
+        blockers.append("expected_backend_target_required")
 
     for ln in lines:
         ch = _parse_chain_decl(ln)
         if not ch:
             continue
-        if ch.startswith(("MPF", "MPFBTC", "MPFC_", "MPFO_")) and ch not in _ALLOWED_CHAINS:
+        if is_mpf_like_chain(ch) and ch not in OFFICIAL_CONTROLLED_CHAINS:
             unknown.append(f"unknown_chain:{ch}")
-        elif ch in _ALLOWED_CHAINS:
+        elif ch in OFFICIAL_CONTROLLED_CHAINS:
             allowed.append(f"chain:{ch}")
 
     for ln in lines:
@@ -79,54 +177,9 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         cm = re.search(r"^-A\s+(\S+)", ln)
         if not cm:
             continue
-        chain = cm.group(1)
-
-        cmt = _parse_comment(ln)
-        dport_m = re.search(r"--dport\s+(\d+)\b", ln)
-        dport = int(dport_m.group(1)) if dport_m else None
-
-        if chain in {"MPFC_20001", "MPFC_20101"}:
-            expected_port = 20001 if chain == "MPFC_20001" else 20101
-            exp = _ALLOWED[expected_port]
-            if dport != expected_port:
-                unknown.append(f"chain_port_mismatch:{chain}:{dport}")
-            if cmt is None:
-                unknown.append(f"missing_or_invalid_comment:{chain}")
-            else:
-                customer, suffix = cmt
-                if suffix not in {"customer_connlimit_reject", "customer_hashlimit_reject"}:
-                    unknown.append(f"unexpected_comment_suffix:{suffix}")
-                if customer != exp["customer"]:
-                    unknown.append(f"unknown_customer_key:{customer}")
-                else:
-                    allowed.append(f"comment:{customer}:{suffix}")
-
-        if chain == "MPF_NAT_PRE":
-            tm = re.search(r"--to-destination\s+([0-9.]+:\d+)", ln)
-            if "-j DNAT" not in ln or not tm or dport is None:
-                unknown.append("mpf_nat_pre_non_dnat_or_incomplete_rule")
-                continue
-            target = tm.group(1)
-            if dport not in _ALLOWED:
-                unknown.append(f"mpf_nat_pre_unknown_port:{dport}")
-                continue
-            exp = _ALLOWED[dport]
-            expected_target = expected_backend_target
-            if expected_target is None:
-                blockers.append("expected_backend_target_required")
-                unknown.append(f"dnat_target_unresolved:{dport}->{target}")
-            elif target != expected_target:
-                unknown.append(f"dnat_target_mismatch:{dport}->{target}")
-            if cmt is None:
-                unknown.append("missing_or_invalid_nat_comment")
-            else:
-                customer, suffix = cmt
-                if suffix != "customer_nat_redirect":
-                    unknown.append(f"unexpected_comment_suffix:{suffix}")
-                if customer != exp["customer"]:
-                    unknown.append(f"unknown_customer_key:{customer}")
-            if expected_backend_target is not None and target == expected_backend_target and cmt and cmt[0] == exp["customer"] and cmt[1] == "customer_nat_redirect":
-                allowed.append(f"dnat:{dport}->{target}")
+        rule_unknown, rule_allowed = _validate_rule(cm.group(1), ln, expected_backend_target)
+        unknown.extend(rule_unknown)
+        allowed.extend(rule_allowed)
 
     unknown = sorted(set(unknown))
     known_present = bool(allowed)

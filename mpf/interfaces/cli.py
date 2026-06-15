@@ -162,6 +162,7 @@ from mpf.services import (
     phase11_controlled_artifact_reapply_evidence_service,
     phase11_controlled_artifact_reapply_readiness_service,
     phase11_controlled_artifact_reapply_execution_gate_preflight_service,
+    phase11_controlled_artifact_reapply_rollback_executor_service,
     phase11_controlled_filter_packet_path_service,
     phase11_verified_filter_hook_binding_service,
     phase11_live_ready_reapply_package_service,
@@ -2930,7 +2931,7 @@ def production_single_customer_post_apply_evidence(
 
 
 @production_app.command("current-controlled-artifact-gate")
-def production_current_controlled_artifact_gate(iptables_save_file: Path = typer.Option(..., "--iptables-save-file"), ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"), expected_version: str = typer.Option("0.1.209", "--expected-version"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+def production_current_controlled_artifact_gate(iptables_save_file: Path = typer.Option(..., "--iptables-save-file"), ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"), expected_version: str = typer.Option(__version__, "--expected-version"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     phase_status_text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     ipv4 = iptables_save_file.read_text(encoding="utf-8")
     ipv6 = ip6tables_save_file.read_text(encoding="utf-8") if ip6tables_save_file else ""
@@ -2977,7 +2978,7 @@ def production_single_customer_runtime_path_evidence(
 
 @production_app.command("single-customer-runtime-probe-diagnostics")
 def production_single_customer_runtime_probe_diagnostics(
-    expected_version: str = typer.Option("0.1.209", "--expected-version"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
     post_apply_evidence_json: Path = typer.Option(..., "--post-apply-evidence-json"),
     post_apply_evidence_json_sha256: str = typer.Option(..., "--post-apply-evidence-json-sha256"),
     runtime_path_evidence_json: Path | None = typer.Option(None, "--runtime-path-evidence-json"),
@@ -4000,6 +4001,33 @@ def production_controlled_artifact_reapply_execute(
         report = {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["package_json_read_failed"], "error": str(exc), "firewall_mutation_performed": False, "iptables_restore_invoked": False}
     else:
         report = phase11_controlled_artifact_reapply_executor_service.execute_controlled_artifact_reapply_package(package=package, package_sha256=package_sha256, package_id=package_id, operator=operator, reason=reason, execute=execute, yes=yes, expected_version=expected_version)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("controlled-artifact-reapply-rollback")
+def production_controlled_artifact_reapply_rollback(
+    package_json: Path = typer.Option(..., "--package-json"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    apply: bool = typer.Option(False, "--apply"),
+    yes: bool = typer.Option(False, "--yes"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Test or apply a reviewed exact-inverse controlled artifact rollback package."""
+
+    try:
+        package = phase11_controlled_artifact_reapply_rollback_executor_service.load_package(package_json)
+        report = phase11_controlled_artifact_reapply_rollback_executor_service.execute_reviewed_rollback(
+            package=package,
+            operator=operator,
+            reason=reason,
+            apply=apply,
+            yes=yes,
+            expected_version=expected_version,
+        )
+    except Exception as exc:  # noqa: BLE001
+        report = {"component": "phase11_controlled_artifact_reapply_rollback_executor", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_ROLLBACK", "blockers": ["rollback_package_read_failed"], "error": str(exc), "firewall_mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 
