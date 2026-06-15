@@ -1,6 +1,8 @@
-## 0.1.251 current step: sync_and_collect_controlled_filter_packet_path_evidence_on_farm5
+0.1.263 controlled reapply execute binding note: farm5 0.1.262 reached READY live-ready package and READY execute-preflight, then guarded execute failed pre-apply before any restore test or firewall mutation because execute-time backend binding/drift comparison treated raw backend fingerprint/source shape differences as broad drift and buried the root cause under secondary blockers. Version 0.1.263 canonicalizes execute-time backend binding identity comparison, preserves fail-closed behavior for real backend identity drift/public exposure/unhealthy backend/gate failures, and records compact FAILED_PRE_APPLY diagnostics. Current next_required_step: offline sync 0.1.263 to farm5, regenerate/review the live-ready controlled artifact reapply package if needed, run fresh execute-preflight, then run guarded controlled artifact reapply execute only if all gates remain READY and blockers=[]. production_traffic and customer_onboarding_allowed remain controlled_cli_limited; restart_autostart_proof and Full CLI Production Operations remain missing_or_partial/unaccepted; Phase 12, worker enforcement, UI, Telegram, timers, daemons, Docker/systemd/conntrack mutation, customer/policy/abuse mutation, and unrestricted production remain blocked.
 
-Version 0.1.251 implements the source-backed controlled artifact renderer and real live-preflight/lock/backup/PostgreSQL-audit/rollback/verification adapter wiring; it does not restore farm5 artifacts and no READY farm5 package has been collected. `read_only_reapply_foundation_implemented=true`, `desired_artifact_semantics_complete=false`, `production_execution_available=false`, and `live_ready_package_available=false`, so farm5 READY package sync is intentionally deferred. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
+## 0.1.263 current step: fix_execute_time_canonical_backend_binding_drift_contract
+
+Farm5 0.1.262 reached READY live-ready package and READY execute-preflight, then guarded controlled artifact reapply execute failed pre-apply before restore-test/apply because execute-time backend binding drift detection used raw fingerprint/source shape too coarsely. Version 0.1.263 must fix that canonical binding/drift contract, keep real drift/public exposure/unhealthy backend fail-closed, and make the next_required_step: offline sync 0.1.263 to farm5, regenerate/review the live-ready package if needed, run fresh execute-preflight, then run guarded execute only if blockers=[]. Restart/autostart proof remains `missing_or_partial`; Full CLI Production Operations, Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain blocked.
 
 ## 0.1.248 current step: implement_controlled_artifact_reapply_execute_package
 
@@ -57,7 +59,7 @@ unrestricted production/miner expansion
 timers or daemon starts without a later explicit accepted gate
 ```
 
-The current required implementation step after the 0.1.251 runtime-forward implementation is `sync_and_collect_controlled_filter_packet_path_evidence_on_farm5`.
+The current required implementation step after the 0.1.262 farm5 FAILED_PRE_APPLY evidence is `fix_execute_time_canonical_backend_binding_drift_contract`.
 
 ## Progress Update (0.1.239)
 

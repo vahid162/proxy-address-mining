@@ -720,6 +720,8 @@ class FlockHostLock:
 def _execution_drift_blockers(live_plan: dict[str, object], package: dict[str, object]) -> list[str]:
     blockers: list[str] = []
     live_blockers = live_plan.get("blockers", []) if isinstance(live_plan.get("blockers"), list) else []
+    if "backend_target_binding_identity_drift" in live_blockers:
+        return ["backend_target_binding_identity_drift", "live_plan_blocked", "live_plan_not_package_ready"]
     if live_blockers:
         blockers.append("live_plan_blocked")
     if live_plan.get("final_decision") != PACKAGE_READY:
@@ -746,6 +748,24 @@ def _execution_drift_blockers(live_plan: dict[str, object], package: dict[str, o
     if (live_plan.get("artifact_classification") or {}).get("blockers") if isinstance(live_plan.get("artifact_classification"), dict) else True:
         blockers.append("live_artifact_classification_blocked")
     return sorted(set(blockers))
+
+
+def _pre_apply_drift_evidence(live_plan: dict[str, object], package: dict[str, object]) -> dict[str, object]:
+    live_blockers = live_plan.get("blockers", []) if isinstance(live_plan.get("blockers"), list) else []
+    root = live_plan.get("root_cause_blocker")
+    if root is None and "backend_target_binding_identity_drift" in live_blockers:
+        root = "backend_target_binding_identity_drift"
+    return {
+        "live_plan_final_decision": live_plan.get("final_decision"),
+        "live_plan_blockers": live_blockers,
+        "package_backend_target_fingerprint": package.get("backend_target_fingerprint"),
+        "live_backend_target_fingerprint": ((live_plan.get("backend_target") or {}).get("target_fingerprint") if isinstance(live_plan.get("backend_target"), dict) else live_plan.get("live_backend_target_fingerprint")),
+        "package_execution_precondition_fingerprint": package.get("execution_precondition_fingerprint"),
+        "live_execution_precondition_fingerprint": live_plan.get("execution_precondition_fingerprint") or live_plan.get("live_execution_precondition_fingerprint"),
+        "drift_comparison": live_plan.get("drift_comparison"),
+        "canonical_backend_binding_identity_match": live_plan.get("canonical_backend_binding_identity_match"),
+        "root_cause_blocker": root,
+    }
 
 
 def execute_package(*, package: dict[str, object], package_sha256: str, package_id: str, operator: str, reason: str, execute: bool = False, yes: bool = False, expected_version: str = __version__, live_plan_builder: Callable[[], dict[str, object]] | None = None, runner: Any | None = None, backup: Any | None = None, metadata_repo: Any | None = None, lock: Any | None = None, env: dict[str, str] | None = None, current_hostname: str | None = None) -> dict[str, object]:
@@ -801,7 +821,7 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
     live_plan = live_plan_builder()
     drift = _execution_drift_blockers(live_plan, package)
     if drift:
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": sorted(drift), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": sorted(drift), "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, **_pre_apply_drift_evidence(live_plan, package)}
 
     if not lock.acquire():
         return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["exclusive_lock_unavailable"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
@@ -810,7 +830,7 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
         post_lock_plan = live_plan_builder()
         post_lock_drift = _execution_drift_blockers(post_lock_plan, package)
         if post_lock_drift:
-            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["post_lock_live_preflight_drift", *post_lock_drift], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False}
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["post_lock_live_preflight_drift", *post_lock_drift], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, **_pre_apply_drift_evidence(post_lock_plan, package)}
         iptables_text = str(post_lock_plan.get("iptables_save_text", ""))
         ip6tables_text = str(post_lock_plan.get("ip6tables_save_text", ""))
         backup_result = backup.prepare(package, iptables_save=iptables_text, ip6tables_save=ip6tables_text)
@@ -819,7 +839,7 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
         pre_restore_drift = _execution_drift_blockers(pre_restore_plan, package)
         if pre_restore_drift:
             metadata_repo.record_result(package, "FAILED_PRE_APPLY", backup_result=backup_result, post_iptables_save=str(pre_restore_plan.get("iptables_save_text", "")), error_details={"blockers": pre_restore_drift}, partial_apply_possible=False, rollback_required=False)
-            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["pre_restore_live_preflight_drift", *pre_restore_drift], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "metadata": intent_refs}
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_PRE_APPLY", "blockers": ["pre_restore_live_preflight_drift", *pre_restore_drift], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "metadata": intent_refs, **_pre_apply_drift_evidence(pre_restore_plan, package)}
         payload = str(package.get("payload", ""))
         test = _run_stdout(runner, ["iptables-restore", "--test", "--noflush"], input_text=payload)
         restore_test_invoked = True
