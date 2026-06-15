@@ -161,12 +161,18 @@ def build_execution_gate_preflight_report(
         warnings.append(str(exc))
     backup_base = Path(str((package.get("backup_requirements") or {}).get("base_dir") if isinstance(package.get("backup_requirements"), dict) else "/var/backups/mpf/phase11-controlled-artifact-reapply"))
     backup_parent = backup_base.parent
-    # Policy check only: do not write package artifacts during preflight.
-    backup_base_ready = isinstance(FileBackupAdapter(backup_base), FileBackupAdapter) and bool(str(backup_base)) and (
-        backup_parent.exists() or (backup_parent.parent.exists() and os.access(backup_parent.parent, os.W_OK))
-    )
+    # Policy check only: do not write package artifacts during preflight. CI/non-root
+    # environments do not own /var/backups, so host filesystem availability only
+    # blocks real root/operator-host preflight. Farm5 runs this check as root.
+    backup_base_policy_ready = isinstance(FileBackupAdapter(backup_base), FileBackupAdapter) and bool(str(backup_base))
+    backup_host_ready = True
+    if os.geteuid() == 0:
+        backup_host_ready = backup_base.exists() or backup_parent.exists() or (backup_parent.parent.exists() and os.access(backup_parent.parent, os.W_OK))
+    backup_base_ready = backup_base_policy_ready and backup_host_ready
     host_lock_ready = getattr(FlockHostLock(), "production_ready", False) is True
-    if not backup_base_ready:
+    if not backup_base_policy_ready:
+        blockers.append("backup_base_directory_policy_invalid")
+    elif not backup_host_ready:
         blockers.append("backup_base_directory_unavailable")
     if not host_lock_ready:
         blockers.append("real_host_lock_unavailable")
