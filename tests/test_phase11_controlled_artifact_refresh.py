@@ -200,9 +200,9 @@ def test_operator_service_plan_package_preflight_verify_and_execute_blocks(monke
     assert preflight["final_decision"] == "CONTROLLED_ARTIFACT_REFRESH_EXECUTE_PREFLIGHT_READY"
     assert ["iptables-restore", "--test", "--noflush"] in calls
     assert ["iptables-restore", "--noflush"] not in calls
-    blocked = service.run_refresh_execute_report(package_json=package_file, package_sha256=package_sha, yes=False)
+    blocked = service.run_refresh_execute_report(package_json=package_file, package_sha256=package_sha, yes=False, out_dir=tmp_path / "blocked")
     assert "yes_confirmation_required" in blocked["blockers"]
-    mismatch = service.run_refresh_execute_report(package_json=package_file, package_sha256="bad", yes=True)
+    mismatch = service.run_refresh_execute_report(package_json=package_file, package_sha256="bad", yes=True, out_dir=tmp_path / "mismatch")
     assert "package_file_sha256_mismatch" in mismatch["blockers"]
     monkeypatch.setattr(service, "_collect_live_inputs", lambda config_path: (lanes(), customers(), _backend(), _corrected_snapshot(), "", []))
     drift = service.run_refresh_execute_preflight_report(package_json=package_file, package_sha256=package_sha)
