@@ -647,6 +647,49 @@ def test_execution_time_live_ready_plan_accepts_same_identity_with_different_raw
     assert "backend_target_binding_identity_drift" not in live_plan.get("blockers", [])
 
 
+def test_execution_time_live_ready_plan_ignores_package_placeholder_backend_metadata(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+
+    class Loaded:
+        ok = True
+        lanes = LIVE_LANES
+        customers = LIVE_CUSTOMERS
+        message = "ok"
+
+    bound_target = pkg["plan"]["backend_target"]
+    package_target = dict(
+        bound_target,
+        network_id="verified_packet_path_bundle",
+        endpoint_id="verified_packet_path_endpoint",
+        compose_project=None,
+    )
+    package_target["reachability"] = dict(package_target.get("reachability") or {}, tcp_connect_ok=None)
+    pkg["plan"]["backend_target"] = package_target
+    runtime_target = dict(bound_target, network_id="real-docker-network", endpoint_id="real-docker-endpoint", compose_project="mpf-proxy")
+    runtime_target["reachability"] = dict(runtime_target.get("reachability") or {}, tcp_connect_ok=True)
+    runtime_target["target_fingerprint"] = "b" * 64
+
+    monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
+    monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: runtime_target)
+    monkeypatch.setattr(executor_svc, "_phase_text", lambda: PHASE)
+    monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
+    monkeypatch.setattr(executor_svc, "_cmd", lambda argv: type("R", (), {"argv": argv, "command": argv[0], "returncode": 0, "stdout": snapshot, "stderr": "", "ok": True})())
+
+    live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
+    assert live_plan["final_decision"] == PACKAGE_READY
+    assert live_plan["canonical_backend_binding_identity_match"] is True
+    assert "backend_target_binding_identity_drift" not in live_plan.get("blockers", [])
+    comparison = live_plan["drift_comparison"]
+    assert comparison["hard_identity_mismatched_fields"] == []
+    assert comparison["informational_mismatched_fields"] == []
+    assert comparison["ignored_package_placeholder_fields"] == ["compose_project", "endpoint_id", "network_id", "tcp_connect_ok"]
+    assert comparison["compared_stable_fields"]["network_id"]["ignored_package_placeholder"] is True
+    assert comparison["compared_stable_fields"]["tcp_connect_ok"]["ignored_package_placeholder"] is True
+
+
 def test_execution_time_live_ready_plan_fails_closed_on_binding_mismatch(tmp_path, monkeypatch):
     from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
 
@@ -711,7 +754,7 @@ def test_execution_time_live_ready_plan_fails_closed_on_backend_identity_drift(t
         message = "ok"
 
     bound_target = pkg["plan"]["backend_target"]
-    drifted_target = dict(bound_target, network_id="net2", endpoint_id="endpoint2", target_fingerprint="f" * 64)
+    drifted_target = dict(bound_target, resolved_ipv4="172.19.0.6", target_host="172.19.0.6", target_fingerprint="f" * 64)
     monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
     monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: drifted_target)
     monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
@@ -724,6 +767,7 @@ def test_execution_time_live_ready_plan_fails_closed_on_backend_identity_drift(t
     assert live_plan["root_cause_blocker"] == "backend_target_binding_identity_drift"
     assert live_plan["canonical_backend_binding_identity_match"] is False
     assert live_plan["drift_comparison"]["mismatched_fields"]
+    assert live_plan["drift_comparison"]["hard_identity_mismatched_fields"] == ["resolved_ipv4", "target_host"]
 
     runner = ProductionRunner()
     result = execute_package(
@@ -752,6 +796,32 @@ def test_execution_time_live_ready_plan_fails_closed_on_backend_identity_drift(t
     assert result["drift_comparison"]["canonical_backend_binding_identity_match"] is False
     assert result["iptables_restore_invoked"] is False
     assert runner.calls == []
+
+
+def test_execution_time_live_ready_plan_fails_closed_on_backend_port_drift(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+
+    class Loaded:
+        ok = True
+        lanes = LIVE_LANES
+        customers = LIVE_CUSTOMERS
+        message = "ok"
+
+    bound_target = pkg["plan"]["backend_target"]
+    drifted_target = dict(bound_target, target_port=60011, target_fingerprint="c" * 64)
+    monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
+    monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: drifted_target)
+    monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
+    monkeypatch.setattr(executor_svc, "_cmd", lambda argv: type("R", (), {"argv": argv, "command": argv[0], "returncode": 0, "stdout": snapshot, "stderr": "", "ok": True})())
+
+    live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
+    assert live_plan["final_decision"] == PACKAGE_BLOCKED
+    assert "backend_target_binding_identity_drift" in live_plan["blockers"]
+    assert live_plan["canonical_backend_binding_identity_match"] is False
+    assert live_plan["drift_comparison"]["hard_identity_mismatched_fields"] == ["btc_backend_port", "target_port"]
 
 
 def test_executor_generated_live_ready_package_preflight_only_operator_gates(tmp_path, monkeypatch):

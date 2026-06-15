@@ -6,4 +6,4 @@ UI, Telegram, worker enforcement, unrestricted production expansion, and unrestr
 Importing this package performs no DB, firewall, conntrack, Docker, or systemd mutation.
 """
 
-__version__ = "0.1.263"
+__version__ = "0.1.264"

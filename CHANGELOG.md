@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.264
+- fix(phase11): ignore package placeholder backend metadata during guarded execute identity checks while preserving hard safety drift failures.
+
 ## 0.1.263
 - fix(phase11): canonicalize guarded controlled artifact reapply execute-time backend binding drift comparison and improve pre-apply diagnostics.
 
