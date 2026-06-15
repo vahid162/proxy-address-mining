@@ -13,6 +13,7 @@ import json
 import os
 import re
 import socket
+import shlex
 import subprocess
 import uuid
 from dataclasses import asdict, dataclass, replace
@@ -485,28 +486,87 @@ def _present_lines(iptables_save_text: str) -> list[str]:
     return present
 
 
+def _canonical_artifact_line(artifact: str) -> tuple[str, list[str]]:
+    """Canonicalize official Phase 11 rules for comparison only.
+
+    iptables-restore payloads are intentionally hashed and rendered exactly as
+    built.  iptables-save may add explicit match modules or normalize extension
+    options after apply; this helper recognizes only those official semantic
+    equivalents for classification/verification.
+    """
+
+    table, sep, line = artifact.partition(":")
+    if not sep:
+        return artifact.strip(), []
+    try:
+        tokens = shlex.split(line)
+    except ValueError:
+        return artifact.strip(), []
+    applied: list[str] = []
+    out: list[str] = []
+    i = 0
+    while i < len(tokens):
+        token = tokens[i]
+        if token == "-p" and i + 3 < len(tokens) and tokens[i + 1] == "tcp" and tokens[i + 2] == "-m" and tokens[i + 3] == "tcp":
+            out.extend(["-p", "tcp"])
+            applied.append("removed_redundant_m_tcp")
+            i += 4
+            continue
+        if token == "--connlimit-saddr":
+            applied.append("removed_default_connlimit_saddr")
+            i += 1
+            continue
+        if token == "--hashlimit-htable-expire" and i + 1 < len(tokens) and tokens[i + 1] == "60000":
+            applied.append("removed_default_hashlimit_htable_expire_60000")
+            i += 2
+            continue
+        if token == "--hashlimit-above" and i + 1 < len(tokens):
+            rate = tokens[i + 1]
+            if rate == "2/sec":
+                out.extend([token, "120/minute"])
+                applied.append("normalized_hashlimit_2_per_sec_to_120_per_minute")
+                i += 2
+                continue
+            if rate == "1/sec":
+                out.extend([token, "60/minute"])
+                applied.append("normalized_hashlimit_1_per_sec_to_60_per_minute")
+                i += 2
+                continue
+        out.append(token)
+        i += 1
+    return f"{table}:{' '.join(out)}", applied
+
+
 def classify_controlled_artifacts(*, iptables_save_text: str, ip6tables_save_text: str, desired_state: dict[str, object]) -> dict[str, object]:
     blockers: list[str] = []
     desired = list(desired_state.get("artifact_lines", [])) if isinstance(desired_state.get("artifact_lines"), list) else []
     present = _present_lines(iptables_save_text)
-    missing = [line for line in desired if line not in present]
+    desired_canonical = {_canonical_artifact_line(line)[0]: line for line in desired}
+    present_canonical: dict[str, list[str]] = {}
+    canonicalization_applied: list[dict[str, object]] = []
+    for line in present:
+        canonical, applied = _canonical_artifact_line(line)
+        present_canonical.setdefault(canonical, []).append(line)
+        if applied and canonical in desired_canonical:
+            canonicalization_applied.append({"live": line, "canonical": canonical, "normalizations": sorted(set(applied))})
     exact_present = [line for line in desired if line in present]
+    semantic_present = [line for line in desired if _canonical_artifact_line(line)[0] in present_canonical]
+    missing = [line for line in desired if _canonical_artifact_line(line)[0] not in present_canonical]
     unknown: list[str] = []
     stale: list[str] = []
     duplicates: list[str] = []
-    for p in sorted(set(present)):
-        count = present.count(p)
-        if count > 1 and p in desired:
-            duplicates.append(p)
+    for canonical, live_lines in present_canonical.items():
+        if len(live_lines) > 1 and canonical in desired_canonical:
+            duplicates.extend(live_lines)
     target = desired_state.get("backend_target", {}) if isinstance(desired_state.get("backend_target"), dict) else {}
     current = f"{target.get('resolved_ipv4')}:{BACKEND_PORT}"
-    desired_set = set(desired)
-    present_set = set(present)
-    for normalized in sorted(present_set):
+    desired_canonical_set = set(desired_canonical)
+    for normalized in sorted(set(present)):
         line = normalized.split(":", 1)[1]
+        canonical = _canonical_artifact_line(normalized)[0]
         if not any(token in line for token in ("MPF", "mpf:", "customer_")):
             continue
-        if normalized not in desired_set:
+        if canonical not in desired_canonical_set:
             unknown.append(line)
         customer_ok = any(str(item["customer_key"]) in line for item in SCOPE) or "mpf:hook:" in line or "mpf:backend_guard:" in line
         tokens = line.replace(":", " ").replace("-A", " ").replace("-N", " ").split()
@@ -525,8 +585,8 @@ def classify_controlled_artifacts(*, iptables_save_text: str, ip6tables_save_tex
         blockers.append("stale_target_detected")
     if duplicates:
         blockers.append("duplicate_controlled_artifact_detected")
-    status = "exact_present" if desired and not missing and not blockers else "exact_missing" if desired and not exact_present and not blockers else "safe_exact_partial" if desired and exact_present and missing and not blockers else "blocked"
-    return {"component": "phase11_controlled_artifact_reapply_classification", "status": status, "exact_present": exact_present, "exact_missing": missing, "unknown_mpf": sorted(set(unknown)), "stale_target": stale, "duplicate_exact": duplicates, "blockers": sorted(set(blockers)), "classification_hash": _canonical_sha({"status": status, "present": exact_present, "missing": missing, "unknown": unknown, "stale": stale, "duplicates": duplicates}), "mutation_performed": False}
+    status = "exact_present" if desired and not missing and not blockers else "exact_missing" if desired and not semantic_present and not blockers else "safe_exact_partial" if desired and semantic_present and missing and not blockers else "blocked"
+    return {"component": "phase11_controlled_artifact_reapply_classification", "status": status, "exact_present": exact_present, "exact_missing": missing, "semantic_present": semantic_present, "semantic_present_count": len(semantic_present), "semantic_missing": missing, "semantic_missing_count": len(missing), "canonicalization_applied": canonicalization_applied, "canonicalization_applied_flag": bool(canonicalization_applied), "unknown_mpf": sorted(set(unknown)), "stale_target": stale, "duplicate_exact": duplicates, "blockers": sorted(set(blockers)), "classification_hash": _canonical_sha({"status": status, "present": semantic_present, "missing": missing, "unknown": unknown, "stale": stale, "duplicates": duplicates, "canonicalization_applied": canonicalization_applied}), "mutation_performed": False}
 
 
 def render_payload(missing_artifacts: list[str]) -> tuple[str, str, list[str]]:
@@ -573,7 +633,7 @@ def _execution_fingerprint(plan: dict[str, object]) -> str:
 def build_plan(*, lanes: list[dict[str, Any]], customers: list[dict[str, Any]], backend_target: dict[str, object], iptables_save_text: str = "", ip6tables_save_text: str = "", phase_status_text: str = "", expected_version: str = __version__) -> dict[str, object]:
     desired = build_controlled_desired_state(lanes=lanes, customers=customers, backend_target=backend_target, expected_version=expected_version)
     classification = classify_controlled_artifacts(iptables_save_text=iptables_save_text, ip6tables_save_text=ip6tables_save_text, desired_state=desired)
-    missing = list(classification.get("exact_missing", []))
+    missing = list(classification.get("semantic_missing", classification.get("exact_missing", [])))
     payload, payload_hash, payload_blockers = render_payload(missing)
     blockers = [*desired.get("blockers", []), *classification.get("blockers", []), *payload_blockers]
     if backend_target.get("backend_public_exposure"):
@@ -663,7 +723,7 @@ def verify_package(package: dict[str, object], *, live_plan: dict[str, object] |
             blockers.append("db_customer_policy_snapshot_hash_mismatch")
         if plan.get("phase_state_hash") != package.get("phase_state_hash"):
             blockers.append("phase_state_hash_mismatch")
-        if final_decision == NO_REAPPLY and classification.get("status") == "exact_present":
+        if final_decision == NO_REAPPLY and classification.get("status") == "exact_present" and not classification.get("semantic_missing", classification.get("exact_missing", [])):
             pass
         elif plan.get("payload_sha256") != package.get("payload_sha256"):
             blockers.append("payload_hash_mismatch")

@@ -29,5 +29,8 @@ This repository is in Phase 11 production/customer activation planning-readiness
 - To recover from a failed validation, run `python scripts/validate_runtime_first_pr_body.py --print-template`, fill the printed template, and validate again.
 - If GitHub Actions fails at `Validate runtime-first PR body`, copy the template printed in the CI log, update the PR body, and do not create a code-only commit just to fix the body.
 - Only create the pull request after the validator passes.
-- Create the pull request with `gh pr create --body-file /tmp/pr_body.md`.
+- AI agents must not call `gh pr create` directly.
+- The only allowed AI-agent PR creation path is `scripts/create_runtime_first_pr.sh /tmp/pr_body.md --title "..." --base main --head <branch>`.
+- Explicitly forbidden for AI agents outside the wrapper: `gh pr create`, `gh pr create --fill`, `gh pr create --body "..."`, and direct `gh pr create --body-file ...`.
+- If the wrapper cannot be run, do not create the PR; report the exact blocker.
 - Do not replace the validated body with an auto-generated summary.

@@ -10,6 +10,7 @@ TEMPLATE = ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md"
 COPILOT_INSTRUCTIONS = ROOT / ".github" / "copilot-instructions.md"
 RULE_DOC = ROOT / "docs" / "AI_RUNTIME_FIRST_PR_FLOW_RULE.md"
 WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
+WRAPPER = ROOT / "scripts" / "create_runtime_first_pr.sh"
 
 REQUIRED_FIELDS = [
     "PR class",
@@ -31,7 +32,7 @@ REQUIRED_FIELDS = [
 
 PR_BODY_PREVALIDATION_PHRASES = [
     "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md",
-    "gh pr create --body-file /tmp/pr_body.md",
+    "scripts/create_runtime_first_pr.sh /tmp/pr_body.md",
 ]
 
 
@@ -125,6 +126,30 @@ def test_copilot_instructions_require_body_file_validation_before_pr_creation() 
     assert "Mandatory PR creation contract for AI agents" in text
     assert "Do not replace the validated body with an auto-generated summary" in text
 
+
+
+def test_runtime_first_pr_wrapper_exists_and_validates_before_gh_create() -> None:
+    text = WRAPPER.read_text(encoding="utf-8")
+    assert WRAPPER.exists()
+    assert "set -Eeuo pipefail" in text
+    assert "validate_runtime_first_pr_body.py" in text
+    assert "gh pr create --body-file" in text
+
+
+def test_ai_instructions_forbid_direct_gh_pr_create_and_require_wrapper() -> None:
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    copilot = COPILOT_INSTRUCTIONS.read_text(encoding="utf-8")
+    assert "must not call `gh pr create` directly" in agents
+    assert "scripts/create_runtime_first_pr.sh" in agents
+    assert "must not call `gh pr create` directly" in copilot
+    assert "gh pr create --fill" in copilot
+    assert "gh pr create --body" in copilot
+    assert "direct `gh pr create --body-file" in copilot
+
+
+def test_pr_template_references_runtime_first_pr_wrapper() -> None:
+    text = TEMPLATE.read_text(encoding="utf-8")
+    assert "scripts/create_runtime_first_pr.sh /tmp/pr_body.md" in text
 
 def test_validator_rejects_weak_report_only_pr_body(tmp_path: Path) -> None:
     result = _run_validator(tmp_path, "## Why\n\nOnly records evidence.\n")
