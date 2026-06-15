@@ -1,5 +1,7 @@
 # Proxy Address Mining
 
+0.1.268 controlled post-apply verification note: fixes the Phase 11 controlled artifact reapply verification chain by deriving/propagating `expected_backend_target` from the reviewed package backend target, normalizing live `iptables-save` colon chain declarations against restore-payload `-N` declarations, and verifying exact post-apply controlled artifacts without treating expected live MPF artifacts as unknown. Do not rerun the 0.1.267 execute path. After offline sync to farm5, run only read-only/package/preflight first; guarded execute is allowed only after 0.1.268 tests and fresh READY evidence.
+
 `proxy-address-mining` is a Python-first, API-first, PostgreSQL-backed greenfield rewrite of a mining customer gateway control plane.
 
 It preserves the required operational capabilities of the old shell-script setup, but it must not become a direct migration, patch series, or extension of those old scripts.

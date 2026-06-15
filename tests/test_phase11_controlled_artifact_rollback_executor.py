@@ -11,7 +11,7 @@ class Runner:
 
 def _pkg():
     return {
-        'repository_version': '0.1.267',
+        'repository_version': __import__('mpf').__version__,
         'rollback_plan': {
             'manual_review_required': True,
             'exact_inverse_delta': [

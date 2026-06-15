@@ -2931,12 +2931,12 @@ def production_single_customer_post_apply_evidence(
 
 
 @production_app.command("current-controlled-artifact-gate")
-def production_current_controlled_artifact_gate(iptables_save_file: Path = typer.Option(..., "--iptables-save-file"), ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"), expected_version: str = typer.Option(__version__, "--expected-version"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
+def production_current_controlled_artifact_gate(iptables_save_file: Path = typer.Option(..., "--iptables-save-file"), ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"), expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"), expected_version: str = typer.Option(__version__, "--expected-version"), output: Literal["human", "json"] = typer.Option("human", "--output")) -> None:
     phase_status_text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     ipv4 = iptables_save_file.read_text(encoding="utf-8")
     ipv6 = ip6tables_save_file.read_text(encoding="utf-8") if ip6tables_save_file else ""
     report = phase11_current_controlled_artifact_gate_service.build_phase11_current_controlled_artifact_gate_report(
-        iptables_save_text=ipv4, ip6tables_save_text=ipv6, phase_status_text=phase_status_text, expected_version=expected_version
+        iptables_save_text=ipv4, ip6tables_save_text=ipv6, phase_status_text=phase_status_text, expected_version=expected_version, expected_backend_target=expected_backend_target
     )
     if output == "json":
         typer.echo(json.dumps(report, ensure_ascii=False, indent=2))

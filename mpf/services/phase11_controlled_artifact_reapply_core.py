@@ -25,6 +25,7 @@ from mpf.services import firewall_planner_service
 from mpf.domain.firewall import FirewallRuleIntent
 from mpf.services.firewall_restore_payload_renderer import render_restore_contract
 from mpf.services.phase11_controlled_artifact_taxonomy import classify_controlled_artifact
+from mpf.services.phase11_backend_target_helper import canonical_expected_backend_target
 
 SCOPE = (
     {"customer_key": "canary-btc-001", "lane": "btc", "public_port": 20001},
@@ -500,16 +501,16 @@ def classify_controlled_artifacts(*, iptables_save_text: str, ip6tables_save_tex
     target = desired_state.get("backend_target", {}) if isinstance(desired_state.get("backend_target"), dict) else {}
     current = f"{target.get('resolved_ipv4')}:{BACKEND_PORT}"
     desired_set = set(desired)
-    for raw in iptables_save_text.splitlines():
-        line = raw.strip()
+    present_set = set(present)
+    for normalized in sorted(present_set):
+        line = normalized.split(":", 1)[1]
         if not any(token in line for token in ("MPF", "mpf:", "customer_")):
             continue
-        normalized = f"nat:{line}" if any(token in f" {line} " for token in (" MPF_NAT_PRE ", " MPF_NAT_POST ")) or line in {":MPF_NAT_PRE - [0:0]", "-N MPF_NAT_PRE", ":MPF_NAT_POST - [0:0]", "-N MPF_NAT_POST"} else f"filter:{line}"
         if normalized not in desired_set:
             unknown.append(line)
         customer_ok = any(str(item["customer_key"]) in line for item in SCOPE) or "mpf:hook:" in line or "mpf:backend_guard:" in line
         tokens = line.replace(":", " ").replace("-A", " ").replace("-N", " ").split()
-        chain_ok = any(classify_controlled_artifact(chain=t) == "official_phase11_controlled_artifact" for t in tokens) or "PREROUTING" in tokens or "INPUT" in tokens
+        chain_ok = any(classify_controlled_artifact(chain=t) == "official_phase11_controlled_artifact" for t in tokens) or "PREROUTING" in tokens or "INPUT" in tokens or "DOCKER-USER" in tokens
         if "--to-destination" in line and current not in line:
             stale.append(line)
         if not customer_ok and "mpf:" in line:
@@ -813,6 +814,20 @@ def _pre_apply_drift_evidence(live_plan: dict[str, object], package: dict[str, o
     }
 
 
+def _post_apply_diagnostics(package: dict[str, object], post_apply_live_plan: dict[str, object], verification: dict[str, object]) -> dict[str, object]:
+    classification = post_apply_live_plan.get("artifact_classification") if isinstance(post_apply_live_plan.get("artifact_classification"), dict) else {}
+    target = canonical_expected_backend_target((package.get("plan") or {}).get("backend_target") if isinstance(package.get("plan"), dict) else None)
+    return {
+        "verification_report": verification,
+        "post_apply_live_plan_final_decision": post_apply_live_plan.get("final_decision"),
+        "post_apply_artifact_classification_status": classification.get("status"),
+        "post_apply_artifact_classification_blockers": classification.get("blockers", []),
+        "expected_backend_target": target.get("expected_backend_target"),
+        "package_backend_target_fingerprint": package.get("backend_target_fingerprint"),
+        "live_backend_target_fingerprint": ((post_apply_live_plan.get("backend_target") or {}).get("target_fingerprint") if isinstance(post_apply_live_plan.get("backend_target"), dict) else None),
+    }
+
+
 def execute_package(*, package: dict[str, object], package_sha256: str, package_id: str, operator: str, reason: str, execute: bool = False, yes: bool = False, expected_version: str = __version__, live_plan_builder: Callable[[], dict[str, object]] | None = None, runner: Any | None = None, backup: Any | None = None, metadata_repo: Any | None = None, lock: Any | None = None, env: dict[str, str] | None = None, current_hostname: str | None = None) -> dict[str, object]:
     blockers: list[str] = []
     restore_test_invoked = False
@@ -912,12 +927,14 @@ def execute_package(*, package: dict[str, object], package_sha256: str, package_
         if apply.returncode != 0:
             metadata_repo.record_result(package, "FAILED_APPLY", backup_result=backup_result, post_iptables_save=iptables_text, error_details={"blockers": ["iptables_restore_apply_failed"]}, partial_apply_possible=True, rollback_required=True)
             return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_APPLY", "blockers": ["iptables_restore_apply_failed"], "firewall_mutation_performed": False, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "metadata": intent_refs, "raw_snapshot_drift_warnings": _raw_snapshot_drift_warnings(live_plan, package)}
-        verify = verify_package(package, live_plan=live_plan_builder())
+        post_apply_live_plan = live_plan_builder()
+        verify = verify_package(package, live_plan=post_apply_live_plan)
+        diagnostics = _post_apply_diagnostics(package, post_apply_live_plan, verify)
         if verify["blockers"]:
-            metadata_repo.record_result(package, "FAILED_POST_APPLY_VERIFICATION", backup_result=backup_result, post_iptables_save=str((live_plan_builder()).get("iptables_save_text", "")), error_details={"blockers": verify.get("blockers", [])}, partial_apply_possible=True, rollback_required=True)
-            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_POST_APPLY_VERIFICATION", "blockers": verify["blockers"], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "rollback_plan": package.get("rollback_plan")}
-        metadata_repo.record_result(package, EXECUTED_PENDING_REVIEW, backup_result=backup_result, post_iptables_save=str((live_plan_builder()).get("iptables_save_text", "")), error_details={}, partial_apply_possible=False, rollback_required=False)
-        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": EXECUTED_PENDING_REVIEW, "blockers": [], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "metadata": intent_refs, "raw_snapshot_drift_warnings": _raw_snapshot_drift_warnings(live_plan, package)}
+            metadata_repo.record_result(package, "FAILED_POST_APPLY_VERIFICATION", backup_result=backup_result, post_iptables_save=str(post_apply_live_plan.get("iptables_save_text", "")), error_details={"blockers": verify.get("blockers", [])}, partial_apply_possible=True, rollback_required=True)
+            return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_POST_APPLY_VERIFICATION", "blockers": verify["blockers"], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "rollback_plan": package.get("rollback_plan"), **diagnostics}
+        metadata_repo.record_result(package, EXECUTED_PENDING_REVIEW, backup_result=backup_result, post_iptables_save=str(post_apply_live_plan.get("iptables_save_text", "")), error_details={}, partial_apply_possible=False, rollback_required=False)
+        return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": EXECUTED_PENDING_REVIEW, "blockers": [], "firewall_mutation_performed": True, "iptables_restore_invoked": restore_test_invoked or apply_invoked, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": False, "rollback_required": False, "backup": backup_result, "metadata": intent_refs, "raw_snapshot_drift_warnings": _raw_snapshot_drift_warnings(live_plan, package), **diagnostics}
     except Exception as exc:  # noqa: BLE001 - production executor must report fail-closed evidence.
         if apply_succeeded:
             return {"component": "phase11_controlled_artifact_reapply_executor", "final_decision": "FAILED_POST_APPLY_VERIFICATION", "blockers": ["post_apply_dependency_failed"], "error": str(exc), "firewall_mutation_performed": True, "iptables_restore_invoked": True, "restore_test_invoked": restore_test_invoked, "apply_invoked": apply_invoked, "apply_succeeded": apply_succeeded, "partial_apply_possible": True, "rollback_required": True, "backup": backup_result, "rollback_plan": package.get("rollback_plan")}
