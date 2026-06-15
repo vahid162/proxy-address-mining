@@ -19,11 +19,11 @@ def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _write_fake_mpf(tmp_path: Path, *, preflight: object | str, execute: object | str | None = None) -> Path:
+def _write_fake_mpf(tmp_path: Path, *, preflight: object | str, execute: object | str | None = None, rollback: object | str | None = None) -> Path:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     state = tmp_path / "state.json"
-    config = {"preflight": preflight, "execute": execute, "log": str(tmp_path / "calls.jsonl")}
+    config = {"preflight": preflight, "execute": execute, "rollback": rollback, "log": str(tmp_path / "calls.jsonl")}
     state.write_text(json.dumps(config), encoding="utf-8")
     mpf = bin_dir / "mpf"
     mpf.write_text(
@@ -43,6 +43,8 @@ def _write_fake_mpf(tmp_path: Path, *, preflight: object | str, execute: object 
         "    emit(cfg['preflight']); sys.exit(0)\n"
         "if cmd == 'controlled-artifact-reapply-execute':\n"
         "    emit(cfg['execute']); sys.exit(0)\n"
+        "if cmd == 'controlled-artifact-reapply-rollback':\n"
+        "    emit(cfg['rollback']); sys.exit(0)\n"
         "print(json.dumps({'final_decision':'UNEXPECTED'})); sys.exit(0)\n",
         encoding="utf-8",
     )
@@ -56,11 +58,12 @@ def _package(tmp_path: Path) -> tuple[Path, str]:
     return path, _sha(path)
 
 
-def _run(tmp_path: Path, args: list[str], *, preflight: object | str | None = None, execute: object | str | None = None, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+def _run(tmp_path: Path, args: list[str], *, preflight: object | str | None = None, execute: object | str | None = None, rollback: object | str | None = None, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     bin_dir = _write_fake_mpf(
         tmp_path,
         preflight=preflight if preflight is not None else {"final_decision": READY_PREFLIGHT, "blockers": []},
         execute=execute if execute is not None else {"final_decision": EXECUTED, "blockers": []},
+        rollback=rollback if rollback is not None else {"final_decision":"CONTROLLED_ARTIFACT_REAPPLY_ROLLBACK_TEST_READY","blockers":[]},
     )
     run_env = os.environ.copy()
     run_env["PATH"] = f"{bin_dir}:{run_env['PATH']}"
@@ -204,3 +207,32 @@ def test_static_env_gates_are_not_set_or_exported_to_allow() -> None:
     text = SCRIPT.read_text(encoding="utf-8")
     for name in ["MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY", "MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE"]:
         assert not re.search(rf"(^|\n)\s*(?:export\s+)?{name}=allow(?:\s|$)", text)
+
+
+def test_rollback_test_runs_without_mutating_apply_gate(tmp_path: Path) -> None:
+    out_dir = tmp_path / "out"
+    package, _ = _package(tmp_path)
+    result = _run(tmp_path, ["--rollback-test", "--package-json", str(package), "--operator", "operator-1", "--reason", "reviewed rollback", "--out-dir", str(out_dir)])
+    assert result.returncode == 0, result.stderr
+    calls = _calls(tmp_path)
+    assert [call[1] for call in calls] == ["controlled-artifact-reapply-rollback"]
+    assert "--apply" not in calls[0]
+    assert (out_dir / "controlled-artifact-reapply-rollback.json").exists()
+
+
+def test_rollback_apply_requires_env_gate_and_yes_before_cli_call(tmp_path: Path) -> None:
+    package, _ = _package(tmp_path)
+    result = _run(tmp_path, ["--rollback-apply", "--package-json", str(package), "--operator", "operator-1", "--reason", "reviewed rollback", "--out-dir", str(tmp_path / "out")])
+    assert result.returncode != 0
+    assert _calls(tmp_path) == []
+
+
+def test_rollback_apply_with_gate_passes_apply_and_yes(tmp_path: Path) -> None:
+    out_dir = tmp_path / "out"
+    package, _ = _package(tmp_path)
+    result = _run(tmp_path, ["--rollback-apply", "--yes", "--package-json", str(package), "--operator", "operator-1", "--reason", "reviewed rollback", "--out-dir", str(out_dir)], rollback={"final_decision":"CONTROLLED_ARTIFACT_REAPPLY_ROLLBACK_APPLIED_PENDING_REVIEW","blockers":[]}, env={"MPF_PHASE11_CONTROLLED_ARTIFACT_ROLLBACK":"allow"})
+    assert result.returncode == 0, result.stderr
+    calls = _calls(tmp_path)
+    assert [call[1] for call in calls] == ["controlled-artifact-reapply-rollback"]
+    assert "--apply" in calls[0]
+    assert "--yes" in calls[0]

@@ -1,3 +1,5 @@
+
+0.1.267 controlled execute recovery note: farm5 0.1.266 proved guarded execute reached `iptables-restore --test --noflush` and `iptables-restore --noflush` with `apply_succeeded=true`, but post-apply verification failed closed because the current artifact gate used a narrower allowlist than the official controlled artifact taxonomy and did not carry the resolved backend target consistently. The immediate recovery used a manually reviewed exact-inverse rollback from the package rollback_plan; rollback test passed, rollback apply succeeded, and the post-rollback gate returned `PASS_NO_CUSTOMER_ARTIFACTS` with MPF/proxy doctors OK and production gates still closed. Before any new execute, taxonomy/gate/post-verify alignment and the reviewed exact-inverse rollback executor path are required.
 # Phase 11 Controlled Artifact Reapply Runbook (0.1.251)
 
 Version `0.1.251` implements controlled artifact reapply source-backed renderer and production adapter surfaces for exactly the accepted BTC customers `canary-btc-001:20001` and `limited-btc-001:20101`.

@@ -100,6 +100,8 @@ while [[ $# -gt 0 ]]; do
     --live-ready-package) MODE="live-ready-package"; shift ;;
     --verify) MODE="verify"; PACKAGE_JSON="${2:-}"; shift 2 ;;
     --execute-preflight) MODE="execute-preflight"; shift ;;
+    --rollback-test) MODE="rollback-test"; shift ;;
+    --rollback-apply) MODE="rollback-apply"; shift ;;
     --execute) MODE="execute"; shift ;;
     --yes) YES="true"; shift ;;
     --package-json) PACKAGE_JSON="${2:-}"; shift 2 ;;
@@ -144,6 +146,34 @@ case "$MODE" in
     prepare_execute_out_dir
     validate_package_sha
     run_execution_gate_preflight
+    ;;
+  rollback-test)
+    [[ -n "$PACKAGE_JSON" && -n "$OPERATOR" && -n "$REASON" ]] || usage_error "rollback-test requires --package-json, --operator, and --reason"
+    prepare_execute_out_dir
+    rollback_report="$OUT_DIR/controlled-artifact-reapply-rollback.json"
+    mpf production controlled-artifact-reapply-rollback \
+      --package-json "$PACKAGE_JSON" \
+      --operator "$OPERATOR" \
+      --reason "$REASON" \
+      --output json > "$rollback_report"
+    validate_json_decision "$rollback_report" "CONTROLLED_ARTIFACT_REAPPLY_ROLLBACK_TEST_READY"
+    write_manifest "$OUT_DIR"
+    ;;
+  rollback-apply)
+    [[ -n "$PACKAGE_JSON" && -n "$OPERATOR" && -n "$REASON" ]] || usage_error "rollback-apply requires --package-json, --operator, and --reason"
+    [[ "$YES" == "true" ]] || usage_error "rollback-apply requires script-level --yes"
+    [[ "${MPF_PHASE11_CONTROLLED_ARTIFACT_ROLLBACK:-}" == "allow" ]] || usage_error "required rollback environment gate is missing"
+    prepare_execute_out_dir
+    rollback_report="$OUT_DIR/controlled-artifact-reapply-rollback.json"
+    mpf production controlled-artifact-reapply-rollback \
+      --package-json "$PACKAGE_JSON" \
+      --operator "$OPERATOR" \
+      --reason "$REASON" \
+      --apply \
+      --yes \
+      --output json > "$rollback_report"
+    validate_json_decision "$rollback_report" "CONTROLLED_ARTIFACT_REAPPLY_ROLLBACK_APPLIED_PENDING_REVIEW"
+    write_manifest "$OUT_DIR"
     ;;
   execute)
     require_execute_common_args

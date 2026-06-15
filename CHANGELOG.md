@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.267
+
+- Align Phase 11 current controlled artifact classification with the official taxonomy, resolved backend target checks, post-apply exact-present verification, and reviewed exact-inverse rollback execution.
+
 ## 0.1.266
 
 - fix(phase11): harden controlled reapply audit metadata writes for local-peer root execution, retry-safe backup attempts, dependency-stage evidence, and execute-preflight readiness.

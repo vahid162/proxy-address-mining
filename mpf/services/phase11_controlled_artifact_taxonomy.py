@@ -22,6 +22,9 @@ OFFICIAL_CONTROLLED_CHAINS = frozenset({
 OFFICIAL_CONTROLLED_COMMENTS = frozenset({
     "mpf:hook:nat_prerouting",
     "mpf:hook:filter_input",
+    "mpf:hook:verified_user_forward_post_dnat:backend_guard",
+    "mpf:hook:verified_user_forward_post_dnat:accounting",
+    "mpf:hook:verified_user_forward_post_dnat:customers",
     "mpf:backend_guard:btc:60010",
     "mpf:canary-btc-001:customer_dispatch",
     "mpf:canary-btc-001:customer_connlimit_reject",
