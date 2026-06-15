@@ -25,6 +25,9 @@ REQUIRED_SECTIONS = (
 )
 RUNTIME_CLASSES = set(PR_CLASSES) - {"evidence/docs exception"}
 GENERIC_AI_SUMMARY_HEADINGS = {"motivation", "description", "testing"}
+VERSION_LINE_RE = re.compile(r"(?m)^Version:\s*\d+\.\d+\.\d+\s*->\s*\d+\.\d+\.\d+\s*$")
+REQUIRED_VALIDATOR_COMMAND = "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md"
+CHECKBOX_RE = re.compile(r"(?im)^\s*[-*]\s*\[[ xX]\]\s*(.+?)\s*$")
 REQUIRED_PR_BODY_TEMPLATE = """## Why
 
 <1-2 lines explaining why this PR is needed now.>
@@ -109,13 +112,17 @@ def _has_content(text: str) -> bool:
     return bool("\n".join(cleaned_lines).strip())
 
 
-def _selected_classes(body: str) -> list[str]:
+def _selected_classes(pr_class_section: str) -> list[str]:
     selected = []
     for pr_class in PR_CLASSES:
         pattern = rf"(?im)^\s*[-*]\s*\[[xX]\]\s*{re.escape(pr_class)}\s*$"
-        if re.search(pattern, body):
+        if re.search(pattern, pr_class_section):
             selected.append(pr_class)
     return selected
+
+
+def _pr_class_options(pr_class_section: str) -> list[str]:
+    return [match.group(1).strip() for match in CHECKBOX_RE.finditer(pr_class_section)]
 
 
 def _field_after_label(body: str, label: str) -> str:
@@ -141,7 +148,32 @@ def validate(body: str) -> list[str]:
         if section.lower() not in sections:
             errors.append(f"Missing required section: '{section}'. Add a markdown heading named exactly this.")
 
-    selected = _selected_classes(body)
+    if not VERSION_LINE_RE.search(body):
+        errors.append("Missing required SemVer bump line: 'Version: X.Y.Z -> A.B.C'.")
+
+    how_to_test = sections.get("how to test", "")
+    if REQUIRED_VALIDATOR_COMMAND not in how_to_test:
+        errors.append(
+            "Section 'How to test' must include: "
+            f"{REQUIRED_VALIDATOR_COMMAND}"
+        )
+
+    pr_class_section = sections.get("pr class", "")
+    selected = _selected_classes(pr_class_section)
+    options = _pr_class_options(pr_class_section)
+    if options != list(PR_CLASSES):
+        unexpected = [option for option in options if option not in PR_CLASSES]
+        missing = [option for option in PR_CLASSES if option not in options]
+        if unexpected:
+            errors.append(
+                "PR class contains unofficial checkbox option(s): " + ", ".join(unexpected) + ". "
+                "Use only the official runtime-first PR class taxonomy."
+            )
+        if missing:
+            errors.append("PR class is missing official checkbox option(s): " + ", ".join(missing) + ".")
+        if not unexpected and not missing:
+            errors.append("PR class checkboxes must match the official taxonomy exactly and in canonical order.")
+
     if not selected:
         errors.append("Choose exactly one PR class by checking one box under 'PR class'.")
     elif len(selected) > 1:

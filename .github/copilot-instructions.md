@@ -34,3 +34,8 @@ This repository is in Phase 11 production/customer activation planning-readiness
 - Explicitly forbidden for AI agents outside the wrapper: `gh pr create`, `gh pr create --fill`, `gh pr create --body "..."`, and direct `gh pr create --body-file ...`.
 - If the wrapper cannot be run, do not create the PR; report the exact blocker.
 - Do not replace the validated body with an auto-generated summary.
+- Approximate PR templates are forbidden; use the exact canonical template printed by `python scripts/validate_runtime_first_pr_body.py --print-template`.
+- AI agents must not change the PR class taxonomy. The only official classes are `implementation`, `controlled-runtime`, `verifier-doctor-package`, `runtime-first bundle`, `acceptance-review`, and `evidence/docs exception`.
+- Unofficial PR classes such as `docs/evidence-only`, `test-only`, and `refactor-only` are forbidden.
+- If validation fails, fix `/tmp/pr_body.md` before creating or updating the PR.
+- A merged PR with approximate taxonomy is not precedent; the validator must reject that shape going forward.
