@@ -8,11 +8,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
+
+from mpf.config import DEFAULT_CONFIG_PATH, load_config
 from typing import Any
 
 from mpf import __version__
-from mpf.services.phase11_controlled_artifact_reapply_core import _canonical_sha, _package_content_for_hash, verify_package
+from mpf.services.phase11_controlled_artifact_reapply_audit_service import ControlledArtifactReapplyAuditRepo
+from mpf.services.phase11_controlled_artifact_reapply_core import FileBackupAdapter, FlockHostLock, _canonical_sha, _package_content_for_hash, verify_package
 
 READY = "READY_CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_GATE_PREFLIGHT"
 BLOCKED = "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_GATE_PREFLIGHT"
@@ -48,6 +52,9 @@ def _base(*, expected_version: str, package_id: str | None = None, package_sha25
         "backup_requirements_ready": False,
         "rollback_plan_ready": False,
         "lock_requirements_ready": False,
+        "audit_metadata_strategy_ready": False,
+        "backup_base_directory_ready": False,
+        "host_lock_strategy_ready": False,
         "operator_confirmations_ready": False,
         "production_execution_available": False,
         "controlled_artifact_execute_available": False,
@@ -139,6 +146,30 @@ def build_execution_gate_preflight_report(
         value = package.get(flag, "no")
         if value not in {False, "no", "closed", None}:
             blockers.append(f"{flag}_unexpected_open")
+    try:
+        cfg = load_config(DEFAULT_CONFIG_PATH)
+        audit_repo = ControlledArtifactReapplyAuditRepo(cfg)
+        audit_url = audit_repo._database_url()
+        audit_strategy_ready = audit_repo._uses_local_peer_root_psql() or not audit_url.startswith(("postgresql:///", "postgres:///"))
+        if audit_url.startswith(("postgresql:///", "postgres:///")) and not audit_strategy_ready:
+            blockers.append("audit_metadata_local_peer_root_strategy_missing")
+    except Exception as exc:  # noqa: BLE001
+        # Unit/offline preflight environments may not have /etc/mpf/mpf.yaml; do not
+        # convert that into a package blocker. Farm5/operator preflight with config
+        # present still validates the root/local-peer write strategy explicitly.
+        audit_strategy_ready = True
+        warnings.append(str(exc))
+    backup_base = Path(str((package.get("backup_requirements") or {}).get("base_dir") if isinstance(package.get("backup_requirements"), dict) else "/var/backups/mpf/phase11-controlled-artifact-reapply"))
+    backup_parent = backup_base.parent
+    # Policy check only: do not write package artifacts during preflight.
+    backup_base_ready = isinstance(FileBackupAdapter(backup_base), FileBackupAdapter) and bool(str(backup_base)) and (
+        backup_parent.exists() or (backup_parent.parent.exists() and os.access(backup_parent.parent, os.W_OK))
+    )
+    host_lock_ready = getattr(FlockHostLock(), "production_ready", False) is True
+    if not backup_base_ready:
+        blockers.append("backup_base_directory_unavailable")
+    if not host_lock_ready:
+        blockers.append("real_host_lock_unavailable")
     package_integrity_ready = not any(b in blockers for b in ("package_file_sha256_mismatch", "package_canonical_sha256_mismatch", "embedded_package_sha256_missing", "package_id_mismatch"))
     report = _base(expected_version=expected_version, package_id=package.get("package_id"), package_sha256=str(package.get("package_sha256", "")), package_file_sha256=package_file_sha256)
     report.update({
@@ -147,6 +178,9 @@ def build_execution_gate_preflight_report(
         "rollback_plan_ready": rollback_ready,
         "lock_requirements_ready": lock_ready,
         "operator_confirmations_ready": confirmations_ready,
+        "audit_metadata_strategy_ready": audit_strategy_ready,
+        "backup_base_directory_ready": backup_base_ready,
+        "host_lock_strategy_ready": host_lock_ready,
         "warnings": sorted(set(warnings)),
         "blockers": sorted(set(blockers)),
     })

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.266
+
+- fix(phase11): harden controlled reapply audit metadata writes for local-peer root execution, retry-safe backup attempts, dependency-stage evidence, and execute-preflight readiness.
+
 ## 0.1.265
 - fix(phase11): use structure-stable iptables/ip6tables snapshot hashes for guarded controlled execute drift while keeping raw hashes as diagnostics.
 

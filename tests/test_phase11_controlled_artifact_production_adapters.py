@@ -47,12 +47,12 @@ def test_backup_adapter_non_overwrite_modes_and_manifest(tmp_path):
     manifest = json.loads((backup_dir / "manifest.sha256.json").read_text())
     assert "iptables-save.txt" in manifest
     assert oct((backup_dir / "iptables-save.txt").stat().st_mode & 0o777) == "0o600"
-    try:
-        adapter.prepare(pkg, iptables_save="*filter\nCOMMIT\n", ip6tables_save="*filter\nCOMMIT\n")
-    except FileExistsError:
-        pass
-    else:
-        raise AssertionError("backup directory must not be overwritten")
+    second = adapter.prepare(pkg, iptables_save="*filter\nCOMMIT\n", ip6tables_save="*filter\nCOMMIT\n")
+    second_dir = Path(second["backup_dir"])
+    assert second_dir != backup_dir
+    assert second_dir.exists()
+    assert pkg["package_id"] in second_dir.name
+    assert result["attempt_id"] != second["attempt_id"]
 
 
 def test_production_runner_allowlist_uses_argv_only(monkeypatch):
@@ -183,3 +183,84 @@ def test_snapshot_command_failures_and_invalid_output_block_ready(monkeypatch):
     assert service._snapshot_structure_blockers(service.FirewallSnapshotCommandResult(["iptables-save"], "iptables-save", 0, "", ""), family="iptables") == ["iptables_snapshot_empty_or_invalid"]
     assert service._snapshot_structure_blockers(service.FirewallSnapshotCommandResult(["iptables-save"], "iptables-save", 0, "*filter\n", ""), family="iptables") == ["iptables_snapshot_empty_or_invalid"]
     assert service._snapshot_structure_blockers(service.FirewallSnapshotCommandResult(["iptables-save"], "iptables-save", 0, "*filter\nCOMMIT\n", ""), family="iptables") == []
+
+
+def test_audit_repo_local_peer_root_uses_sudo_psql_not_psycopg(monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_audit_service as audit
+
+    calls = []
+    monkeypatch.setattr(audit.os, "geteuid", lambda: 0)
+    monkeypatch.setattr("psycopg.connect", lambda *a, **k: (_ for _ in ()).throw(AssertionError("psycopg must not be used")))
+
+    def fake_run(argv, input, text, capture_output, check, shell):
+        calls.append((argv, input))
+        assert argv[:3] == ["sudo", "-u", "mpf"]
+        assert "ON_ERROR_STOP=1" in argv
+        if "firewall_apply_prepared" in input:
+            out = json.dumps({"snapshot_before_id": 1, "backup_id": 2, "restore_point_id": 3, "firewall_apply_id": 4, "correlation_id": "pkg", "backup_dir": "/b", "backup_manifest_sha256": "h"})
+        else:
+            out = json.dumps({"snapshot_after_id": 5, "firewall_apply_id": 4, "correlation_id": "pkg", "short_status": "verified"})
+        return type("Completed", (), {"returncode": 0, "stdout": out + "\n", "stderr": ""})()
+
+    monkeypatch.setattr(audit.subprocess, "run", fake_run)
+    repo = audit.ControlledArtifactReapplyAuditRepo(type("Cfg", (), {"database": type("Db", (), {"url": "postgresql:///mpf"})()})())
+    pkg = readyish_package(); pkg["package_id"] = "pkg"
+    refs = repo.record_intent(pkg, "operator", "reason", backup_result={"backup_dir": "/b", "manifest": {}}, pre_iptables_save="*filter\nCOMMIT\n")
+    result = repo.record_result(pkg, "CONTROLLED_ARTIFACT_REAPPLY_EXECUTED_PENDING_FARM5_EVIDENCE_REVIEW", backup_result={"backup_dir": "/b"}, post_iptables_save="*filter\nCOMMIT\n")
+    assert refs["firewall_apply_id"] == 4
+    assert result["short_status"] == "verified"
+    assert len(calls) == 2
+
+
+def test_execute_failure_after_backup_before_intent_preserves_backup_and_stage():
+    pkg = readyish_package()
+    calls = []
+
+    class Runner:
+        production_ready = True
+        def run(self, argv, input_text=None): calls.append(argv); return CommandResult(0, "", "")
+    class Lock:
+        production_ready = True
+        def acquire(self): return True
+        def release(self): pass
+    class Backup:
+        production_ready = True
+        def prepare(self, package, *, iptables_save, ip6tables_save): return {"backup_dir": "/backup/attempt"}
+    class Metadata:
+        production_ready = True
+        def record_intent(self, *a, **k): raise RuntimeError("db root role missing")
+
+    result = execute_package(package=pkg, package_sha256="file-sha", package_id=pkg["package_id"], operator="op", reason="r", execute=True, yes=True,
+        env={"MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY":"allow", "MPF_PHASE11_CONTROLLED_ARTIFACT_REAPPLY_EXECUTE":"allow"},
+        current_hostname=pkg["hostname"], live_plan_builder=lambda: _executable_live_plan(pkg), runner=Runner(), lock=Lock(), backup=Backup(), metadata_repo=Metadata())
+    assert result["final_decision"] == "FAILED_PRE_APPLY"
+    assert result["error_stage"] == "audit_record_intent_failed"
+    assert result["backup"]["backup_dir"] == "/backup/attempt"
+    assert result["iptables_restore_invoked"] is False
+    assert calls == []
+
+
+def test_execution_gate_preflight_blocks_missing_local_peer_root_strategy(monkeypatch, tmp_path):
+    from mpf.services import phase11_controlled_artifact_reapply_execution_gate_preflight_service as gate
+    from tests.test_phase11_live_ready_reapply_package import _execution_gate_package_file
+    from mpf.services import phase11_controlled_artifact_reapply_audit_service as audit
+
+    monkeypatch.setattr(audit.os, "geteuid", lambda: 1000)
+    monkeypatch.setattr(gate, "load_config", lambda _p: type("Cfg", (), {"database": type("Db", (), {"url": "postgresql:///mpf"})()})())
+    package_path, file_sha, package = _execution_gate_package_file(tmp_path, monkeypatch)
+    report = gate.run_execution_gate_preflight_report(package_json=package_path, package_sha256=file_sha, package_id=package["package_id"], operator="op", reason="review")
+    assert "audit_metadata_local_peer_root_strategy_missing" in report["blockers"]
+    assert report["final_decision"] == gate.BLOCKED
+
+
+def test_execution_gate_preflight_passes_with_local_peer_root_strategy(monkeypatch, tmp_path):
+    from mpf.services import phase11_controlled_artifact_reapply_execution_gate_preflight_service as gate
+    from tests.test_phase11_live_ready_reapply_package import _execution_gate_package_file
+    from mpf.services import phase11_controlled_artifact_reapply_audit_service as audit
+
+    monkeypatch.setattr(audit.os, "geteuid", lambda: 0)
+    monkeypatch.setattr(gate, "load_config", lambda _p: type("Cfg", (), {"database": type("Db", (), {"url": "postgresql:///mpf"})()})())
+    package_path, file_sha, package = _execution_gate_package_file(tmp_path, monkeypatch)
+    report = gate.run_execution_gate_preflight_report(package_json=package_path, package_sha256=file_sha, package_id=package["package_id"], operator="op", reason="review")
+    assert "audit_metadata_local_peer_root_strategy_missing" not in report["blockers"]
+    assert report["final_decision"] == gate.READY
