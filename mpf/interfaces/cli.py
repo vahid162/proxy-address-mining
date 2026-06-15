@@ -3964,6 +3964,51 @@ def production_controlled_artifact_refresh_package(
     if str(report.get("final_decision", "")).startswith(("BLOCKED_", "FAILED_")):
         raise typer.Exit(1)
 
+@production_app.command("controlled-duplicate-nat-cleanup")
+def production_controlled_duplicate_nat_cleanup(
+    mode: Literal["plan", "package", "execute-preflight", "execute", "verify", "rollback-contract", "post-cleanup-readiness"] = typer.Option("plan", "--mode"),
+    out_dir: Path | None = typer.Option(None, "--out-dir"),
+    package_json: Path | None = typer.Option(None, "--package-json"),
+    package_sha256: str | None = typer.Option(None, "--package-sha256"),
+    iptables_save_file: Path | None = typer.Option(None, "--iptables-save-file"),
+    ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    yes: bool = typer.Option(False, "--yes"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Official controlled duplicate NAT cleanup operator path."""
+    cfg = _config_path(config)
+    common = dict(config_path=cfg, out_dir=out_dir, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file, expected_backend_target=expected_backend_target, expected_version=expected_version)
+    if mode == "plan":
+        report = phase11_controlled_artifact_refresh_service.run_duplicate_nat_cleanup_plan_report(**common)
+    elif mode == "package":
+        report = phase11_controlled_artifact_refresh_service.run_duplicate_nat_cleanup_package_report(**common)
+    elif mode == "execute-preflight":
+        if package_json is None or not package_sha256:
+            report = {"component": "phase11_controlled_duplicate_nat_cleanup_execute_preflight", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_DUPLICATE_NAT_CLEANUP_EXECUTE_PREFLIGHT", "blockers": ["package_json_and_sha256_required"], "mutation_performed": False}
+        else:
+            report = phase11_controlled_artifact_refresh_service.run_duplicate_nat_cleanup_execute_preflight_report(package_json=package_json, package_sha256=package_sha256, **common)
+    elif mode == "execute":
+        if package_json is None or not package_sha256:
+            report = {"component": "phase11_controlled_duplicate_nat_cleanup_executor", "repository_version": __version__, "final_decision": "FAILED_PRE_APPLY", "blockers": ["package_json_and_sha256_required"], "firewall_mutation_performed": False}
+        else:
+            report = phase11_controlled_artifact_refresh_service.run_duplicate_nat_cleanup_execute_report(package_json=package_json, package_sha256=package_sha256, yes=yes, config_path=cfg, out_dir=out_dir, expected_backend_target=expected_backend_target, expected_version=expected_version)
+    elif mode == "verify":
+        report = phase11_controlled_artifact_refresh_service.run_duplicate_nat_cleanup_verify_report(**common)
+    elif mode == "rollback-contract":
+        if package_json is None or not package_sha256:
+            report = {"component": "phase11_controlled_duplicate_nat_cleanup_rollback_contract", "repository_version": __version__, "final_decision": "BLOCKED_CONTROLLED_DUPLICATE_NAT_CLEANUP_ROLLBACK_CONTRACT", "blockers": ["package_json_and_sha256_required"], "mutation_performed": False}
+        else:
+            report = phase11_controlled_artifact_refresh_service.run_duplicate_nat_cleanup_rollback_contract_report(package_json=package_json, package_sha256=package_sha256, out_dir=out_dir)
+    else:
+        report = phase11_controlled_artifact_refresh_service.run_duplicate_nat_cleanup_post_cleanup_readiness_report(**common)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+    if str(report.get("final_decision", "")).startswith(("BLOCKED_", "FAILED_")):
+        raise typer.Exit(1)
+
+
 @production_app.command("controlled-artifact-reapply-plan")
 def production_controlled_artifact_reapply_plan(
     expected_version: str = typer.Option(__version__, "--expected-version"),

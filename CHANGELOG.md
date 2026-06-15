@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.274
+- controlled duplicate NAT cleanup note: adds the official operator-facing controlled duplicate NAT cleanup plan/package/execute-preflight/execute/verify/rollback-contract path and post-cleanup readiness summary for the exact Phase 11 canary-btc-001:20001 and limited-btc-001:20101 duplicate NAT redirects. The path resolves and passes expected_backend_target into the current controlled artifact gate, remains operator-gated, writes backups/evidence/manifests during execute, and does not restart Docker/systemd, flush conntrack, mutate DB/customer/policy/abuse state, enable Phase 12, worker enforcement, UI, Telegram, unrestricted production, or accept Phase 11 operational completion. production_traffic and customer_onboarding_allowed remain controlled_cli_limited.
+
 ## 0.1.273 - AI runtime-first PR preflight hardening
 
 - Enforce strict runtime-first PR body validation, including the required `Version: X.Y.Z -> A.B.C` line, the validator command in `How to test`, exactly one official PR class, and rejection of unofficial `docs/evidence-only`, `test-only`, and `refactor-only` options.
