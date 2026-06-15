@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.269 - Phase 11 post-apply semantic classification and AI PR wrapper
+
+- Fix 0.1.268 post-apply semantic classification mismatch: guarded execute applied successfully but failed post-apply verification because exact string comparison did not accept iptables-save canonicalized official rules.
+- Record that the official rollback returned farm5 to PASS_NO_CUSTOMER_ARTIFACTS; 0.1.269 must be synced, then read-only/package/preflight must be rerun before any guarded execute.
+- Add AI PR wrapper governance hardening so AI agents create PRs only through the validated runtime-first wrapper.
+
 ## 0.1.268 - Phase 11 controlled post-apply verification fix
 
 - Fix controlled artifact reapply post-apply verification by deriving and propagating the reviewed backend target, normalizing live iptables-save chain declarations against restore-payload artifacts, and requiring exact controlled artifacts without treating expected live MPF chains as unknown. Do not rerun the 0.1.267 execute path; sync 0.1.268, run read-only/package/preflight first, then execute only after fresh READY evidence.

@@ -562,3 +562,13 @@ Every normal implementation PR must deliver at least one concrete implementation
 - gated runtime/runbook script
 
 Documentation-only changes are allowed for safety clarification, but they must not become the default progression path.
+
+## AI PR Creation Wrapper Requirement
+
+AI agents must not call `gh pr create` directly. The only allowed AI-agent PR creation path is:
+
+```text
+scripts/create_runtime_first_pr.sh /tmp/pr_body.md --title "..." --base main --head <branch>
+```
+
+The wrapper must run after `/tmp/pr_body.md` passes `python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md`. If the wrapper cannot be run, do not create the PR; report the exact blocker instead.

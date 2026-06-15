@@ -26,13 +26,14 @@ cat > /tmp/pr_body.md <<'EOF'
 # final runtime-first PR body
 EOF
 python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
-gh pr create --body-file /tmp/pr_body.md
+scripts/create_runtime_first_pr.sh /tmp/pr_body.md --title "..." --base main --head <branch>
 ```
 
 Rules:
 
 - Do not create a PR with a generic `Motivation` / `Description` / `Testing`-only body.
-- Do not run `gh pr create --body` with an unvalidated generated summary.
+- AI agents must not call `gh pr create` directly.
+- Do not run `gh pr create --fill`, `gh pr create --body "..."`, or direct `gh pr create --body-file ...` outside the wrapper.
 - Do not replace the validated `/tmp/pr_body.md` content with an auto-generated summary.
 - If `python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md` fails, fix `/tmp/pr_body.md` and rerun it before creating the PR.
 - The PR body must contain exactly one checked PR class and all required runtime-first sections.

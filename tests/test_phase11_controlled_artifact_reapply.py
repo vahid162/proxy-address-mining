@@ -275,6 +275,72 @@ def test_classifier_accepts_full_expected_chain_set_and_nat_post_table():
     assert classification["blockers"] == []
 
 
+
+
+def _canonicalized_iptables_save_from_artifacts(artifacts):
+    lines = []
+    for item in artifacts:
+        line = item.split(":", 1)[1]
+        if line.startswith("-A ") and "-p tcp" in line:
+            line = line.replace("-p tcp ", "-p tcp -m tcp ", 1)
+        line = line.replace("--connlimit-above 1 --connlimit-mask 32", "--connlimit-above 1 --connlimit-mask 32 --connlimit-saddr")
+        line = line.replace("--hashlimit-above 120/minute", "--hashlimit-above 2/sec --hashlimit-htable-expire 60000")
+        line = line.replace("--hashlimit-above 60/minute", "--hashlimit-above 1/sec --hashlimit-htable-expire 60000")
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def test_classifier_accepts_iptables_save_canonicalized_official_post_apply_rules():
+    plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), phase_status_text=PHASE)
+    desired = plan["desired_state"]
+    live = _canonicalized_iptables_save_from_artifacts(desired["artifact_lines"])
+    classification = classify_controlled_artifacts(iptables_save_text=live, ip6tables_save_text="", desired_state=desired)
+    assert classification["blockers"] == []
+    assert classification["unknown_mpf"] == []
+    assert classification["semantic_missing_count"] == 0
+    assert classification["semantic_present_count"] == len(desired["artifact_lines"])
+    assert classification["canonicalization_applied_flag"] is True
+    assert classification["exact_missing"] == []
+
+
+def test_semantic_classifier_still_blocks_stale_unknown_duplicate_and_ipv6():
+    plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), phase_status_text=PHASE)
+    desired = plan["desired_state"]
+    live = _canonicalized_iptables_save_from_artifacts(desired["artifact_lines"])
+    stale = live.replace("--to-destination 172.19.0.5:60010", "--to-destination 172.19.0.6:60010", 1)
+    assert "stale_target_detected" in classify_controlled_artifacts(iptables_save_text=stale, ip6tables_save_text="", desired_state=desired)["blockers"]
+    unknown_comment = live + '\n-A MPFC_20001 -p tcp -m tcp --dport 60010 -m comment --comment "mpf:canary-btc-001:surprise" -j ACCEPT'
+    assert "unknown_mpf_artifacts_detected" in classify_controlled_artifacts(iptables_save_text=unknown_comment, ip6tables_save_text="", desired_state=desired)["blockers"]
+    unknown_chain = live + "\n-N MPF_SURPRISE"
+    assert "unknown_mpf_artifacts_detected" in classify_controlled_artifacts(iptables_save_text=unknown_chain, ip6tables_save_text="", desired_state=desired)["blockers"]
+    duplicate = live + "\n" + live.splitlines()[0]
+    assert "duplicate_controlled_artifact_detected" in classify_controlled_artifacts(iptables_save_text=duplicate, ip6tables_save_text="", desired_state=desired)["blockers"]
+    assert "unknown_mpf_artifacts_detected" in classify_controlled_artifacts(iptables_save_text=live, ip6tables_save_text="-A MPF6 -j ACCEPT", desired_state=desired)["blockers"]
+
+
+def test_executor_generated_ready_package_verifies_post_apply_semantic_present_no_reapply():
+    pre_plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), iptables_save_text="*filter\nCOMMIT\n", ip6tables_save_text="*filter\nCOMMIT\n", phase_status_text=PHASE)
+    pre_plan["iptables_save_text"] = "*filter\nCOMMIT\n"
+    pre_plan["ip6tables_save_text"] = "*filter\nCOMMIT\n"
+    pkg = build_package_from_plan(pre_plan)
+    pkg["hostname"] = __import__("socket").gethostname()
+    pkg["package_sha256"] = _canonical_sha(_package_content_for_hash(pkg))
+    pkg["__package_file_sha256"] = "file-sha"
+    live = _canonicalized_iptables_save_from_artifacts(pre_plan["desired_state"]["artifact_lines"])
+    post_plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), iptables_save_text=live, ip6tables_save_text="*filter\nCOMMIT\n", phase_status_text=PHASE)
+    post_plan["iptables_save_text"] = live
+    post_plan["ip6tables_save_text"] = "*filter\nCOMMIT\n"
+    assert post_plan["final_decision"] == "NO_CONTROLLED_ARTIFACT_REAPPLY_REQUIRED"
+    assert post_plan["artifact_classification"]["semantic_missing_count"] == 0
+    calls = {"count": 0}
+    def live_plan_builder():
+        calls["count"] += 1
+        return pre_plan if calls["count"] <= 3 else post_plan
+    result = _execute_with_production_fakes(pkg, live_plan_builder=live_plan_builder)
+    assert result["final_decision"] == "CONTROLLED_ARTIFACT_REAPPLY_EXECUTED_PENDING_FARM5_EVIDENCE_REVIEW"
+    assert result["rollback_required"] is False
+
+
 def test_classifier_blocks_extra_unknown_chain_known_customer_unknown_action_and_duplicates():
     plan = build_plan(lanes=lanes(), customers=customers(), backend_target=target(), phase_status_text=PHASE)
     desired = plan["desired_state"]
