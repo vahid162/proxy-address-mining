@@ -17,6 +17,8 @@ from typing import Any
 from mpf import __version__
 from mpf.services.phase11_controlled_artifact_reapply_audit_service import ControlledArtifactReapplyAuditRepo
 from mpf.services.phase11_controlled_artifact_reapply_core import FileBackupAdapter, FlockHostLock, _canonical_sha, _package_content_for_hash, verify_package
+from mpf.services.phase11_backend_target_helper import canonical_expected_backend_target
+from mpf.services.phase11_current_controlled_artifact_gate_service import build_phase11_current_controlled_artifact_gate_report
 
 READY = "READY_CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_GATE_PREFLIGHT"
 BLOCKED = "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_EXECUTION_GATE_PREFLIGHT"
@@ -110,6 +112,39 @@ def build_execution_gate_preflight_report(
     if package.get("final_decision") != "CONTROLLED_ARTIFACT_REAPPLY_PACKAGE_READY":
         blockers.append("package_final_decision_not_ready")
     plan = package.get("plan") if isinstance(package.get("plan"), dict) else {}
+    target_result = canonical_expected_backend_target(plan.get("backend_target") if isinstance(plan.get("backend_target"), dict) else None)
+    expected_backend_target = target_result.get("expected_backend_target")
+    payload_gate: dict[str, Any] | None = None
+    if target_result.get("blockers"):
+        blockers.append("package_expected_backend_target_unresolved")
+        blockers.extend(str(b) for b in target_result.get("blockers", []) if isinstance(target_result.get("blockers"), list))
+    else:
+        payload_gate = build_phase11_current_controlled_artifact_gate_report(
+            iptables_save_text=str(package.get("payload", "")),
+            phase_status_text="\n".join([
+                "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5",
+                "current_working_phase: Phase 11 operational completion — Full CLI Production Operations",
+                "production_traffic: controlled_cli_limited",
+                "firewall_apply_allowed: controlled",
+                "abuse_automation_allowed: controlled_operator_gated",
+                "customer_onboarding_allowed: controlled_cli_limited",
+                "worker_enforcement_allowed: no",
+                "ui_allowed: no",
+                "telegram_allowed: no",
+                "phase12_start_allowed: no",
+            ]),
+            expected_backend_target=str(expected_backend_target),
+            expected_version=expected_version,
+        )
+        allowed_payload = set(payload_gate.get("allowed_controlled_artifacts", [])) if isinstance(payload_gate.get("allowed_controlled_artifacts"), list) else set()
+        if (
+            payload_gate.get("final_decision") != "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS"
+            or payload_gate.get("unknown_mpf_artifacts") != []
+            or payload_gate.get("blockers") != []
+            or f"dnat:20001->{expected_backend_target}" not in allowed_payload
+            or f"dnat:20101->{expected_backend_target}" not in allowed_payload
+        ):
+            blockers.append("package_payload_current_gate_failed")
     verify = verify_package(package, live_plan=plan if plan else None)
     verify_decision = verify.get("final_decision")
     if verify_decision != "CONTROLLED_ARTIFACT_REAPPLY_VERIFY_READY":
@@ -190,6 +225,8 @@ def build_execution_gate_preflight_report(
         "backup_base_directory_ready": backup_base_ready,
         "host_lock_strategy_ready": host_lock_ready,
         "warnings": sorted(set(warnings)),
+        "expected_backend_target": expected_backend_target if 'expected_backend_target' in locals() else None,
+        "package_payload_current_gate": payload_gate if 'payload_gate' in locals() else None,
         "blockers": sorted(set(blockers)),
     })
     if not blockers:

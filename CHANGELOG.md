@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.268 - Phase 11 controlled post-apply verification fix
+
+- Fix controlled artifact reapply post-apply verification by deriving and propagating the reviewed backend target, normalizing live iptables-save chain declarations against restore-payload artifacts, and requiring exact controlled artifacts without treating expected live MPF chains as unknown. Do not rerun the 0.1.267 execute path; sync 0.1.268, run read-only/package/preflight first, then execute only after fresh READY evidence.
+
 ## 0.1.267
 
 - Align Phase 11 current controlled artifact classification with the official taxonomy, resolved backend target checks, post-apply exact-present verification, and reviewed exact-inverse rollback execution.

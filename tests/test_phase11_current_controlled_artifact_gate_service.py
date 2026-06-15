@@ -103,3 +103,9 @@ def test_unknown_mpf_like_comment_on_official_chain_blocked():
     text = OFFICIAL_FULL.replace('mpf:canary-btc-001:customer_dispatch', 'mpf:canary-btc-001:customer_surprise')
     r = build_phase11_current_controlled_artifact_gate_report(iptables_save_text=text, phase_status_text=PHASE, expected_backend_target="172.18.0.2:60010")
     assert r['final_decision'] == 'BLOCKED_UNKNOWN_MPF_ARTIFACTS'
+
+def test_dnat_payload_requires_expected_backend_target_when_present():
+    r = build_phase11_current_controlled_artifact_gate_report(iptables_save_text=OFFICIAL_FULL, phase_status_text=PHASE)
+    assert r['final_decision'] == 'BLOCKED_UNKNOWN_MPF_ARTIFACTS'
+    assert 'expected_backend_target_required' in r['blockers']
+    assert any(str(x).startswith('dnat_target_unresolved') for x in r['unknown_mpf_artifacts'])
