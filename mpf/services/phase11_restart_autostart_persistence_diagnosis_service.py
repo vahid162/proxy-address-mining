@@ -11,6 +11,7 @@ from typing import Any
 from mpf import __version__
 from mpf.adapters import docker_compose, socket_inspector
 from mpf.config import DEFAULT_CONFIG_PATH, load_config
+from mpf.services import phase11_controlled_backend_target_service
 from mpf.services.phase11_current_controlled_artifact_gate_service import (
     build_phase11_current_controlled_artifact_gate_report,
 )
@@ -98,18 +99,23 @@ def _read_command_stdout(command: list[str]) -> str:
 
 
 def _build_artifact_gate_report(expected_version: str) -> dict[str, object]:
+    backend_target = phase11_controlled_backend_target_service.build_controlled_backend_target_report(expected_version=expected_version)
+    expected_backend_target = phase11_controlled_backend_target_service.expected_backend_target_from_report(backend_target)
     iptables_save_text = _read_command_stdout(["iptables-save"])
     ip6tables_save_text = _read_command_stdout(["ip6tables-save"])
     try:
         phase_status_text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
     except OSError:
         phase_status_text = ""
-    return build_phase11_current_controlled_artifact_gate_report(
+    report = build_phase11_current_controlled_artifact_gate_report(
         iptables_save_text=iptables_save_text,
         ip6tables_save_text=ip6tables_save_text,
         phase_status_text=phase_status_text,
         expected_version=expected_version,
+        expected_backend_target=expected_backend_target,
     )
+    report["backend_target_resolution"] = backend_target
+    return report
 
 
 def build_phase11_restart_autostart_persistence_diagnosis_report(
