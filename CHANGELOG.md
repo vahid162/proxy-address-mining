@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.263
+- fix(phase11): canonicalize guarded controlled artifact reapply execute-time backend binding drift comparison and improve pre-apply diagnostics.
+
 ## 0.1.262
 - fix(phase11): revalidate live-ready packet-path binding semantics during guarded controlled artifact reapply execute while preserving fail-closed drift and operator gates.
 

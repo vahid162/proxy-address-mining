@@ -607,6 +607,46 @@ def test_execution_time_live_ready_plan_revalidates_bound_semantics(tmp_path, mo
     assert result["apply_invoked"] is True
 
 
+def test_execution_time_live_ready_plan_accepts_same_identity_with_different_raw_fingerprint_source(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+
+    class Loaded:
+        ok = True
+        lanes = LIVE_LANES
+        customers = LIVE_CUSTOMERS
+        message = "ok"
+
+    bound_target = pkg["plan"]["backend_target"]
+    runtime_target = dict(bound_target)
+    runtime_target["backend_target_source"] = "docker_inspect_verified_runtime_shape"
+    runtime_target["target_fingerprint_input"] = {
+        "runtime_source_shape": "farm5_execute_time",
+        "resolved_ipv4": bound_target["resolved_ipv4"],
+        "target_port": bound_target["target_port"],
+        "network_id": bound_target["network_id"],
+        "endpoint_id": bound_target.get("endpoint_id"),
+    }
+    runtime_target["target_fingerprint"] = "a" * 64
+
+    monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
+    monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: runtime_target)
+    monkeypatch.setattr(executor_svc, "_phase_text", lambda: PHASE)
+    monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
+    monkeypatch.setattr(executor_svc, "_cmd", lambda argv: type("R", (), {"argv": argv, "command": argv[0], "returncode": 0, "stdout": snapshot, "stderr": "", "ok": True})())
+
+    live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
+    assert live_plan["final_decision"] == PACKAGE_READY
+    assert live_plan["execution_precondition_fingerprint"] == pkg["execution_precondition_fingerprint"]
+    assert live_plan["canonical_backend_binding_identity_match"] is True
+    assert live_plan["live_backend_target_fingerprint"] == runtime_target["target_fingerprint"]
+    assert live_plan["backend_target"]["target_fingerprint"] == pkg["backend_target_fingerprint"]
+    assert "backend_target_fingerprint_drift" not in live_plan.get("blockers", [])
+    assert "backend_target_binding_identity_drift" not in live_plan.get("blockers", [])
+
+
 def test_execution_time_live_ready_plan_fails_closed_on_binding_mismatch(tmp_path, monkeypatch):
     from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
 
@@ -631,7 +671,34 @@ def test_execution_time_live_ready_plan_fails_closed_on_binding_mismatch(tmp_pat
     assert "packet_path_binding_mode_mismatch" in live_plan["blockers"]
 
 
-def test_execution_time_live_ready_plan_fails_closed_on_backend_fingerprint_drift(tmp_path, monkeypatch):
+def test_execution_time_live_ready_plan_fails_closed_on_public_or_unhealthy_backend(tmp_path, monkeypatch):
+    from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
+    from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
+
+    pkg, snapshot = _live_ready_package_with_snapshots(tmp_path, monkeypatch)
+
+    class Loaded:
+        ok = True
+        lanes = LIVE_LANES
+        customers = LIVE_CUSTOMERS
+        message = "ok"
+
+    monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
+    monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
+    monkeypatch.setattr(executor_svc, "_cmd", lambda argv: type("R", (), {"argv": argv, "command": argv[0], "returncode": 0, "stdout": snapshot, "stderr": "", "ok": True})())
+
+    for runtime_target, blocker in (
+        (dict(pkg["plan"]["backend_target"], backend_public_exposure=True), "forbidden_public_runtime_exposure"),
+        (dict(pkg["plan"]["backend_target"], health_status="unhealthy"), "backend_target_health_not_verified"),
+    ):
+        monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version, runtime_target=runtime_target: runtime_target)
+        live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
+        assert live_plan["final_decision"] == PACKAGE_BLOCKED
+        assert blocker in live_plan["blockers"]
+        assert live_plan["canonical_backend_binding_identity_match"] is False
+
+
+def test_execution_time_live_ready_plan_fails_closed_on_backend_identity_drift(tmp_path, monkeypatch):
     from mpf.services import phase11_controlled_artifact_reapply_executor_service as executor_svc
     from tests.test_phase11_live_ready_reapply_package import CUSTOMERS as LIVE_CUSTOMERS, LANES as LIVE_LANES
 
@@ -644,7 +711,7 @@ def test_execution_time_live_ready_plan_fails_closed_on_backend_fingerprint_drif
         message = "ok"
 
     bound_target = pkg["plan"]["backend_target"]
-    drifted_target = dict(bound_target, target_fingerprint="f" * 64)
+    drifted_target = dict(bound_target, network_id="net2", endpoint_id="endpoint2", target_fingerprint="f" * 64)
     monkeypatch.setattr(executor_svc.firewall_planner_read_repo, "load_firewall_planner_input", lambda cfg: Loaded())
     monkeypatch.setattr(executor_svc, "build_controlled_backend_target_report", lambda expected_version: drifted_target)
     monkeypatch.setattr(executor_svc, "load_config", lambda path: object())
@@ -653,7 +720,10 @@ def test_execution_time_live_ready_plan_fails_closed_on_backend_fingerprint_drif
     live_plan = executor_svc.build_execution_time_live_ready_reapply_plan(package=pkg)
     assert live_plan["final_decision"] == PACKAGE_BLOCKED
     assert "live_ready_binding_revalidation_failed" in live_plan["blockers"]
-    assert "backend_target_fingerprint_drift" in live_plan["blockers"]
+    assert "backend_target_binding_identity_drift" in live_plan["blockers"]
+    assert live_plan["root_cause_blocker"] == "backend_target_binding_identity_drift"
+    assert live_plan["canonical_backend_binding_identity_match"] is False
+    assert live_plan["drift_comparison"]["mismatched_fields"]
 
     runner = ProductionRunner()
     result = execute_package(
@@ -674,6 +744,12 @@ def test_execution_time_live_ready_plan_fails_closed_on_backend_fingerprint_drif
     )
     assert result["final_decision"] == "FAILED_PRE_APPLY"
     assert "live_plan_blocked" in result["blockers"]
+    assert "backend_target_binding_identity_drift" in result["blockers"]
+    assert result["root_cause_blocker"] == "backend_target_binding_identity_drift"
+    assert result["live_plan_final_decision"] == PACKAGE_BLOCKED
+    assert result["package_backend_target_fingerprint"] == pkg["backend_target_fingerprint"]
+    assert result["live_backend_target_fingerprint"] == drifted_target["target_fingerprint"]
+    assert result["drift_comparison"]["canonical_backend_binding_identity_match"] is False
     assert result["iptables_restore_invoked"] is False
     assert runner.calls == []
 
