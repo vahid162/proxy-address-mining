@@ -57,9 +57,16 @@ def _validate_target(st: dict[str, Any] | None) -> list[str]:
     if st.get("status") != "active": b.append("target_customer_not_active")
     return b
 def _is_writable(path: Path) -> bool:
+    """Probe writability without creating the persistent backup root during preflight."""
     try:
-        path.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(dir=path, prefix=".mpf-preflight-", delete=True): pass
+        if path.exists():
+            with tempfile.NamedTemporaryFile(dir=path, prefix=".mpf-preflight-", delete=True): pass
+            return True
+        parent = path.parent
+        if not parent.exists():
+            return False
+        with tempfile.TemporaryDirectory(dir=parent, prefix=".mpf-preflight-parent-"):
+            pass
         return True
     except Exception:
         return False
@@ -103,9 +110,9 @@ def preflight(package_file: Path, config_path: Path = DEFAULT_CONFIG_PATH, *, ba
 
 def execute(package_file: Path, config_path: Path = DEFAULT_CONFIG_PATH, *, operator: str, reason: str, backup_root: Path = BACKUP_ROOT, operator_confirmed: bool=False, i_understand_db_only: bool=False, i_understand_no_firewall_apply: bool=False, i_understand_no_runtime_change: bool=False, i_understand_phase11_not_completed: bool=False, out_json: Path|None=None) -> dict[str, Any]:
     if not all([operator_confirmed,i_understand_db_only,i_understand_no_firewall_apply,i_understand_no_runtime_change,i_understand_phase11_not_completed]):
-        return _controlled_base(final_decision="BLOCKED_CONFIRMATION_REQUIRED")
+        return _controlled_base(component="phase11_production_customer_lifecycle_execution_execute", final_decision="BLOCKED_CONFIRMATION_REQUIRED", blockers=["confirmation_flags_required"])
     pf=preflight(package_file, config_path, backup_root=backup_root)
-    if pf["blockers"]: return pf | {"final_decision":"BLOCKED_PREFLIGHT"}
+    if pf["blockers"]: return pf | {"component":"phase11_production_customer_lifecycle_execution_execute", "final_decision":"BLOCKED_PREFLIGHT"}
     pkg=_load_json(package_file); corr=str(uuid.uuid4()); orphan=None
     try:
         backup_root.mkdir(parents=True, exist_ok=True)
@@ -121,9 +128,9 @@ def execute(package_file: Path, config_path: Path = DEFAULT_CONFIG_PATH, *, oper
             cur.execute("update customers set lifecycle_note=%s, service_days=service_days, updated_at=now(), updated_by=%s where id=%s",(new_note,operator,st["id"]))
             cur.execute("insert into events (event_type,severity,subject_type,subject_id,message,data_json,created_by,correlation_id) values (%s,'info','customer',%s,%s,%s::jsonb,%s,%s) returning id",("phase11.production_customer_lifecycle_execution",st["id"],"Phase 11 controlled DB-only lifecycle execution evidence",_canon({"backup_id":bid,"restore_point_id":rpid,"package_id":pkg["package_id"],"correlation_id":corr}),operator,corr)); eid=cur.fetchone()[0]
             cur.execute("insert into audit_log (actor_type,actor_id,action,resource_type,resource_id,before_json,after_json,reason,correlation_id) values ('operator',%s,%s,'customer',%s,%s::jsonb,%s::jsonb,%s,%s) returning id",(operator,"phase11.production_customer_lifecycle_execution",st["id"],_canon(st),_canon({"lifecycle_note":new_note,"package_id":pkg["package_id"],"correlation_id":corr}),reason,corr)); aid=cur.fetchone()[0]
-        out=_controlled_base(final_decision="PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_RECORDED", package_id=pkg["package_id"], package_sha256=pkg["package_sha256"], correlation_id=corr, customer_id=st["id"], backup_id=bid, backup_path=str(ap), backup_sha256=bsha, restore_point_id=rpid, event_id=eid, audit_id=aid, db_mutation_performed=True)
+        out=_controlled_base(final_decision="PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_RECORDED", package_id=pkg["package_id"], package_sha256=pkg["package_sha256"], correlation_id=corr, customer_id=st["id"], backup_id=bid, backup_path=str(ap), backup_sha256=bsha, restore_point_id=rpid, event_id=eid, audit_id=aid, mutation_performed=True, db_mutation_performed=True)
     except Exception as exc:
-        out=_controlled_base(final_decision="BLOCKED_EXECUTION_ERROR", blockers=[f"execution_error:{exc}"], orphan_backup_artifact=orphan, package_id=pkg.get("package_id"), correlation_id=corr)
+        out=_controlled_base(component="phase11_production_customer_lifecycle_execution_execute", final_decision="BLOCKED_EXECUTION_ERROR", blockers=[f"execution_error:{exc}"], orphan_backup_artifact=orphan, package_id=pkg.get("package_id"), correlation_id=corr)
     if out_json: out_json.write_text(json.dumps(out, indent=2, default=str)+"\n", encoding="utf-8")
     return out
 
