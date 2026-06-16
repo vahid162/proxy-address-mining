@@ -167,6 +167,7 @@ from mpf.services import (
     phase11_controlled_filter_packet_path_service,
     phase11_production_customer_lifecycle_execution_readiness_service,
     phase11_production_customer_lifecycle_execution_service,
+    phase11_production_firewall_apply_verify_rollback_readiness_service,
     phase11_verified_filter_hook_binding_service,
     phase11_live_ready_reapply_package_service,
     phase11_canary_evidence_pack_service,
@@ -3758,6 +3759,7 @@ def production_phase11_operational_completion_gap_inventory(
     packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
     evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
     lifecycle_execution_evidence_json: Path | None = typer.Option(None, "--lifecycle-execution-evidence-json"),
+    firewall_completion_evidence_dir: Path | None = typer.Option(None, "--firewall-completion-evidence-dir"),
 ) -> None:
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
@@ -3766,6 +3768,7 @@ def production_phase11_operational_completion_gap_inventory(
         packet_path_evidence_dir=packet_path_evidence_dir,
         evidence_dir=evidence_dir,
         lifecycle_execution_evidence_json=lifecycle_execution_evidence_json,
+        firewall_completion_evidence_dir=firewall_completion_evidence_dir,
     )
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
@@ -3773,6 +3776,17 @@ def production_phase11_operational_completion_gap_inventory(
     for key, value in report.items():
         typer.echo(f"{key}: {value}")
 
+
+
+@production_app.command("production-firewall-apply-verify-rollback-readiness")
+def production_firewall_apply_verify_rollback_readiness(
+    evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Render the read-only Phase 11 firewall apply/verify/rollback completion evidence contract."""
+
+    report = phase11_production_firewall_apply_verify_rollback_readiness_service.build_production_firewall_apply_verify_rollback_readiness_report(evidence_dir)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 
 @production_app.command("production-customer-lifecycle-execution-readiness")
@@ -4027,11 +4041,14 @@ def production_controlled_artifact_reapply_readiness(
     config: Path | None = typer.Option(None, "--config", "-c"),
     packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
     evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    iptables_save_file: Path | None = typer.Option(None, "--iptables-save-file"),
+    ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"),
 ) -> None:
     """Build the read-only live-ready controlled artifact reapply readiness report."""
 
     try:
-        report = phase11_controlled_artifact_reapply_readiness_service.run_phase11_controlled_artifact_reapply_readiness(_config_path(config), expected_version=expected_version, packet_path_evidence_dir=packet_path_evidence_dir)
+        report = phase11_controlled_artifact_reapply_readiness_service.run_phase11_controlled_artifact_reapply_readiness(_config_path(config), expected_version=expected_version, packet_path_evidence_dir=packet_path_evidence_dir, expected_backend_target=expected_backend_target, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file)
     except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
         report = phase11_controlled_artifact_reapply_readiness_service.build_fail_closed_readiness_report(
             expected_version,
@@ -4149,11 +4166,14 @@ def production_controlled_artifact_reapply_plan(
     expected_version: str = typer.Option(__version__, "--expected-version"),
     output: Literal["json"] = typer.Option("json", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    iptables_save_file: Path | None = typer.Option(None, "--iptables-save-file"),
+    ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"),
 ) -> None:
     """Build the read-only controlled artifact reapply plan."""
 
     try:
-        report = phase11_controlled_artifact_reapply_package_service.run_controlled_artifact_reapply_plan(_config_path(config), expected_version=expected_version)
+        report = phase11_controlled_artifact_reapply_package_service.run_controlled_artifact_reapply_plan(_config_path(config), expected_version=expected_version, expected_backend_target=expected_backend_target, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file)
     except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
         report = {"component": "phase11_controlled_artifact_reapply_plan", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["controlled_artifact_reapply_read_only_preflight_failed"], "error": str(exc), "mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
@@ -4164,11 +4184,14 @@ def production_controlled_artifact_reapply_package(
     expected_version: str = typer.Option(__version__, "--expected-version"),
     output: Literal["json"] = typer.Option("json", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    iptables_save_file: Path | None = typer.Option(None, "--iptables-save-file"),
+    ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"),
 ) -> None:
     """Build the read-only controlled artifact reapply execution package."""
 
     try:
-        report = phase11_controlled_artifact_reapply_package_service.run_controlled_artifact_reapply_package(_config_path(config), expected_version=expected_version)
+        report = phase11_controlled_artifact_reapply_package_service.run_controlled_artifact_reapply_package(_config_path(config), expected_version=expected_version, expected_backend_target=expected_backend_target, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file)
     except Exception as exc:  # noqa: BLE001 - fail closed for operator surface.
         report = {"component": "phase11_controlled_artifact_reapply_package", "repository_version": __version__, "expected_version": expected_version, "final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["controlled_artifact_reapply_package_preflight_failed"], "error": str(exc), "mutation_performed": False}
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))

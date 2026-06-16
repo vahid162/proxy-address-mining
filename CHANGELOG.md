@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.281
+
+- Align Phase 11 source evidence mutation classification so copied historical lifecycle evidence is reported separately from current collector-run mutation flags.
+- Add target-aware read-only controlled artifact reapply diagnostics and a fail-closed production firewall apply/verify/rollback completion evidence contract.
+- Keep Phase 11 operational completion blocked on `production_firewall_apply_verify_rollback`; no firewall apply, DB mutation, abuse execute, or Phase 12 opening is performed.
+
 ## 0.1.280
 
 - Fix Phase 11 lifecycle evidence readiness/gap false-negative under root peer-auth DB read context by using the project read-only DB helper path for correlation checks.

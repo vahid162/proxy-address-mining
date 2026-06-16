@@ -2,6 +2,8 @@
 set -Eeuo pipefail
 
 OUT_DIR="${1:?usage: $0 OUT_DIR}"
+FIREWALL_COMPLETION_EVIDENCE_DIR="${MPF_FIREWALL_COMPLETION_EVIDENCE_DIR:-}"
+export FIREWALL_COMPLETION_EVIDENCE_DIR
 LIFECYCLE_EXECUTION_EVIDENCE_JSON="${MPF_LIFECYCLE_EXECUTION_EVIDENCE_JSON:-${2:-}}"
 MPF_BIN="${MPF_BIN:-mpf}"
 RESTART_DIR="${OUT_DIR}/restart-autostart-proof"
@@ -64,7 +66,16 @@ MPF_BIN="${MPF_BIN}" bash scripts/phase11_collect_restart_autostart_proof.sh "${
 python3 -m json.tool "${RESTART_DIR}/proof-report.json" > "${OUT_DIR}/restart-autostart-proof-report.pretty.json"
 
 run_json "${OUT_DIR}/production-customer-lifecycle-execution-readiness.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production production-customer-lifecycle-execution-readiness --evidence-dir "${RESTART_DIR}" --expected-backend-target "${EXPECTED_BACKEND_TARGET}" "${LIFECYCLE_EVIDENCE_ARG[@]}" --output json
-run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${RESTART_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" --output json
+FIREWALL_COMPLETION_EVIDENCE_ARG=()
+if [[ -n "${FIREWALL_COMPLETION_EVIDENCE_DIR}" ]]; then
+  if [[ ! -d "${FIREWALL_COMPLETION_EVIDENCE_DIR}" ]]; then
+    echo "firewall completion evidence dir not found: ${FIREWALL_COMPLETION_EVIDENCE_DIR}" >&2
+    exit 2
+  fi
+  FIREWALL_COMPLETION_EVIDENCE_ARG=(--firewall-completion-evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR}")
+  run_json "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${MPF_BIN}" production production-firewall-apply-verify-rollback-readiness --evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR}" --output json
+fi
+run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${RESTART_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" "${FIREWALL_COMPLETION_EVIDENCE_ARG[@]}" --output json
 
 "${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt" 2>&1 || true
 "${MPF_BIN}" lanes list > "${OUT_DIR}/lanes.txt" 2>&1 || true
@@ -78,17 +89,26 @@ fi
 python3 - "${OUT_DIR}" <<'PY'
 import json, pathlib, sys
 out=pathlib.Path(sys.argv[1])
-flags={}
-for p in out.rglob('*.json'):
-    try:
-        data=json.loads(p.read_text(encoding='utf-8'))
-    except Exception:
-        continue
-    if isinstance(data, dict):
-        for k,v in data.items():
-            if k.endswith('_performed') or k in ('mutation_performed','phase12_start_allowed','worker_enforcement_enabled','ui_enabled','telegram_enabled'):
-                flags[f'{p.relative_to(out)}:{k}']=v
+flag_keys=('mutation_performed','phase12_start_allowed','worker_enforcement_enabled','ui_enabled','telegram_enabled')
+def collect_flags(paths):
+    flags={}
+    for p in paths:
+        try:
+            data=json.loads(p.read_text(encoding='utf-8'))
+        except Exception:
+            continue
+        if isinstance(data, dict):
+            for k,v in data.items():
+                if k.endswith('_performed') or k in flag_keys:
+                    flags[f'{p.relative_to(out)}:{k}']=v
+    return flags
+source_names={'production-customer-lifecycle-execution-evidence.json'}
+json_files=list(out.rglob('*.json'))
+flags=collect_flags([p for p in json_files if str(p.relative_to(out)) not in source_names and p.name not in {'mutation-flags.json','source-evidence-mutation-flags.json'}])
 (out/'mutation-flags.json').write_text(json.dumps(flags, indent=2, sort_keys=True), encoding='utf-8')
+source_flags=collect_flags([out/name for name in source_names if (out/name).exists()])
+source_report={'classification':'historical_source_evidence_not_current_collector_run', 'mutation_flags': source_flags}
+(out/'source-evidence-mutation-flags.json').write_text(json.dumps(source_report, indent=2, sort_keys=True), encoding='utf-8')
 lifecycle_evidence={}
 if (out/'production-customer-lifecycle-execution-evidence.json').exists():
     lifecycle_evidence={
@@ -100,6 +120,7 @@ manifest={
     'expected_backend_target':(out/'expected-backend-target.txt').read_text(encoding='utf-8').strip(),
     'restart_autostart_evidence_dir':'restart-autostart-proof',
     'lifecycle_execution_evidence': lifecycle_evidence,
+    'firewall_completion_evidence_dir': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR') or None,
     'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
 }
 (out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')

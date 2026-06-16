@@ -79,6 +79,9 @@ def run_phase11_controlled_artifact_reapply_readiness(
     expected_version: str = __version__,
     packet_path_evidence_dir: Path | str | None = None,
     output_dir: Path | str | None = None,
+    expected_backend_target: str | None = None,
+    iptables_save_file: Path | str | None = None,
+    ip6tables_save_file: Path | str | None = None,
 ) -> dict[str, object]:
     progression = active_progression()
     blockers: list[str] = []
@@ -91,26 +94,32 @@ def run_phase11_controlled_artifact_reapply_readiness(
     if packet_path_evidence_dir is not None:
         live_ready_report = live_ready_service.run_live_ready_reapply_package_report(config_path, packet_path_evidence_dir=packet_path_evidence_dir, output_dir=output_dir, expected_version=expected_version)
     try:
-        live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
+        try:
+            live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version, expected_backend_target=expected_backend_target, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file)
+        except TypeError:
+            live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
         live_plan = {"final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["live_plan_collection_failed", str(exc)], "mutation_performed": False}
     try:
         backend_for_gate = live_plan.get("backend_target") if isinstance(live_plan.get("backend_target"), dict) else {}
-        expected_backend_target = None
-        if backend_for_gate.get("resolved_ipv4") and backend_for_gate.get("backend_port"):
-            expected_backend_target = f"{backend_for_gate.get('resolved_ipv4')}:{backend_for_gate.get('backend_port')}"
+        gate_expected_backend_target = expected_backend_target
+        if gate_expected_backend_target is None and backend_for_gate.get("resolved_ipv4") and backend_for_gate.get("backend_port"):
+            gate_expected_backend_target = f"{backend_for_gate.get('resolved_ipv4')}:{backend_for_gate.get('backend_port')}"
         gate = gate_service.build_phase11_current_controlled_artifact_gate_report(
             iptables_save_text=str(live_plan.get("iptables_save_text", "")),
             ip6tables_save_text=str(live_plan.get("ip6tables_save_text", "")),
             phase_status_text=Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8") if Path("docs/PHASE_STATUS.md").exists() else "",
             expected_version=expected_version,
-            expected_backend_target=expected_backend_target,
+            expected_backend_target=gate_expected_backend_target,
         )
     except Exception as exc:  # noqa: BLE001
         gate = {"blockers": ["current_controlled_artifact_gate_failed", str(exc)], "unknown_mpf_artifacts": [], "current_phase_gate_ok": False}
     package = package_service.build_controlled_artifact_reapply_package_report(plan=live_plan)
     try:
-        verification_live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
+        try:
+            verification_live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version, expected_backend_target=gate_expected_backend_target, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file)
+        except TypeError:
+            verification_live_plan = package_service.run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
     except Exception as exc:  # noqa: BLE001
         verification_live_plan = {"final_decision": "BLOCKED_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "blockers": ["verification_live_plan_collection_failed", str(exc)], "mutation_performed": False}
     verify = verification_service.build_controlled_artifact_reapply_verify_report(package=package, live_plan=verification_live_plan, config_path=config_path, expected_version=expected_version)
@@ -127,6 +136,7 @@ def run_phase11_controlled_artifact_reapply_readiness(
     blockers.extend(str(b) for b in _as_list(live_plan.get("blockers")))
     blockers.extend(str(b) for b in _as_list(package.get("blockers")))
     blockers.extend(str(b) for b in _as_list(verify.get("blockers")))
+    blockers.extend(str(b) for b in _as_list(verification_live_plan.get("blockers")))
     blockers.extend(str(b) for b in _as_list(fix_plan.get("safety_blockers")))
     blockers.extend(str(b) for b in _as_list(gate.get("blockers")))
     if unknown:

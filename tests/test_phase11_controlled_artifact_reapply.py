@@ -1192,3 +1192,12 @@ COMMIT
     c = classify_controlled_artifacts(iptables_save_text=old, ip6tables_save_text="", desired_state=desired)
     assert c["status"] == "blocked"
     assert "unknown_mpf_artifacts_detected" in c["blockers"]
+
+
+def test_reapply_cli_exposes_target_aware_snapshot_options() -> None:
+    text = Path("mpf/interfaces/cli.py").read_text(encoding="utf-8")
+    for option in ("--expected-backend-target", "--iptables-save-file", "--ip6tables-save-file"):
+        assert option in text
+    service = Path("mpf/services/phase11_controlled_artifact_reapply_package_service.py").read_text(encoding="utf-8")
+    assert "read-file" in service
+    assert "Path(iptables_save_file).read_text" in service
