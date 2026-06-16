@@ -193,6 +193,77 @@ def test_firewall_completion_contract_fails_closed_on_partial_evidence(tmp_path)
     assert report["mutation_performed"] is False
 
 
+def test_firewall_completion_accepts_target_aware_no_reapply_evidence(tmp_path) -> None:
+    from mpf.services.phase11_production_firewall_apply_verify_rollback_readiness_service import build_production_firewall_apply_verify_rollback_readiness_report
+
+    (tmp_path / "current-controlled-artifact-gate-target-aware.json").write_text(json.dumps({
+        "final_decision": "PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS",
+        "unknown_mpf_artifacts": [],
+        "duplicate_nat_redirect_count": 0,
+        "forbidden_public_runtime_exposure": False,
+        "backend_public_exposure": False,
+        "mutation_performed": False,
+    }), encoding="utf-8")
+    (tmp_path / "controlled-artifact-reapply-readiness-target-aware.json").write_text(json.dumps({
+        "final_decision": "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT",
+        "controlled_artifact_reapply_required": False,
+        "blockers": [],
+        "mutation_performed": False,
+        "phase12_start_allowed": False,
+    }), encoding="utf-8")
+    (tmp_path / "controlled-artifact-reapply-package.json").write_text(json.dumps({
+        "final_decision": "NO_CONTROLLED_ARTIFACT_REAPPLY_REQUIRED",
+        "package_id": "pkg",
+        "package_sha256": "sha",
+        "payload": "",
+        "scope": [{"customer_key": "limited-btc-001", "lane": "btc", "public_port": 20101}],
+        "mutation_performed": False,
+    }), encoding="utf-8")
+
+    report = build_production_firewall_apply_verify_rollback_readiness_report(tmp_path)
+
+    assert report["production_firewall_apply_verify_rollback"] == "production_firewall_apply_verify_rollback_ready"
+    assert report["final_decision"] == "PRODUCTION_FIREWALL_ALREADY_APPLIED_VERIFIED_NO_REAPPLY_REQUIRED"
+    assert report["evidence_mode"] == "already_applied_no_reapply_required"
+    assert report["no_reapply_required"] is True
+    assert report["blockers"] == []
+    assert report["mutation_performed"] is False
+    assert report["phase12_start_allowed"] is False
+    assert report["next_required_step"] == "production_onboarding_flow"
+
+
+def test_gap_inventory_advances_to_onboarding_after_no_reapply_firewall_evidence(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    (tmp_path / "current-controlled-artifact-gate-target-aware.json").write_text(json.dumps({
+        "unknown_mpf_artifacts": [],
+        "duplicate_nat_redirect_count": 0,
+        "forbidden_public_runtime_exposure": False,
+    }), encoding="utf-8")
+    (tmp_path / "controlled-artifact-reapply-readiness-target-aware.json").write_text(json.dumps({
+        "final_decision": "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT",
+        "controlled_artifact_reapply_required": False,
+        "blockers": [],
+        "mutation_performed": False,
+    }), encoding="utf-8")
+    (tmp_path / "controlled-artifact-reapply-package.json").write_text(json.dumps({
+        "final_decision": "NO_CONTROLLED_ARTIFACT_REAPPLY_REQUIRED",
+        "package_id": "pkg",
+        "package_sha256": "sha",
+        "payload": "",
+        "scope": [{"customer_key": "limited-btc-001", "lane": "btc", "public_port": 20101}],
+        "mutation_performed": False,
+    }), encoding="utf-8")
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *args, **kwargs: {"production_customer_lifecycle_execution": "controlled_execution_evidence_ready", "final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"})
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(firewall_completion_evidence_dir=tmp_path)
+
+    assert report["production_customer_lifecycle_execution"] == "controlled_execution_evidence_ready"
+    assert report["production_firewall_apply_verify_rollback"] == "production_firewall_apply_verify_rollback_ready"
+    assert report["next_required_step"] == "production_onboarding_flow"
+    assert report["phase12_start_allowed"] is False
+
+
 def test_gap_inventory_does_not_advance_firewall_from_missing_completion_evidence() -> None:
     report = build_phase11_operational_completion_gap_inventory_report(
         persistence_plan_report={"final_decision": "x", "safety_blockers": []},
