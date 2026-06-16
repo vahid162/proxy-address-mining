@@ -51,10 +51,12 @@ def build_phase11_operational_completion_gap_inventory_report(
     except Exception:
         from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import build_phase11_production_customer_lifecycle_execution_readiness_report
         lifecycle_readiness = build_phase11_production_customer_lifecycle_execution_readiness_report(restart_autostart_proof_ready=restart_status == "ready")
-    next_required_step = _next_step(restart_status, persistence_plan_report, readiness_report, lifecycle_readiness)
     lifecycle_item = "controlled_execution_evidence_ready" if lifecycle_readiness.get("production_customer_lifecycle_execution") == "controlled_execution_evidence_ready" else _MISSING_OR_PARTIAL
     firewall_completion = build_production_firewall_apply_verify_rollback_readiness_report(firewall_completion_evidence_dir) if firewall_completion_evidence_dir else None
     firewall_item = FIREWALL_READY if firewall_completion and firewall_completion.get("production_firewall_apply_verify_rollback") == FIREWALL_READY else _MISSING_OR_PARTIAL
+    next_required_step = _next_step(restart_status, persistence_plan_report, readiness_report, lifecycle_readiness)
+    if lifecycle_item == "controlled_execution_evidence_ready" and firewall_item == FIREWALL_READY:
+        next_required_step = "production_onboarding_flow"
 
     return {
         "component": "phase11_operational_completion_gap_inventory",
