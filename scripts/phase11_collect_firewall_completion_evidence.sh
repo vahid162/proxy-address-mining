@@ -4,12 +4,42 @@ set -Eeuo pipefail
 OUT_DIR="${1:?usage: $0 OUT_DIR}"
 MPF_BIN="${MPF_BIN:-mpf}"
 mkdir -p "${OUT_DIR}"
+VERIFY_REPORT_TMP="$(mktemp)"
+FINAL_VERIFY_REPORT_TMP="$(mktemp)"
+cleanup() {
+  rm -f "${VERIFY_REPORT_TMP}" "${FINAL_VERIFY_REPORT_TMP}"
+}
+trap cleanup EXIT
 
 run_json() {
   local out="$1"
   shift
   "$@" > "${out}"
   python3 -m json.tool "${out}" >/dev/null
+}
+
+write_manifest_and_sha256s() {
+  python3 - "${OUT_DIR}" <<'PY'
+import json, pathlib, sys, hashlib
+out=pathlib.Path(sys.argv[1])
+files=sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file() and p.name not in {'manifest.json','SHA256SUMS.txt'})
+manifest={'component':'phase11_firewall_completion_evidence_bundle_manifest','repository_version':(out/'expected-version.txt').read_text().strip(),'expected_backend_target':(out/'expected-backend-target.txt').read_text().strip(),'files':files}
+(out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
+def sha(p):
+    h=hashlib.sha256(); h.update(p.read_bytes()); return h.hexdigest()
+all_files=sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file() and p.name!='SHA256SUMS.txt')
+(out/'SHA256SUMS.txt').write_text(''.join(f'{sha(out/rel)}  {rel}\n' for rel in all_files), encoding='utf-8')
+PY
+}
+
+assert_bundle_verify_ready() {
+  local report_path="$1"
+  python3 - "${report_path}" <<'PY'
+import json, sys
+r=json.load(open(sys.argv[1], encoding='utf-8'))
+if r.get('final_decision') != 'PHASE11_FIREWALL_COMPLETION_EVIDENCE_BUNDLE_PREFLIGHT_READY':
+    raise SystemExit(2)
+PY
 }
 
 EXPECTED_VERSION="$(tr -d '[:space:]' < VERSION)"
@@ -55,21 +85,12 @@ readiness=json.loads((out/'controlled-artifact-reapply-readiness-target-aware.js
 (out/'controlled-artifact-reapply-package-target-aware.json').write_text(json.dumps({'component':'phase11_controlled_artifact_reapply_package_target_aware_placeholder','repository_version':readiness.get('repository_version'),'read_only_preflight_placeholder':True,'expected_backend_target':(out/'expected-backend-target.txt').read_text().strip(),'mutation_performed':False,'blockers':readiness.get('blockers',[])}, indent=2), encoding='utf-8')
 PY
 run_json "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${MPF_BIN}" production production-firewall-apply-verify-rollback-readiness --evidence-dir "${OUT_DIR}" --output json
-python3 - "${OUT_DIR}" <<'PY'
-import json, pathlib, sys, hashlib
-out=pathlib.Path(sys.argv[1])
-files=sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file() and p.name not in {'manifest.json','SHA256SUMS.txt'})
-manifest={'component':'phase11_firewall_completion_evidence_bundle_manifest','repository_version':(out/'expected-version.txt').read_text().strip(),'expected_backend_target':(out/'expected-backend-target.txt').read_text().strip(),'files':files}
-(out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
-def sha(p):
-    h=hashlib.sha256(); h.update(p.read_bytes()); return h.hexdigest()
-all_files=sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file() and p.name!='SHA256SUMS.txt')
-(out/'SHA256SUMS.txt').write_text(''.join(f'{sha(out/rel)}  {rel}\n' for rel in all_files), encoding='utf-8')
-PY
-run_json "${OUT_DIR}/firewall-completion-evidence-bundle-verify.json" "${MPF_BIN}" production firewall-completion-evidence-bundle-verify --evidence-dir "${OUT_DIR}" --output json
-python3 - "${OUT_DIR}/firewall-completion-evidence-bundle-verify.json" <<'PY'
-import json, sys
-r=json.load(open(sys.argv[1], encoding='utf-8'))
-if r.get('final_decision') != 'PHASE11_FIREWALL_COMPLETION_EVIDENCE_BUNDLE_PREFLIGHT_READY':
-    raise SystemExit(2)
-PY
+write_manifest_and_sha256s
+# The verify report is intentionally written outside OUT_DIR first. Otherwise the shell-created output file is visible
+# to the verifier while it scans OUT_DIR, causing a self-referential malformed/missing-manifest false blocker.
+run_json "${VERIFY_REPORT_TMP}" "${MPF_BIN}" production firewall-completion-evidence-bundle-verify --evidence-dir "${OUT_DIR}" --output json
+assert_bundle_verify_ready "${VERIFY_REPORT_TMP}"
+cp "${VERIFY_REPORT_TMP}" "${OUT_DIR}/firewall-completion-evidence-bundle-verify.json"
+write_manifest_and_sha256s
+run_json "${FINAL_VERIFY_REPORT_TMP}" "${MPF_BIN}" production firewall-completion-evidence-bundle-verify --evidence-dir "${OUT_DIR}" --output json
+assert_bundle_verify_ready "${FINAL_VERIFY_REPORT_TMP}"
