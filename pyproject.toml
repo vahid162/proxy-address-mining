@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "proxy-address-mining"
-version = "0.1.278"
+version = "0.1.279"
 description = "Python-first control plane for a mining customer gateway"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -29,9 +29,3 @@ dev = [
 
 [project.scripts]
 mpf = "mpf.interfaces.cli:app"
-
-[tool.hatch.build.targets.wheel]
-packages = ["mpf"]
-
-[tool.pytest.ini_options]
-addopts = "-q"
