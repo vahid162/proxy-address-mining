@@ -73,6 +73,12 @@ if [[ -n "${FIREWALL_COMPLETION_EVIDENCE_DIR}" ]]; then
     exit 2
   fi
   FIREWALL_COMPLETION_EVIDENCE_ARG=(--firewall-completion-evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR}")
+  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR}/manifest.json" ]]; then
+    cp "${FIREWALL_COMPLETION_EVIDENCE_DIR}/manifest.json" "${OUT_DIR}/firewall-completion-evidence-manifest.json"
+  fi
+  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR}/SHA256SUMS.txt" ]]; then
+    cp "${FIREWALL_COMPLETION_EVIDENCE_DIR}/SHA256SUMS.txt" "${OUT_DIR}/firewall-completion-evidence-SHA256SUMS.txt"
+  fi
   run_json "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${MPF_BIN}" production production-firewall-apply-verify-rollback-readiness --evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR}" --output json
 fi
 run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${RESTART_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" "${FIREWALL_COMPLETION_EVIDENCE_ARG[@]}" --output json
@@ -121,6 +127,8 @@ manifest={
     'restart_autostart_evidence_dir':'restart-autostart-proof',
     'lifecycle_execution_evidence': lifecycle_evidence,
     'firewall_completion_evidence_dir': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR') or None,
+    'firewall_completion_evidence_manifest': 'firewall-completion-evidence-manifest.json' if (out/'firewall-completion-evidence-manifest.json').exists() else None,
+    'firewall_completion_evidence_sha256s': 'firewall-completion-evidence-SHA256SUMS.txt' if (out/'firewall-completion-evidence-SHA256SUMS.txt').exists() else None,
     'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
 }
 (out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')

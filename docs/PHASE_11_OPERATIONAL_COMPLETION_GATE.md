@@ -118,3 +118,7 @@ Next required step: harden audit metadata local-peer root writes, make backup at
 ## Progress Update (0.1.278)
 
 Adds controlled exact-scope DB-only lifecycle execution evidence for `limited-btc-001` / `btc` / `20101`. Valid verifier evidence advances production customer lifecycle execution item #2 by proving audit/event path availability and a linked backup/restore point requirement, while `backup_restore_drill`, final Full CLI Production Operations acceptance, `cli_production` traffic/onboarding, Phase 12, worker enforcement, UI, and Telegram remain closed.
+
+### 0.1.282 Read-only firewall completion evidence bundle note
+
+0.1.282 adds a standardized read-only Phase 11 firewall completion evidence bundle/preflight builder and verifier. It records manifest and SHA256SUMS evidence for backend target, read-only firewall snapshots, current controlled artifact gate, target-aware reapply diagnostics, and firewall completion readiness. This release performs no firewall apply, no `iptables-restore`, no rollback apply, no DB mutation, no Docker/systemd restart, no conntrack flush, no abuse execute, and no Phase 12 opening. Full CLI Production Operations remains not accepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`, and the next farm5 step is to sync 0.1.282, run the read-only firewall completion evidence collector, then run the operational surfaces collector with `MPF_FIREWALL_COMPLETION_EVIDENCE_DIR=<bundle-dir>` and verify only evidence/preflight moved forward while mutation and Phase 12 flags remain false.
