@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.280
+
+- Fix Phase 11 lifecycle evidence readiness/gap false-negative under root peer-auth DB read context by using the project read-only DB helper path for correlation checks.
+- Fix operational surfaces collector lifecycle evidence pass-through and manifest/checksum recording.
+- Fix `mpf abuse status --output json` compatibility while preserving read-only status semantics.
+- No runtime mutation, firewall apply, abuse execute, final Phase 11 operational completion acceptance, or Phase 12 opening.
+- Next runtime step after farm5 sync/test remains `production_firewall_apply_verify_rollback` if fresh evidence confirms the expected state.
+
+
 ## 0.1.279
 
 - Harden Phase 11 controlled production customer lifecycle execution package/preflight/execute/verify around the farm5-proven `mpf` execution user.

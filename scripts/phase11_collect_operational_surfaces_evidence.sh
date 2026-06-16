@@ -2,9 +2,21 @@
 set -Eeuo pipefail
 
 OUT_DIR="${1:?usage: $0 OUT_DIR}"
+LIFECYCLE_EXECUTION_EVIDENCE_JSON="${MPF_LIFECYCLE_EXECUTION_EVIDENCE_JSON:-${2:-}}"
 MPF_BIN="${MPF_BIN:-mpf}"
 RESTART_DIR="${OUT_DIR}/restart-autostart-proof"
 mkdir -p "${OUT_DIR}" "${RESTART_DIR}"
+
+LIFECYCLE_EVIDENCE_ARG=()
+if [[ -n "${LIFECYCLE_EXECUTION_EVIDENCE_JSON}" ]]; then
+  if [[ ! -f "${LIFECYCLE_EXECUTION_EVIDENCE_JSON}" ]]; then
+    echo "lifecycle execution evidence not found: ${LIFECYCLE_EXECUTION_EVIDENCE_JSON}" >&2
+    exit 2
+  fi
+  cp "${LIFECYCLE_EXECUTION_EVIDENCE_JSON}" "${OUT_DIR}/production-customer-lifecycle-execution-evidence.json"
+  sha256sum "${OUT_DIR}/production-customer-lifecycle-execution-evidence.json" | awk '{print $1}' > "${OUT_DIR}/production-customer-lifecycle-execution-evidence.sha256"
+  LIFECYCLE_EVIDENCE_ARG=(--lifecycle-execution-evidence-json "${OUT_DIR}/production-customer-lifecycle-execution-evidence.json")
+fi
 
 run_json() {
   local out="$1"
@@ -51,8 +63,8 @@ run_json "${OUT_DIR}/usage-report-check-operational-surface.json" "${MPF_BIN}" p
 MPF_BIN="${MPF_BIN}" bash scripts/phase11_collect_restart_autostart_proof.sh "${RESTART_DIR}"
 python3 -m json.tool "${RESTART_DIR}/proof-report.json" > "${OUT_DIR}/restart-autostart-proof-report.pretty.json"
 
-run_json "${OUT_DIR}/production-customer-lifecycle-execution-readiness.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production production-customer-lifecycle-execution-readiness --evidence-dir "${RESTART_DIR}" --expected-backend-target "${EXPECTED_BACKEND_TARGET}" --output json
-run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${RESTART_DIR}" --output json
+run_json "${OUT_DIR}/production-customer-lifecycle-execution-readiness.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production production-customer-lifecycle-execution-readiness --evidence-dir "${RESTART_DIR}" --expected-backend-target "${EXPECTED_BACKEND_TARGET}" "${LIFECYCLE_EVIDENCE_ARG[@]}" --output json
+run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${RESTART_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" --output json
 
 "${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt" 2>&1 || true
 "${MPF_BIN}" lanes list > "${OUT_DIR}/lanes.txt" 2>&1 || true
@@ -77,10 +89,17 @@ for p in out.rglob('*.json'):
             if k.endswith('_performed') or k in ('mutation_performed','phase12_start_allowed','worker_enforcement_enabled','ui_enabled','telegram_enabled'):
                 flags[f'{p.relative_to(out)}:{k}']=v
 (out/'mutation-flags.json').write_text(json.dumps(flags, indent=2, sort_keys=True), encoding='utf-8')
+lifecycle_evidence={}
+if (out/'production-customer-lifecycle-execution-evidence.json').exists():
+    lifecycle_evidence={
+        'path':'production-customer-lifecycle-execution-evidence.json',
+        'sha256':(out/'production-customer-lifecycle-execution-evidence.sha256').read_text(encoding='utf-8').strip(),
+    }
 manifest={
     'expected_version':(out/'expected-version.txt').read_text(encoding='utf-8').strip(),
     'expected_backend_target':(out/'expected-backend-target.txt').read_text(encoding='utf-8').strip(),
     'restart_autostart_evidence_dir':'restart-autostart-proof',
+    'lifecycle_execution_evidence': lifecycle_evidence,
     'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
 }
 (out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')

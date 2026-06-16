@@ -244,10 +244,18 @@ def abuse_doctor() -> None:
 
 
 @abuse_app.command("status")
-def abuse_status(config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+def abuse_status(output: Literal["json", "human"] = typer.Option("json", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
     repo = _load_abuse_postgres_repo(config)
     if repo is not None:
-        _emit_abuse_json(abuse_operational_service.status_report(repo))
+        report = abuse_operational_service.status_report(repo)
+        if output == "json":
+            _emit_abuse_json(report)
+            return
+        typer.echo(f"status: {report.get('status')}")
+        typer.echo(f"states: {len(report.get('states') or [])}")
+        blockers = report.get("blockers") or []
+        if blockers:
+            typer.echo(f"blockers: {blockers}")
 
 
 @abuse_app.command("events")
