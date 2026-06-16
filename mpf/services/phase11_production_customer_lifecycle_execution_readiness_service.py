@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
@@ -17,10 +18,16 @@ from mpf.repositories.abuse_operational_postgres_repo import PostgresAbuseOperat
 from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
 
 _REQUIRED_SURFACES = ("create", "activate", "renew", "expire", "pause", "block", "unblock")
+_ENV_EXPECTED_BACKEND_TARGET = "MPF_EXPECTED_BACKEND_TARGET"
 
 
 def _status(name: str, status: str, **extra: Any) -> dict[str, Any]:
     return {"name": name, "status": status, **extra}
+
+
+def _env_expected_backend_target() -> str | None:
+    value = os.environ.get(_ENV_EXPECTED_BACKEND_TARGET, "").strip()
+    return value or None
 
 
 def build_phase11_production_customer_lifecycle_execution_readiness_report(
@@ -48,7 +55,7 @@ def build_phase11_production_customer_lifecycle_execution_readiness_report(
         _status("lifecycle_command_surfaces", "present" if lifecycle_ready else "missing_or_partial", required_commands=list(_REQUIRED_SURFACES)),
         _status("restart_autostart_proof", "ready" if restart_ready else "missing_or_partial", source_final_decision=(restart_report or {}).get("final_decision")),
         _status("usage_report_check_surface", "ready" if usage_ready else "missing_or_partial", source_final_decision=(usage_surface_report or {}).get("final_decision"), usage_evidence_acceptance="separate_not_accepted_by_this_check"),
-        _status("firewall_plan_apply_verify_rollback_availability", "ready" if firewall_ready else ("present" if firewall_surface_report and not (firewall_surface_report.get("unknown_mpf_artifacts") or []) else "missing_or_partial"), source_final_decision=(firewall_surface_report or {}).get("final_decision"), blockers=(firewall_surface_report or {}).get("blockers", [])),
+        _status("firewall_plan_apply_verify_rollback_availability", "ready" if firewall_ready else ("present" if firewall_surface_report and not (firewall_surface_report.get("unknown_mpf_artifacts") or []) else "missing_or_partial"), source_final_decision=(firewall_surface_report or {}).get("final_decision"), blockers=(firewall_surface_report or {}).get("blockers", []), expected_backend_target=(firewall_surface_report or {}).get("expected_backend_target")),
         _status("audit_event_path_availability", "missing_or_partial", requirement="actual controlled lifecycle execution evidence must prove audit/event writes"),
         _status("backup_restore_point_requirement", "missing_or_partial", requirement="actual controlled lifecycle/firewall execution evidence must prove backup/restore drill"),
         _status("abuse_all_active_customer_coverage", "present" if abuse_covers_active else "missing_or_partial", abuse_status=(abuse_report or {}).get("status"), active_customer_count=active_count, visible_abuse_state_rows=len(abuse_states), diagnostic="mpf db status abuse_states counts persisted abuse_states rows; mpf abuse status reports active customer abuse visibility rows synthesized from active customers plus persisted state where present"),
@@ -84,10 +91,22 @@ def build_phase11_production_customer_lifecycle_execution_readiness_report(
     }
 
 
-def run_phase11_production_customer_lifecycle_execution_readiness_report(config_path: Path = DEFAULT_CONFIG_PATH, *, evidence_dir: Path | str | None = None, expected_backend_target: str | None = None, restart_autostart_proof_ready: bool = False) -> dict[str, object]:
+def run_phase11_production_customer_lifecycle_execution_readiness_report(
+    config_path: Path = DEFAULT_CONFIG_PATH,
+    *,
+    evidence_dir: Path | str | None = None,
+    expected_backend_target: str | None = None,
+    restart_autostart_proof_ready: bool = False,
+) -> dict[str, object]:
     cfg = load_config(config_path)
+    resolved_expected_backend_target = expected_backend_target or _env_expected_backend_target()
     lifecycle = customer_lifecycle_operational_surface_service.build_customer_lifecycle_operational_surface_report(cfg)
-    firewall = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_report(cfg, expected_backend_target=expected_backend_target)
+    firewall = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_report(
+        cfg,
+        expected_backend_target=resolved_expected_backend_target,
+    )
+    if resolved_expected_backend_target is not None:
+        firewall["expected_backend_target"] = resolved_expected_backend_target
     usage = usage_report_check_operational_surface_service.build_usage_report_check_operational_surface_report(cfg)
     restart = build_phase11_restart_autostart_proof_report(evidence_dir) if evidence_dir else None
     abuse = abuse_operational_service.status_report(PostgresAbuseOperationalRepo(cfg))
