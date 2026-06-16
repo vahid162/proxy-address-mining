@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.282
+
+- Added read-only Phase 11 firewall completion evidence bundle/preflight builder and verifier; no firewall apply, iptables-restore, rollback apply, DB mutation, Docker/systemd restart, conntrack flush, abuse execute, Phase 12 opening, or cli_production gate change.
+
 ## 0.1.281
 
 - Align Phase 11 source evidence mutation classification so copied historical lifecycle evidence is reported separately from current collector-run mutation flags.

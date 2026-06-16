@@ -168,6 +168,7 @@ from mpf.services import (
     phase11_production_customer_lifecycle_execution_readiness_service,
     phase11_production_customer_lifecycle_execution_service,
     phase11_production_firewall_apply_verify_rollback_readiness_service,
+    phase11_firewall_completion_evidence_bundle_service,
     phase11_verified_filter_hook_binding_service,
     phase11_live_ready_reapply_package_service,
     phase11_canary_evidence_pack_service,
@@ -3776,6 +3777,39 @@ def production_phase11_operational_completion_gap_inventory(
     for key, value in report.items():
         typer.echo(f"{key}: {value}")
 
+
+
+@production_app.command("firewall-completion-evidence-bundle")
+def production_firewall_completion_evidence_bundle(
+    out_dir: Path = typer.Option(..., "--out-dir"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    iptables_save_file: Path | None = typer.Option(None, "--iptables-save-file"),
+    ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Build/verify the read-only Phase 11 firewall completion evidence bundle preflight."""
+
+    report = phase11_firewall_completion_evidence_bundle_service.build_firewall_completion_evidence_bundle(
+        out_dir, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file
+    )
+    if expected_backend_target:
+        report["expected_backend_target"] = expected_backend_target
+        if report.get("safety_state", {}).get("backend_target") not in (None, expected_backend_target):
+            report["blockers"] = sorted(set([*report.get("blockers", []), "expected_backend_target_mismatch"]))
+            report["bundle_preflight_ready"] = False
+            report["final_decision"] = "BLOCKED_PHASE11_FIREWALL_COMPLETION_EVIDENCE_BUNDLE_PREFLIGHT"
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+
+
+@production_app.command("firewall-completion-evidence-bundle-verify")
+def production_firewall_completion_evidence_bundle_verify(
+    evidence_dir: Path = typer.Option(..., "--evidence-dir"),
+    output: Literal["json"] = typer.Option("json", "--output"),
+) -> None:
+    """Verify a read-only Phase 11 firewall completion evidence bundle."""
+
+    report = phase11_firewall_completion_evidence_bundle_service.verify_firewall_completion_evidence_bundle(evidence_dir)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
 
 
 @production_app.command("production-firewall-apply-verify-rollback-readiness")

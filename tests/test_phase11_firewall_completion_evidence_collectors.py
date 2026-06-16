@@ -1,0 +1,18 @@
+from pathlib import Path
+
+
+def test_firewall_completion_collector_is_read_only_and_uses_verify():
+    text = Path("scripts/phase11_collect_firewall_completion_evidence.sh").read_text(encoding="utf-8")
+    assert "firewall-completion-evidence-bundle-verify" in text
+    assert "iptables-save" in text
+    forbidden = ["--execute", "--rollback-apply", "controlled-artifact-reapply-execute", "iptables-restore", "conntrack -F", "systemctl restart", "docker restart"]
+    for needle in forbidden:
+        assert needle not in text
+
+
+def test_operational_surfaces_collector_references_optional_firewall_bundle():
+    text = Path("scripts/phase11_collect_operational_surfaces_evidence.sh").read_text(encoding="utf-8")
+    assert "MPF_FIREWALL_COMPLETION_EVIDENCE_DIR" in text
+    assert "--firewall-completion-evidence-dir" in text
+    assert "firewall-completion-evidence-manifest.json" in text
+    assert "firewall-completion-evidence-SHA256SUMS.txt" in text
