@@ -90,7 +90,20 @@ VERSION_FILE="${REPO_ROOT}/VERSION"
 [ -f "$VERSION_FILE" ] || fail "VERSION file missing at ${VERSION_FILE}"
 EXPECTED_VERSION="$(tr -d "[:space:]" < "$VERSION_FILE")"
 [ -n "$EXPECTED_VERSION" ] || fail "VERSION file is empty at ${VERSION_FILE}"
-gate_json="$(mpf production current-controlled-artifact-gate --expected-version "$EXPECTED_VERSION" --iptables-save-file "$IPTABLES_SAVE_FILE" --ip6tables-save-file "$IP6TABLES_SAVE_FILE" --output json)"
+backend_json="$(mpf production controlled-backend-target --expected-version "$EXPECTED_VERSION" --output json)"
+printf '%s\n' "$backend_json"
+EXPECTED_BACKEND_TARGET="$(printf '%s' "$backend_json" | python -c '
+import json,sys
+report=json.load(sys.stdin)
+blockers=report.get("blockers") or []
+host=report.get("resolved_ipv4") or report.get("target_host")
+port=report.get("target_port")
+if report.get("status") != "ok" or blockers or not host or not port or report.get("backend_public_exposure") is True:
+    raise SystemExit("controlled backend target resolver failed closed")
+print(f"{host}:{port}")
+')"
+echo "expected_backend_target: $EXPECTED_BACKEND_TARGET"
+gate_json="$(mpf production current-controlled-artifact-gate --expected-version "$EXPECTED_VERSION" --expected-backend-target "$EXPECTED_BACKEND_TARGET" --iptables-save-file "$IPTABLES_SAVE_FILE" --ip6tables-save-file "$IP6TABLES_SAVE_FILE" --output json)"
 printf '%s\n' "$gate_json"
 gate_decision="$(printf '%s' "$gate_json" | python -c 'import json,sys;print(json.load(sys.stdin).get("final_decision",""))')"
 unknown_count="$(printf '%s' "$gate_json" | python -c 'import json,sys;print(len(json.load(sys.stdin).get("unknown_mpf_artifacts",[])))')"

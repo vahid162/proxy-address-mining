@@ -472,6 +472,7 @@ def db_status(config: Path | None = typer.Option(None, "--config", "-c", help="P
     typer.echo(f"job_runs: {result.job_runs}")
     typer.echo(f"firewall_applies: {result.firewall_applies}")
     typer.echo(f"abuse_states: {result.abuse_states}")
+    typer.echo("abuse_states_count_scope: persisted abuse_states table rows; mpf abuse status may also show active customer visibility rows synthesized from active customers")
 
 
 @lanes_app.command("list")
@@ -3704,6 +3705,9 @@ def production_phase11_final_acceptance(expected_version: str = typer.Option(__v
 def production_firewall_apply_rollback_operational_surface(
     config: Path | None = typer.Option(None, "--config", "-c"),
     output: Literal["json"] = typer.Option("json", "--output"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    auto_resolve_expected_backend_target: bool = typer.Option(True, "--auto-resolve-expected-backend-target/--no-auto-resolve-expected-backend-target"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
 ) -> None:
     """Run the read-only controlled Phase 11 firewall apply/rollback surface check."""
 
@@ -3711,11 +3715,30 @@ def production_firewall_apply_rollback_operational_surface(
         cfg = _load(config)
     except Exception as exc:  # noqa: BLE001 - operator doctor must fail closed without traceback.
         report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_blocked_report(
-            blocker="configuration_load_failed",
+            blocker="configuration_load_failed", message=str(exc)
+        )
+        typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str)); return
+    try:
+        resolved_target = expected_backend_target
+        if resolved_target is None and auto_resolve_expected_backend_target and config is None:
+            backend_report = phase11_controlled_backend_target_service.build_controlled_backend_target_report(expected_version=expected_version)
+            resolved_target = phase11_controlled_backend_target_service.expected_backend_target_from_report(backend_report)
+            if not resolved_target or backend_report.get("blockers") or backend_report.get("backend_public_exposure") is True:
+                report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_blocked_report(
+                    blocker="expected_backend_target_resolution_failed", message=json.dumps(backend_report, default=str)
+                )
+                typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str)); return
+        try:
+            report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_report(cfg, expected_backend_target=resolved_target)
+        except TypeError:
+            report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_report(cfg)
+        if resolved_target is not None:
+            report["expected_backend_target"] = resolved_target
+    except Exception as exc:  # noqa: BLE001 - operator doctor must fail closed without traceback.
+        report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_blocked_report(
+            blocker="configuration_or_backend_target_resolution_failed",
             message=str(exc),
         )
-    else:
-        report = firewall_apply_rollback_operational_surface_service.build_firewall_apply_rollback_operational_surface_report(cfg)
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 
@@ -3745,10 +3768,15 @@ def production_phase11_operational_completion_gap_inventory(
 def production_customer_lifecycle_execution_readiness(
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
+    evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
 ) -> None:
     """Render read-only Phase 11 production customer lifecycle execution readiness."""
 
-    report = phase11_production_customer_lifecycle_execution_readiness_service.run_phase11_production_customer_lifecycle_execution_readiness_report(_config_path(config))
+    try:
+        report = phase11_production_customer_lifecycle_execution_readiness_service.run_phase11_production_customer_lifecycle_execution_readiness_report(_config_path(config), evidence_dir=evidence_dir, expected_backend_target=expected_backend_target)
+    except Exception:
+        report = phase11_production_customer_lifecycle_execution_readiness_service.build_phase11_production_customer_lifecycle_execution_readiness_report()
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
         return
