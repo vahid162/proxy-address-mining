@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.277 - 2026-06-16
+
+- Phase 11 runtime-first consolidation: resolved and propagated controlled backend targets into the current phase gate and firewall apply/rollback operational surface to avoid false unknown DNAT artifact blockers for known controlled artifacts.
+- Upgraded production customer lifecycle execution readiness to aggregate read-only customer lifecycle, firewall, usage/report/check, restart/autostart, and abuse visibility surfaces while keeping Full CLI Production Operations unaccepted.
+- Added `scripts/phase11_collect_operational_surfaces_evidence.sh` as the official read-only operational surfaces evidence collector.
+- Clarified `mpf db status` `abuse_states` as persisted table rows, distinct from `mpf abuse status` active customer visibility rows.
+
 ## 0.1.276
 
 - Fix Phase 11 restart/autostart proof collection so official JSON evidence remains strict machine-readable JSON, pass evidence directories into post-cleanup and gap inventory summaries, and add a safe production customer lifecycle execution readiness gate package.

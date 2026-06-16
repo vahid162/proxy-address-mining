@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="0.1.276"
+VERSION="0.1.277"
 OUT_DIR="${1:-/tmp/phase11-restart-autostart-proof-${VERSION}-$(date -u +%Y%m%dT%H%M%SZ)}"
 MPF_BIN="${MPF_BIN:-mpf}"
 mkdir -p "${OUT_DIR}"

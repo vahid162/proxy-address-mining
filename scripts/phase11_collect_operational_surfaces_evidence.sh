@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+OUT_DIR="${1:?usage: $0 OUT_DIR}"
+MPF_BIN="${MPF_BIN:-mpf}"
+RESTART_DIR="${OUT_DIR}/restart-autostart-proof"
+mkdir -p "${OUT_DIR}" "${RESTART_DIR}"
+
+run_json() {
+  local out="$1"
+  shift
+  "$@" > "${out}"
+  python3 -m json.tool "${out}" >/dev/null
+}
+
+EXPECTED_VERSION="$(tr -d '[:space:]' < VERSION)"
+printf '%s\n' "${EXPECTED_VERSION}" > "${OUT_DIR}/expected-version.txt"
+"${MPF_BIN}" --version > "${OUT_DIR}/mpf-version.txt" 2>&1 || true
+"${MPF_BIN}" phase-status > "${OUT_DIR}/phase-status.txt"
+
+run_json "${OUT_DIR}/controlled-backend-target.json" "${MPF_BIN}" production controlled-backend-target --expected-version "${EXPECTED_VERSION}" --output json
+EXPECTED_BACKEND_TARGET="$(python3 - "${OUT_DIR}/controlled-backend-target.json" <<'PY'
+import json,sys
+r=json.load(open(sys.argv[1], encoding='utf-8'))
+h=r.get('resolved_ipv4') or r.get('target_host')
+p=r.get('target_port')
+if r.get('status')!='ok' or r.get('blockers') or not h or not p or r.get('backend_public_exposure') is True:
+    raise SystemExit(1)
+print(f'{h}:{p}')
+PY
+)"
+printf '%s\n' "${EXPECTED_BACKEND_TARGET}" > "${OUT_DIR}/expected-backend-target.txt"
+
+iptables-save > "${OUT_DIR}/iptables-save.txt"
+if command -v ip6tables-save >/dev/null 2>&1; then
+  ip6tables-save > "${OUT_DIR}/ip6tables-save.txt"
+else
+  : > "${OUT_DIR}/ip6tables-save.txt"
+fi
+run_json "${OUT_DIR}/current-controlled-artifact-gate-with-target.json" "${MPF_BIN}" production current-controlled-artifact-gate --expected-version "${EXPECTED_VERSION}" --expected-backend-target "${EXPECTED_BACKEND_TARGET}" --iptables-save-file "${OUT_DIR}/iptables-save.txt" --ip6tables-save-file "${OUT_DIR}/ip6tables-save.txt" --output json
+
+set +e
+bash scripts/verify_current_phase_gate.sh > "${OUT_DIR}/verify-current-phase-gate.txt" 2>&1
+printf '%s\n' "$?" > "${OUT_DIR}/verify-current-phase-gate.rc"
+set -e
+
+run_json "${OUT_DIR}/customer-lifecycle-doctor.json" "${MPF_BIN}" customer lifecycle-doctor --output json
+run_json "${OUT_DIR}/firewall-apply-rollback-operational-surface.json" "${MPF_BIN}" production firewall-apply-rollback-operational-surface --expected-backend-target "${EXPECTED_BACKEND_TARGET}" --output json
+run_json "${OUT_DIR}/usage-report-check-operational-surface.json" "${MPF_BIN}" production usage-report-check-operational-surface --output json
+
+MPF_BIN="${MPF_BIN}" bash scripts/phase11_collect_restart_autostart_proof.sh "${RESTART_DIR}"
+python3 -m json.tool "${RESTART_DIR}/proof-report.json" > "${OUT_DIR}/restart-autostart-proof-report.pretty.json"
+
+run_json "${OUT_DIR}/production-customer-lifecycle-execution-readiness.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production production-customer-lifecycle-execution-readiness --evidence-dir "${RESTART_DIR}" --expected-backend-target "${EXPECTED_BACKEND_TARGET}" --output json
+run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${RESTART_DIR}" --output json
+
+"${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt" 2>&1 || true
+"${MPF_BIN}" lanes list > "${OUT_DIR}/lanes.txt" 2>&1 || true
+"${MPF_BIN}" customer list > "${OUT_DIR}/customer-list.txt" 2>&1 || true
+if "${MPF_BIN}" abuse status --output json > "${OUT_DIR}/abuse-status.json" 2> "${OUT_DIR}/abuse-status.stderr"; then
+  python3 -m json.tool "${OUT_DIR}/abuse-status.json" >/dev/null
+else
+  "${MPF_BIN}" abuse status > "${OUT_DIR}/abuse-status.txt" 2>&1 || true
+fi
+
+python3 - "${OUT_DIR}" <<'PY'
+import json, pathlib, sys
+out=pathlib.Path(sys.argv[1])
+flags={}
+for p in out.rglob('*.json'):
+    try:
+        data=json.loads(p.read_text(encoding='utf-8'))
+    except Exception:
+        continue
+    if isinstance(data, dict):
+        for k,v in data.items():
+            if k.endswith('_performed') or k in ('mutation_performed','phase12_start_allowed','worker_enforcement_enabled','ui_enabled','telegram_enabled'):
+                flags[f'{p.relative_to(out)}:{k}']=v
+(out/'mutation-flags.json').write_text(json.dumps(flags, indent=2, sort_keys=True), encoding='utf-8')
+manifest={
+    'expected_version':(out/'expected-version.txt').read_text(encoding='utf-8').strip(),
+    'expected_backend_target':(out/'expected-backend-target.txt').read_text(encoding='utf-8').strip(),
+    'restart_autostart_evidence_dir':'restart-autostart-proof',
+    'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
+}
+(out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
+PY
+(cd "${OUT_DIR}" && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)

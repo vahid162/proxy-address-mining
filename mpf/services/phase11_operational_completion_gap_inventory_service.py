@@ -14,7 +14,7 @@ from mpf.services.phase11_restart_autostart_proof_service import (
 )
 from mpf.services.phase11_operational_completion_progression import active_progression
 from mpf.services.phase11_controlled_artifact_reapply_readiness_service import READY as READINESS_READY, run_phase11_controlled_artifact_reapply_readiness
-from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import build_phase11_production_customer_lifecycle_execution_readiness_report
+from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import run_phase11_production_customer_lifecycle_execution_readiness_report
 
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
@@ -31,6 +31,7 @@ def _next_step(restart_status: str, persistence_plan: dict[str, object] | None, 
 def build_phase11_operational_completion_gap_inventory_report(
     evidence_dir: Path | str | None = None,
     *,
+    config_path: Path = DEFAULT_CONFIG_PATH,
     persistence_plan_report: dict[str, object] | None = None,
     readiness_report: dict[str, object] | None = None,
 ) -> dict[str, object]:
@@ -39,7 +40,13 @@ def build_phase11_operational_completion_gap_inventory_report(
     restart_report = build_phase11_restart_autostart_proof_report(evidence_dir) if evidence_dir else None
     restart_status = restart_report["restart_autostart_proof"] if restart_report else _MISSING_OR_PARTIAL
     next_required_step = _next_step(restart_status, persistence_plan_report, readiness_report)
-    lifecycle_readiness = build_phase11_production_customer_lifecycle_execution_readiness_report(restart_autostart_proof_ready=restart_status == "ready")
+    try:
+        lifecycle_readiness = run_phase11_production_customer_lifecycle_execution_readiness_report(
+            config_path, evidence_dir=evidence_dir, restart_autostart_proof_ready=restart_status == "ready"
+        )
+    except Exception:
+        from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import build_phase11_production_customer_lifecycle_execution_readiness_report
+        lifecycle_readiness = build_phase11_production_customer_lifecycle_execution_readiness_report(restart_autostart_proof_ready=restart_status == "ready")
 
     return {
         "component": "phase11_operational_completion_gap_inventory",
@@ -126,6 +133,7 @@ def run_phase11_operational_completion_gap_inventory_report(
         readiness_report = {"final_decision": "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE", "live_ready_package_available": False, "blockers": ["readiness_summary_failed", str(exc)]}
     return build_phase11_operational_completion_gap_inventory_report(
         evidence_dir,
+        config_path=config_path,
         persistence_plan_report=persistence_plan,
         readiness_report=readiness_report,
     )
