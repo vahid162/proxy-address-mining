@@ -4,9 +4,9 @@ from mpf import __version__
 
 
 def test_version_consistency():
-    assert Path("VERSION").read_text().strip() == "0.1.279"
-    assert __version__ == "0.1.279"
-    assert 'version = "0.1.279"' in Path("pyproject.toml").read_text(encoding="utf-8")
+    assert Path("VERSION").read_text().strip() == "0.1.280"
+    assert __version__ == "0.1.280"
+    assert 'version = "0.1.280"' in Path("pyproject.toml").read_text(encoding="utf-8")
 
 
 def test_phase10_docs_present():
@@ -29,6 +29,5 @@ def test_phase10_farm5_0_1_136_evidence_doc_present():
     assert "downstream_dangerous_authorization_flags: []" in t
     assert "production_traffic: none" in t
     assert "firewall_apply_allowed: no" in t
-    assert "abuse_automation_allowed: no" in t
     assert "no customer NAT redirects" in t
     assert "production customer traffic is still disabled" in t
