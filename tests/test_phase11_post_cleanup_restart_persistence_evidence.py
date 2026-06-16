@@ -102,3 +102,26 @@ def test_cli_post_cleanup_evidence_command_json(monkeypatch, tmp_path) -> None:
     result = CliRunner().invoke(app, ["production", "phase11-post-cleanup-restart-persistence-evidence", "--output", "json", "--config", str(tmp_path / "missing.yaml")])
     assert result.exit_code == 0
     assert "POST_CLEANUP_RESTART_PERSISTENCE_EVIDENCE_READY" in result.output
+
+
+def test_post_cleanup_summary_uses_supplied_evidence_dir_for_ready_proof(monkeypatch, tmp_path) -> None:
+    from mpf.services import phase11_post_cleanup_restart_persistence_evidence_service as svc
+
+    monkeypatch.setattr(svc.backend_service, "build_controlled_backend_target_report", lambda expected_version=__version__: {"status": "ok", "resolved_ipv4": "172.18.0.2", "target_port": 60010})
+    monkeypatch.setattr(svc.persistence, "_read_command_stdout", lambda command: SNAP if command[0] == "iptables-save" else "")
+    monkeypatch.setattr(svc.persistence, "run_phase11_controlled_artifact_persistence_plan", lambda *a, **k: {"final_decision": "CONTROLLED_ARTIFACT_PERSISTENCE_PLAN_READY", "blockers": [], "mutation_performed": False})
+    monkeypatch.setattr(svc.diagnosis, "run_phase11_restart_autostart_persistence_diagnosis", lambda *a, **k: {"final_decision": "RESTART_AUTOSTART_PERSISTENCE_READY", "blockers": [], "mutation_performed": False})
+    monkeypatch.setattr(svc.proof, "build_phase11_restart_autostart_proof_report", lambda evidence_dir=None: {"restart_autostart_proof": "ready", "final_decision": "RESTART_AUTOSTART_PROOF_READY", "blockers": [], "mutation_performed": False})
+
+    seen = {}
+    def fake_gap(config_path, *, evidence_dir=None, packet_path_evidence_dir=None):
+        seen["evidence_dir"] = evidence_dir
+        return {"final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "full_cli_production_operations": "missing_or_partial", "restart_autostart_proof": "ready", "phase12_start_allowed": False, "next_required_step": "implement_production_customer_lifecycle_execution"}
+    monkeypatch.setattr(svc.gap_inventory, "run_phase11_operational_completion_gap_inventory_report", fake_gap)
+
+    report = build_phase11_post_cleanup_restart_persistence_evidence_report(tmp_path, expected_version=__version__, evidence_dir=tmp_path)
+    assert seen["evidence_dir"] == tmp_path
+    assert report["restart_autostart_readiness_state"]["restart_autostart_proof"] == "ready"
+    assert "restart_autostart_evidence_dir_missing" not in str(report)
+    assert report["next_required_step"] == "implement_production_customer_lifecycle_execution"
+    assert report["phase11_operational_completion_accepted"] is False

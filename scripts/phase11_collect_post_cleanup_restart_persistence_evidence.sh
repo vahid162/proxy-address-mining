@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-VERSION="0.1.275"
+VERSION="0.1.276"
 OUT_DIR="${1:-/tmp/phase11-post-cleanup-restart-persistence-evidence-$(date -u +%Y%m%dT%H%M%SZ)}"
 MPF_BIN="${MPF_BIN:-mpf}"
 mkdir -p "$OUT_DIR"
@@ -30,9 +30,9 @@ printf '%s\n' "$EXPECTED_BACKEND_TARGET" >"$OUT_DIR/expected-backend-target.txt"
 run_capture current-controlled-artifact-gate.json "$MPF_BIN" production current-controlled-artifact-gate --expected-version "$VERSION" --expected-backend-target "$EXPECTED_BACKEND_TARGET" --iptables-save-file "$OUT_DIR/iptables-save.txt" --ip6tables-save-file "$OUT_DIR/ip6tables-save.txt" --output json
 run_capture controlled-artifact-persistence-plan.json "$MPF_BIN" production controlled-artifact-persistence-plan --expected-version "$VERSION" --output json
 run_capture restart-autostart-persistence-diagnosis.json "$MPF_BIN" production restart-autostart-persistence-diagnosis --expected-version "$VERSION" --output json
-run_capture restart-autostart-proof.json "$MPF_BIN" production restart-autostart-proof --output json
-run_capture phase11-operational-completion-gap-inventory.json "$MPF_BIN" production phase11-operational-completion-gap-inventory --output json
-run_capture summary.json "$MPF_BIN" production phase11-post-cleanup-restart-persistence-evidence --expected-version "$VERSION" --output json
+run_capture restart-autostart-proof.json "$MPF_BIN" production restart-autostart-proof --evidence-dir "$OUT_DIR" --output json
+run_capture phase11-operational-completion-gap-inventory.json "$MPF_BIN" production phase11-operational-completion-gap-inventory --evidence-dir "$OUT_DIR" --output json
+run_capture summary.json "$MPF_BIN" production phase11-post-cleanup-restart-persistence-evidence --expected-version "$VERSION" --evidence-dir "$OUT_DIR" --output json
 cat >"$OUT_DIR/mutation-flags.json" <<'JSON'
 {"mutation_performed":false,"db_mutation_performed":false,"firewall_apply_performed":false,"conntrack_flush_performed":false,"docker_restart_performed":false,"systemd_restart_performed":false,"customer_onboarding_performed":false,"abuse_runner_executed":false,"worker_enforcement_performed":false,"phase12_started":false}
 JSON

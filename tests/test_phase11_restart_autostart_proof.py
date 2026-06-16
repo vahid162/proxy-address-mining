@@ -25,7 +25,7 @@ from mpf.interfaces.cli import app
 from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
 
 RUNNER = CliRunner()
-VERSION = "0.1.275"
+VERSION = "0.1.276"
 
 
 PHASE_STATUS = """current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
@@ -921,3 +921,62 @@ def test_gap_inventory_chooses_controlled_artifact_reapply_for_farm5_fixture() -
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
     assert report["telegram_allowed"] == "no"
+
+
+def _write_ready_restart_evidence(root: Path) -> None:
+    import json
+    from mpf import __version__
+    (root / "repository_version.txt").write_text(__version__, encoding="utf-8")
+    (root / "mpf_version.txt").write_text(__version__, encoding="utf-8")
+    phase = """current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
+current_working_phase: Phase 11 operational completion — Full CLI Production Operations
+phase12_start_allowed: no
+worker_enforcement_allowed: no
+ui_allowed: no
+telegram_allowed: no
+production_traffic: controlled_cli_limited
+customer_onboarding_allowed: controlled_cli_limited
+"""
+    (root / "phase_status.txt").write_text(phase, encoding="utf-8")
+    (root / "db_ping.txt").write_text("OK\n", encoding="utf-8")
+    (root / "db_status.txt").write_text("database: OK\nalembic_version: head\nlanes: 1\ncustomers: 2\n", encoding="utf-8")
+    (root / "lanes.txt").write_text("btc enabled\n", encoding="utf-8")
+    (root / "customers.txt").write_text("canary-btc-001\nlimited-btc-001\n", encoding="utf-8")
+    (root / "docker_ps.txt").write_text("mpf-v2raya Up\nmpf-btc-forwarder Up\n", encoding="utf-8")
+    listeners = "LISTEN 0 4096 127.0.0.1:2015\nLISTEN 0 4096 127.0.0.1:60010\n"
+    (root / "listeners.txt").write_text(listeners, encoding="utf-8")
+    (root / "container_listener_order.txt").write_text("v2raya btc 127.0.0.1:2015 127.0.0.1:60010\n", encoding="utf-8")
+    (root / "phase11_firewall_artifacts.txt").write_text("known_controlled_phase11_artifacts: present\n", encoding="utf-8")
+    (root / "unknown_mpf_firewall_artifacts.txt").write_text("unknown_mpf_firewall_artifacts: []\n", encoding="utf-8")
+    (root / "mutation_flags.json").write_text(json.dumps({"mutation_performed": False, "db_mutation_performed": False, "firewall_apply_performed": False, "conntrack_flush_performed": False, "docker_restart_performed": False, "systemd_restart_performed": False}), encoding="utf-8")
+    for name in ("controlled-backend-target.json", "current-controlled-artifact-gate.json", "proof-report.json", "proof_report.json"):
+        (root / name).write_text(json.dumps({"component": name, "status": "ok"}), encoding="utf-8")
+
+
+def test_restart_autostart_proof_ready_with_valid_evidence_dir(tmp_path: Path) -> None:
+    from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
+    _write_ready_restart_evidence(tmp_path)
+    report = build_phase11_restart_autostart_proof_report(tmp_path)
+    assert report["restart_autostart_proof"] == "ready"
+    assert report["final_decision"] == "RESTART_AUTOSTART_PROOF_READY"
+    assert report["blockers"] == []
+    assert report["next_required_step"] == "implement_production_customer_lifecycle_execution"
+    for key in ("mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed"):
+        assert report[key] is False
+
+
+def test_restart_autostart_proof_malformed_json_fails_closed(tmp_path: Path) -> None:
+    from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
+    _write_ready_restart_evidence(tmp_path)
+    (tmp_path / "proof-report.json").write_text("# command: bad\n{}", encoding="utf-8")
+    report = build_phase11_restart_autostart_proof_report(tmp_path)
+    assert report["restart_autostart_proof"] == "missing_or_partial"
+    assert "malformed_json_evidence:proof-report.json" in report["blockers"]
+
+
+def test_restart_autostart_proof_script_json_captures_have_no_comment_headers() -> None:
+    text = Path("scripts/phase11_collect_restart_autostart_proof.sh").read_text(encoding="utf-8")
+    assert "run_capture_json proof-report.json" in text
+    assert "run_capture_json controlled-backend-target.json" in text
+    assert "run_capture proof-report.json" not in text
+    assert ".meta.txt" in text

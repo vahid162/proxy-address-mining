@@ -14,6 +14,7 @@ from mpf.services.phase11_restart_autostart_proof_service import (
 )
 from mpf.services.phase11_operational_completion_progression import active_progression
 from mpf.services.phase11_controlled_artifact_reapply_readiness_service import READY as READINESS_READY, run_phase11_controlled_artifact_reapply_readiness
+from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import build_phase11_production_customer_lifecycle_execution_readiness_report
 
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
@@ -38,6 +39,7 @@ def build_phase11_operational_completion_gap_inventory_report(
     restart_report = build_phase11_restart_autostart_proof_report(evidence_dir) if evidence_dir else None
     restart_status = restart_report["restart_autostart_proof"] if restart_report else _MISSING_OR_PARTIAL
     next_required_step = _next_step(restart_status, persistence_plan_report, readiness_report)
+    lifecycle_readiness = build_phase11_production_customer_lifecycle_execution_readiness_report(restart_autostart_proof_ready=restart_status == "ready")
 
     return {
         "component": "phase11_operational_completion_gap_inventory",
@@ -48,6 +50,7 @@ def build_phase11_operational_completion_gap_inventory_report(
         "phase12_start_allowed": False,
         "restart_autostart_proof": restart_status,
         "production_customer_lifecycle_execution": _MISSING_OR_PARTIAL,
+        "production_customer_lifecycle_execution_readiness": lifecycle_readiness,
         "production_firewall_apply_verify_rollback": _MISSING_OR_PARTIAL,
         "production_onboarding_flow": _MISSING_OR_PARTIAL,
         "production_usage_report_check_evidence": _MISSING_OR_PARTIAL,

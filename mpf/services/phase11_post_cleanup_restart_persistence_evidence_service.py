@@ -101,6 +101,7 @@ def build_phase11_post_cleanup_restart_persistence_evidence_report(
     if current_gate.get("unknown_mpf_artifacts") not in ([], None):
         blockers.append("unknown_mpf_artifacts_detected")
 
+    proof_ready = proof_state.get("restart_autostart_proof") == "ready" and proof_state.get("final_decision") == "RESTART_AUTOSTART_PROOF_READY"
     summary = {
         "component": "phase11_post_cleanup_restart_persistence_evidence",
         "repository_version": __version__,
@@ -128,6 +129,6 @@ def build_phase11_post_cleanup_restart_persistence_evidence_report(
         "warnings": sorted(set(warnings)),
         **_MUTATION_FLAGS,
         "final_decision": "POST_CLEANUP_RESTART_PERSISTENCE_EVIDENCE_READY" if not blockers else "BLOCKED_POST_CLEANUP_RESTART_PERSISTENCE_EVIDENCE",
-        "next_required_step": "collect_real_restart_autostart_evidence_after_operator_restart_or_reboot" if not blockers else "resolve_post_cleanup_restart_persistence_evidence_blockers",
+        "next_required_step": ("implement_production_customer_lifecycle_execution" if proof_ready else "collect_real_restart_autostart_evidence_after_operator_restart_or_reboot") if not blockers else "resolve_post_cleanup_restart_persistence_evidence_blockers",
     }
     return summary

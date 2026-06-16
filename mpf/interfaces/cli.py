@@ -165,6 +165,7 @@ from mpf.services import (
     phase11_controlled_artifact_reapply_execution_gate_preflight_service,
     phase11_controlled_artifact_reapply_rollback_executor_service,
     phase11_controlled_filter_packet_path_service,
+    phase11_production_customer_lifecycle_execution_readiness_service,
     phase11_verified_filter_hook_binding_service,
     phase11_live_ready_reapply_package_service,
     phase11_canary_evidence_pack_service,
@@ -3723,12 +3724,14 @@ def production_phase11_operational_completion_gap_inventory(
     output: Literal["human", "json"] = typer.Option("human", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
     packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
+    evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
 ) -> None:
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
     report = phase11_operational_completion_gap_inventory_service.run_phase11_operational_completion_gap_inventory_report(
         _config_path(config),
         packet_path_evidence_dir=packet_path_evidence_dir,
+        evidence_dir=evidence_dir,
     )
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
@@ -3736,6 +3739,21 @@ def production_phase11_operational_completion_gap_inventory(
     for key, value in report.items():
         typer.echo(f"{key}: {value}")
 
+
+
+@production_app.command("production-customer-lifecycle-execution-readiness")
+def production_customer_lifecycle_execution_readiness(
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Render read-only Phase 11 production customer lifecycle execution readiness."""
+
+    report = phase11_production_customer_lifecycle_execution_readiness_service.run_phase11_production_customer_lifecycle_execution_readiness_report(_config_path(config))
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
 
 
 @production_app.command("restart-autostart-proof")
@@ -3917,6 +3935,7 @@ def production_controlled_artifact_reapply_readiness(
     output: Literal["json"] = typer.Option("json", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
     packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
+    evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
 ) -> None:
     """Build the read-only live-ready controlled artifact reapply readiness report."""
 
