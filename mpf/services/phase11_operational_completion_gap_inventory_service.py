@@ -20,7 +20,9 @@ from mpf.services.phase11_production_customer_lifecycle_execution_readiness_serv
 _MISSING_OR_PARTIAL = "missing_or_partial"
 
 
-def _next_step(restart_status: str, persistence_plan: dict[str, object] | None, readiness_report: dict[str, object] | None = None) -> str:
+def _next_step(restart_status: str, persistence_plan: dict[str, object] | None, readiness_report: dict[str, object] | None = None, lifecycle_readiness: dict[str, object] | None = None) -> str:
+    if lifecycle_readiness and lifecycle_readiness.get("production_customer_lifecycle_execution") == "controlled_execution_evidence_ready":
+        return "production_firewall_apply_verify_rollback"
     if restart_status == "ready":
         return "implement_production_customer_lifecycle_execution"
     if readiness_report and readiness_report.get("final_decision") == READINESS_READY:
@@ -34,19 +36,21 @@ def build_phase11_operational_completion_gap_inventory_report(
     config_path: Path = DEFAULT_CONFIG_PATH,
     persistence_plan_report: dict[str, object] | None = None,
     readiness_report: dict[str, object] | None = None,
+    lifecycle_execution_evidence_json: Path | str | None = None,
 ) -> dict[str, object]:
     """Return the expanded post-acceptance Phase 11 gap inventory without mutation."""
 
     restart_report = build_phase11_restart_autostart_proof_report(evidence_dir) if evidence_dir else None
     restart_status = restart_report["restart_autostart_proof"] if restart_report else _MISSING_OR_PARTIAL
-    next_required_step = _next_step(restart_status, persistence_plan_report, readiness_report)
     try:
         lifecycle_readiness = run_phase11_production_customer_lifecycle_execution_readiness_report(
-            config_path, evidence_dir=evidence_dir, restart_autostart_proof_ready=restart_status == "ready"
+            config_path, evidence_dir=evidence_dir, restart_autostart_proof_ready=restart_status == "ready", lifecycle_execution_evidence_json=lifecycle_execution_evidence_json
         )
     except Exception:
         from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import build_phase11_production_customer_lifecycle_execution_readiness_report
         lifecycle_readiness = build_phase11_production_customer_lifecycle_execution_readiness_report(restart_autostart_proof_ready=restart_status == "ready")
+    next_required_step = _next_step(restart_status, persistence_plan_report, readiness_report, lifecycle_readiness)
+    lifecycle_item = "controlled_execution_evidence_ready" if lifecycle_readiness.get("production_customer_lifecycle_execution") == "controlled_execution_evidence_ready" else _MISSING_OR_PARTIAL
 
     return {
         "component": "phase11_operational_completion_gap_inventory",
@@ -56,7 +60,7 @@ def build_phase11_operational_completion_gap_inventory_report(
         "phase11_operational_completion_scope": "full_cli_production_operations",
         "phase12_start_allowed": False,
         "restart_autostart_proof": restart_status,
-        "production_customer_lifecycle_execution": _MISSING_OR_PARTIAL,
+        "production_customer_lifecycle_execution": lifecycle_item,
         "production_customer_lifecycle_execution_readiness": lifecycle_readiness,
         "production_firewall_apply_verify_rollback": _MISSING_OR_PARTIAL,
         "production_onboarding_flow": _MISSING_OR_PARTIAL,
@@ -112,6 +116,7 @@ def run_phase11_operational_completion_gap_inventory_report(
     *,
     evidence_dir: Path | str | None = None,
     packet_path_evidence_dir: Path | str | None = None,
+    lifecycle_execution_evidence_json: Path | str | None = None,
 ) -> dict[str, object]:
     """Read live persistence plan data and render the gap inventory without mutation."""
 
@@ -136,4 +141,5 @@ def run_phase11_operational_completion_gap_inventory_report(
         config_path=config_path,
         persistence_plan_report=persistence_plan,
         readiness_report=readiness_report,
+        lifecycle_execution_evidence_json=lifecycle_execution_evidence_json,
     )

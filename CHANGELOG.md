@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.278
+
+- Adds controlled exact-scope DB-only Phase 11 production customer lifecycle execution evidence for limited-btc-001 / btc / 20101.
+- The path creates a reversible backup artifact, backups row, restore point, event, and audit row before updating safe lifecycle metadata only.
+- Full CLI Production Operations, backup_restore_drill, unrestricted production, Phase 12, worker enforcement, UI, and Telegram remain closed.
+
 ## 0.1.277 - 2026-06-16
 
 - Phase 11 runtime-first consolidation: resolved and propagated controlled backend targets into the current phase gate and firewall apply/rollback operational surface to avoid false unknown DNAT artifact blockers for known controlled artifacts.

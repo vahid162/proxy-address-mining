@@ -112,3 +112,7 @@ This update creates a live-ready package/review artifact from the verified packe
 Farm5 0.1.265 moved past the prior structure-stable raw snapshot drift blockers: fresh packet-path evidence, live-ready package, and execute-preflight were READY. Guarded execute then failed safely before any `iptables-restore --test` or apply because operational audit metadata used direct local-peer PostgreSQL as root (`postgresql:///mpf`) and hit `role "root" does not exist`. A retry backup directory was already created with `iptables-save.txt`, `ip6tables-save.txt`, `package.json`, `payload.restore`, `rollback-plan.json`, and `manifest.sha256.json`, while `firewall_applies` remained unchanged. No restore test, apply, partial apply, rollback, or public exposure occurred; production gates stayed closed.
 
 Next required step: harden audit metadata local-peer root writes, make backup attempts retry-safe, and expose stage-specific pre-apply dependency evidence before re-running farm5 controlled execute.
+
+## Progress Update (0.1.278)
+
+Adds controlled exact-scope DB-only lifecycle execution evidence for `limited-btc-001` / `btc` / `20101`. Valid verifier evidence advances production customer lifecycle execution item #2 by proving audit/event path availability and a linked backup/restore point requirement, while `backup_restore_drill`, final Full CLI Production Operations acceptance, `cli_production` traffic/onboarding, Phase 12, worker enforcement, UI, and Telegram remain closed.
