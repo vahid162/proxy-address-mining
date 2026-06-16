@@ -15,6 +15,7 @@ from mpf.services.phase11_restart_autostart_proof_service import (
 from mpf.services.phase11_operational_completion_progression import active_progression
 from mpf.services.phase11_controlled_artifact_reapply_readiness_service import READY as READINESS_READY, run_phase11_controlled_artifact_reapply_readiness
 from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import run_phase11_production_customer_lifecycle_execution_readiness_report
+from mpf.services.phase11_production_firewall_apply_verify_rollback_readiness_service import build_production_firewall_apply_verify_rollback_readiness_report, READY as FIREWALL_READY
 
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
@@ -37,6 +38,7 @@ def build_phase11_operational_completion_gap_inventory_report(
     persistence_plan_report: dict[str, object] | None = None,
     readiness_report: dict[str, object] | None = None,
     lifecycle_execution_evidence_json: Path | str | None = None,
+    firewall_completion_evidence_dir: Path | str | None = None,
 ) -> dict[str, object]:
     """Return the expanded post-acceptance Phase 11 gap inventory without mutation."""
 
@@ -51,6 +53,8 @@ def build_phase11_operational_completion_gap_inventory_report(
         lifecycle_readiness = build_phase11_production_customer_lifecycle_execution_readiness_report(restart_autostart_proof_ready=restart_status == "ready")
     next_required_step = _next_step(restart_status, persistence_plan_report, readiness_report, lifecycle_readiness)
     lifecycle_item = "controlled_execution_evidence_ready" if lifecycle_readiness.get("production_customer_lifecycle_execution") == "controlled_execution_evidence_ready" else _MISSING_OR_PARTIAL
+    firewall_completion = build_production_firewall_apply_verify_rollback_readiness_report(firewall_completion_evidence_dir) if firewall_completion_evidence_dir else None
+    firewall_item = FIREWALL_READY if firewall_completion and firewall_completion.get("production_firewall_apply_verify_rollback") == FIREWALL_READY else _MISSING_OR_PARTIAL
 
     return {
         "component": "phase11_operational_completion_gap_inventory",
@@ -62,7 +66,8 @@ def build_phase11_operational_completion_gap_inventory_report(
         "restart_autostart_proof": restart_status,
         "production_customer_lifecycle_execution": lifecycle_item,
         "production_customer_lifecycle_execution_readiness": lifecycle_readiness,
-        "production_firewall_apply_verify_rollback": _MISSING_OR_PARTIAL,
+        "production_firewall_apply_verify_rollback": firewall_item,
+        "production_firewall_apply_verify_rollback_readiness": firewall_completion,
         "production_onboarding_flow": _MISSING_OR_PARTIAL,
         "production_usage_report_check_evidence": _MISSING_OR_PARTIAL,
         "production_abuse_runner": _MISSING_OR_PARTIAL,
@@ -117,6 +122,7 @@ def run_phase11_operational_completion_gap_inventory_report(
     evidence_dir: Path | str | None = None,
     packet_path_evidence_dir: Path | str | None = None,
     lifecycle_execution_evidence_json: Path | str | None = None,
+    firewall_completion_evidence_dir: Path | str | None = None,
 ) -> dict[str, object]:
     """Read live persistence plan data and render the gap inventory without mutation."""
 
@@ -142,4 +148,5 @@ def run_phase11_operational_completion_gap_inventory_report(
         persistence_plan_report=persistence_plan,
         readiness_report=readiness_report,
         lifecycle_execution_evidence_json=lifecycle_execution_evidence_json,
+        firewall_completion_evidence_dir=firewall_completion_evidence_dir,
     )

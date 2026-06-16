@@ -119,3 +119,11 @@ def test_operational_surfaces_collector_lifecycle_evidence_passthrough_contract(
     assert "lifecycle_execution_evidence" in text
     assert "iptables-restore" not in text
     assert "conntrack" not in text
+
+
+def test_collector_separates_source_evidence_mutation_flags() -> None:
+    text = Path("scripts/phase11_collect_operational_surfaces_evidence.sh").read_text(encoding="utf-8")
+    assert "source-evidence-mutation-flags.json" in text
+    assert "historical_source_evidence_not_current_collector_run" in text
+    assert "source_names={'production-customer-lifecycle-execution-evidence.json'}" in text
+    assert "mutation-flags.json" in text

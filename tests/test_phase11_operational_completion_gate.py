@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.280"
+    assert report["repository_version"] == "0.1.281"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -138,9 +138,9 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
 
     seen = {}
 
-    def fake_run(config_path, *, evidence_dir=None, packet_path_evidence_dir=None, lifecycle_execution_evidence_json=None):
+    def fake_run(config_path, *, evidence_dir=None, packet_path_evidence_dir=None, lifecycle_execution_evidence_json=None, firewall_completion_evidence_dir=None):
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.280", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.281", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
@@ -175,3 +175,28 @@ def test_production_customer_lifecycle_readiness_cli_is_safe() -> None:
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
     assert report["telegram_allowed"] == "no"
+
+
+def test_firewall_completion_contract_fails_closed_on_partial_evidence(tmp_path) -> None:
+    from mpf.services.phase11_production_firewall_apply_verify_rollback_readiness_service import build_production_firewall_apply_verify_rollback_readiness_report
+
+    (tmp_path / "current-controlled-artifact-gate-with-target.json").write_text(json.dumps({
+        "unknown_mpf_artifacts": [],
+        "duplicate_nat_redirect_count": 0,
+        "forbidden_public_runtime_exposure": False,
+    }), encoding="utf-8")
+    report = build_production_firewall_apply_verify_rollback_readiness_report(tmp_path)
+    assert report["production_firewall_apply_verify_rollback"] == "missing_or_partial"
+    for blocker in ("firewall_apply_evidence_missing", "firewall_post_apply_verify_missing", "firewall_rollback_contract_missing", "firewall_restore_point_or_backup_missing"):
+        assert blocker in report["blockers"]
+    assert report["phase12_start_allowed"] is False
+    assert report["mutation_performed"] is False
+
+
+def test_gap_inventory_does_not_advance_firewall_from_missing_completion_evidence() -> None:
+    report = build_phase11_operational_completion_gap_inventory_report(
+        persistence_plan_report={"final_decision": "x", "safety_blockers": []},
+        lifecycle_execution_evidence_json=None,
+    )
+    assert report["production_firewall_apply_verify_rollback"] == "missing_or_partial"
+    assert report["production_firewall_apply_verify_rollback_readiness"] is None

@@ -77,7 +77,7 @@ def build_controlled_artifact_reapply_package_report(*, plan: dict[str, object])
     return build_package_from_plan(plan)
 
 
-def run_controlled_artifact_reapply_plan(config_path: Path = DEFAULT_CONFIG_PATH, *, expected_version: str = __version__) -> dict[str, object]:
+def run_controlled_artifact_reapply_plan(config_path: Path = DEFAULT_CONFIG_PATH, *, expected_version: str = __version__, expected_backend_target: str | None = None, iptables_save_file: Path | str | None = None, ip6tables_save_file: Path | str | None = None) -> dict[str, object]:
     cfg = load_config(config_path)
     loaded = firewall_planner_read_repo.load_firewall_planner_input(cfg)
     if not loaded.ok:
@@ -90,8 +90,23 @@ def run_controlled_artifact_reapply_plan(config_path: Path = DEFAULT_CONFIG_PATH
     backend["controlled_artifact_graph_binding_mode"] = "verified_docker_user_forward_post_dnat"
     backend.setdefault("filter_packet_path", "docker_user_forward_verified")
     backend.setdefault("conntrack_original_destination_supported", True)
-    iptables_result = _cmd(["iptables-save"])
-    ip6tables_result = _cmd(["ip6tables-save"])
+    if expected_backend_target:
+        host, _, port = expected_backend_target.rpartition(":")
+        if host and port:
+            backend["resolved_ipv4"] = host
+            backend["target_host"] = host
+            backend["backend_port"] = int(port) if port.isdigit() else port
+            backend["target_port"] = int(port) if port.isdigit() else port
+    if iptables_save_file is not None:
+        iptables_text = Path(iptables_save_file).read_text(encoding="utf-8")
+        iptables_result = FirewallSnapshotCommandResult(argv=["read-file", str(iptables_save_file)], command="read-file", returncode=0, stdout=iptables_text, stderr="")
+    else:
+        iptables_result = _cmd(["iptables-save"])
+    if ip6tables_save_file is not None:
+        ip6tables_text = Path(ip6tables_save_file).read_text(encoding="utf-8")
+        ip6tables_result = FirewallSnapshotCommandResult(argv=["read-file", str(ip6tables_save_file)], command="read-file", returncode=0, stdout=ip6tables_text, stderr="")
+    else:
+        ip6tables_result = _cmd(["ip6tables-save"])
     snapshot_blockers = [*_snapshot_structure_blockers(iptables_result, family="iptables"), *_snapshot_structure_blockers(ip6tables_result, family="ip6tables")]
     report = build_controlled_artifact_reapply_plan_report(lanes=loaded.lanes, customers=loaded.customers, backend_target=backend, iptables_save_text=iptables_result.stdout, ip6tables_save_text=ip6tables_result.stdout, phase_status_text=_phase_text(), expected_version=expected_version)
     report["iptables_save_text"] = iptables_result.stdout
@@ -103,6 +118,6 @@ def run_controlled_artifact_reapply_plan(config_path: Path = DEFAULT_CONFIG_PATH
     return report
 
 
-def run_controlled_artifact_reapply_package(config_path: Path = DEFAULT_CONFIG_PATH, *, expected_version: str = __version__) -> dict[str, object]:
-    plan = run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version)
+def run_controlled_artifact_reapply_package(config_path: Path = DEFAULT_CONFIG_PATH, *, expected_version: str = __version__, expected_backend_target: str | None = None, iptables_save_file: Path | str | None = None, ip6tables_save_file: Path | str | None = None) -> dict[str, object]:
+    plan = run_controlled_artifact_reapply_plan(config_path, expected_version=expected_version, expected_backend_target=expected_backend_target, iptables_save_file=iptables_save_file, ip6tables_save_file=ip6tables_save_file)
     return build_package_from_plan(plan)
