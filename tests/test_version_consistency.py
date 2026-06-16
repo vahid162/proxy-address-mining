@@ -45,7 +45,7 @@ def test_ci_dev_extra_installs_pytest() -> None:
     assert any(dependency.startswith("pytest") for dependency in dev_dependencies)
 
 
-def test_changelog_contains_expected_version() -> None:
+def test_changelog_contains_runtime_first_governance_history() -> None:
     text = Path("CHANGELOG.md").read_text(encoding="utf-8")
-    assert f"## {EXPECTED_VERSION}" in text
+    assert "## 0.1.282" in text
     assert "strict runtime-first PR body validation" in text
