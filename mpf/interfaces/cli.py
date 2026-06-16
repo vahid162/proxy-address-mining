@@ -166,6 +166,7 @@ from mpf.services import (
     phase11_controlled_artifact_reapply_rollback_executor_service,
     phase11_controlled_filter_packet_path_service,
     phase11_production_customer_lifecycle_execution_readiness_service,
+    phase11_production_customer_lifecycle_execution_service,
     phase11_verified_filter_hook_binding_service,
     phase11_live_ready_reapply_package_service,
     phase11_canary_evidence_pack_service,
@@ -3748,6 +3749,7 @@ def production_phase11_operational_completion_gap_inventory(
     config: Path | None = typer.Option(None, "--config", "-c"),
     packet_path_evidence_dir: Path | None = typer.Option(None, "--packet-path-evidence-dir"),
     evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
+    lifecycle_execution_evidence_json: Path | None = typer.Option(None, "--lifecycle-execution-evidence-json"),
 ) -> None:
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
@@ -3755,6 +3757,7 @@ def production_phase11_operational_completion_gap_inventory(
         _config_path(config),
         packet_path_evidence_dir=packet_path_evidence_dir,
         evidence_dir=evidence_dir,
+        lifecycle_execution_evidence_json=lifecycle_execution_evidence_json,
     )
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
@@ -3770,11 +3773,12 @@ def production_customer_lifecycle_execution_readiness(
     config: Path | None = typer.Option(None, "--config", "-c"),
     evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
     expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    lifecycle_execution_evidence_json: Path | None = typer.Option(None, "--lifecycle-execution-evidence-json"),
 ) -> None:
     """Render read-only Phase 11 production customer lifecycle execution readiness."""
 
     try:
-        report = phase11_production_customer_lifecycle_execution_readiness_service.run_phase11_production_customer_lifecycle_execution_readiness_report(_config_path(config), evidence_dir=evidence_dir, expected_backend_target=expected_backend_target)
+        report = phase11_production_customer_lifecycle_execution_readiness_service.run_phase11_production_customer_lifecycle_execution_readiness_report(_config_path(config), evidence_dir=evidence_dir, expected_backend_target=expected_backend_target, lifecycle_execution_evidence_json=lifecycle_execution_evidence_json)
     except Exception:
         report = phase11_production_customer_lifecycle_execution_readiness_service.build_phase11_production_customer_lifecycle_execution_readiness_report()
     if output == "json":
@@ -3782,6 +3786,54 @@ def production_customer_lifecycle_execution_readiness(
         return
     for key, value in report.items():
         typer.echo(f"{key}: {value}")
+
+
+@production_app.command("production-customer-lifecycle-execution-package")
+def production_customer_lifecycle_execution_package(
+    out_json: Path | None = typer.Option(None, "--out-json"),
+    output: Literal["human", "json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_production_customer_lifecycle_execution_service.build_package(_config_path(config), out_json=out_json)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str) if output == "json" else "\n".join(f"{k}: {v}" for k, v in report.items()))
+
+
+@production_app.command("production-customer-lifecycle-execution-preflight")
+def production_customer_lifecycle_execution_preflight(
+    package_json: Path = typer.Option(..., "--package-json"),
+    output: Literal["human", "json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_production_customer_lifecycle_execution_service.preflight(package_json, _config_path(config))
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str) if output == "json" else "\n".join(f"{k}: {v}" for k, v in report.items()))
+
+
+@production_app.command("production-customer-lifecycle-execution-execute")
+def production_customer_lifecycle_execution_execute(
+    package_json: Path = typer.Option(..., "--package-json"),
+    operator: str = typer.Option(..., "--operator"),
+    reason: str = typer.Option(..., "--reason"),
+    out_json: Path | None = typer.Option(None, "--out-json"),
+    output: Literal["human", "json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    operator_confirmed: bool = typer.Option(False, "--operator-confirmed"),
+    i_understand_db_only: bool = typer.Option(False, "--i-understand-db-only"),
+    i_understand_no_firewall_apply: bool = typer.Option(False, "--i-understand-no-firewall-apply"),
+    i_understand_no_runtime_change: bool = typer.Option(False, "--i-understand-no-runtime-change"),
+    i_understand_phase11_not_completed: bool = typer.Option(False, "--i-understand-phase11-not-completed"),
+) -> None:
+    report = phase11_production_customer_lifecycle_execution_service.execute(package_json, _config_path(config), operator=operator, reason=reason, out_json=out_json, operator_confirmed=operator_confirmed, i_understand_db_only=i_understand_db_only, i_understand_no_firewall_apply=i_understand_no_firewall_apply, i_understand_no_runtime_change=i_understand_no_runtime_change, i_understand_phase11_not_completed=i_understand_phase11_not_completed)
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str) if output == "json" else "\n".join(f"{k}: {v}" for k, v in report.items()))
+
+
+@production_app.command("production-customer-lifecycle-execution-verify")
+def production_customer_lifecycle_execution_verify(
+    evidence_json: Path = typer.Option(..., "--evidence-json"),
+    output: Literal["human", "json"] = typer.Option("json", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    report = phase11_production_customer_lifecycle_execution_service.verify(evidence_json, _config_path(config))
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str) if output == "json" else "\n".join(f"{k}: {v}" for k, v in report.items()))
 
 
 @production_app.command("restart-autostart-proof")
