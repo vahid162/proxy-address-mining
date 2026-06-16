@@ -101,6 +101,7 @@ def run_phase11_production_customer_lifecycle_execution_readiness_report(
     expected_backend_target: str | None = None,
     restart_autostart_proof_ready: bool = False,
     lifecycle_execution_evidence: dict[str, Any] | None = None,
+    lifecycle_execution_evidence_json: Path | str | None = None,
 ) -> dict[str, object]:
     cfg = load_config(config_path)
     resolved_expected_backend_target = expected_backend_target or _env_expected_backend_target()
@@ -114,5 +115,6 @@ def run_phase11_production_customer_lifecycle_execution_readiness_report(
     usage = usage_report_check_operational_surface_service.build_usage_report_check_operational_surface_report(cfg)
     restart = build_phase11_restart_autostart_proof_report(evidence_dir) if evidence_dir else None
     abuse = abuse_operational_service.status_report(PostgresAbuseOperationalRepo(cfg))
-    lifecycle_execution_evidence = verify_lifecycle_execution(Path(lifecycle_execution_evidence_json), config_path) if lifecycle_execution_evidence_json else None
+    if lifecycle_execution_evidence_json is not None:
+        lifecycle_execution_evidence = verify_lifecycle_execution(Path(lifecycle_execution_evidence_json), config_path)
     return build_phase11_production_customer_lifecycle_execution_readiness_report(customer_lifecycle_report=lifecycle, firewall_surface_report=firewall, usage_surface_report=usage, restart_report=restart, abuse_report=abuse, restart_autostart_proof_ready=restart_autostart_proof_ready, lifecycle_execution_evidence=lifecycle_execution_evidence)
