@@ -51,3 +51,51 @@ def test_gap_inventory_advances_next_step_without_accepting_full_gate():
     report=build_phase11_operational_completion_gap_inventory_report(lifecycle_execution_evidence_json=None)
     assert report["full_cli_production_operations"] == "missing_or_partial"
     assert report["phase12_start_allowed"] is False
+
+
+def test_verify_missing_evidence_file_returns_json_blocked(tmp_path):
+    out = svc.verify(tmp_path / "missing.json")
+    assert out["final_decision"] == "BLOCKED"
+    assert "evidence_file_missing" in out["blockers"]
+    assert out["phase12_start_allowed"] is False
+
+
+def test_verify_invalid_json_returns_json_blocked(tmp_path):
+    p = tmp_path / "bad.json"; p.write_text("{")
+    out = svc.verify(p)
+    assert out["final_decision"] == "BLOCKED"
+    assert any(b.startswith("evidence_json_invalid:") for b in out["blockers"])
+
+
+def test_package_not_ready_and_missing_expected_state_block_preflight(monkeypatch, tmp_path):
+    pkg={"component":"phase11_production_customer_lifecycle_execution_package","repository_version":__version__,"package_id":"p","target":{"customer_key":"limited-btc-001","lane":"btc","port":20101},"blockers":[],"final_decision":"BLOCKED"}
+    pkg["package_sha256"] = svc._hash_pkg(pkg)
+    p=tmp_path/"pkg.json"; import json; p.write_text(json.dumps(pkg))
+    monkeypatch.setattr(svc, "_connect", lambda *_: (_ for _ in ()).throw(RuntimeError("no db")))
+    monkeypatch.setattr(svc, "_is_writable", lambda *_: True)
+    monkeypatch.setattr(svc.getpass, "getuser", lambda: "mpf")
+    out=svc.preflight(p, backup_root=tmp_path)
+    assert "package_not_ready" in out["blockers"]
+    assert "expected_before_state_missing" in out["blockers"]
+
+
+def test_operator_context_and_backup_root_block_preflight(monkeypatch, tmp_path):
+    pkg={"component":"phase11_production_customer_lifecycle_execution_package","repository_version":__version__,"package_id":"p","target":{"customer_key":"limited-btc-001","lane":"btc","port":20101},"expected_before_state":{"customer_key":"limited-btc-001","lane":"btc","port":20101,"status":"active"},"blockers":[],"final_decision":"PACKAGE_READY"}
+    pkg["package_sha256"] = svc._hash_pkg(pkg)
+    p=tmp_path/"pkg.json"; import json; p.write_text(json.dumps(pkg))
+    monkeypatch.setattr(svc, "_connect", lambda *_: (_ for _ in ()).throw(RuntimeError("no db")))
+    monkeypatch.setattr(svc, "_is_writable", lambda *_: False)
+    monkeypatch.setattr(svc.getpass, "getuser", lambda: "postgres")
+    out=svc.preflight(p, backup_root=tmp_path)
+    assert "operator_context_not_recommended_user" in out["blockers"]
+    assert "backup_root_not_writable_for_effective_user" in out["blockers"]
+
+
+def test_verify_forbidden_runtime_flags_and_checksum_mismatch(tmp_path, monkeypatch):
+    backup=tmp_path/"backup.json"; backup.write_text("{}")
+    ev={"backup_path":str(backup),"backup_sha256":"wrong","backup_id":1,"restore_point_id":2,"event_id":3,"audit_id":4,"customer_id":5,"firewall_apply_performed":True,"conntrack_flush_performed":False,"docker_restart_performed":False,"systemd_restart_performed":False,"phase12_start_allowed":False}
+    p=tmp_path/"ev.json"; import json; p.write_text(json.dumps(ev))
+    monkeypatch.setattr(svc, "_connect", lambda *_: (_ for _ in ()).throw(RuntimeError("no db")))
+    out=svc.verify(p)
+    assert "backup_checksum_mismatch" in out["blockers"]
+    assert "forbidden_flag:firewall_apply_performed" in out["blockers"]

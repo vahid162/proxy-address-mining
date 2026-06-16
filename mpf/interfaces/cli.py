@@ -3791,26 +3791,29 @@ def production_customer_lifecycle_execution_readiness(
 @production_app.command("production-customer-lifecycle-execution-package")
 def production_customer_lifecycle_execution_package(
     out_json: Path | None = typer.Option(None, "--out-json"),
+    backup_root: Path = typer.Option(phase11_production_customer_lifecycle_execution_service.BACKUP_ROOT, "--backup-root"),
     output: Literal["human", "json"] = typer.Option("json", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
-    report = phase11_production_customer_lifecycle_execution_service.build_package(_config_path(config), out_json=out_json)
+    report = phase11_production_customer_lifecycle_execution_service.build_package(_config_path(config), out_json=out_json, backup_root=backup_root)
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str) if output == "json" else "\n".join(f"{k}: {v}" for k, v in report.items()))
 
 
 @production_app.command("production-customer-lifecycle-execution-preflight")
 def production_customer_lifecycle_execution_preflight(
     package_json: Path = typer.Option(..., "--package-json"),
+    backup_root: Path = typer.Option(phase11_production_customer_lifecycle_execution_service.BACKUP_ROOT, "--backup-root"),
     output: Literal["human", "json"] = typer.Option("json", "--output"),
     config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
-    report = phase11_production_customer_lifecycle_execution_service.preflight(package_json, _config_path(config))
+    report = phase11_production_customer_lifecycle_execution_service.preflight(package_json, _config_path(config), backup_root=backup_root)
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str) if output == "json" else "\n".join(f"{k}: {v}" for k, v in report.items()))
 
 
 @production_app.command("production-customer-lifecycle-execution-execute")
 def production_customer_lifecycle_execution_execute(
     package_json: Path = typer.Option(..., "--package-json"),
+    backup_root: Path = typer.Option(phase11_production_customer_lifecycle_execution_service.BACKUP_ROOT, "--backup-root"),
     operator: str = typer.Option(..., "--operator"),
     reason: str = typer.Option(..., "--reason"),
     out_json: Path | None = typer.Option(None, "--out-json"),
@@ -3822,7 +3825,7 @@ def production_customer_lifecycle_execution_execute(
     i_understand_no_runtime_change: bool = typer.Option(False, "--i-understand-no-runtime-change"),
     i_understand_phase11_not_completed: bool = typer.Option(False, "--i-understand-phase11-not-completed"),
 ) -> None:
-    report = phase11_production_customer_lifecycle_execution_service.execute(package_json, _config_path(config), operator=operator, reason=reason, out_json=out_json, operator_confirmed=operator_confirmed, i_understand_db_only=i_understand_db_only, i_understand_no_firewall_apply=i_understand_no_firewall_apply, i_understand_no_runtime_change=i_understand_no_runtime_change, i_understand_phase11_not_completed=i_understand_phase11_not_completed)
+    report = phase11_production_customer_lifecycle_execution_service.execute(package_json, _config_path(config), operator=operator, reason=reason, backup_root=backup_root, out_json=out_json, operator_confirmed=operator_confirmed, i_understand_db_only=i_understand_db_only, i_understand_no_firewall_apply=i_understand_no_firewall_apply, i_understand_no_runtime_change=i_understand_no_runtime_change, i_understand_phase11_not_completed=i_understand_phase11_not_completed)
     typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str) if output == "json" else "\n".join(f"{k}: {v}" for k, v in report.items()))
 
 

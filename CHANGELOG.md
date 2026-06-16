@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.279
+
+- Harden Phase 11 controlled production customer lifecycle execution package/preflight/execute/verify around the farm5-proven `mpf` execution user.
+- Add operator context, backup-root writability preflight checks, execute-time preflight rerun, controlled JSON error responses, orphan backup artifact reporting, and stricter verify correlation across backups, restore points, events, and audit rows.
+- Keep lifecycle execute unrun in this PR; backup_restore_drill, Full CLI Production Operations, cli_production gates, Phase 12, worker enforcement, UI, and Telegram remain closed.
+
 ## 0.1.278
 
 - Adds controlled exact-scope DB-only Phase 11 production customer lifecycle execution evidence for limited-btc-001 / btc / 20101.
