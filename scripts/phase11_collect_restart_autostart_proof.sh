@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="0.1.275"
+VERSION="0.1.276"
 OUT_DIR="${1:-/tmp/phase11-restart-autostart-proof-${VERSION}-$(date -u +%Y%m%dT%H%M%SZ)}"
 MPF_BIN="${MPF_BIN:-mpf}"
 mkdir -p "${OUT_DIR}"
 
 run_capture() { local name="$1"; shift; { echo "# command: $*"; echo "# captured_at_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; "$@"; } >"${OUT_DIR}/${name}" 2>&1 || true; }
+run_capture_json() { local name="$1"; shift; { echo "command: $*"; echo "captured_at_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } >"${OUT_DIR}/${name}.meta.txt"; "$@" >"${OUT_DIR}/${name}" 2>"${OUT_DIR}/${name}.stderr" || true; }
 
 printf '%s\n' "${VERSION}" >"${OUT_DIR}/repository_version.txt"
 run_capture mpf-version.txt "$MPF_BIN" --version
@@ -27,7 +28,7 @@ cp "${OUT_DIR}/ss-listeners.txt" "${OUT_DIR}/listeners.txt"
 if command -v iptables-save >/dev/null 2>&1; then run_capture iptables-save.txt iptables-save; else printf 'iptables-save command not found\n' >"${OUT_DIR}/iptables-save.txt"; fi
 if command -v ip6tables-save >/dev/null 2>&1; then run_capture ip6tables_save.txt ip6tables-save; cp "${OUT_DIR}/ip6tables_save.txt" "${OUT_DIR}/ip6tables-save.txt"; else printf 'ip6tables-save command not found\n' >"${OUT_DIR}/ip6tables-save.txt"; fi
 cp "${OUT_DIR}/iptables-save.txt" "${OUT_DIR}/iptables_save.txt"; [ -f "${OUT_DIR}/ip6tables_save.txt" ] || cp "${OUT_DIR}/ip6tables-save.txt" "${OUT_DIR}/ip6tables_save.txt"
-run_capture controlled-backend-target.json "$MPF_BIN" production controlled-backend-target --expected-version "$VERSION" --output json
+run_capture_json controlled-backend-target.json "$MPF_BIN" production controlled-backend-target --expected-version "$VERSION" --output json
 EXPECTED_BACKEND_TARGET="$({ python - "${OUT_DIR}/controlled-backend-target.json" <<'PY'
 import json, sys
 from pathlib import Path
@@ -69,6 +70,6 @@ cat >"${OUT_DIR}/mutation-flags.json" <<'JSON'
 JSON
 cp "${OUT_DIR}/mutation-flags.json" "${OUT_DIR}/mutation_flags.json"
 # literal for tests: mpf production restart-autostart-proof
-run_capture proof-report.json "$MPF_BIN" production restart-autostart-proof --evidence-dir "${OUT_DIR}" --output json
+run_capture_json proof-report.json "$MPF_BIN" production restart-autostart-proof --evidence-dir "${OUT_DIR}" --output json
 cp "${OUT_DIR}/proof-report.json" "${OUT_DIR}/proof_report.json"
 printf 'Phase 11 restart/autostart proof evidence directory: %s\n' "${OUT_DIR}"

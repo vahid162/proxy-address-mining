@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.276
+
+- Fix Phase 11 restart/autostart proof collection so official JSON evidence remains strict machine-readable JSON, pass evidence directories into post-cleanup and gap inventory summaries, and add a safe production customer lifecycle execution readiness gate package.
+
 ## 0.1.275
 
 - Add read-only Phase 11 post-cleanup restart/autostart and controlled artifact persistence evidence bundle tooling with expected backend target propagation.

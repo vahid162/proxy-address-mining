@@ -87,6 +87,19 @@ def _load_json(evidence_dir: Path, name: str) -> dict[str, Any] | None:
     return loaded if isinstance(loaded, dict) else None
 
 
+def _json_error(evidence_dir: Path, name: str) -> str | None:
+    text = _read_text(evidence_dir, name)
+    if text is None or not text.strip():
+        return None
+    try:
+        loaded = json.loads(text)
+    except json.JSONDecodeError:
+        return f"malformed_json_evidence:{name}"
+    if not isinstance(loaded, dict):
+        return f"malformed_json_evidence:{name}"
+    return None
+
+
 def _contains_all(text: str, needles: tuple[str, ...]) -> bool:
     return all(needle in text for needle in needles)
 
@@ -196,6 +209,11 @@ def build_phase11_restart_autostart_proof_report(evidence_dir: Path | str | None
         for spec in _CHECKS:
             checks.append({"name": spec.name, "status": "blocked", "evidence_file": spec.evidence_file, "description": spec.description, "blocker": "evidence_dir_not_found"})
     else:
+        for json_name in ("controlled-backend-target.json", "current-controlled-artifact-gate.json", "proof-report.json", "proof_report.json"):
+            if (evidence_path / json_name).exists():
+                err = _json_error(evidence_path, json_name)
+                if err:
+                    blockers.append(err)
         for spec in _CHECKS:
             evidence_file = evidence_path / spec.evidence_file
             if not evidence_file.is_file():
