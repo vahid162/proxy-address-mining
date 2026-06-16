@@ -218,6 +218,11 @@ The `Current State` block above is the current gate. Historical compatibility no
 
 Apply Slice 1 and Slice 2 are server-synced and accepted only as documentation/test-only readiness boundaries. Apply Slice 3 and Slice 4 are server-synced and accepted only as documentation/test-only boundaries. No-customer runtime execution approval readiness is done. Controlled no-customer runtime execution evidence package is done and farm5 synced at 0.1.95. Manual canary customer proposal + acceptance readiness is done and farm5 synced at 0.1.96. Phase 6 operator acceptance decision is completed and accepted after farm5 0.1.100 sync evidence. Phase 7 is now accepted only as report-only/service-contract/readiness after farm5 0.1.108 evidence and later farm5 0.1.110 sync evidence. Historical note: at that time, current working phase was Phase 8 Abuse 1h Core planning/readiness only; runtime gates remain closed and non-authorizing. Current farm5 has no non-deleted customers. Historical proposal reference: `docs/PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md`. The explicitly gated read-only `iptables-save` live snapshot path remains authorized (`live_snapshot_read_allowed: iptables_save_read_only`). No apply, restore, customer NAT/customer firewall rules, production traffic, usage automation, abuse automation, Phase 8 abuse runner, hard/soft blocks, pause automation, UI, or Telegram is authorized.
 
+
+### 0.1.280 Runtime-first instrumentation note
+
+0.1.280 fixes the Phase 11 lifecycle evidence readiness/gap false-negative under root peer-auth DB read context, adds collector lifecycle evidence pass-through, and restores `mpf abuse status --output json` compatibility. This release performs no runtime mutation, no firewall apply, no abuse execute, no final Phase 11 operational completion acceptance, and no Phase 12 opening. After farm5 sync/test, the next runtime step remains `production_firewall_apply_verify_rollback` if fresh evidence confirms the expected state.
+
 ## Accepted Server Results
 
 - Phase 11 farm5 0.1.190 planning/readiness note: preserved partial source-backed canary runtime path evidence booleans (conntrack/forwarder/bridge) per independent classifier results while keeping final decision fail-closed BLOCKED until all required runtime evidence is present; Current State remains unchanged and Phase 11 remains not accepted.

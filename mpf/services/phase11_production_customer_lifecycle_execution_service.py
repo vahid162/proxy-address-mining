@@ -8,6 +8,7 @@ from typing import Any
 
 from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH, load_config
+from mpf.db import query_database_params
 
 TARGET_CUSTOMER_KEY = "limited-btc-001"; TARGET_LANE = "btc"; TARGET_PORT = 20101
 RECOMMENDED_EXECUTION_USER = "mpf"
@@ -134,6 +135,13 @@ def execute(package_file: Path, config_path: Path = DEFAULT_CONFIG_PATH, *, oper
     if out_json: out_json.write_text(json.dumps(out, indent=2, default=str)+"\n", encoding="utf-8")
     return out
 
+def _first_row(config, sql: str, params: tuple[object, ...]) -> tuple[dict[str, Any] | None, str | None]:
+    result = query_database_params(config, sql, params)
+    if not result.ok:
+        return None, result.message
+    return (result.rows[0] if result.rows else None), None
+
+
 def verify(evidence_file: Path, config_path: Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
     blockers=[]; ev={}
     try: ev=_load_json(evidence_file)
@@ -146,31 +154,37 @@ def verify(evidence_file: Path, config_path: Path = DEFAULT_CONFIG_PATH) -> dict
     for flag in ("firewall_apply_performed","conntrack_flush_performed","docker_restart_performed","systemd_restart_performed","phase12_start_allowed"):
         if ev.get(flag) is not False: blockers.append(f"forbidden_flag:{flag}")
     try:
-        with _connect(config_path) as conn, conn.cursor() as cur:
-            st=_customer_state(cur); blockers += _validate_target(st)
-            cur.execute("select id,metadata_json from backups where id=%s",(ev.get("backup_id"),)); backup=cur.fetchone()
-            cur.execute("select backup_id,subject_id,metadata_json from restore_points where id=%s",(ev.get("restore_point_id"),)); rp=cur.fetchone()
-            cur.execute("select event_type,data_json,correlation_id from events where id=%s",(ev.get("event_id"),)); event=cur.fetchone()
-            cur.execute("select action,after_json,correlation_id from audit_log where id=%s",(ev.get("audit_id"),)); audit=cur.fetchone()
-            if backup is None: blockers.append("missing_backups_row")
-            if rp is None: blockers.append("missing_restore_points_row")
-            if event is None: blockers.append("missing_events_row")
-            if audit is None: blockers.append("missing_audit_log_row")
-            want_pkg=ev.get("package_id"); want_corr=ev.get("correlation_id")
-            def has_meta(obj):
-                if isinstance(obj, str):
-                    try: obj=json.loads(obj)
-                    except Exception: return False
-                return isinstance(obj, dict) and obj.get("package_id")==want_pkg and obj.get("correlation_id")==want_corr
-            if backup and not has_meta(backup[1]): blockers.append("backup_correlation_mismatch")
-            if rp:
-                if int(rp[0]) != int(ev.get("backup_id") or -1) or int(rp[1]) != int(ev.get("customer_id") or -1): blockers.append("restore_point_link_mismatch")
-                if not has_meta(rp[2]): blockers.append("restore_point_correlation_mismatch")
-            if event:
-                if event[0] != "phase11.production_customer_lifecycle_execution": blockers.append("event_type_mismatch")
-                if event[2] != want_corr or not has_meta(event[1]): blockers.append("event_correlation_mismatch")
-            if audit:
-                if audit[0] != "phase11.production_customer_lifecycle_execution": blockers.append("audit_action_mismatch")
-                if audit[2] != want_corr or not has_meta(audit[1]): blockers.append("audit_correlation_mismatch")
+        cfg = load_config(config_path)
+        st, err = _first_row(cfg, """select c.id,c.customer_key,lower(l.name) as lane,c.port,c.status,c.service_days,c.lifecycle_note,c.starts_at,c.expires_at,c.activated_at,c.updated_at from customers c join lanes l on l.id=c.lane_id where c.customer_key=%s""", (TARGET_CUSTOMER_KEY,))
+        if err: raise RuntimeError(err)
+        blockers += _validate_target(st)
+        backup, err = _first_row(cfg, "select id,metadata_json from backups where id=%s", (ev.get("backup_id"),))
+        if err: raise RuntimeError(err)
+        rp, err = _first_row(cfg, "select backup_id,subject_id,metadata_json from restore_points where id=%s", (ev.get("restore_point_id"),))
+        if err: raise RuntimeError(err)
+        event, err = _first_row(cfg, "select event_type,data_json,correlation_id from events where id=%s", (ev.get("event_id"),))
+        if err: raise RuntimeError(err)
+        audit, err = _first_row(cfg, "select action,after_json,correlation_id from audit_log where id=%s", (ev.get("audit_id"),))
+        if err: raise RuntimeError(err)
+        if backup is None: blockers.append("missing_backups_row")
+        if rp is None: blockers.append("missing_restore_points_row")
+        if event is None: blockers.append("missing_events_row")
+        if audit is None: blockers.append("missing_audit_log_row")
+        want_pkg=ev.get("package_id"); want_corr=ev.get("correlation_id")
+        def has_meta(obj):
+            if isinstance(obj, str):
+                try: obj=json.loads(obj)
+                except Exception: return False
+            return isinstance(obj, dict) and obj.get("package_id")==want_pkg and obj.get("correlation_id")==want_corr
+        if backup and not has_meta(backup.get("metadata_json")): blockers.append("backup_correlation_mismatch")
+        if rp:
+            if int(rp.get("backup_id") or -1) != int(ev.get("backup_id") or -1) or int(rp.get("subject_id") or -1) != int(ev.get("customer_id") or -1): blockers.append("restore_point_link_mismatch")
+            if not has_meta(rp.get("metadata_json")): blockers.append("restore_point_correlation_mismatch")
+        if event:
+            if event.get("event_type") != "phase11.production_customer_lifecycle_execution": blockers.append("event_type_mismatch")
+            if event.get("correlation_id") != want_corr or not has_meta(event.get("data_json")): blockers.append("event_correlation_mismatch")
+        if audit:
+            if audit.get("action") != "phase11.production_customer_lifecycle_execution": blockers.append("audit_action_mismatch")
+            if audit.get("correlation_id") != want_corr or not has_meta(audit.get("after_json")): blockers.append("audit_correlation_mismatch")
     except Exception as exc: blockers.append(f"db_read_failed:{exc}")
     return _controlled_base(component="phase11_production_customer_lifecycle_execution_verify", package_id=ev.get("package_id"), package_sha256=ev.get("package_sha256"), correlation_id=ev.get("correlation_id"), blockers=sorted(set(blockers)), final_decision=READY if not blockers else "BLOCKED")
