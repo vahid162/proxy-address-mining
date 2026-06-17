@@ -16,6 +16,14 @@ _FALSE_FLAGS = (
     "phase12_start_allowed",
 )
 
+_GATE_FLAGS = {
+    "worker_enforcement_allowed": "no",
+    "ui_allowed": "no",
+    "telegram_allowed": "no",
+    "production_traffic": "controlled_cli_limited",
+    "customer_onboarding_allowed": "controlled_cli_limited",
+}
+
 
 def _load(evidence_dir: Path | str | None, name: str) -> dict[str, Any] | None:
     if not evidence_dir:
@@ -48,6 +56,9 @@ def build_contract_readiness_report(
         for k in _FALSE_FLAGS:
             if data.get(k) not in (False, None):
                 blockers.append(f"unsafe_or_mutating_flag:{k}")
+        for k, expected in _GATE_FLAGS.items():
+            if data.get(k, expected) != expected:
+                blockers.append(f"unsafe_gate_flag:{k}")
         for k in ("operator", "evidence_collected_at", "scope", "final_decision"):
             if not data.get(k):
                 blockers.append(f"{kind}_missing_{k}")
