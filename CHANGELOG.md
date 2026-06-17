@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.288
+
+- Stabilize Phase 11 post-sync validation by isolating farm5-sensitive gap inventory tests and resolving firewall completion wrapper/nested evidence handoff without runtime mutation or final acceptance.
+
 ## 0.1.287
 
 - fix(phase11): align operational completion evidence progression after lifecycle execution by resolving nested restart proof evidence, validating firewall completion readiness JSON, correcting lifecycle readiness final decisions, and propagating onboarding context without runtime mutation or opening Phase 12/worker/UI/Telegram gates.

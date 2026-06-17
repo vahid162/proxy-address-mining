@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.287"
+    assert report["repository_version"] == "0.1.288"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -141,7 +141,7 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
     def fake_run(config_path, **kwargs):
         packet_path_evidence_dir = kwargs.get("packet_path_evidence_dir")
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.287", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.288", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
@@ -258,7 +258,11 @@ def test_gap_inventory_advances_to_onboarding_after_no_reapply_firewall_evidence
     _write_ready_restart_proof(tmp_path / "restart-autostart-proof")
     monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *args, **kwargs: {"production_customer_lifecycle_execution": "controlled_execution_evidence_ready", "final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"})
 
-    report = svc.build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path, firewall_completion_evidence_dir=tmp_path)
+    report = svc.build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=tmp_path,
+        firewall_completion_evidence_dir=tmp_path,
+        onboarding_readiness={"production_onboarding_flow": "missing_or_partial"},
+    )
 
     assert report["production_customer_lifecycle_execution"] == "controlled_execution_evidence_ready"
     assert report["production_firewall_apply_verify_rollback"] == "production_firewall_apply_verify_rollback_ready"
@@ -429,6 +433,41 @@ def test_gap_inventory_firewall_completion_readiness_json_fails_closed_when_unsa
     assert report["production_firewall_apply_verify_rollback"] == "missing_or_partial"
     assert "firewall_completion_readiness_json_unsafe" in report["production_firewall_apply_verify_rollback_readiness"]["blockers"]
 
+
+
+def test_gap_inventory_progresses_to_usage_when_onboarding_ready_but_usage_missing(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    _write_ready_restart_proof(tmp_path / "restart-autostart-proof")
+    (tmp_path / "production-firewall-apply-verify-rollback-readiness.json").write_text(json.dumps(_ready_firewall_json()), encoding="utf-8")
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution": "controlled_execution_evidence_ready", "final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"})
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=tmp_path,
+        onboarding_readiness={"production_onboarding_flow": "production_onboarding_flow_ready"},
+        usage_report_check_surface={"usage_report_check_surface_ready": False, "final_decision": "BLOCKED_USAGE_REPORT_CHECK_SURFACE", "blockers": ["usage_evidence_missing"]},
+    )
+
+    assert report["next_required_step"] == "production_usage_report_check_evidence"
+    assert report["phase12_start_allowed"] is False
+
+
+def test_gap_inventory_progresses_to_abuse_when_usage_ready_but_abuse_missing(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    _write_ready_restart_proof(tmp_path / "restart-autostart-proof")
+    (tmp_path / "production-firewall-apply-verify-rollback-readiness.json").write_text(json.dumps(_ready_firewall_json()), encoding="utf-8")
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution": "controlled_execution_evidence_ready", "final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"})
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=tmp_path,
+        onboarding_readiness={"production_onboarding_flow": "production_onboarding_flow_ready"},
+        usage_report_check_surface={"usage_report_check_surface_ready": True, "final_decision": "USAGE_REPORT_CHECK_SURFACE_READY", "blockers": []},
+        abuse_runner_readiness={"production_abuse_runner": "missing_or_partial", "blockers": ["abuse_evidence_missing"]},
+    )
+
+    assert report["next_required_step"] == "production_abuse_runner"
+    assert report["phase12_start_allowed"] is False
 
 def test_gap_inventory_progresses_to_controls_with_ready_prior_surfaces(monkeypatch, tmp_path) -> None:
     import mpf.services.phase11_operational_completion_gap_inventory_service as svc
