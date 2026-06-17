@@ -218,18 +218,22 @@ def build_phase11_operational_completion_gap_inventory_report(
     next_required_step = _next_step(
         restart_status, persistence_plan_report, readiness_report, lifecycle_readiness
     )
-    prerequisites_ready = (
+    progression_prerequisites_ready = (
+        lifecycle_item == "controlled_execution_evidence_ready"
+        and firewall_item == FIREWALL_READY
+    )
+    full_acceptance_prerequisites_ready = (
         restart_status == "ready"
         and lifecycle_item == "controlled_execution_evidence_ready"
         and firewall_item == FIREWALL_READY
     )
-    if prerequisites_ready:
+    if progression_prerequisites_ready:
         next_required_step = "final_phase11_operational_completion_acceptance"
         for name, status in order:
             if status == _MISSING_OR_PARTIAL:
                 next_required_step = name
                 break
-    full_ready = prerequisites_ready and all(
+    full_ready = full_acceptance_prerequisites_ready and all(
         status != _MISSING_OR_PARTIAL for _, status in order
     )
 
