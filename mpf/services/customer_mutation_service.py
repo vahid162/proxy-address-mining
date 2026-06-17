@@ -19,6 +19,10 @@ from mpf.repositories.customer_write_repo import (
     update_customer,
     restore_phase11_exact_canary_db_visibility_customer as _restore_phase11_exact_canary_db_visibility_customer,
 )
+from mpf.services.customer_dry_run_readiness_service import (
+    dry_run_disable_customer,
+    dry_run_update_customer,
+)
 
 
 def create_db_only_customer(config: MPFConfig, req: CustomerCreateRequest, *, dry_run: bool = False) -> CustomerMutationResult:
@@ -28,7 +32,9 @@ def create_db_only_customer(config: MPFConfig, req: CustomerCreateRequest, *, dr
 
 def update_db_only_customer(config: MPFConfig, req: CustomerUpdateRequest, *, dry_run: bool = False) -> CustomerMutationResult:
     req.validate()
-    return update_customer(config, req, dry_run=dry_run)
+    if dry_run:
+        return dry_run_update_customer(config, req)
+    return update_customer(config, req, dry_run=False)
 
 
 def renew_db_only_customer(config: MPFConfig, req: CustomerRenewRequest, *, dry_run: bool = False) -> CustomerMutationResult:
@@ -38,7 +44,9 @@ def renew_db_only_customer(config: MPFConfig, req: CustomerRenewRequest, *, dry_
 
 def disable_db_only_customer(config: MPFConfig, req: CustomerDisableRequest, *, dry_run: bool = False) -> CustomerMutationResult:
     req.validate()
-    return disable_customer(config, req, dry_run=dry_run)
+    if dry_run:
+        return dry_run_disable_customer(config, req)
+    return disable_customer(config, req, dry_run=False)
 
 
 def soft_delete_db_only_customer(config: MPFConfig, req: CustomerDeleteRequest, *, dry_run: bool = False) -> CustomerMutationResult:
