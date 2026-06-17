@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from mpf import __version__
@@ -25,22 +26,41 @@ from mpf.services.phase11_production_firewall_apply_verify_rollback_readiness_se
     READY as FIREWALL_READY,
 )
 from mpf.services.phase11_production_onboarding_flow_readiness_service import (
-    run_phase11_production_onboarding_flow_readiness_report,
     READY as ONBOARDING_READY,
 )
-from mpf.services.usage_report_check_operational_surface_service import (
-    build_usage_report_check_operational_surface_report,
-)
 from mpf.services.phase11_production_abuse_runner_readiness_service import (
-    run_phase11_production_abuse_runner_readiness_report,
     READY as ABUSE_RUNNER_READY,
 )
 from mpf.services.phase11_evidence_contract_readiness_service import (
     build_contract_readiness_report,
 )
-from mpf.config import load_config
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
+
+
+def _load_evidence_json(evidence_dir: Path | str | None, filename: str) -> dict[str, object] | None:
+    """Load an explicit collector evidence JSON file, or return None if absent.
+
+    Remaining operational readiness must be evidence-driven. This helper keeps the
+    service fail-closed for unit tests and ad-hoc calls that do not pass an
+    evidence directory, while allowing the official collector bundle to advance
+    from concrete JSON artifacts it already wrote.
+    """
+
+    if not evidence_dir:
+        return None
+    path = Path(evidence_dir) / filename
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - gap inventory must not traceback.
+        return {
+            "final_decision": f"BLOCKED_{filename.upper().replace('-', '_').replace('.', '_')}",
+            "blockers": ["evidence_json_load_failed", str(exc)],
+            "mutation_performed": False,
+        }
+    return data if isinstance(data, dict) else {"blockers": ["evidence_json_root_not_object"], "mutation_performed": False}
 
 
 def _next_step(
@@ -127,25 +147,10 @@ def build_phase11_operational_completion_gap_inventory_report(
         == FIREWALL_READY
         else _MISSING_OR_PARTIAL
     )
-    if (
-        onboarding_readiness is None
-        and lifecycle_item == "controlled_execution_evidence_ready"
-        and firewall_item == FIREWALL_READY
-    ):
-        try:
-            onboarding_readiness = (
-                run_phase11_production_onboarding_flow_readiness_report(
-                    config_path,
-                    lifecycle_readiness=lifecycle_readiness,
-                    firewall_readiness=firewall_completion,
-                )
-            )
-        except Exception as exc:
-            onboarding_readiness = {
-                "production_onboarding_flow": _MISSING_OR_PARTIAL,
-                "blockers": ["onboarding_readiness_failed", str(exc)],
-                "mutation_performed": False,
-            }
+    if onboarding_readiness is None:
+        onboarding_readiness = _load_evidence_json(
+            evidence_dir, "production-onboarding-flow-readiness.json"
+        )
     onboarding_item = (
         ONBOARDING_READY
         if (onboarding_readiness or {}).get("production_onboarding_flow")
@@ -153,42 +158,21 @@ def build_phase11_operational_completion_gap_inventory_report(
         else _MISSING_OR_PARTIAL
     )
     if usage_report_check_surface is None:
-        try:
-            usage_report_check_surface = (
-                build_usage_report_check_operational_surface_report(
-                    load_config(config_path)
-                )
-            )
-        except Exception as exc:
-            usage_report_check_surface = {
-                "usage_report_check_surface_ready": False,
-                "final_decision": "BLOCKED_USAGE_REPORT_CHECK_SURFACE",
-                "blockers": ["usage_surface_failed", str(exc)],
-                "warnings": [],
-            }
+        usage_report_check_surface = _load_evidence_json(
+            evidence_dir, "usage-report-check-operational-surface.json"
+        )
     usage_item = (
         "production_usage_report_check_evidence_ready"
-        if usage_report_check_surface.get("usage_report_check_surface_ready") is True
-        and usage_report_check_surface.get("final_decision")
+        if (usage_report_check_surface or {}).get("usage_report_check_surface_ready") is True
+        and (usage_report_check_surface or {}).get("final_decision")
         == "USAGE_REPORT_CHECK_SURFACE_READY"
-        and not usage_report_check_surface.get("blockers")
+        and not (usage_report_check_surface or {}).get("blockers")
         else _MISSING_OR_PARTIAL
     )
-    if (
-        abuse_runner_readiness is None
-        and onboarding_item == ONBOARDING_READY
-        and usage_item != _MISSING_OR_PARTIAL
-    ):
-        try:
-            abuse_runner_readiness = (
-                run_phase11_production_abuse_runner_readiness_report(config_path)
-            )
-        except Exception as exc:
-            abuse_runner_readiness = {
-                "production_abuse_runner": _MISSING_OR_PARTIAL,
-                "blockers": ["abuse_runner_readiness_failed", str(exc)],
-                "mutation_performed": False,
-            }
+    if abuse_runner_readiness is None:
+        abuse_runner_readiness = _load_evidence_json(
+            evidence_dir, "production-abuse-runner-readiness.json"
+        )
     abuse_item = (
         ABUSE_RUNNER_READY
         if (abuse_runner_readiness or {}).get("production_abuse_runner")
