@@ -39,6 +39,10 @@ from mpf.services.phase11_evidence_contract_readiness_service import (
 from mpf.services.phase11_production_controls_pause_block_expire_readiness_service import (
     run_phase11_production_controls_pause_block_expire_readiness_report,
 )
+from mpf.services.phase11_backup_restore_drill_readiness_service import (
+    READY as BACKUP_RESTORE_READY,
+    build_phase11_backup_restore_drill_readiness_report,
+)
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
 
@@ -341,10 +345,14 @@ def build_phase11_operational_completion_gap_inventory_report(
         else:
             contract = build_contract_readiness_report("production_controls_pause_block_expire", evidence_dir)
             controls_readiness["contract_readiness"] = contract
-    backup_restore_readiness = (
-        backup_restore_readiness
-        or build_contract_readiness_report("backup_restore_drill", evidence_dir)
-    )
+    if backup_restore_readiness is None:
+        explicit_backup_restore = _load_evidence_json(
+            evidence_dir, "backup-restore-drill-readiness.json"
+        )
+        if explicit_backup_restore is not None:
+            backup_restore_readiness = explicit_backup_restore
+        else:
+            backup_restore_readiness = build_phase11_backup_restore_drill_readiness_report(evidence_dir)
     controls_item = controls_readiness.get(
         "production_controls_pause_block_expire", _MISSING_OR_PARTIAL
     )
@@ -377,9 +385,12 @@ def build_phase11_operational_completion_gap_inventory_report(
             if status == _MISSING_OR_PARTIAL:
                 next_required_step = name
                 break
-    full_ready = full_acceptance_prerequisites_ready and all(
+    all_surfaces_ready = full_acceptance_prerequisites_ready and all(
         status != _MISSING_OR_PARTIAL for _, status in order
     )
+    # This readiness package may advance backup_restore_drill only. Final Full CLI
+    # Production Operations acceptance is a later explicit acceptance PR.
+    full_ready = False
 
     return {
         "component": "phase11_operational_completion_gap_inventory",
@@ -415,6 +426,7 @@ def build_phase11_operational_completion_gap_inventory_report(
             if full_ready
             else _MISSING_OR_PARTIAL
         ),
+        "full_cli_production_operations_acceptance_pr_required": all_surfaces_ready,
         "accepted_final_state_required": {
             "production_traffic": "cli_production",
             "customer_onboarding_allowed": "cli_production",

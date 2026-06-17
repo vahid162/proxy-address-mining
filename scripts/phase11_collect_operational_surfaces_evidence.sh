@@ -166,6 +166,7 @@ export FIREWALL_COMPLETION_EVIDENCE_DIR_ORIGINAL FIREWALL_COMPLETION_EVIDENCE_DI
 run_json "${OUT_DIR}/production-onboarding-flow-readiness.json" "${MPF_BIN}" production production-onboarding-flow-readiness --output json
 run_json "${OUT_DIR}/production-abuse-runner-readiness.json" "${MPF_BIN}" production production-abuse-runner-readiness --output json
 run_json "${OUT_DIR}/production-controls-pause-block-expire-readiness.json" "${MPF_BIN}" production production-controls-pause-block-expire-readiness --output json
+run_json "${OUT_DIR}/backup-restore-drill-readiness.json" "${MPF_BIN}" production backup-restore-drill-readiness --evidence-dir "${OUT_DIR}" --output json
 run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${OUT_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" "${FIREWALL_COMPLETION_EVIDENCE_ARG[@]}" --output json
 
 "${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt" 2>&1 || true
@@ -217,6 +218,7 @@ manifest={
     'firewall_completion_readiness_source': __import__('os').environ.get('FIREWALL_COMPLETION_READINESS_SOURCE') or None,
     'firewall_completion_evidence_manifest': 'firewall-completion-evidence-manifest.json' if (out/'firewall-completion-evidence-manifest.json').exists() else None,
     'firewall_completion_readiness': 'production-firewall-apply-verify-rollback-readiness.json' if (out/'production-firewall-apply-verify-rollback-readiness.json').exists() else None,
+    'backup_restore_drill_readiness': 'backup-restore-drill-readiness.json' if (out/'backup-restore-drill-readiness.json').exists() else None,
     'mutation_flags': 'mutation-flags.json',
     'source_evidence_mutation_flags': 'source-evidence-mutation-flags.json',
     'sha256s': 'SHA256SUMS.txt',

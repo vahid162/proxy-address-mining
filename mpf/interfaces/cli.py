@@ -154,6 +154,7 @@ from mpf.services import (
     phase11_production_onboarding_flow_readiness_service,
     phase11_production_abuse_runner_readiness_service,
     phase11_production_controls_pause_block_expire_readiness_service,
+    phase11_backup_restore_drill_readiness_service,
     phase11_restart_autostart_proof_service,
     phase11_restart_autostart_persistence_diagnosis_service,
     phase11_restart_autostart_persistence_fix_service,
@@ -3814,6 +3815,22 @@ def production_controls_pause_block_expire_readiness(
     typer.echo(f"component: {report.get('component')}")
     typer.echo(f"production_controls_pause_block_expire: {report.get('production_controls_pause_block_expire')}")
     typer.echo(f"final_decision: {report.get('final_decision')}")
+
+
+@production_app.command("backup-restore-drill-readiness")
+def production_backup_restore_drill_readiness(
+    evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+) -> None:
+    """Render non-destructive Phase 11 backup/restore drill readiness."""
+    report = phase11_backup_restore_drill_readiness_service.run_phase11_backup_restore_drill_readiness_report(evidence_dir)
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    typer.echo(f"component: {report.get('component')}")
+    typer.echo(f"backup_restore_drill: {report.get('backup_restore_drill')}")
+    typer.echo(f"final_decision: {report.get('final_decision')}")
+    typer.echo(f"blockers: {report.get('blockers')}")
 
 
 @production_app.command("phase11-operational-completion-gap-inventory")
