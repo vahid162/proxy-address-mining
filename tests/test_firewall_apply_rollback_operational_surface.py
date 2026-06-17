@@ -280,3 +280,14 @@ def test_cli_handler_does_not_contain_direct_mutation_terms() -> None:
     source = inspect.getsource(cli.production_firewall_apply_rollback_operational_surface).lower()
     for forbidden in ("insert ", "update ", "delete ", "drop ", "commit", "iptables", "conntrack", "docker", "systemctl", "subprocess"):
         assert forbidden not in source
+
+def test_firewall_diagnostic_expected_backend_target_avoids_false_unknown_dnat(monkeypatch) -> None:
+    _mock_safe_reads(monkeypatch)
+    snapshot = KNOWN_CONTROLLED_SNAPSHOT.replace("172.18.0.3:60010", "172.18.0.2:60010")
+    report = surface_service.build_firewall_apply_rollback_operational_surface_report(
+        cfg(), snapshot_reader=lambda: snapshot, expected_backend_target="172.18.0.2:60010"
+    )
+    assert report["status"] == "READY"
+    assert report["unknown_mpf_artifacts"] == []
+    assert "unknown_mpf_artifacts_detected" not in report["blockers"]
+    assert "controlled_artifact_gate_blocked" not in report["blockers"]

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.292
+
+- fix(phase11): close pre-final CLI usability and readiness evidence inconsistencies without runtime mutation or final acceptance.
+
 ## 0.1.291
 
 - feat(phase11): add non-destructive backup/restore drill readiness service, CLI, collector output, and gap inventory evidence consumption while keeping final acceptance and Phase 12 closed.

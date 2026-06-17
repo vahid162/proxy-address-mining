@@ -64,10 +64,16 @@ def _base_report() -> dict[str, Any]:
         "check_commands_checked": list(_CHECK_COMMANDS),
         "diagnostics_inputs_checked": [dict(item) for item in _DIAGNOSTICS_INPUTS],
         "usage_report_check_surface_ready": False,
-        "usage_evidence_source": "not_yet_collected",
-        "reject_counter_visibility": "not_yet_collected",
-        "session_evidence_visibility": "not_yet_collected",
-        "worker_evidence_visibility": "not_yet_collected",
+        "runtime_evidence": {
+            "usage_counters": {"status": "unavailable", "source": None, "detail": "no read-only runtime counter source configured"},
+            "reject_counters": {"status": "unavailable", "source": None, "detail": "no read-only reject counter source configured"},
+            "sessions": {"status": "unavailable", "source": None, "detail": "no read-only session source configured"},
+            "workers": {"status": "not_applicable", "source": None, "detail": "worker enforcement remains disabled before Phase 12"},
+        },
+        "usage_evidence_source": "unavailable",
+        "reject_counter_visibility": "unavailable",
+        "session_evidence_visibility": "unavailable",
+        "worker_evidence_visibility": "not_applicable",
         "abuse_state_visibility": "blocked",
         "customer_lifecycle_visibility": "blocked",
         "recommended_next_action": _NEXT_REQUIRED_STEP,
@@ -199,13 +205,15 @@ def build_usage_report_check_operational_surface_report(config: MPFConfig) -> di
         report["abuse_state_message"] = abuse.get("error") or abuse.get("note") or "abuse state DB read failed"
         blockers.append("abuse_state_read_failed")
 
-    for warning in (
-        "usage_runtime_evidence_not_yet_collected",
-        "reject_counter_evidence_not_yet_collected",
-        "session_evidence_not_yet_collected",
-        "worker_evidence_not_yet_collected",
-    ):
-        _append_unique(warnings, warning)
+    runtime_evidence = report["runtime_evidence"]
+    if runtime_evidence["usage_counters"]["status"] == "unavailable":
+        _append_unique(warnings, "usage_runtime_evidence_unavailable")
+    if runtime_evidence["reject_counters"]["status"] == "unavailable":
+        _append_unique(warnings, "reject_counter_evidence_unavailable")
+    if runtime_evidence["sessions"]["status"] == "unavailable":
+        _append_unique(warnings, "session_evidence_unavailable")
+    if runtime_evidence["workers"]["status"] == "not_applicable":
+        _append_unique(warnings, "worker_evidence_not_applicable_worker_enforcement_disabled")
 
     if not blockers:
         report["status"] = "READY"

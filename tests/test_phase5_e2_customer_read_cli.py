@@ -82,6 +82,26 @@ def test_customer_show_by_port(monkeypatch):
     assert "service_days: None" in res.output
 
 
+
+def test_customer_show_accepts_direct_customer_key_argument(monkeypatch):
+    from mpf.interfaces import cli
+
+    class R:
+        ok = True
+        message = "OK"
+        customer = _fake_customer()
+
+    seen = {}
+    def show_customer(_config, **kwargs):
+        seen.update(kwargs)
+        return R()
+
+    monkeypatch.setattr(cli.customer_read_service, "show_customer", show_customer)
+    res = RUNNER.invoke(app, ["customer", "show", "cust_a", "--config", str(CONFIG_PATH)])
+    assert res.exit_code == 0, res.output
+    assert seen == {"customer_key": "cust_a", "customer_id": None, "port": None}
+    assert "customer_key: cust_a" in res.output
+
 def test_customer_list_filters_status(monkeypatch):
     from mpf.interfaces import cli
     from mpf.repositories.customer_repo import CustomerRecord
