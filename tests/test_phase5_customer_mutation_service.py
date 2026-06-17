@@ -265,9 +265,7 @@ def test_set_ips_any_clears_pins(monkeypatch):
 @pytest.mark.parametrize(
     "fn,req",
     [
-        (customer_mutation_service.update_db_only_customer, CustomerUpdateRequest(customer_key="cust_a", name="x")),
         (customer_mutation_service.renew_db_only_customer, CustomerRenewRequest(customer_key="cust_a", service_days=10)),
-        (customer_mutation_service.disable_db_only_customer, CustomerDisableRequest(customer_key="cust_a")),
         (customer_mutation_service.soft_delete_db_only_customer, CustomerDeleteRequest(customer_key="cust_a")),
         (customer_mutation_service.set_ips_db_only_customer, CustomerSetIpsRequest(customer_key="cust_a", ips_mode="any")),
     ],
@@ -279,6 +277,23 @@ def test_dry_run_writes_no_rows(monkeypatch, fn, req):
     assert result.ok and result.firewall_change == "no" and result.nat_change == "no" and result.runtime_change == "no"
     assert not db.events and not db.audits and not db.policies and not [x for x in db.customers if "update" in x]
 
+
+
+def test_update_disable_dry_run_routes_to_readiness_resolver(monkeypatch):
+    calls = []
+    monkeypatch.setattr(customer_mutation_service, "dry_run_update_customer", lambda cfg, req: calls.append(("update", req.customer_key)) or __import__("mpf.repositories.customer_write_repo", fromlist=["CustomerMutationResult"]).CustomerMutationResult(ok=True, message="DRY_RUN_OK"))
+    monkeypatch.setattr(customer_mutation_service, "dry_run_disable_customer", lambda cfg, req: calls.append(("disable", req.customer_key)) or __import__("mpf.repositories.customer_write_repo", fromlist=["CustomerMutationResult"]).CustomerMutationResult(ok=True, message="DRY_RUN_OK"))
+    assert customer_mutation_service.update_db_only_customer(_FakeConfig(), CustomerUpdateRequest(customer_key="cust_a", name="x"), dry_run=True).ok
+    assert customer_mutation_service.disable_db_only_customer(_FakeConfig(), CustomerDisableRequest(customer_key="cust_a"), dry_run=True).ok
+    assert calls == [("update", "cust_a"), ("disable", "cust_a")]
+
+
+def test_update_disable_write_paths_still_use_write_repo(monkeypatch):
+    db = _FakeDB()
+    _install_fake_psycopg(monkeypatch, db)
+    assert customer_mutation_service.update_db_only_customer(_FakeConfig(), CustomerUpdateRequest(customer_key="cust_a", name="x"), dry_run=False).ok
+    assert customer_mutation_service.disable_db_only_customer(_FakeConfig(), CustomerDisableRequest(customer_key="cust_a"), dry_run=False).ok
+    assert any("update customers set" in x.get("sql", "") for x in db.customers)
 
 def test_deleted_customer_rejected(monkeypatch):
     db = _FakeDB(customer={"id": 1, "customer_key": "cust_a", "name": "cust-a", "status": "deleted", "lane_id": 1, "activation_mode": "immediate", "service_days": 30, "deleted_at": "2020"})

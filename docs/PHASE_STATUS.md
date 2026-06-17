@@ -3203,6 +3203,10 @@ Version 0.1.278 adds a controlled, exact-scope, DB-only lifecycle execution evid
 0.1.282 adds a standardized read-only Phase 11 firewall completion evidence bundle/preflight builder and verifier. It records manifest and SHA256SUMS evidence for backend target, read-only firewall snapshots, current controlled artifact gate, target-aware reapply diagnostics, and firewall completion readiness. This release performs no firewall apply, no `iptables-restore`, no rollback apply, no DB mutation, no Docker/systemd restart, no conntrack flush, no abuse execute, and no Phase 12 opening. Full CLI Production Operations remains not accepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`, and the next farm5 step is to sync 0.1.282, run the read-only firewall completion evidence collector, then run the operational surfaces collector with `MPF_FIREWALL_COMPLETION_EVIDENCE_DIR=<bundle-dir>` and verify only evidence/preflight moved forward while mutation and Phase 12 flags remain false.
 
 
+### 0.1.284 Customer controls dry-run peer-safe note
+
+0.1.284 fixes Phase 11 customer update/disable dry-run resolution for root-run local PostgreSQL peer-auth operators by routing only dry-run update/disable service paths through read-only `query_database_params` lookups. Real `--yes` write paths remain guarded and unchanged; no DB, firewall, NAT, runtime, worker, UI, Telegram, Phase 12, or `cli_production` gate is opened. Phase 11 operational completion remains in progress under the existing controlled CLI-limited gates.
+
 ### 0.1.283 Read-only production controls preflight note
 
 0.1.283 adds a read-only Phase 11 operational controls pause/block/expire preflight surface. It proves pause and expire dry-run readiness through existing service-layer dry-run paths, while block remains an explicit capability gap (`block_capability_not_defined`). Phase 11 operational completion remains in progress; Full CLI Production Operations is not accepted by this PR. Phase 12 remains closed, `production_traffic` remains `controlled_cli_limited`, and `customer_onboarding_allowed` remains `controlled_cli_limited`.
