@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.290
+
+- fix(phase11): keep controls gap inventory evidence-driven so no-evidence server pytest remains fail-closed while explicit collector controls evidence can advance to backup_restore_drill.
+
 ## 0.1.289
 
 - feat(phase11): define read-only customer block control-intent preflight so production controls pause/block/expire readiness can advance without DB, firewall, or runtime mutation.

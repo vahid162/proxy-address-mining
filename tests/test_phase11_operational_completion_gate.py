@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.289"
+    assert report["repository_version"] == "0.1.290"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -141,7 +141,7 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
     def fake_run(config_path, **kwargs):
         packet_path_evidence_dir = kwargs.get("packet_path_evidence_dir")
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.289", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.290", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
@@ -510,3 +510,128 @@ def test_gap_inventory_progresses_to_backup_restore_when_controls_ready(monkeypa
     assert report["full_cli_production_operations"] == "missing_or_partial"
     assert report["phase12_start_allowed"] is False
     assert report["worker_enforcement_allowed"] == report["ui_allowed"] == report["telegram_allowed"] == "no"
+
+
+def test_gap_inventory_no_evidence_does_not_call_live_controls_readiness(monkeypatch) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("live controls readiness must not be called without explicit evidence")
+
+    monkeypatch.setattr(svc, "run_phase11_production_controls_pause_block_expire_readiness_report", fail_if_called)
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report()
+
+    assert report["production_controls_pause_block_expire"] == "missing_or_partial"
+    assert report["production_controls_pause_block_expire_readiness"]["production_controls_pause_block_expire"] == "missing_or_partial"
+    assert "production_controls_pause_block_expire_evidence_missing" in report["production_controls_pause_block_expire_readiness"]["blockers"]
+    assert report["phase12_start_allowed"] is False
+    for key in ("mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed"):
+        assert report[key] is False
+
+
+def test_gap_inventory_honors_explicit_controls_readiness_ready() -> None:
+    report = build_phase11_operational_completion_gap_inventory_report(
+        controls_readiness={
+            "production_controls_pause_block_expire": "production_controls_pause_block_expire_ready",
+            "production_controls_pause_block_expire_ready": True,
+            "blockers": [],
+            "mutation_performed": False,
+            "phase12_start_allowed": False,
+        }
+    )
+
+    assert report["production_controls_pause_block_expire"] == "production_controls_pause_block_expire_ready"
+    assert report["production_controls_pause_block_expire_readiness"]["production_controls_pause_block_expire_ready"] is True
+    assert report["phase12_start_allowed"] is False
+
+
+def _ready_controls_json() -> dict[str, object]:
+    return {
+        "component": "phase11_production_controls_pause_block_expire_readiness",
+        "repository_version": "0.1.290",
+        "phase11_operational_completion_required": True,
+        "readiness_scope": "read_only_controls_preflight",
+        "target_customer_key": "limited-btc-001",
+        "operator": "pytest",
+        "evidence_collected_at": "2026-06-17T00:00:00Z",
+        "scope": "limited-btc-001/btc/20101",
+        "ready": True,
+        "pause_preflight": {"ready": True},
+        "expire_run_preflight": {"ready": True},
+        "block_preflight": {"ready": True},
+        "production_controls_pause_block_expire": "production_controls_pause_block_expire_ready",
+        "production_controls_pause_block_expire_ready": True,
+        "blockers": [],
+        "warnings": [],
+        "mutation_performed": False,
+        "db_mutation_performed": False,
+        "firewall_apply_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
+        "phase12_start_allowed": False,
+        "worker_enforcement_allowed": "no",
+        "ui_allowed": "no",
+        "telegram_allowed": "no",
+        "production_traffic": "controlled_cli_limited",
+        "customer_onboarding_allowed": "controlled_cli_limited",
+        "final_decision": "PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE_READY",
+    }
+
+
+def test_gap_inventory_honors_controls_evidence_json(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    monkeypatch.setattr(
+        svc,
+        "run_phase11_production_controls_pause_block_expire_readiness_report",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must consume explicit evidence JSON instead")),
+    )
+    (tmp_path / "production-controls-pause-block-expire-readiness.json").write_text(json.dumps(_ready_controls_json()), encoding="utf-8")
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path)
+
+    assert report["production_controls_pause_block_expire"] == "production_controls_pause_block_expire_ready"
+    assert report["production_controls_pause_block_expire_readiness"]["production_controls_pause_block_expire_ready"] is True
+    assert report["production_controls_pause_block_expire_readiness"]["contract_readiness"]["mutation_performed"] is False
+    assert report["phase12_start_allowed"] is False
+
+
+def test_gap_inventory_controls_evidence_and_ready_prior_surfaces_advance_to_backup_restore(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    _write_ready_restart_proof(tmp_path / "restart-autostart-proof")
+    (tmp_path / "production-firewall-apply-verify-rollback-readiness.json").write_text(json.dumps(_ready_firewall_json()), encoding="utf-8")
+    (tmp_path / "production-controls-pause-block-expire-readiness.json").write_text(json.dumps(_ready_controls_json()), encoding="utf-8")
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution": "controlled_execution_evidence_ready", "final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"})
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=tmp_path,
+        onboarding_readiness={"production_onboarding_flow": "production_onboarding_flow_ready"},
+        usage_report_check_surface={"usage_report_check_surface_ready": True, "final_decision": "USAGE_REPORT_CHECK_SURFACE_READY", "blockers": []},
+        abuse_runner_readiness={"production_abuse_runner": "production_abuse_runner_ready"},
+    )
+
+    assert report["next_required_step"] == "backup_restore_drill"
+    assert report["backup_restore_drill"] == "missing_or_partial"
+    assert report["full_cli_production_operations"] == "missing_or_partial"
+    assert report["phase12_start_allowed"] is False
+    assert report["worker_enforcement_allowed"] == report["ui_allowed"] == report["telegram_allowed"] == "no"
+
+
+def test_gap_inventory_cli_no_evidence_controls_remains_fail_closed_and_read_only(monkeypatch) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("CLI no-evidence inventory must not call live controls readiness")
+
+    monkeypatch.setattr(svc, "run_phase11_production_controls_pause_block_expire_readiness_report", fail_if_called)
+    result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
+
+    assert result.exit_code == 0, result.output
+    report = json.loads(result.output)
+    assert report["production_controls_pause_block_expire"] == "missing_or_partial"
+    assert report["phase12_start_allowed"] is False
+    for key in ("mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed"):
+        assert report[key] is False

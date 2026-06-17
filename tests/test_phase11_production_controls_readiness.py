@@ -76,11 +76,11 @@ def test_controls_contract_requires_explicit_safe_flags(tmp_path):
     assert "missing_safe_gate_flag:worker_enforcement_allowed" in report["blockers"]
 
 
-def test_gap_inventory_embeds_controls(monkeypatch):
+def test_gap_inventory_embeds_explicit_controls_readiness(monkeypatch):
     readiness={"component":"phase11_production_controls_pause_block_expire_readiness","production_controls_pause_block_expire":"missing_or_partial","block_preflight":{"blockers":["block_capability_not_defined"]}}
-    monkeypatch.setattr(gap, "run_phase11_production_controls_pause_block_expire_readiness_report", lambda *a, **k: readiness)
+    monkeypatch.setattr(gap, "run_phase11_production_controls_pause_block_expire_readiness_report", lambda *a, **k: (_ for _ in ()).throw(AssertionError("live controls readiness must not run")))
     monkeypatch.setattr(gap, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution":"missing_or_partial"})
-    r=gap.build_phase11_operational_completion_gap_inventory_report()
+    r=gap.build_phase11_operational_completion_gap_inventory_report(controls_readiness=readiness)
     assert r["production_controls_pause_block_expire"] == "missing_or_partial"
     assert r["production_controls_pause_block_expire_readiness"] is readiness
     assert "block_capability_not_defined" in r["production_controls_pause_block_expire_readiness"]["block_preflight"]["blockers"]
