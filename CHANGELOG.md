@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.285
+
+- fix(phase11): treat exact-present controlled artifacts/no-reapply readiness as a terminal Phase 11 reapply state, fix stale `next_required_step` and no-reapply package blocker reporting, and preserve no execution, no firewall apply, no DB mutation, no Phase 12, and no worker/UI/Telegram enablement.
+
 ## 0.1.284
 
 - fix(phase11): make customer update/disable dry-run peer-safe with read-only resolution so root-run controls readiness/gap inventory no longer false-report pause/expire dry-run failures. Real --yes writes remain guarded; no DB/firewall/runtime mutation; Phase 12/worker/UI/Telegram remain closed.

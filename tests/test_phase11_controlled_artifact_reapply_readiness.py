@@ -92,7 +92,29 @@ def test_no_reapply_path_when_exact_artifacts_present(monkeypatch):
     _patch(monkeypatch, _plan(status="exact_present"))
     report = readiness.run_phase11_controlled_artifact_reapply_readiness()
     assert report["final_decision"] == readiness.NO_REAPPLY
+    assert report["blockers"] == []
+    assert (
+        report["next_required_step"]
+        == readiness.NO_REAPPLY_NEXT_STEP
+        != "prepare_live_ready_controlled_artifact_reapply_package"
+    )
     assert report["live_ready_package_available"] is False
+    assert report["production_execution_available"] is False
+    assert report["controlled_artifact_execute_available"] is False
+    assert report["iptables_restore_invocation_allowed"] is False
+    for key in [
+        "mutation_performed",
+        "db_mutation_performed",
+        "firewall_apply_performed",
+        "conntrack_flush_performed",
+        "docker_restart_performed",
+        "systemd_restart_performed",
+        "phase12_start_allowed",
+    ]:
+        assert report[key] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
 
 
 def test_verification_uses_fresh_second_live_plan_and_blocks_drift(monkeypatch):

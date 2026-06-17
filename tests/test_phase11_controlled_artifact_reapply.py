@@ -5,6 +5,7 @@ from pathlib import Path
 
 from mpf import __version__
 from mpf.services.phase11_controlled_artifact_reapply_core import (
+    NO_REAPPLY,
     PACKAGE_BLOCKED,
     PACKAGE_READY,
     CommandResult,
@@ -144,6 +145,45 @@ def test_plan_blocks_without_verified_filter_packet_path_and_ready_with_proof():
     assert "172.18.0.3" not in plan["payload"]
     pkg = build_package_from_plan(plan)
     assert pkg["final_decision"] == PACKAGE_READY
+
+
+def test_no_reapply_package_reports_terminal_without_plan_not_ready_and_cannot_execute():
+    pre_plan = build_plan(
+        lanes=lanes(),
+        customers=customers(),
+        backend_target=target(),
+        phase_status_text=PHASE,
+    )
+    no_reapply_plan = build_plan(
+        lanes=lanes(),
+        customers=customers(),
+        backend_target=target(),
+        iptables_save_text=pre_plan["payload"],
+        ip6tables_save_text="*filter\nCOMMIT\n",
+        phase_status_text=PHASE,
+    )
+    assert no_reapply_plan["final_decision"] == NO_REAPPLY
+    assert no_reapply_plan["blockers"] == []
+
+    pkg = build_package_from_plan(no_reapply_plan)
+
+    assert pkg["final_decision"] == NO_REAPPLY
+    assert pkg["blockers"] == []
+    assert pkg["payload"] == ""
+    assert pkg["payload_sha256"] == _text_sha("")
+    result = execute_package(
+        package=pkg,
+        package_sha256=pkg["package_sha256"],
+        package_id=pkg["package_id"],
+        operator="op",
+        reason="r",
+        execute=True,
+        yes=True,
+        env={},
+    )
+    assert "no_reapply_package_cannot_execute" in result["blockers"]
+    assert "package_payload_empty" in result["blockers"]
+    assert result["iptables_restore_invoked"] is False
 
 
 def test_strict_phase_gate_and_scope_policy_collisions_block():
