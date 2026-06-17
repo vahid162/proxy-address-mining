@@ -1,5 +1,8 @@
 # Changelog
 
+
+## 0.1.283
+- feat(phase11): add read-only production controls pause/block/expire preflight readiness; pause/expire dry-runs are surfaced, block remains `block_capability_not_defined`, root non-`--yes` dry-runs can reach the service layer, nullable customer show mapping and blocked-status CLI validation are controlled.
 ## 0.1.282
 
 - Added read-only Phase 11 firewall completion evidence bundle/preflight builder and verifier; no firewall apply, iptables-restore, rollback apply, DB mutation, Docker/systemd restart, conntrack flush, abuse execute, Phase 12 opening, or cli_production gate change.

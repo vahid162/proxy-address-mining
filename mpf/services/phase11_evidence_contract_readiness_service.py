@@ -48,7 +48,16 @@ def build_contract_readiness_report(
     elif data.get("_invalid_json"):
         blockers.append(f"{kind}_evidence_invalid_json")
     else:
-        if (
+        if kind == "production_controls_pause_block_expire":
+            if data.get("pause_preflight", {}).get("ready") is not True:
+                blockers.append("pause_preflight_not_ready")
+            if data.get("expire_run_preflight", {}).get("ready") is not True:
+                blockers.append("expire_run_preflight_not_ready")
+            if data.get("block_preflight", {}).get("ready") is not True:
+                blockers.append("block_preflight_not_ready")
+            if data.get("production_controls_pause_block_expire_ready") is not True:
+                blockers.append(f"{kind}_ready_flag_missing")
+        elif (
             data.get(kind) not in {f"{kind}_ready", "ready"}
             and data.get("ready") is not True
         ):

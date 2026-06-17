@@ -168,6 +168,23 @@ def _base_customer_select() -> str:
 
 
 
+class CustomerMappingError(ValueError):
+    """Controlled customer read mapping error."""
+
+
+def _optional_int(value: object, field: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    text = str(value).strip()
+    if text == "":
+        return None
+    try:
+        return int(text)
+    except ValueError as exc:
+        raise CustomerMappingError(f"invalid optional integer for {field}") from exc
+
 def _to_bool(value: object, *, nullable: bool = False) -> bool | None:
     if value is None:
         return None if nullable else False
@@ -181,7 +198,6 @@ def _to_bool(value: object, *, nullable: bool = False) -> bool | None:
     return bool(value)
 
 def _map_show(row: dict[str, object]) -> CustomerShowRecord:
-    service_days = row.get("service_days")
     return CustomerShowRecord(
         id=int(row["id"]),
         customer_key=row.get("customer_key"),
@@ -190,7 +206,7 @@ def _map_show(row: dict[str, object]) -> CustomerShowRecord:
         port=int(row["port"]),
         status=str(row["status"]),
         activation_mode=row.get("activation_mode"),
-        service_days=int(service_days) if service_days is not None else None,
+        service_days=_optional_int(row.get("service_days"), "service_days"),
         activated_at=row.get("activated_at"),
         starts_at=row.get("starts_at"),
         expires_at=row.get("expires_at"),
@@ -201,11 +217,11 @@ def _map_show(row: dict[str, object]) -> CustomerShowRecord:
         auto_expire_enabled=bool(_to_bool(row.get("auto_expire_enabled"))),
         auto_delete_enabled=bool(_to_bool(row.get("auto_delete_enabled"))),
         lifecycle_note=row.get("lifecycle_note"),
-        miners=int(row["miners"]) if row.get("miners") is not None else None,
-        farms=int(row["farms"]) if row.get("farms") is not None else None,
-        maxconn=int(row["maxconn"]) if row.get("maxconn") is not None else None,
-        rate_per_min=int(row["rate_per_min"]) if row.get("rate_per_min") is not None else None,
-        burst=int(row["burst"]) if row.get("burst") is not None else None,
+        miners=_optional_int(row.get("miners"), "miners"),
+        farms=_optional_int(row.get("farms"), "farms"),
+        maxconn=_optional_int(row.get("maxconn"), "maxconn"),
+        rate_per_min=_optional_int(row.get("rate_per_min"), "rate_per_min"),
+        burst=_optional_int(row.get("burst"), "burst"),
         ips_mode=row.get("ips_mode"),
         abuse_exempt=_to_bool(row.get("abuse_exempt"), nullable=True),
         abuse_exempt_reason=row.get("abuse_exempt_reason"),
@@ -224,7 +240,10 @@ def get_customer_show(config: MPFConfig, *, customer_key: str | None = None, cus
         return False, None, res.message
     if not res.rows:
         return False, None, "customer not found"
-    rec = _map_show(res.rows[0])
+    try:
+        rec = _map_show(res.rows[0])
+    except CustomerMappingError as exc:
+        return False, None, str(exc)
     pins = query_database_params(config, "select ip_cidr from customer_ip_pins where customer_id=%s and enabled=true order by ip_cidr", (rec.id,))
     if pins.ok:
         rec = CustomerShowRecord(**{**rec.__dict__, "enabled_ip_pins": [str(r["ip_cidr"]) for r in pins.rows]})

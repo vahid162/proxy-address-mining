@@ -10,7 +10,7 @@ import typer
 from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH, load_config
 from mpf.db import write_local_peer_root_guard_message
-from mpf.domain.customer_lifecycle import CustomerLifecycleInput
+from mpf.domain.customer_lifecycle import CustomerLifecycleInput, DomainValidationError
 from mpf.domain.customers import CustomerCreateRequest, CustomerDeleteRequest, CustomerDisableRequest, CustomerPolicyInput, CustomerRenewRequest, CustomerSetIpsRequest, CustomerUpdateRequest
 from mpf.domain.health import HealthReport
 from mpf.domain.abuse_operational import evaluate_operational_abuse
@@ -153,6 +153,7 @@ from mpf.services import (
     phase11_operational_completion_gap_inventory_service,
     phase11_production_onboarding_flow_readiness_service,
     phase11_production_abuse_runner_readiness_service,
+    phase11_production_controls_pause_block_expire_readiness_service,
     phase11_restart_autostart_proof_service,
     phase11_restart_autostart_persistence_diagnosis_service,
     phase11_restart_autostart_persistence_fix_service,
@@ -681,9 +682,16 @@ def _guard_customer_write_local_peer(cfg, command_hint: str) -> None:
         raise typer.Exit(1)
 
 
-def _guard_customer_mutation(cfg, *, command_base: str, yes: bool) -> None:
+def _guard_customer_mutation(cfg, *, command_base: str, yes: bool, allow_dry_run_without_peer_guard: bool = False) -> None:
+    if allow_dry_run_without_peer_guard and not yes:
+        return
     command_hint = f"{command_base} --yes" if yes else command_base
     _guard_customer_write_local_peer(cfg, command_hint)
+
+
+def _handle_domain_validation_error(exc: DomainValidationError) -> None:
+    typer.echo(str(exc))
+    raise typer.Exit(1)
 
 
 def _emit_customer_mutation_result(result) -> None:
@@ -716,7 +724,7 @@ def customer_add(config: Path | None = typer.Option(None, "--config", "-c"), lan
 @customer_app.command("update")
 def customer_update(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str = typer.Option(..., "--customer-key"), lane: str | None = typer.Option(None, "--lane"), name: str | None = typer.Option(None, "--name"), status: str | None = typer.Option(None, "--status"), miners: int | None = typer.Option(None, "--miners"), farms: int | None = typer.Option(None, "--farms"), maxconn: int | None = typer.Option(None, "--maxconn"), rate_per_min: int | None = typer.Option(None, "--rate-per-min"), burst: int | None = typer.Option(None, "--burst"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes")) -> None:
     cfg = _load(config)
-    _guard_customer_mutation(cfg, command_base="/usr/local/bin/mpf customer update ...", yes=yes)
+    _guard_customer_mutation(cfg, command_base="/usr/local/bin/mpf customer update ...", yes=yes, allow_dry_run_without_peer_guard=True)
     policy = None
     provided = [x is not None for x in (miners, farms, maxconn, rate_per_min, burst)]
     if any(provided) and not all(provided):
@@ -724,7 +732,10 @@ def customer_update(config: Path | None = typer.Option(None, "--config", "-c"), 
         raise typer.Exit(1)
     if all(provided):
         policy = CustomerPolicyInput(miners=miners, farms=farms, maxconn=maxconn, rate_per_min=rate_per_min, burst=burst, ips_mode="any", reason=reason)
-    result = customer_mutation_service.update_db_only_customer(cfg, CustomerUpdateRequest(customer_key=customer_key, lane=lane, name=name, status=status, policy=policy), dry_run=not yes)
+    try:
+        result = customer_mutation_service.update_db_only_customer(cfg, CustomerUpdateRequest(customer_key=customer_key, lane=lane, name=name, status=status, policy=policy), dry_run=not yes)
+    except DomainValidationError as exc:
+        _handle_domain_validation_error(exc)
     _emit_customer_mutation_result(result)
     if not result.ok:
         raise typer.Exit(1)
@@ -743,7 +754,7 @@ def customer_renew(config: Path | None = typer.Option(None, "--config", "-c"), c
 @customer_app.command("disable")
 def customer_disable(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str = typer.Option(..., "--customer-key"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes")) -> None:
     cfg = _load(config)
-    _guard_customer_mutation(cfg, command_base="/usr/local/bin/mpf customer disable ...", yes=yes)
+    _guard_customer_mutation(cfg, command_base="/usr/local/bin/mpf customer disable ...", yes=yes, allow_dry_run_without_peer_guard=True)
     result = customer_mutation_service.disable_db_only_customer(cfg, CustomerDisableRequest(customer_key=customer_key, reason=reason), dry_run=not yes)
     _emit_customer_mutation_result(result)
     if not result.ok:
@@ -3785,6 +3796,24 @@ def production_abuse_runner_readiness(
         return
     for key, value in report.items():
         typer.echo(f"{key}: {value}")
+
+
+@production_app.command("production-controls-pause-block-expire-readiness")
+def production_controls_pause_block_expire_readiness(
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    customer_key: str = typer.Option("limited-btc-001", "--customer-key"),
+) -> None:
+    """Render read-only Phase 11 pause/block/expire controls preflight readiness."""
+    report = phase11_production_controls_pause_block_expire_readiness_service.run_phase11_production_controls_pause_block_expire_readiness_report(
+        _config_path(config), customer_key=customer_key
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    typer.echo(f"component: {report.get('component')}")
+    typer.echo(f"production_controls_pause_block_expire: {report.get('production_controls_pause_block_expire')}")
+    typer.echo(f"final_decision: {report.get('final_decision')}")
 
 
 @production_app.command("phase11-operational-completion-gap-inventory")

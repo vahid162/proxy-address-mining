@@ -34,6 +34,9 @@ from mpf.services.phase11_production_abuse_runner_readiness_service import (
 from mpf.services.phase11_evidence_contract_readiness_service import (
     build_contract_readiness_report,
 )
+from mpf.services.phase11_production_controls_pause_block_expire_readiness_service import (
+    run_phase11_production_controls_pause_block_expire_readiness_report,
+)
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
 
@@ -179,9 +182,22 @@ def build_phase11_operational_completion_gap_inventory_report(
         == ABUSE_RUNNER_READY
         else _MISSING_OR_PARTIAL
     )
-    controls_readiness = controls_readiness or build_contract_readiness_report(
-        "production_controls_pause_block_expire", evidence_dir
-    )
+    if controls_readiness is None:
+        explicit_controls = _load_evidence_json(
+            evidence_dir, "production-controls-pause-block-expire-readiness.json"
+        )
+        controls_readiness = explicit_controls
+        if controls_readiness is None:
+            try:
+                controls_readiness = run_phase11_production_controls_pause_block_expire_readiness_report(config_path)
+            except Exception as exc:  # noqa: BLE001 - inventory must fail closed without traceback.
+                controls_readiness = build_contract_readiness_report(
+                    "production_controls_pause_block_expire", evidence_dir
+                )
+                controls_readiness["blockers"] = sorted(set([*controls_readiness.get("blockers", []), "controls_runtime_readiness_failed", str(exc)]))
+        else:
+            contract = build_contract_readiness_report("production_controls_pause_block_expire", evidence_dir)
+            controls_readiness["contract_readiness"] = contract
     backup_restore_readiness = (
         backup_restore_readiness
         or build_contract_readiness_report("backup_restore_drill", evidence_dir)

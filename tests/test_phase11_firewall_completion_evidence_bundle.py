@@ -18,14 +18,14 @@ def _write_json(path: Path, data: dict) -> None:
 def _bundle(tmp_path: Path) -> Path:
     b = tmp_path / "bundle"
     b.mkdir(parents=True)
-    _write_json(b / "controlled-backend-target.json", {"status": "ok", "repository_version": "0.1.282", "resolved_ipv4": "172.18.0.2", "target_port": 60010, "backend_public_exposure": False, "blockers": []})
+    _write_json(b / "controlled-backend-target.json", {"status": "ok", "repository_version": "0.1.283", "resolved_ipv4": "172.18.0.2", "target_port": 60010, "backend_public_exposure": False, "blockers": []})
     (b / "iptables-save.txt").write_text("*nat\nCOMMIT\n", encoding="utf-8")
     (b / "ip6tables-save.txt").write_text("*filter\nCOMMIT\n", encoding="utf-8")
-    _write_json(b / "current-controlled-artifact-gate-with-target.json", {"repository_version": "0.1.282", "current_phase_gate_ok": True, "current_working_phase": "Phase 11 operational completion — Full CLI Production Operations", "production_traffic": "controlled_cli_limited", "customer_onboarding_allowed": "controlled_cli_limited", "phase12_start_allowed": False, "backend_public_exposure": False, "unknown_mpf_artifacts": [], "duplicate_nat_redirect_count": 0, "forbidden_public_runtime_exposure": False, "mutation_performed": False})
-    _write_json(b / "controlled-artifact-reapply-plan-target-aware.json", {"repository_version": "0.1.282", "mutation_performed": False})
-    _write_json(b / "controlled-artifact-reapply-package-target-aware.json", {"repository_version": "0.1.282", "mutation_performed": False})
-    _write_json(b / "controlled-artifact-reapply-readiness-target-aware.json", {"repository_version": "0.1.282", "mutation_performed": False})
-    _write_json(b / "production-firewall-apply-verify-rollback-readiness.json", {"repository_version": "0.1.282", "production_firewall_apply_verify_rollback": "missing_or_partial", "phase12_start_allowed": False, "mutation_performed": False})
+    _write_json(b / "current-controlled-artifact-gate-with-target.json", {"repository_version": "0.1.283", "current_phase_gate_ok": True, "current_working_phase": "Phase 11 operational completion — Full CLI Production Operations", "production_traffic": "controlled_cli_limited", "customer_onboarding_allowed": "controlled_cli_limited", "phase12_start_allowed": False, "backend_public_exposure": False, "unknown_mpf_artifacts": [], "duplicate_nat_redirect_count": 0, "forbidden_public_runtime_exposure": False, "mutation_performed": False})
+    _write_json(b / "controlled-artifact-reapply-plan-target-aware.json", {"repository_version": "0.1.283", "mutation_performed": False})
+    _write_json(b / "controlled-artifact-reapply-package-target-aware.json", {"repository_version": "0.1.283", "mutation_performed": False})
+    _write_json(b / "controlled-artifact-reapply-readiness-target-aware.json", {"repository_version": "0.1.283", "mutation_performed": False})
+    _write_json(b / "production-firewall-apply-verify-rollback-readiness.json", {"repository_version": "0.1.283", "production_firewall_apply_verify_rollback": "missing_or_partial", "phase12_start_allowed": False, "mutation_performed": False})
     write_manifest_and_sha256s(b)
     return b
 
