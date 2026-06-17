@@ -6,6 +6,7 @@ from typer.testing import CliRunner
 from mpf.interfaces.cli import app
 from mpf.repositories import customer_repo
 from mpf.repositories.customer_write_repo import CustomerMutationResult
+from mpf.services import phase11_evidence_contract_readiness_service as contract
 from mpf.services import phase11_operational_completion_gap_inventory_service as gap
 from mpf.services import phase11_production_controls_pause_block_expire_readiness_service as svc
 from mpf.domain.customer_lifecycle import ALLOWED_CUSTOMER_STATUSES
@@ -51,6 +52,24 @@ def test_customer_show_optional_int_mapping_blank_and_invalid():
         assert "invalid optional integer for service_days" in str(exc)
     else:
         raise AssertionError("expected controlled mapping error")
+
+
+def test_controls_contract_requires_explicit_safe_flags(tmp_path):
+    evidence = {
+        "operator": "vahid",
+        "evidence_collected_at": "2026-06-17T00:00:00Z",
+        "scope": "read_only_controls_preflight",
+        "final_decision": "PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE_READY",
+        "pause_preflight": {"ready": True},
+        "expire_run_preflight": {"ready": True},
+        "block_preflight": {"ready": True},
+        "production_controls_pause_block_expire_ready": True,
+    }
+    (tmp_path / "production_controls_pause_block_expire.json").write_text(json.dumps(evidence), encoding="utf-8")
+    report = contract.build_contract_readiness_report("production_controls_pause_block_expire", tmp_path)
+    assert report["production_controls_pause_block_expire"] == "missing_or_partial"
+    assert "missing_or_unsafe_flag:mutation_performed" in report["blockers"]
+    assert "missing_or_unsafe_gate_flag:worker_enforcement_allowed" in report["blockers"]
 
 
 def test_gap_inventory_embeds_controls(monkeypatch):
