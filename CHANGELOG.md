@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.286
+
+- fix(phase11): wires terminal no-reapply controlled-artifact readiness into Phase 11 gap inventory so gap inventory no longer reports a stale reapply package next step, while preserving no execution, no firewall apply, no DB mutation, no Phase 12, and no worker/UI/Telegram.
+
 ## 0.1.285
 
 - fix(phase11): treat exact-present controlled artifacts/no-reapply readiness as a terminal Phase 11 reapply state, fix stale `next_required_step` and no-reapply package blocker reporting, and preserve no execution, no firewall apply, no DB mutation, no Phase 12, and no worker/UI/Telegram enablement.

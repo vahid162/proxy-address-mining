@@ -89,6 +89,8 @@ def _next_step(
         and not readiness_report.get("blockers")
     ):
         return "production_firewall_apply_verify_rollback"
+    if readiness_report and "controlled_artifact_reapply_readiness_snapshot_required" in readiness_report.get("blockers", []):
+        return "controlled_artifact_reapply_readiness_snapshot_required"
     return str(active_progression()["next_required_step"])
 
 
@@ -100,6 +102,10 @@ def build_phase11_operational_completion_gap_inventory_report(
     readiness_report: dict[str, object] | None = None,
     lifecycle_execution_evidence_json: Path | str | None = None,
     firewall_completion_evidence_dir: Path | str | None = None,
+    expected_version: str = __version__,
+    expected_backend_target: str | None = None,
+    iptables_save_file: Path | str | None = None,
+    ip6tables_save_file: Path | str | None = None,
     onboarding_readiness: dict[str, object] | None = None,
     usage_report_check_surface: dict[str, object] | None = None,
     abuse_runner_readiness: dict[str, object] | None = None,
@@ -107,6 +113,33 @@ def build_phase11_operational_completion_gap_inventory_report(
     backup_restore_readiness: dict[str, object] | None = None,
 ) -> dict[str, object]:
     """Return the expanded post-acceptance Phase 11 gap inventory without mutation."""
+
+    if readiness_report is None:
+        readiness_report = _load_evidence_json(
+            evidence_dir, "controlled-artifact-reapply-readiness-target-aware.json"
+        ) or _load_evidence_json(evidence_dir, "controlled-artifact-reapply-readiness.json")
+    if readiness_report is None:
+        readiness_report = {
+            "component": "phase11_controlled_artifact_reapply_readiness",
+            "repository_version": __version__,
+            "final_decision": "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE",
+            "live_ready_package_available": False,
+            "production_execution_available": False,
+            "controlled_artifact_execute_available": False,
+            "iptables_restore_invocation_allowed": False,
+            "mutation_performed": False,
+            "db_mutation_performed": False,
+            "firewall_apply_performed": False,
+            "conntrack_flush_performed": False,
+            "docker_restart_performed": False,
+            "systemd_restart_performed": False,
+            "phase12_start_allowed": False,
+            "worker_enforcement_allowed": "no",
+            "ui_allowed": "no",
+            "telegram_allowed": "no",
+            "blockers": ["controlled_artifact_reapply_readiness_snapshot_required"],
+            "next_required_step": "controlled_artifact_reapply_readiness_snapshot_required",
+        }
 
     restart_report = (
         build_phase11_restart_autostart_proof_report(evidence_dir)
@@ -403,6 +436,10 @@ def run_phase11_operational_completion_gap_inventory_report(
     packet_path_evidence_dir: Path | str | None = None,
     lifecycle_execution_evidence_json: Path | str | None = None,
     firewall_completion_evidence_dir: Path | str | None = None,
+    expected_version: str = __version__,
+    expected_backend_target: str | None = None,
+    iptables_save_file: Path | str | None = None,
+    ip6tables_save_file: Path | str | None = None,
     onboarding_readiness: dict[str, object] | None = None,
     usage_report_check_surface: dict[str, object] | None = None,
     abuse_runner_readiness: dict[str, object] | None = None,
@@ -427,16 +464,36 @@ def run_phase11_operational_completion_gap_inventory_report(
             "controlled_artifact_reapply_execution_available": None,
             "configuration_error": str(exc),
         }
-    try:
-        readiness_report = run_phase11_controlled_artifact_reapply_readiness(
-            config_path, packet_path_evidence_dir=packet_path_evidence_dir
-        )
-    except Exception as exc:  # noqa: BLE001 - readiness summary must fail closed.
-        readiness_report = {
-            "final_decision": "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE",
-            "live_ready_package_available": False,
-            "blockers": ["readiness_summary_failed", str(exc)],
-        }
+    readiness_report = None
+    if packet_path_evidence_dir is not None or (iptables_save_file is not None and ip6tables_save_file is not None):
+        try:
+            readiness_report = run_phase11_controlled_artifact_reapply_readiness(
+                config_path,
+                expected_version=expected_version,
+                packet_path_evidence_dir=packet_path_evidence_dir,
+                expected_backend_target=expected_backend_target,
+                iptables_save_file=iptables_save_file,
+                ip6tables_save_file=ip6tables_save_file,
+            )
+        except Exception as exc:  # noqa: BLE001 - readiness summary must fail closed.
+            readiness_report = {
+                "final_decision": "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE",
+                "live_ready_package_available": False,
+                "production_execution_available": False,
+                "controlled_artifact_execute_available": False,
+                "iptables_restore_invocation_allowed": False,
+                "mutation_performed": False,
+                "db_mutation_performed": False,
+                "firewall_apply_performed": False,
+                "conntrack_flush_performed": False,
+                "docker_restart_performed": False,
+                "systemd_restart_performed": False,
+                "phase12_start_allowed": False,
+                "worker_enforcement_allowed": "no",
+                "ui_allowed": "no",
+                "telegram_allowed": "no",
+                "blockers": ["readiness_summary_failed", str(exc)],
+            }
     return build_phase11_operational_completion_gap_inventory_report(
         evidence_dir,
         config_path=config_path,

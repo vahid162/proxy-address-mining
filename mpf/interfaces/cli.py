@@ -3824,6 +3824,10 @@ def production_phase11_operational_completion_gap_inventory(
     evidence_dir: Path | None = typer.Option(None, "--evidence-dir"),
     lifecycle_execution_evidence_json: Path | None = typer.Option(None, "--lifecycle-execution-evidence-json"),
     firewall_completion_evidence_dir: Path | None = typer.Option(None, "--firewall-completion-evidence-dir"),
+    expected_version: str = typer.Option(__version__, "--expected-version"),
+    expected_backend_target: str | None = typer.Option(None, "--expected-backend-target"),
+    iptables_save_file: Path | None = typer.Option(None, "--iptables-save-file"),
+    ip6tables_save_file: Path | None = typer.Option(None, "--ip6tables-save-file"),
 ) -> None:
     """Render the read-only, fail-closed Phase 11 operational completion gap inventory."""
 
@@ -3833,6 +3837,10 @@ def production_phase11_operational_completion_gap_inventory(
         evidence_dir=evidence_dir,
         lifecycle_execution_evidence_json=lifecycle_execution_evidence_json,
         firewall_completion_evidence_dir=firewall_completion_evidence_dir,
+        expected_version=expected_version,
+        expected_backend_target=expected_backend_target,
+        iptables_save_file=iptables_save_file,
+        ip6tables_save_file=ip6tables_save_file,
     )
     if output == "json":
         typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
