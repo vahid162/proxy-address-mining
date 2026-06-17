@@ -179,6 +179,7 @@ def test_gap_inventory_progression_and_usage_warnings_preserved(tmp_path):
         onboarding_readiness=onboarding,
         usage_report_check_surface=USAGE,
         abuse_runner_readiness=abuse,
+        readiness_report={"final_decision": "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT", "blockers": []},
         controls_readiness={
             "production_controls_pause_block_expire": "missing_or_partial"
         },
@@ -191,11 +192,7 @@ def test_gap_inventory_progression_and_usage_warnings_preserved(tmp_path):
     assert r["production_usage_report_check_warnings"] == [
         "usage_runtime_evidence_not_yet_collected"
     ]
-    assert (
-        r["next_required_step"] == "production_controls_pause_block_expire"
-        or r["next_required_step"]
-        == "prepare_live_ready_controlled_artifact_reapply_package"
-    )
+    assert r["next_required_step"] == "production_firewall_apply_verify_rollback"
     assert r["full_cli_production_operations"] == "missing_or_partial"
 
 

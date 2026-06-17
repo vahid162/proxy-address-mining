@@ -25,7 +25,7 @@ from mpf.interfaces.cli import app
 from mpf.services.phase11_restart_autostart_proof_service import build_phase11_restart_autostart_proof_report
 
 RUNNER = CliRunner()
-VERSION = "0.1.285"
+VERSION = "0.1.286"
 
 
 PHASE_STATUS = """current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5
@@ -916,7 +916,7 @@ def test_gap_inventory_chooses_controlled_artifact_reapply_for_farm5_fixture() -
 
     assert report["restart_autostart_proof"] == "missing_or_partial"
     assert report["full_cli_production_operations"] == "missing_or_partial"
-    assert report["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
+    assert report["next_required_step"] == "controlled_artifact_reapply_readiness_snapshot_required"
     assert report["phase12_start_allowed"] is False
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"

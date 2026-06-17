@@ -81,7 +81,7 @@ def test_gap_inventory_service_is_fail_closed_and_read_only() -> None:
         "production_traffic": "cli_production",
         "customer_onboarding_allowed": "cli_production",
     }
-    assert report["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
+    assert report["next_required_step"] == "controlled_artifact_reapply_readiness_snapshot_required"
     assert report["restart_autostart_proof_final_decision"] == "BLOCKED_RESTART_AUTOSTART_PROOF_MISSING_OR_PARTIAL"
     assert report["worker_enforcement_allowed"] == "no"
     assert report["ui_allowed"] == "no"
@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.285"
+    assert report["repository_version"] == "0.1.286"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -111,7 +111,7 @@ def test_gap_inventory_keeps_restart_autostart_blocked_on_persistence_gap() -> N
     report = build_phase11_operational_completion_gap_inventory_report()
 
     assert report["restart_autostart_proof"] == "missing_or_partial"
-    assert report["next_required_step"] == "prepare_live_ready_controlled_artifact_reapply_package"
+    assert report["next_required_step"] == "controlled_artifact_reapply_readiness_snapshot_required"
     assert report["full_cli_production_operations"] == "missing_or_partial"
     assert report["phase12_start_allowed"] is False
 
@@ -120,7 +120,7 @@ def test_gap_inventory_with_packet_path_evidence_advances_only_next_step(monkeyp
     import mpf.services.phase11_operational_completion_gap_inventory_service as svc
 
     monkeypatch.setattr(svc, "run_phase11_restart_autostart_persistence_fix_plan", lambda config_path: {"final_decision": "x", "safety_blockers": [], "live_ready_package_available": False})
-    monkeypatch.setattr(svc, "run_phase11_controlled_artifact_reapply_readiness", lambda config_path, packet_path_evidence_dir=None: {"final_decision": svc.READINESS_READY, "live_ready_package_available": True, "package_id": "pkg", "package_sha256": "sha", "blockers": []})
+    monkeypatch.setattr(svc, "run_phase11_controlled_artifact_reapply_readiness", lambda config_path, **kwargs: {"final_decision": svc.READINESS_READY, "live_ready_package_available": True, "package_id": "pkg", "package_sha256": "sha", "blockers": []})
 
     report = svc.run_phase11_operational_completion_gap_inventory_report(packet_path_evidence_dir=tmp_path)
 
@@ -138,9 +138,10 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
 
     seen = {}
 
-    def fake_run(config_path, *, evidence_dir=None, packet_path_evidence_dir=None, lifecycle_execution_evidence_json=None, firewall_completion_evidence_dir=None):
+    def fake_run(config_path, **kwargs):
+        packet_path_evidence_dir = kwargs.get("packet_path_evidence_dir")
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.285", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.286", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
@@ -271,3 +272,54 @@ def test_gap_inventory_does_not_advance_firewall_from_missing_completion_evidenc
     )
     assert report["production_firewall_apply_verify_rollback"] == "missing_or_partial"
     assert report["production_firewall_apply_verify_rollback_readiness"] is None
+
+
+def test_gap_inventory_consumes_no_reapply_readiness_from_evidence_dir(tmp_path) -> None:
+    (tmp_path / "controlled-artifact-reapply-readiness-target-aware.json").write_text(json.dumps({
+        "final_decision": "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT",
+        "controlled_artifact_reapply_required": False,
+        "live_ready_package_available": False,
+        "production_execution_available": False,
+        "controlled_artifact_execute_available": False,
+        "iptables_restore_invocation_allowed": False,
+        "mutation_performed": False,
+        "db_mutation_performed": False,
+        "firewall_apply_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
+        "phase12_start_allowed": False,
+        "worker_enforcement_allowed": "no",
+        "ui_allowed": "no",
+        "telegram_allowed": "no",
+        "blockers": [],
+    }), encoding="utf-8")
+
+    report = build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path)
+
+    assert report["next_required_step"] == "production_firewall_apply_verify_rollback"
+    assert report["next_required_step"] != "prepare_live_ready_controlled_artifact_reapply_package"
+    summary = report["restart_autostart_persistence_fix_plan_summary"]
+    assert summary["live_ready_controlled_artifact_reapply_readiness_final_decision"] == "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT"
+    assert summary["readiness_blockers"] == []
+    assert report["full_cli_production_operations"] == "missing_or_partial"
+    assert report["phase12_start_allowed"] is False
+    assert report["worker_enforcement_allowed"] == "no"
+    assert report["ui_allowed"] == "no"
+    assert report["telegram_allowed"] == "no"
+    for key in ("mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed"):
+        assert report[key] is False
+
+
+def test_gap_inventory_advances_to_controls_when_no_reapply_and_prior_surfaces_ready(tmp_path) -> None:
+    report = build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=tmp_path,
+        readiness_report={"final_decision": "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT", "blockers": []},
+        lifecycle_execution_evidence_json=None,
+        firewall_completion_evidence_dir=None,
+        controls_readiness={"production_controls_pause_block_expire": "missing_or_partial"},
+        backup_restore_readiness={"backup_restore_drill": "missing_or_partial"},
+    )
+    # Without lifecycle/firewall evidence, no-reapply only clears stale reapply work and points at the next true blocker.
+    assert report["next_required_step"] == "production_firewall_apply_verify_rollback"
+    assert report["full_cli_production_operations"] == "missing_or_partial"
