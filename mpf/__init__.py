@@ -11,4 +11,4 @@ __doc__ = (
     "Importing this package performs no DB, firewall, conntrack, Docker, or systemd mutation.\n"
 )
 
-__version__ = "0.1.291"
+__version__ = "0.1.292"

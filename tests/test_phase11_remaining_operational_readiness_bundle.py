@@ -228,3 +228,56 @@ def test_gap_inventory_treats_terminal_no_reapply_readiness_as_satisfied():
     assert r["telegram_allowed"] == "no"
     assert r["production_controls_pause_block_expire"] == "missing_or_partial"
     assert r["backup_restore_drill"] == "missing_or_partial"
+
+def test_controls_readiness_contract_aligns_with_official_evidence_file(tmp_path):
+    evidence = {
+        "production_controls_pause_block_expire": "production_controls_pause_block_expire_ready",
+        "production_controls_pause_block_expire_ready": True,
+        "ready": True,
+        "blockers": [],
+        "pause_preflight": {"ready": True},
+        "expire_run_preflight": {"ready": True},
+        "block_preflight": {"ready": True},
+        "operator": "op",
+        "evidence_collected_at": "2026-06-17T00:00:00Z",
+        "scope": "phase11",
+        "final_decision": "PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE_READY",
+        "mutation_performed": False,
+        "db_mutation_performed": False,
+        "firewall_apply_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
+        "phase12_start_allowed": False,
+        "worker_enforcement_allowed": "no",
+        "ui_allowed": "no",
+        "telegram_allowed": "no",
+        "production_traffic": "controlled_cli_limited",
+        "customer_onboarding_allowed": "controlled_cli_limited",
+    }
+    (tmp_path / "production-controls-pause-block-expire-readiness.json").write_text(json.dumps(evidence), encoding="utf-8")
+    report = build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=tmp_path,
+        lifecycle_execution_evidence_json=None,
+        firewall_completion_readiness={"production_firewall_apply_verify_rollback": "missing_or_partial"},
+    )
+    controls = report["production_controls_pause_block_expire_readiness"]
+    assert controls["production_controls_pause_block_expire"] == "production_controls_pause_block_expire_ready"
+    assert controls["contract_readiness"]["production_controls_pause_block_expire"] == "production_controls_pause_block_expire_ready"
+    assert controls["contract_readiness"]["blockers"] == []
+    assert controls["contract_readiness"]["final_decision"] != "BLOCKED_PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE_MISSING_OR_PARTIAL"
+
+
+def test_gap_inventory_all_surfaces_ready_still_requires_final_acceptance():
+    ready = build_phase11_operational_completion_gap_inventory_report(
+        restart_autostart_evidence_dir=None,
+        lifecycle_execution_evidence_json=None,
+        firewall_completion_readiness={"production_firewall_apply_verify_rollback": "production_firewall_apply_verify_rollback_ready", "final_decision": "PRODUCTION_FIREWALL_APPLY_VERIFY_ROLLBACK_EVIDENCE_READY", "blockers": [], "phase12_start_allowed": False},
+        onboarding_readiness={"production_onboarding_flow": "production_onboarding_flow_ready"},
+        usage_report_check_surface={"usage_report_check_surface_ready": True, "final_decision": "USAGE_REPORT_CHECK_SURFACE_READY", "blockers": []},
+        abuse_runner_readiness={"production_abuse_runner": "production_abuse_runner_ready"},
+        controls_readiness={"production_controls_pause_block_expire": "production_controls_pause_block_expire_ready"},
+        backup_restore_readiness={"backup_restore_drill": "backup_restore_drill_ready"},
+    )
+    assert ready["full_cli_production_operations"] == "missing_or_partial"
+    assert ready["phase12_start_allowed"] is False

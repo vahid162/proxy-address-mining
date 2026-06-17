@@ -80,11 +80,18 @@ def test_usage_report_check_surface_reports_missing_runtime_evidence_honestly(mo
     _mock_safe_reads(monkeypatch)
     report = surface_service.build_usage_report_check_operational_surface_report(cfg())
     assert report["status"] == "READY"
-    assert report["usage_evidence_source"] == "not_yet_collected"
-    assert report["reject_counter_visibility"] == "not_yet_collected"
-    assert report["session_evidence_visibility"] == "not_yet_collected"
-    assert report["worker_evidence_visibility"] == "not_yet_collected"
-    assert "usage_runtime_evidence_not_yet_collected" in report["warnings"]
+    assert report["usage_evidence_source"] == "unavailable"
+    assert report["reject_counter_visibility"] == "unavailable"
+    assert report["session_evidence_visibility"] == "unavailable"
+    assert report["worker_evidence_visibility"] == "not_applicable"
+    assert report["runtime_evidence"] == {
+        "usage_counters": {"status": "unavailable", "source": None, "detail": "no read-only runtime counter source configured"},
+        "reject_counters": {"status": "unavailable", "source": None, "detail": "no read-only reject counter source configured"},
+        "sessions": {"status": "unavailable", "source": None, "detail": "no read-only session source configured"},
+        "workers": {"status": "not_applicable", "source": None, "detail": "worker enforcement remains disabled before Phase 12"},
+    }
+    assert "usage_runtime_evidence_unavailable" in report["warnings"]
+    assert "worker_evidence_not_applicable_worker_enforcement_disabled" in report["warnings"]
     assert {item["input"]: item["visibility"] for item in report["diagnostics_inputs_checked"]}["live_conntrack"] == "not_available"
 
 

@@ -528,11 +528,15 @@ def customer_list(config: Path | None = typer.Option(None, "--config", "-c", hel
 
 
 @customer_app.command("show")
-def customer_show(config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str | None = typer.Option(None, "--customer-key"), customer_id: int | None = typer.Option(None, "--id"), port: int | None = typer.Option(None, "--port")) -> None:
-    if sum(x is not None for x in (customer_key, customer_id, port)) != 1:
-        typer.echo("provide exactly one target: --customer-key or --id or --port")
+def customer_show(customer_key_arg: str | None = typer.Argument(None, metavar="CUSTOMER_KEY", help="Customer key to show (same as --customer-key)."), config: Path | None = typer.Option(None, "--config", "-c"), customer_key: str | None = typer.Option(None, "--customer-key"), customer_id: int | None = typer.Option(None, "--id"), port: int | None = typer.Option(None, "--port")) -> None:
+    resolved_customer_key = customer_key or customer_key_arg
+    if customer_key and customer_key_arg and customer_key != customer_key_arg:
+        typer.echo("provide customer key either as CUSTOMER_KEY or --customer-key, not both")
         raise typer.Exit(1)
-    result = customer_read_service.show_customer(_load(config), customer_key=customer_key, customer_id=customer_id, port=port)
+    if sum(x is not None for x in (resolved_customer_key, customer_id, port)) != 1:
+        typer.echo("provide exactly one target: CUSTOMER_KEY or --customer-key or --id or --port")
+        raise typer.Exit(1)
+    result = customer_read_service.show_customer(_load(config), customer_key=resolved_customer_key, customer_id=customer_id, port=port)
     if not result.ok or not result.customer:
         typer.echo(result.message)
         raise typer.Exit(1)

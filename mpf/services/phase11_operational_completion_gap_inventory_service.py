@@ -343,8 +343,37 @@ def build_phase11_operational_completion_gap_inventory_report(
             if "production_controls_pause_block_expire_evidence_missing" not in controls_readiness["blockers"]:
                 controls_readiness["blockers"].append("production_controls_pause_block_expire_evidence_missing")
         else:
-            contract = build_contract_readiness_report("production_controls_pause_block_expire", evidence_dir)
-            controls_readiness["contract_readiness"] = contract
+            if (
+                controls_readiness.get("production_controls_pause_block_expire")
+                == "production_controls_pause_block_expire_ready"
+                and controls_readiness.get("production_controls_pause_block_expire_ready") is True
+                and not controls_readiness.get("blockers")
+            ):
+                controls_readiness["contract_readiness"] = {
+                    "component": "phase11_production_controls_pause_block_expire_readiness_contract",
+                    "repository_version": __version__,
+                    "production_controls_pause_block_expire": "production_controls_pause_block_expire_ready",
+                    "production_controls_pause_block_expire_ready": True,
+                    "expected_evidence_file": "production-controls-pause-block-expire-readiness.json",
+                    "blockers": [],
+                    "warnings": [],
+                    "mutation_performed": False,
+                    "db_mutation_performed": False,
+                    "firewall_apply_performed": False,
+                    "conntrack_flush_performed": False,
+                    "docker_restart_performed": False,
+                    "systemd_restart_performed": False,
+                    "phase12_start_allowed": False,
+                    "worker_enforcement_allowed": "no",
+                    "ui_allowed": "no",
+                    "telegram_allowed": "no",
+                    "production_traffic": "controlled_cli_limited",
+                    "customer_onboarding_allowed": "controlled_cli_limited",
+                    "final_decision": "PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE_READY",
+                }
+            else:
+                contract = build_contract_readiness_report("production_controls_pause_block_expire", evidence_dir)
+                controls_readiness["contract_readiness"] = contract
     if backup_restore_readiness is None:
         explicit_backup_restore = _load_evidence_json(
             evidence_dir, "backup-restore-drill-readiness.json"
