@@ -67,20 +67,102 @@ python3 -m json.tool "${RESTART_DIR}/proof-report.json" > "${OUT_DIR}/restart-au
 
 run_json "${OUT_DIR}/production-customer-lifecycle-execution-readiness.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production production-customer-lifecycle-execution-readiness --evidence-dir "${RESTART_DIR}" --expected-backend-target "${EXPECTED_BACKEND_TARGET}" "${LIFECYCLE_EVIDENCE_ARG[@]}" --output json
 FIREWALL_COMPLETION_EVIDENCE_ARG=()
+FIREWALL_COMPLETION_EVIDENCE_DIR_ORIGINAL="${FIREWALL_COMPLETION_EVIDENCE_DIR}"
+FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED=""
+FIREWALL_COMPLETION_READINESS_SOURCE=""
+validate_or_fail_closed_firewall_readiness() {
+  local src="$1"
+  local out="$2"
+  python3 - "${src}" "${out}" <<'PY'
+import json, pathlib, sys
+src=pathlib.Path(sys.argv[1])
+out=pathlib.Path(sys.argv[2])
+fail_decision='BLOCKED_PRODUCTION_FIREWALL_APPLY_VERIFY_ROLLBACK_EVIDENCE'
+def fail(blocker, detail=None):
+    blockers=[blocker] if detail is None else [blocker, str(detail)]
+    out.write_text(json.dumps({
+        'component':'phase11_production_firewall_apply_verify_rollback_readiness',
+        'production_firewall_apply_verify_rollback':'missing_or_partial',
+        'phase12_start_allowed':False,
+        'mutation_performed':False,
+        'db_mutation_performed':False,
+        'firewall_apply_performed':False,
+        'conn'+'track_flush_performed':False,
+        'docker_restart_performed':False,
+        'systemd_restart_performed':False,
+        'blockers':blockers,
+        'final_decision':fail_decision,
+        'next_required_step':'production_firewall_apply_verify_rollback',
+    }, indent=2, sort_keys=True), encoding='utf-8')
+    return 1
+try:
+    data=json.loads(src.read_text(encoding='utf-8'))
+except Exception as exc:
+    raise SystemExit(fail('firewall_completion_readiness_json_invalid', exc))
+if not isinstance(data, dict):
+    raise SystemExit(fail('firewall_completion_readiness_json_invalid'))
+safe_decisions={
+ 'PRODUCTION_FIREWALL_ALREADY_APPLIED_VERIFIED_NO_REAPPLY_REQUIRED',
+ 'PRODUCTION_FIREWALL_APPLY_VERIFY_ROLLBACK_EVIDENCE_READY',
+}
+mutation_keys=('mutation_performed','db_mutation_performed','firewall_apply_performed','conn'+'track_flush_performed','docker_restart_performed','systemd_restart_performed')
+if data.get('production_firewall_apply_verify_rollback')!='production_firewall_apply_verify_rollback_ready':
+    raise SystemExit(fail('firewall_completion_readiness_json_invalid'))
+if data.get('final_decision') not in safe_decisions:
+    raise SystemExit(fail('firewall_completion_readiness_json_invalid'))
+if data.get('blockers') not in ([], None):
+    raise SystemExit(fail('firewall_completion_readiness_json_invalid'))
+if data.get('phase12_start_allowed') is not False:
+    raise SystemExit(fail('firewall_completion_readiness_json_unsafe'))
+if any(data.get(k) is True for k in mutation_keys):
+    raise SystemExit(fail('firewall_completion_readiness_json_unsafe'))
+for k in mutation_keys:
+    data.setdefault(k, False)
+data.setdefault('blockers', [])
+data.setdefault('phase12_start_allowed', False)
+out.write_text(json.dumps(data, indent=2, sort_keys=True), encoding='utf-8')
+PY
+}
 if [[ -n "${FIREWALL_COMPLETION_EVIDENCE_DIR}" ]]; then
   if [[ ! -d "${FIREWALL_COMPLETION_EVIDENCE_DIR}" ]]; then
     echo "firewall completion evidence dir not found: ${FIREWALL_COMPLETION_EVIDENCE_DIR}" >&2
     exit 2
   fi
   FIREWALL_COMPLETION_EVIDENCE_ARG=(--firewall-completion-evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR}")
-  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR}/manifest.json" ]]; then
-    cp "${FIREWALL_COMPLETION_EVIDENCE_DIR}/manifest.json" "${OUT_DIR}/firewall-completion-evidence-manifest.json"
+  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR}/production-firewall-apply-verify-rollback-readiness.json" ]]; then
+    FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED="${FIREWALL_COMPLETION_EVIDENCE_DIR}"
+    FIREWALL_COMPLETION_READINESS_SOURCE="copied_readiness_json"
+    if ! validate_or_fail_closed_firewall_readiness "${FIREWALL_COMPLETION_EVIDENCE_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json"; then
+      FIREWALL_COMPLETION_READINESS_SOURCE="invalid_readiness_json"
+    fi
+  elif [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR}/firewall-completion-evidence/production-firewall-apply-verify-rollback-readiness.json" ]]; then
+    FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED="${FIREWALL_COMPLETION_EVIDENCE_DIR}/firewall-completion-evidence"
+    FIREWALL_COMPLETION_READINESS_SOURCE="copied_nested_readiness_json"
+    if ! validate_or_fail_closed_firewall_readiness "${FIREWALL_COMPLETION_EVIDENCE_DIR}/firewall-completion-evidence/production-firewall-apply-verify-rollback-readiness.json" "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json"; then
+      FIREWALL_COMPLETION_READINESS_SOURCE="invalid_readiness_json"
+    fi
+  elif [[ -d "${FIREWALL_COMPLETION_EVIDENCE_DIR}/firewall-completion-evidence" ]] && find "${FIREWALL_COMPLETION_EVIDENCE_DIR}/firewall-completion-evidence" -maxdepth 1 -type f | read -r _; then
+    FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED="${FIREWALL_COMPLETION_EVIDENCE_DIR}/firewall-completion-evidence"
+    FIREWALL_COMPLETION_READINESS_SOURCE="recomputed_nested_raw_evidence"
+    run_json "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${MPF_BIN}" production production-firewall-apply-verify-rollback-readiness --evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}" --output json
+  else
+    FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED="${FIREWALL_COMPLETION_EVIDENCE_DIR}"
+    FIREWALL_COMPLETION_READINESS_SOURCE="recomputed_raw_evidence"
+    if ! run_json "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${MPF_BIN}" production production-firewall-apply-verify-rollback-readiness --evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}" --output json; then
+      FIREWALL_COMPLETION_READINESS_SOURCE="missing_or_failed"
+    fi
   fi
-  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR}/SHA256SUMS.txt" ]]; then
-    cp "${FIREWALL_COMPLETION_EVIDENCE_DIR}/SHA256SUMS.txt" "${OUT_DIR}/firewall-completion-evidence-SHA256SUMS.txt"
+  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}/manifest.json" ]]; then
+    cp "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}/manifest.json" "${OUT_DIR}/firewall-completion-evidence-manifest.json"
   fi
-  run_json "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${MPF_BIN}" production production-firewall-apply-verify-rollback-readiness --evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR}" --output json
+  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}/manifest.sha256" ]]; then
+    cp "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}/manifest.sha256" "${OUT_DIR}/firewall-completion-evidence-manifest.sha256"
+  fi
+  if [[ -f "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}/SHA256SUMS.txt" ]]; then
+    cp "${FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED}/SHA256SUMS.txt" "${OUT_DIR}/firewall-completion-evidence-SHA256SUMS.txt"
+  fi
 fi
+export FIREWALL_COMPLETION_EVIDENCE_DIR_ORIGINAL FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED FIREWALL_COMPLETION_READINESS_SOURCE
 run_json "${OUT_DIR}/production-onboarding-flow-readiness.json" "${MPF_BIN}" production production-onboarding-flow-readiness --output json
 run_json "${OUT_DIR}/production-abuse-runner-readiness.json" "${MPF_BIN}" production production-abuse-runner-readiness --output json
 run_json "${OUT_DIR}/production-controls-pause-block-expire-readiness.json" "${MPF_BIN}" production production-controls-pause-block-expire-readiness --output json
@@ -130,12 +212,16 @@ manifest={
     'restart_autostart_evidence_dir':'restart-autostart-proof',
     'lifecycle_execution_evidence': lifecycle_evidence,
     'firewall_completion_evidence_dir': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR') or None,
+    'firewall_completion_evidence_dir_original': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR_ORIGINAL') or None,
+    'firewall_completion_evidence_dir_resolved': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED') or None,
+    'firewall_completion_readiness_source': __import__('os').environ.get('FIREWALL_COMPLETION_READINESS_SOURCE') or None,
     'firewall_completion_evidence_manifest': 'firewall-completion-evidence-manifest.json' if (out/'firewall-completion-evidence-manifest.json').exists() else None,
     'firewall_completion_readiness': 'production-firewall-apply-verify-rollback-readiness.json' if (out/'production-firewall-apply-verify-rollback-readiness.json').exists() else None,
     'mutation_flags': 'mutation-flags.json',
     'source_evidence_mutation_flags': 'source-evidence-mutation-flags.json',
     'sha256s': 'SHA256SUMS.txt',
     'firewall_completion_evidence_sha256s': 'firewall-completion-evidence-SHA256SUMS.txt' if (out/'firewall-completion-evidence-SHA256SUMS.txt').exists() else None,
+    'firewall_completion_evidence_manifest_sha256': 'firewall-completion-evidence-manifest.sha256' if (out/'firewall-completion-evidence-manifest.sha256').exists() else None,
     'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
 }
 (out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
