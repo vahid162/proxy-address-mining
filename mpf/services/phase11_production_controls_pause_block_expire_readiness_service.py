@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from mpf import __version__
 from mpf.config import DEFAULT_CONFIG_PATH, MPFConfig, load_config
+from mpf.domain.control_blocks import CustomerBlockPreflightRequest
 from mpf.domain.customers import CustomerDisableRequest, CustomerUpdateRequest
-from mpf.services import customer_mutation_service, customer_read_service
+from mpf.services import block_control_preflight_service, customer_mutation_service, customer_read_service
 
 
 def _flags(result) -> dict[str, object]:
@@ -87,8 +88,43 @@ def build_phase11_production_controls_pause_block_expire_readiness_report(
             blockers.append("expire_dry_run_failed")
             expire = _blocked_preflight("customer_update_status_expired_service_dry_run", str(exc), ["expire_dry_run_failed"])
 
-    blockers.append("block_capability_not_defined")
+    try:
+        br = block_control_preflight_service.preflight_customer_block_intent(
+            config,
+            CustomerBlockPreflightRequest(
+                customer_key=customer_key,
+                reason="phase11-controls-readiness-dry-run",
+                scope="customer",
+                operator="phase11-readiness",
+            ),
+        )
+        block = br.to_dict()
+        block_blockers = list(br.blockers) if not (br.ok and br.ready and br.message == "DRY_RUN_OK") else []
+        if block_blockers:
+            blockers.extend(block_blockers)
+    except Exception:  # noqa: BLE001 - readiness must fail closed without traceback.
+        block_blockers = ["block_preflight_failed"]
+        blockers.extend(block_blockers)
+        block = {
+            "ok": False,
+            "ready": False,
+            "method": "block_control_intent_preflight",
+            "message": "block preflight failed",
+            "would_create_block": False,
+            "would_create_event": False,
+            "would_create_audit": False,
+            "would_mutate_customer": False,
+            "would_apply_firewall": False,
+            "would_flush_conntrack": False,
+            "would_restart_docker": False,
+            "would_restart_systemd": False,
+            "executed": False,
+            "yes_used": False,
+            "blockers": block_blockers,
+        }
+
     blockers = sorted(set(blockers), key=blockers.index)
+    ready = not blockers and bool(pause.get("ready")) and bool(expire.get("ready")) and bool(block.get("ready"))
     return {
         "component": "phase11_production_controls_pause_block_expire_readiness",
         "repository_version": __version__,
@@ -97,15 +133,9 @@ def build_phase11_production_controls_pause_block_expire_readiness_report(
         "target_customer_key": customer_key,
         "pause_preflight": pause,
         "expire_run_preflight": expire,
-        "block_preflight": {
-            "ready": False,
-            "method": "not_implemented",
-            "message": "block capability is not defined in the customer lifecycle domain",
-            "supported_statuses": ["active", "paused", "expired", "deleted"],
-            "blockers": ["block_capability_not_defined"],
-        },
-        "production_controls_pause_block_expire": "missing_or_partial",
-        "production_controls_pause_block_expire_ready": False,
+        "block_preflight": block,
+        "production_controls_pause_block_expire": "production_controls_pause_block_expire_ready" if ready else "missing_or_partial",
+        "production_controls_pause_block_expire_ready": ready,
         "blockers": blockers,
         "warnings": warnings,
         "mutation_performed": False,
@@ -120,7 +150,7 @@ def build_phase11_production_controls_pause_block_expire_readiness_report(
         "telegram_allowed": "no",
         "production_traffic": "controlled_cli_limited",
         "customer_onboarding_allowed": "controlled_cli_limited",
-        "final_decision": "BLOCKED_PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE_BLOCK_CAPABILITY_NOT_DEFINED",
+        "final_decision": "PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE_READY" if ready else "BLOCKED_PRODUCTION_CONTROLS_PAUSE_BLOCK_EXPIRE",
     }
 
 
