@@ -138,6 +138,9 @@ def test_remaining_contracts_missing_and_valid(tmp_path):
         "mutation_performed": False,
         "db_mutation_performed": False,
         "firewall_apply_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
         "phase12_start_allowed": False,
     }
     (tmp_path / "production_controls_pause_block_expire.json").write_text(
