@@ -42,14 +42,18 @@ def _append_flag_blockers(
 ) -> None:
     for k in _FALSE_FLAGS:
         if require_explicit_safe_flags:
-            if data.get(k) is not False:
-                blockers.append(f"missing_or_unsafe_flag:{k}")
+            if k not in data:
+                blockers.append(f"missing_safe_flag:{k}")
+            elif data.get(k) is not False:
+                blockers.append(f"unsafe_or_mutating_flag:{k}")
         elif data.get(k) not in (False, None):
             blockers.append(f"unsafe_or_mutating_flag:{k}")
     for k, expected in _GATE_FLAGS.items():
         if require_explicit_safe_flags:
-            if data.get(k) != expected:
-                blockers.append(f"missing_or_unsafe_gate_flag:{k}")
+            if k not in data:
+                blockers.append(f"missing_safe_gate_flag:{k}")
+            elif data.get(k) != expected:
+                blockers.append(f"unsafe_gate_flag:{k}")
         elif data.get(k, expected) != expected:
             blockers.append(f"unsafe_gate_flag:{k}")
 
