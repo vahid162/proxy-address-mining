@@ -25,6 +25,16 @@ where lower(name)=lower(%s)
 """
 
 
+def _has_value(value: object) -> bool:
+    return value is not None and str(value).strip() != ""
+
+
+def _is_truthy(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"1", "true", "t", "yes", "y", "on"}
+
+
 def _load_customer(config: MPFConfig, customer_key: str) -> tuple[CustomerMutationResult | None, dict[str, object] | None]:
     result = query_database_params(config, _CUSTOMER_SELECT, (customer_key,))
     if not result.ok:
@@ -32,7 +42,7 @@ def _load_customer(config: MPFConfig, customer_key: str) -> tuple[CustomerMutati
     if not result.rows:
         return CustomerMutationResult(ok=False, message="customer not found", customer_key=customer_key), None
     row = result.rows[0]
-    if row.get("deleted_at") is not None or row.get("status") == "deleted":
+    if _has_value(row.get("deleted_at")) or str(row.get("status")) == "deleted":
         return CustomerMutationResult(ok=False, message="deleted customer cannot be mutated", customer_key=customer_key), None
     return None, row
 
@@ -88,7 +98,7 @@ def dry_run_update_customer(config: MPFConfig, req: CustomerUpdateRequest) -> Cu
         if not lane_result.rows:
             return CustomerMutationResult(ok=False, message=f"unknown lane: {req.lane}", customer_key=req.customer_key)
         lane = lane_result.rows[0]
-        if not bool(lane.get("enabled")):
+        if not _is_truthy(lane.get("enabled")):
             return CustomerMutationResult(ok=False, message=f"lane is disabled: {req.lane}", customer_key=req.customer_key)
 
     return CustomerMutationResult(
