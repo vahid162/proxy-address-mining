@@ -329,13 +329,15 @@ def build_phase11_operational_completion_gap_inventory_report(
         )
         controls_readiness = explicit_controls
         if controls_readiness is None:
-            try:
-                controls_readiness = run_phase11_production_controls_pause_block_expire_readiness_report(config_path)
-            except Exception as exc:  # noqa: BLE001 - inventory must fail closed without traceback.
-                controls_readiness = build_contract_readiness_report(
-                    "production_controls_pause_block_expire", evidence_dir
-                )
-                controls_readiness["blockers"] = sorted(set([*controls_readiness.get("blockers", []), "controls_runtime_readiness_failed", str(exc)]))
+            controls_readiness = build_contract_readiness_report(
+                "production_controls_pause_block_expire", evidence_dir
+            )
+            controls_readiness.setdefault("production_controls_pause_block_expire", _MISSING_OR_PARTIAL)
+            controls_readiness.setdefault("production_controls_pause_block_expire_ready", False)
+            controls_readiness.setdefault("readiness_scope", "explicit_evidence_required")
+            controls_readiness.setdefault("blockers", [])
+            if "production_controls_pause_block_expire_evidence_missing" not in controls_readiness["blockers"]:
+                controls_readiness["blockers"].append("production_controls_pause_block_expire_evidence_missing")
         else:
             contract = build_contract_readiness_report("production_controls_pause_block_expire", evidence_dir)
             controls_readiness["contract_readiness"] = contract
