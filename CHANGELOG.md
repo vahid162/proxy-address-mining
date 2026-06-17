@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.289
+
+- feat(phase11): define read-only customer block control-intent preflight so production controls pause/block/expire readiness can advance without DB, firewall, or runtime mutation.
+
 ## 0.1.288
 
 - Stabilize Phase 11 post-sync validation by isolating farm5-sensitive gap inventory tests and resolving firewall completion wrapper/nested evidence handoff without runtime mutation or final acceptance.
