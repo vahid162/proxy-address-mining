@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.287
+
+- fix(phase11): align operational completion evidence progression after lifecycle execution by resolving nested restart proof evidence, validating firewall completion readiness JSON, correcting lifecycle readiness final decisions, and propagating onboarding context without runtime mutation or opening Phase 12/worker/UI/Telegram gates.
+
 ## 0.1.286
 
 - fix(phase11): wires terminal no-reapply controlled-artifact readiness into Phase 11 gap inventory so gap inventory no longer reports a stale reapply package next step, while preserving no execution, no firewall apply, no DB mutation, no Phase 12, and no worker/UI/Telegram.
