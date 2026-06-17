@@ -27,6 +27,60 @@ run_json() {
   python3 -m json.tool "${out}" >/dev/null
 }
 
+write_collector_metadata() {
+  python3 - "${OUT_DIR}" <<'PY'
+import json, pathlib, sys
+out=pathlib.Path(sys.argv[1])
+flag_keys=('mutation_performed','phase12_start_allowed','worker_enforcement_enabled','ui_enabled','telegram_enabled')
+def collect_flags(paths):
+    flags={}
+    for p in paths:
+        try:
+            data=json.loads(p.read_text(encoding='utf-8'))
+        except Exception:
+            continue
+        if isinstance(data, dict):
+            for k,v in data.items():
+                if k.endswith('_performed') or k in flag_keys:
+                    flags[f'{p.relative_to(out)}:{k}']=v
+    return flags
+source_names={'production-customer-lifecycle-execution-evidence.json'}
+json_files=list(out.rglob('*.json'))
+flags=collect_flags([p for p in json_files if str(p.relative_to(out)) not in source_names and p.name not in {'mutation-flags.json','source-evidence-mutation-flags.json'}])
+(out/'mutation-flags.json').write_text(json.dumps(flags, indent=2, sort_keys=True), encoding='utf-8')
+source_flags=collect_flags([out/name for name in source_names if (out/name).exists()])
+source_report={'classification':'historical_source_evidence_not_current_collector_run', 'mutation_flags': source_flags}
+(out/'source-evidence-mutation-flags.json').write_text(json.dumps(source_report, indent=2, sort_keys=True), encoding='utf-8')
+lifecycle_evidence={}
+if (out/'production-customer-lifecycle-execution-evidence.json').exists():
+    lifecycle_evidence={
+        'path':'production-customer-lifecycle-execution-evidence.json',
+        'sha256':(out/'production-customer-lifecycle-execution-evidence.sha256').read_text(encoding='utf-8').strip(),
+    }
+manifest={
+    'expected_version':(out/'expected-version.txt').read_text(encoding='utf-8').strip(),
+    'expected_backend_target':(out/'expected-backend-target.txt').read_text(encoding='utf-8').strip(),
+    'restart_autostart_evidence_dir':'restart-autostart-proof',
+    'lifecycle_execution_evidence': lifecycle_evidence,
+    'firewall_completion_evidence_dir': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR') or None,
+    'firewall_completion_evidence_dir_original': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR_ORIGINAL') or None,
+    'firewall_completion_evidence_dir_resolved': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED') or None,
+    'firewall_completion_readiness_source': __import__('os').environ.get('FIREWALL_COMPLETION_READINESS_SOURCE') or None,
+    'firewall_completion_evidence_manifest': 'firewall-completion-evidence-manifest.json' if (out/'firewall-completion-evidence-manifest.json').exists() else None,
+    'firewall_completion_readiness': 'production-firewall-apply-verify-rollback-readiness.json' if (out/'production-firewall-apply-verify-rollback-readiness.json').exists() else None,
+    'backup_restore_drill_readiness': 'backup-restore-drill-readiness.json' if (out/'backup-restore-drill-readiness.json').exists() else None,
+    'mutation_flags': 'mutation-flags.json',
+    'source_evidence_mutation_flags': 'source-evidence-mutation-flags.json',
+    'sha256s': 'SHA256SUMS.txt',
+    'firewall_completion_evidence_sha256s': 'firewall-completion-evidence-SHA256SUMS.txt' if (out/'firewall-completion-evidence-SHA256SUMS.txt').exists() else None,
+    'firewall_completion_evidence_manifest_sha256': 'firewall-completion-evidence-manifest.sha256' if (out/'firewall-completion-evidence-manifest.sha256').exists() else None,
+    'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
+}
+(out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
+PY
+  (cd "${OUT_DIR}" && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+}
+
 EXPECTED_VERSION="$(tr -d '[:space:]' < VERSION)"
 printf '%s\n' "${EXPECTED_VERSION}" > "${OUT_DIR}/expected-version.txt"
 "${MPF_BIN}" --version > "${OUT_DIR}/mpf-version.txt" 2>&1 || true
@@ -166,8 +220,6 @@ export FIREWALL_COMPLETION_EVIDENCE_DIR_ORIGINAL FIREWALL_COMPLETION_EVIDENCE_DI
 run_json "${OUT_DIR}/production-onboarding-flow-readiness.json" "${MPF_BIN}" production production-onboarding-flow-readiness --output json
 run_json "${OUT_DIR}/production-abuse-runner-readiness.json" "${MPF_BIN}" production production-abuse-runner-readiness --output json
 run_json "${OUT_DIR}/production-controls-pause-block-expire-readiness.json" "${MPF_BIN}" production production-controls-pause-block-expire-readiness --output json
-run_json "${OUT_DIR}/backup-restore-drill-readiness.json" "${MPF_BIN}" production backup-restore-drill-readiness --evidence-dir "${OUT_DIR}" --output json
-run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${OUT_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" "${FIREWALL_COMPLETION_EVIDENCE_ARG[@]}" --output json
 
 "${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt" 2>&1 || true
 "${MPF_BIN}" lanes list > "${OUT_DIR}/lanes.txt" 2>&1 || true
@@ -178,54 +230,6 @@ else
   "${MPF_BIN}" abuse status > "${OUT_DIR}/abuse-status.txt" 2>&1 || true
 fi
 
-python3 - "${OUT_DIR}" <<'PY'
-import json, pathlib, sys
-out=pathlib.Path(sys.argv[1])
-flag_keys=('mutation_performed','phase12_start_allowed','worker_enforcement_enabled','ui_enabled','telegram_enabled')
-def collect_flags(paths):
-    flags={}
-    for p in paths:
-        try:
-            data=json.loads(p.read_text(encoding='utf-8'))
-        except Exception:
-            continue
-        if isinstance(data, dict):
-            for k,v in data.items():
-                if k.endswith('_performed') or k in flag_keys:
-                    flags[f'{p.relative_to(out)}:{k}']=v
-    return flags
-source_names={'production-customer-lifecycle-execution-evidence.json'}
-json_files=list(out.rglob('*.json'))
-flags=collect_flags([p for p in json_files if str(p.relative_to(out)) not in source_names and p.name not in {'mutation-flags.json','source-evidence-mutation-flags.json'}])
-(out/'mutation-flags.json').write_text(json.dumps(flags, indent=2, sort_keys=True), encoding='utf-8')
-source_flags=collect_flags([out/name for name in source_names if (out/name).exists()])
-source_report={'classification':'historical_source_evidence_not_current_collector_run', 'mutation_flags': source_flags}
-(out/'source-evidence-mutation-flags.json').write_text(json.dumps(source_report, indent=2, sort_keys=True), encoding='utf-8')
-lifecycle_evidence={}
-if (out/'production-customer-lifecycle-execution-evidence.json').exists():
-    lifecycle_evidence={
-        'path':'production-customer-lifecycle-execution-evidence.json',
-        'sha256':(out/'production-customer-lifecycle-execution-evidence.sha256').read_text(encoding='utf-8').strip(),
-    }
-manifest={
-    'expected_version':(out/'expected-version.txt').read_text(encoding='utf-8').strip(),
-    'expected_backend_target':(out/'expected-backend-target.txt').read_text(encoding='utf-8').strip(),
-    'restart_autostart_evidence_dir':'restart-autostart-proof',
-    'lifecycle_execution_evidence': lifecycle_evidence,
-    'firewall_completion_evidence_dir': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR') or None,
-    'firewall_completion_evidence_dir_original': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR_ORIGINAL') or None,
-    'firewall_completion_evidence_dir_resolved': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR_RESOLVED') or None,
-    'firewall_completion_readiness_source': __import__('os').environ.get('FIREWALL_COMPLETION_READINESS_SOURCE') or None,
-    'firewall_completion_evidence_manifest': 'firewall-completion-evidence-manifest.json' if (out/'firewall-completion-evidence-manifest.json').exists() else None,
-    'firewall_completion_readiness': 'production-firewall-apply-verify-rollback-readiness.json' if (out/'production-firewall-apply-verify-rollback-readiness.json').exists() else None,
-    'backup_restore_drill_readiness': 'backup-restore-drill-readiness.json' if (out/'backup-restore-drill-readiness.json').exists() else None,
-    'mutation_flags': 'mutation-flags.json',
-    'source_evidence_mutation_flags': 'source-evidence-mutation-flags.json',
-    'sha256s': 'SHA256SUMS.txt',
-    'firewall_completion_evidence_sha256s': 'firewall-completion-evidence-SHA256SUMS.txt' if (out/'firewall-completion-evidence-SHA256SUMS.txt').exists() else None,
-    'firewall_completion_evidence_manifest_sha256': 'firewall-completion-evidence-manifest.sha256' if (out/'firewall-completion-evidence-manifest.sha256').exists() else None,
-    'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
-}
-(out/'manifest.json').write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding='utf-8')
-PY
-(cd "${OUT_DIR}" && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+write_collector_metadata
+run_json "${OUT_DIR}/backup-restore-drill-readiness.json" "${MPF_BIN}" production backup-restore-drill-readiness --evidence-dir "${OUT_DIR}" --output json
+run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${OUT_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" "${FIREWALL_COMPLETION_EVIDENCE_ARG[@]}" --output json
