@@ -176,6 +176,11 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 
 0.1.259 live-ready reapply preflight integrity note: live-ready controlled artifact reapply packages now use the same stable canonical package SHA contract in generation and executor preflight. The canonical package SHA excludes `package_sha256`, `__package_file_sha256`, and executor-injected transient runtime fields while retaining payload/content tamper detection and keeping file SHA validation separate. This aligns executor preflight only; it does not execute controlled artifact reapply, authorize `iptables-restore`, firewall mutation, DB mutation, runtime mutation, Phase 12, worker enforcement, UI, Telegram, timers, daemons, unrestricted production, or unrestricted miner expansion. Current gates remain `production_traffic=controlled_cli_limited`, `customer_onboarding_allowed=controlled_cli_limited`, `controlled_artifact_execute_available=false`, `iptables_restore_invocation_allowed=false`, and all mutation flags false.
 
+
+### 2026-06-17 — 0.1.287 Phase 11 operational completion evidence progression alignment
+
+0.1.287 fixes Phase 11 operational completion evidence progression after lifecycle execution by aligning collector/gap restart proof, firewall readiness consumption, lifecycle readiness final decision, and onboarding context propagation. It performs no runtime mutation, does not accept Full CLI Production Operations, and keeps Phase 12/worker/UI/Telegram closed.
+
 ## Current State
 
 ```text

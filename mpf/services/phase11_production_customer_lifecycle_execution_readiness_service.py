@@ -64,6 +64,12 @@ def build_phase11_production_customer_lifecycle_execution_readiness_report(
         _status("abuse_all_active_customer_coverage", "present" if abuse_covers_active else "missing_or_partial", abuse_status=(abuse_report or {}).get("status"), active_customer_count=active_count, visible_abuse_state_rows=len(abuse_states), diagnostic="mpf db status abuse_states counts persisted abuse_states rows; mpf abuse status reports active customer abuse visibility rows synthesized from active customers plus persisted state where present"),
     ]
     blockers = [item["name"] for item in checks if item["status"] == "missing_or_partial"]
+    lifecycle_blockers = [b for b in blockers if b in {"audit_event_path_availability", "backup_restore_point_requirement"}]
+    lifecycle_final_decision = (
+        "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"
+        if lifecycle_evidence_ready and not lifecycle_blockers
+        else "BLOCKED_PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_NOT_READY"
+    )
     return {
         "component": "phase11_production_customer_lifecycle_execution_readiness",
         "repository_version": __version__,
@@ -89,7 +95,7 @@ def build_phase11_production_customer_lifecycle_execution_readiness_report(
         "telegram_allowed": "no",
         "production_traffic": "controlled_cli_limited",
         "customer_onboarding_allowed": "controlled_cli_limited",
-        "final_decision": "BLOCKED_PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_NOT_READY",
+        "final_decision": lifecycle_final_decision,
         "next_required_step": "production_firewall_apply_verify_rollback" if lifecycle_evidence_ready else "implement_production_customer_lifecycle_execution",
     }
 

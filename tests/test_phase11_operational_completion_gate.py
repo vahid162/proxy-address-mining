@@ -101,7 +101,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.286"
+    assert report["repository_version"] == "0.1.287"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -141,7 +141,7 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
     def fake_run(config_path, **kwargs):
         packet_path_evidence_dir = kwargs.get("packet_path_evidence_dir")
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.286", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.287", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
@@ -255,9 +255,10 @@ def test_gap_inventory_advances_to_onboarding_after_no_reapply_firewall_evidence
         "scope": [{"customer_key": "limited-btc-001", "lane": "btc", "public_port": 20101}],
         "mutation_performed": False,
     }), encoding="utf-8")
+    _write_ready_restart_proof(tmp_path / "restart-autostart-proof")
     monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *args, **kwargs: {"production_customer_lifecycle_execution": "controlled_execution_evidence_ready", "final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"})
 
-    report = svc.build_phase11_operational_completion_gap_inventory_report(firewall_completion_evidence_dir=tmp_path)
+    report = svc.build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path, firewall_completion_evidence_dir=tmp_path)
 
     assert report["production_customer_lifecycle_execution"] == "controlled_execution_evidence_ready"
     assert report["production_firewall_apply_verify_rollback"] == "production_firewall_apply_verify_rollback_ready"
@@ -323,3 +324,128 @@ def test_gap_inventory_advances_to_controls_when_no_reapply_and_prior_surfaces_r
     # Without lifecycle/firewall evidence, no-reapply only clears stale reapply work and points at the next true blocker.
     assert report["next_required_step"] == "production_firewall_apply_verify_rollback"
     assert report["full_cli_production_operations"] == "missing_or_partial"
+
+
+def _write_ready_restart_proof(path: Path) -> None:
+    from mpf import __version__
+
+    path.mkdir(parents=True, exist_ok=True)
+    values = {
+        "repository_version.txt": __version__,
+        "phase_status.txt": "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5\ncurrent_working_phase: Phase 11 operational completion — Full CLI Production Operations\nphase12_start_allowed: no\nworker_enforcement_allowed: no\nui_allowed: no\ntelegram_allowed: no\nproduction_traffic: controlled_cli_limited\ncustomer_onboarding_allowed: controlled_cli_limited\n",
+        "mpf_version.txt": __version__,
+        "db_ping.txt": "OK",
+        "db_status.txt": "database: OK\nalembic_version: x\nlanes: 1\ncustomers: 2\n",
+        "lanes.txt": "btc enabled",
+        "customers.txt": "canary-btc-001\nlimited-btc-001\n",
+        "docker_ps.txt": "v2raya Up\nbtc running",
+        "container_listener_order.txt": "v2raya 127.0.0.1:2015 before btc 127.0.0.1:60010",
+        "listeners.txt": "127.0.0.1:2015\n127.0.0.1:60010\n",
+        "phase11_firewall_artifacts.txt": "known_controlled_phase11_artifacts: present",
+        "unknown_mpf_firewall_artifacts.txt": "unknown_mpf_firewall_artifacts: []",
+        "mutation_flags.json": json.dumps({
+            "mutation_performed": False,
+            "db_mutation_performed": False,
+            "firewall_apply_performed": False,
+            "conntrack_flush_performed": False,
+            "docker_restart_performed": False,
+            "systemd_restart_performed": False,
+        }),
+        "proof-report.json": json.dumps({"restart_autostart_proof": "ready", "final_decision": "RESTART_AUTOSTART_PROOF_READY"}),
+    }
+    for name, value in values.items():
+        (path / name).write_text(value, encoding="utf-8")
+
+
+def _ready_firewall_json() -> dict[str, object]:
+    return {
+        "production_firewall_apply_verify_rollback": "production_firewall_apply_verify_rollback_ready",
+        "final_decision": "PRODUCTION_FIREWALL_ALREADY_APPLIED_VERIFIED_NO_REAPPLY_REQUIRED",
+        "blockers": [],
+        "phase12_start_allowed": False,
+        "mutation_performed": False,
+        "db_mutation_performed": False,
+        "firewall_apply_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
+    }
+
+
+def test_gap_inventory_resolves_nested_restart_autostart_proof(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    nested = tmp_path / "restart-autostart-proof"
+    _write_ready_restart_proof(nested)
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution": "missing_or_partial"})
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path)
+
+    assert report["restart_autostart_proof"] == "ready"
+    assert report["restart_autostart_evidence_layout"] == "nested_collector"
+    assert Path(report["restart_autostart_evidence_dir"]) == nested
+
+
+def test_gap_inventory_preserves_direct_restart_autostart_proof_layout(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    _write_ready_restart_proof(tmp_path)
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution": "missing_or_partial"})
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path)
+
+    assert report["restart_autostart_proof"] == "ready"
+    assert report["restart_autostart_evidence_layout"] == "direct_legacy"
+
+
+def test_gap_inventory_restart_proof_fails_closed_on_malformed_nested_report(tmp_path) -> None:
+    nested = tmp_path / "restart-autostart-proof"
+    _write_ready_restart_proof(nested)
+    (nested / "proof-report.json").write_text("{", encoding="utf-8")
+
+    report = build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path)
+
+    assert report["restart_autostart_proof"] == "missing_or_partial"
+    assert report["restart_autostart_evidence_layout"] == "nested_collector"
+    assert "malformed_json_evidence:proof-report.json" in report["restart_autostart_proof_final_decision"] or report["restart_autostart_proof_final_decision"] == "BLOCKED_RESTART_AUTOSTART_PROOF_MISSING_OR_PARTIAL"
+
+
+def test_gap_inventory_consumes_valid_firewall_completion_readiness_json(tmp_path) -> None:
+    (tmp_path / "production-firewall-apply-verify-rollback-readiness.json").write_text(json.dumps(_ready_firewall_json()), encoding="utf-8")
+
+    report = build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path)
+
+    assert report["production_firewall_apply_verify_rollback"] == "production_firewall_apply_verify_rollback_ready"
+    assert report["production_firewall_apply_verify_rollback_readiness"]["blockers"] == []
+    assert report["phase12_start_allowed"] is False
+
+
+def test_gap_inventory_firewall_completion_readiness_json_fails_closed_when_unsafe(tmp_path) -> None:
+    unsafe = _ready_firewall_json() | {"firewall_apply_performed": True}
+    (tmp_path / "production-firewall-apply-verify-rollback-readiness.json").write_text(json.dumps(unsafe), encoding="utf-8")
+
+    report = build_phase11_operational_completion_gap_inventory_report(evidence_dir=tmp_path)
+
+    assert report["production_firewall_apply_verify_rollback"] == "missing_or_partial"
+    assert "firewall_completion_readiness_json_unsafe" in report["production_firewall_apply_verify_rollback_readiness"]["blockers"]
+
+
+def test_gap_inventory_progresses_to_controls_with_ready_prior_surfaces(monkeypatch, tmp_path) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+
+    _write_ready_restart_proof(tmp_path / "restart-autostart-proof")
+    (tmp_path / "production-firewall-apply-verify-rollback-readiness.json").write_text(json.dumps(_ready_firewall_json()), encoding="utf-8")
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution": "controlled_execution_evidence_ready", "final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"})
+
+    report = svc.build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=tmp_path,
+        onboarding_readiness={"production_onboarding_flow": "production_onboarding_flow_ready"},
+        usage_report_check_surface={"usage_report_check_surface_ready": True, "final_decision": "USAGE_REPORT_CHECK_SURFACE_READY", "blockers": []},
+        abuse_runner_readiness={"production_abuse_runner": "production_abuse_runner_ready"},
+        controls_readiness={"production_controls_pause_block_expire": "missing_or_partial", "blockers": ["block_capability_not_defined"]},
+        backup_restore_readiness={"backup_restore_drill": "missing_or_partial"},
+    )
+
+    assert report["next_required_step"] == "production_controls_pause_block_expire"
+    assert report["full_cli_production_operations"] == "missing_or_partial"
+    assert report["phase12_start_allowed"] is False

@@ -99,3 +99,18 @@ def test_verify_forbidden_runtime_flags_and_checksum_mismatch(tmp_path, monkeypa
     out=svc.verify(p)
     assert "backup_checksum_mismatch" in out["blockers"]
     assert "forbidden_flag:firewall_apply_performed" in out["blockers"]
+
+
+def test_lifecycle_readiness_final_decision_ready_for_verified_execution_evidence() -> None:
+    from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import build_phase11_production_customer_lifecycle_execution_readiness_report
+
+    report = build_phase11_production_customer_lifecycle_execution_readiness_report(
+        lifecycle_execution_evidence={"final_decision": "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"},
+    )
+
+    assert report["production_customer_lifecycle_execution"] == "controlled_execution_evidence_ready"
+    assert "audit_event_path_availability" not in report["blockers"]
+    assert "backup_restore_point_requirement" not in report["blockers"]
+    assert report["final_decision"] == "PRODUCTION_CUSTOMER_LIFECYCLE_EXECUTION_EVIDENCE_READY"
+    assert report["full_cli_production_operations"] == "missing_or_partial"
+    assert report["phase12_start_allowed"] is False

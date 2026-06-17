@@ -28,6 +28,7 @@ from mpf.services.phase11_production_firewall_apply_verify_rollback_readiness_se
 )
 from mpf.services.phase11_production_onboarding_flow_readiness_service import (
     READY as ONBOARDING_READY,
+    run_phase11_production_onboarding_flow_readiness_report,
 )
 from mpf.services.phase11_production_abuse_runner_readiness_service import (
     READY as ABUSE_RUNNER_READY,
@@ -40,6 +41,86 @@ from mpf.services.phase11_production_controls_pause_block_expire_readiness_servi
 )
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
+
+_FIREWALL_SAFE_FINAL_DECISIONS = {
+    "PRODUCTION_FIREWALL_ALREADY_APPLIED_VERIFIED_NO_REAPPLY_REQUIRED",
+    "PRODUCTION_FIREWALL_APPLY_VERIFY_ROLLBACK_EVIDENCE_READY",
+}
+_MUTATION_KEYS = (
+    "mutation_performed",
+    "db_mutation_performed",
+    "firewall_apply_performed",
+    "conntrack_flush_performed",
+    "docker_restart_performed",
+    "systemd_restart_performed",
+)
+
+
+def _resolve_restart_autostart_evidence_dir(evidence_dir: Path | str | None, explicit: Path | str | None = None) -> tuple[Path | None, str]:
+    if explicit is not None:
+        return Path(explicit), "direct_legacy"
+    if evidence_dir is None:
+        return None, "missing"
+    base = Path(evidence_dir)
+    nested = base / "restart-autostart-proof"
+    if nested.is_dir():
+        return nested, "nested_collector"
+    if base.exists():
+        return base, "direct_legacy"
+    return None, "missing"
+
+
+def _firewall_fail_closed(blocker: str, detail: str | None = None) -> dict[str, object]:
+    blockers = [blocker] if detail is None else [blocker, detail]
+    return {
+        "component": "phase11_production_firewall_apply_verify_rollback_readiness",
+        "repository_version": __version__,
+        "production_firewall_apply_verify_rollback": _MISSING_OR_PARTIAL,
+        "phase12_start_allowed": False,
+        "mutation_performed": False,
+        "db_mutation_performed": False,
+        "firewall_apply_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
+        "blockers": blockers,
+        "final_decision": "BLOCKED_PRODUCTION_FIREWALL_APPLY_VERIFY_ROLLBACK_EVIDENCE",
+        "next_required_step": "production_firewall_apply_verify_rollback",
+    }
+
+
+def _validated_firewall_readiness_json(report: dict[str, object]) -> dict[str, object]:
+    if report.get("production_firewall_apply_verify_rollback") != FIREWALL_READY:
+        return _firewall_fail_closed("firewall_completion_readiness_json_invalid")
+    if report.get("final_decision") not in _FIREWALL_SAFE_FINAL_DECISIONS:
+        return _firewall_fail_closed("firewall_completion_readiness_json_invalid")
+    if report.get("blockers") not in ([], None):
+        return _firewall_fail_closed("firewall_completion_readiness_json_invalid")
+    if report.get("phase12_start_allowed") is not False:
+        return _firewall_fail_closed("firewall_completion_readiness_json_unsafe")
+    if any(report.get(key) is True for key in _MUTATION_KEYS):
+        return _firewall_fail_closed("firewall_completion_readiness_json_unsafe")
+    safe = dict(report)
+    for key in _MUTATION_KEYS:
+        safe.setdefault(key, False)
+    safe.setdefault("phase12_start_allowed", False)
+    safe.setdefault("blockers", [])
+    return safe
+
+
+def _load_firewall_completion_readiness(evidence_dir: Path | str | None) -> dict[str, object] | None:
+    if evidence_dir is None:
+        return None
+    path = Path(evidence_dir) / "production-firewall-apply-verify-rollback-readiness.json"
+    if not path.exists():
+        return None
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001 - fail closed for malformed collector evidence.
+        return _firewall_fail_closed("firewall_completion_readiness_json_invalid", str(exc))
+    if not isinstance(loaded, dict):
+        return _firewall_fail_closed("firewall_completion_readiness_json_invalid")
+    return _validated_firewall_readiness_json(loaded)
 
 
 def _load_evidence_json(evidence_dir: Path | str | None, filename: str) -> dict[str, object] | None:
@@ -102,6 +183,8 @@ def build_phase11_operational_completion_gap_inventory_report(
     readiness_report: dict[str, object] | None = None,
     lifecycle_execution_evidence_json: Path | str | None = None,
     firewall_completion_evidence_dir: Path | str | None = None,
+    restart_autostart_evidence_dir: Path | str | None = None,
+    firewall_completion_readiness: dict[str, object] | None = None,
     expected_version: str = __version__,
     expected_backend_target: str | None = None,
     iptables_save_file: Path | str | None = None,
@@ -141,9 +224,10 @@ def build_phase11_operational_completion_gap_inventory_report(
             "next_required_step": "controlled_artifact_reapply_readiness_snapshot_required",
         }
 
+    resolved_restart_dir, restart_layout = _resolve_restart_autostart_evidence_dir(evidence_dir, restart_autostart_evidence_dir)
     restart_report = (
-        build_phase11_restart_autostart_proof_report(evidence_dir)
-        if evidence_dir
+        build_phase11_restart_autostart_proof_report(resolved_restart_dir)
+        if resolved_restart_dir is not None
         else None
     )
     restart_status = (
@@ -155,7 +239,7 @@ def build_phase11_operational_completion_gap_inventory_report(
         lifecycle_readiness = (
             run_phase11_production_customer_lifecycle_execution_readiness_report(
                 config_path,
-                evidence_dir=evidence_dir,
+                evidence_dir=resolved_restart_dir,
                 restart_autostart_proof_ready=restart_status == "ready",
                 lifecycle_execution_evidence_json=lifecycle_execution_evidence_json,
             )
@@ -176,13 +260,14 @@ def build_phase11_operational_completion_gap_inventory_report(
         == "controlled_execution_evidence_ready"
         else _MISSING_OR_PARTIAL
     )
-    firewall_completion = (
-        build_production_firewall_apply_verify_rollback_readiness_report(
+    if firewall_completion_readiness is not None:
+        firewall_completion = _validated_firewall_readiness_json(firewall_completion_readiness)
+    else:
+        firewall_completion = _load_firewall_completion_readiness(evidence_dir)
+    if firewall_completion is None and firewall_completion_evidence_dir:
+        firewall_completion = build_production_firewall_apply_verify_rollback_readiness_report(
             firewall_completion_evidence_dir
         )
-        if firewall_completion_evidence_dir
-        else None
-    )
     firewall_item = (
         FIREWALL_READY
         if firewall_completion
@@ -191,9 +276,25 @@ def build_phase11_operational_completion_gap_inventory_report(
         else _MISSING_OR_PARTIAL
     )
     if onboarding_readiness is None:
-        onboarding_readiness = _load_evidence_json(
+        loaded_onboarding = _load_evidence_json(
             evidence_dir, "production-onboarding-flow-readiness.json"
         )
+        if loaded_onboarding and loaded_onboarding.get("production_onboarding_flow") == ONBOARDING_READY:
+            onboarding_readiness = loaded_onboarding
+        else:
+            try:
+                onboarding_readiness = run_phase11_production_onboarding_flow_readiness_report(
+                    config_path,
+                    lifecycle_readiness=lifecycle_readiness,
+                    firewall_readiness=firewall_completion,
+                )
+            except Exception as exc:  # noqa: BLE001 - gap inventory must fail closed.
+                onboarding_readiness = loaded_onboarding or {
+                    "production_onboarding_flow": _MISSING_OR_PARTIAL,
+                    "blockers": ["onboarding_readiness_context_evaluation_failed", str(exc)],
+                    "mutation_performed": False,
+                    "phase12_start_allowed": False,
+                }
     onboarding_item = (
         ONBOARDING_READY
         if (onboarding_readiness or {}).get("production_onboarding_flow")
@@ -259,7 +360,8 @@ def build_phase11_operational_completion_gap_inventory_report(
         restart_status, persistence_plan_report, readiness_report, lifecycle_readiness
     )
     progression_prerequisites_ready = (
-        lifecycle_item == "controlled_execution_evidence_ready"
+        restart_status == "ready"
+        and lifecycle_item == "controlled_execution_evidence_ready"
         and firewall_item == FIREWALL_READY
     )
     full_acceptance_prerequisites_ready = (
@@ -285,6 +387,8 @@ def build_phase11_operational_completion_gap_inventory_report(
         "phase11_operational_completion_scope": "full_cli_production_operations",
         "phase12_start_allowed": False,
         "restart_autostart_proof": restart_status,
+        "restart_autostart_evidence_dir": str(resolved_restart_dir) if resolved_restart_dir else None,
+        "restart_autostart_evidence_layout": restart_layout if restart_report else "missing",
         "production_customer_lifecycle_execution": lifecycle_item,
         "production_customer_lifecycle_execution_readiness": lifecycle_readiness,
         "production_firewall_apply_verify_rollback": firewall_item,
@@ -436,6 +540,8 @@ def run_phase11_operational_completion_gap_inventory_report(
     packet_path_evidence_dir: Path | str | None = None,
     lifecycle_execution_evidence_json: Path | str | None = None,
     firewall_completion_evidence_dir: Path | str | None = None,
+    restart_autostart_evidence_dir: Path | str | None = None,
+    firewall_completion_readiness: dict[str, object] | None = None,
     expected_version: str = __version__,
     expected_backend_target: str | None = None,
     iptables_save_file: Path | str | None = None,
@@ -501,6 +607,8 @@ def run_phase11_operational_completion_gap_inventory_report(
         readiness_report=readiness_report,
         lifecycle_execution_evidence_json=lifecycle_execution_evidence_json,
         firewall_completion_evidence_dir=firewall_completion_evidence_dir,
+        restart_autostart_evidence_dir=restart_autostart_evidence_dir,
+        firewall_completion_readiness=firewall_completion_readiness,
         onboarding_readiness=onboarding_readiness,
         usage_report_check_surface=usage_report_check_surface,
         abuse_runner_readiness=abuse_runner_readiness,

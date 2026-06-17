@@ -131,6 +131,10 @@ manifest={
     'lifecycle_execution_evidence': lifecycle_evidence,
     'firewall_completion_evidence_dir': __import__('os').environ.get('FIREWALL_COMPLETION_EVIDENCE_DIR') or None,
     'firewall_completion_evidence_manifest': 'firewall-completion-evidence-manifest.json' if (out/'firewall-completion-evidence-manifest.json').exists() else None,
+    'firewall_completion_readiness': 'production-firewall-apply-verify-rollback-readiness.json' if (out/'production-firewall-apply-verify-rollback-readiness.json').exists() else None,
+    'mutation_flags': 'mutation-flags.json',
+    'source_evidence_mutation_flags': 'source-evidence-mutation-flags.json',
+    'sha256s': 'SHA256SUMS.txt',
     'firewall_completion_evidence_sha256s': 'firewall-completion-evidence-SHA256SUMS.txt' if (out/'firewall-completion-evidence-SHA256SUMS.txt').exists() else None,
     'files':sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file()),
 }
