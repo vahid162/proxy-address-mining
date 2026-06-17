@@ -151,6 +151,8 @@ from mpf.services import (
     phase11_final_acceptance_pr_readiness_service,
     phase11_final_acceptance_service, phase11_post_acceptance_verification_service,
     phase11_operational_completion_gap_inventory_service,
+    phase11_production_onboarding_flow_readiness_service,
+    phase11_production_abuse_runner_readiness_service,
     phase11_restart_autostart_proof_service,
     phase11_restart_autostart_persistence_diagnosis_service,
     phase11_restart_autostart_persistence_fix_service,
@@ -3751,6 +3753,38 @@ def production_firewall_apply_rollback_operational_surface(
             message=str(exc),
         )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+@production_app.command("production-onboarding-flow-readiness")
+def production_onboarding_flow_readiness(
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Render read-only Phase 11 production onboarding flow readiness."""
+    report = phase11_production_onboarding_flow_readiness_service.run_phase11_production_onboarding_flow_readiness_report(
+        _config_path(config)
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
+
+
+@production_app.command("production-abuse-runner-readiness")
+def production_abuse_runner_readiness(
+    output: Literal["human", "json"] = typer.Option("human", "--output"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+) -> None:
+    """Render read-only Phase 11 production abuse runner readiness."""
+    report = phase11_production_abuse_runner_readiness_service.run_phase11_production_abuse_runner_readiness_report(
+        _config_path(config)
+    )
+    if output == "json":
+        typer.echo(json.dumps(report, indent=2, ensure_ascii=False, default=str))
+        return
+    for key, value in report.items():
+        typer.echo(f"{key}: {value}")
 
 
 @production_app.command("phase11-operational-completion-gap-inventory")
