@@ -81,7 +81,9 @@ if [[ -n "${FIREWALL_COMPLETION_EVIDENCE_DIR}" ]]; then
   fi
   run_json "${OUT_DIR}/production-firewall-apply-verify-rollback-readiness.json" "${MPF_BIN}" production production-firewall-apply-verify-rollback-readiness --evidence-dir "${FIREWALL_COMPLETION_EVIDENCE_DIR}" --output json
 fi
-run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${RESTART_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" "${FIREWALL_COMPLETION_EVIDENCE_ARG[@]}" --output json
+run_json "${OUT_DIR}/production-onboarding-flow-readiness.json" "${MPF_BIN}" production production-onboarding-flow-readiness --output json
+run_json "${OUT_DIR}/production-abuse-runner-readiness.json" "${MPF_BIN}" production production-abuse-runner-readiness --output json
+run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json" env MPF_EXPECTED_BACKEND_TARGET="${EXPECTED_BACKEND_TARGET}" "${MPF_BIN}" production phase11-operational-completion-gap-inventory --evidence-dir "${OUT_DIR}" "${LIFECYCLE_EVIDENCE_ARG[@]}" "${FIREWALL_COMPLETION_EVIDENCE_ARG[@]}" --output json
 
 "${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt" 2>&1 || true
 "${MPF_BIN}" lanes list > "${OUT_DIR}/lanes.txt" 2>&1 || true
