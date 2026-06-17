@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.284
+
+- fix(phase11): make customer update/disable dry-run peer-safe with read-only resolution so root-run controls readiness/gap inventory no longer false-report pause/expire dry-run failures. Real --yes writes remain guarded; no DB/firewall/runtime mutation; Phase 12/worker/UI/Telegram remain closed.
+
 
 ## 0.1.283
 - feat(phase11): add read-only production controls pause/block/expire preflight readiness; pause/expire dry-runs are surfaced, block remains `block_capability_not_defined`, root non-`--yes` dry-runs can reach the service layer, nullable customer show mapping and blocked-status CLI validation are controlled.
