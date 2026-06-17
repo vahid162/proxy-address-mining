@@ -37,28 +37,56 @@ def _load(evidence_dir: Path | str | None, name: str) -> dict[str, Any] | None:
         return {"_invalid_json": True}
 
 
+def _append_flag_blockers(
+    data: dict[str, Any], blockers: list[str], *, require_explicit_safe_flags: bool = False
+) -> None:
+    for k in _FALSE_FLAGS:
+        if require_explicit_safe_flags:
+            if k not in data:
+                blockers.append(f"missing_safe_flag:{k}")
+            elif data.get(k) is not False:
+                blockers.append(f"unsafe_or_mutating_flag:{k}")
+        elif data.get(k) not in (False, None):
+            blockers.append(f"unsafe_or_mutating_flag:{k}")
+    for k, expected in _GATE_FLAGS.items():
+        if require_explicit_safe_flags:
+            if k not in data:
+                blockers.append(f"missing_safe_gate_flag:{k}")
+            elif data.get(k) != expected:
+                blockers.append(f"unsafe_gate_flag:{k}")
+        elif data.get(k, expected) != expected:
+            blockers.append(f"unsafe_gate_flag:{k}")
+
+
 def build_contract_readiness_report(
     kind: str, evidence_dir: Path | str | None = None
 ) -> dict[str, Any]:
     filename = f"{kind}.json"
     data = _load(evidence_dir, filename)
     blockers = []
+    require_explicit_safe_flags = kind == "production_controls_pause_block_expire"
     if data is None:
         blockers.append(f"{kind}_evidence_missing")
     elif data.get("_invalid_json"):
         blockers.append(f"{kind}_evidence_invalid_json")
     else:
-        if (
+        if kind == "production_controls_pause_block_expire":
+            if data.get("pause_preflight", {}).get("ready") is not True:
+                blockers.append("pause_preflight_not_ready")
+            if data.get("expire_run_preflight", {}).get("ready") is not True:
+                blockers.append("expire_run_preflight_not_ready")
+            if data.get("block_preflight", {}).get("ready") is not True:
+                blockers.append("block_preflight_not_ready")
+            if data.get("production_controls_pause_block_expire_ready") is not True:
+                blockers.append(f"{kind}_ready_flag_missing")
+        elif (
             data.get(kind) not in {f"{kind}_ready", "ready"}
             and data.get("ready") is not True
         ):
             blockers.append(f"{kind}_ready_flag_missing")
-        for k in _FALSE_FLAGS:
-            if data.get(k) not in (False, None):
-                blockers.append(f"unsafe_or_mutating_flag:{k}")
-        for k, expected in _GATE_FLAGS.items():
-            if data.get(k, expected) != expected:
-                blockers.append(f"unsafe_gate_flag:{k}")
+        _append_flag_blockers(
+            data, blockers, require_explicit_safe_flags=require_explicit_safe_flags
+        )
         for k in ("operator", "evidence_collected_at", "scope", "final_decision"):
             if not data.get(k):
                 blockers.append(f"{kind}_missing_{k}")

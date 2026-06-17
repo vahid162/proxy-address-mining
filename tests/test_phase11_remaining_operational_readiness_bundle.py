@@ -122,6 +122,15 @@ def test_remaining_contracts_missing_and_valid(tmp_path):
     data = {
         "production_controls_pause_block_expire": "production_controls_pause_block_expire_ready",
         "ready": True,
+        "pause_preflight": {"ready": True},
+        "expire_run_preflight": {"ready": True},
+        "block_preflight": {"ready": True},
+        "production_controls_pause_block_expire_ready": True,
+        "worker_enforcement_allowed": "no",
+        "ui_allowed": "no",
+        "telegram_allowed": "no",
+        "production_traffic": "controlled_cli_limited",
+        "customer_onboarding_allowed": "controlled_cli_limited",
         "operator": "op",
         "evidence_collected_at": "now",
         "scope": "phase11",
@@ -129,6 +138,9 @@ def test_remaining_contracts_missing_and_valid(tmp_path):
         "mutation_performed": False,
         "db_mutation_performed": False,
         "firewall_apply_performed": False,
+        "conntrack_flush_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
         "phase12_start_allowed": False,
     }
     (tmp_path / "production_controls_pause_block_expire.json").write_text(
