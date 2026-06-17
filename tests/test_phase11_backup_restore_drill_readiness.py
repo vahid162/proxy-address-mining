@@ -96,8 +96,16 @@ def test_gap_inventory_consumes_explicit_backup_restore_readiness(tmp_path):
     assert inventory["full_cli_production_operations"] == "missing_or_partial"
 
 
-def test_collector_invokes_backup_restore_readiness_without_mutation_words():
+def test_collector_writes_backup_restore_readiness_after_required_metadata():
     text = Path("scripts/phase11_collect_operational_surfaces_evidence.sh").read_text(encoding="utf-8")
+
     assert "backup-restore-drill-readiness.json" in text
     assert "production backup-restore-drill-readiness" in text
     assert "backup_restore_drill_readiness" in text
+
+    db_status_index = text.index('"${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt"')
+    metadata_index = text.index("write_collector_metadata")
+    backup_readiness_index = text.index('run_json "${OUT_DIR}/backup-restore-drill-readiness.json"')
+    gap_inventory_index = text.index('run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json"')
+
+    assert db_status_index < metadata_index < backup_readiness_index < gap_inventory_index
