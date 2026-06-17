@@ -188,6 +188,11 @@ This file is the authoritative phase gate for humans and AI coding agents. It mu
 
 0.1.287 fixes Phase 11 operational completion evidence progression after lifecycle execution by aligning collector/gap restart proof, firewall readiness consumption, lifecycle readiness final decision, and onboarding context propagation. It performs no runtime mutation, does not accept Full CLI Production Operations, and keeps Phase 12/worker/UI/Telegram closed.
 
+
+### 2026-06-17 — 0.1.291 Phase 11 backup/restore drill readiness package
+
+0.1.291 introduces a non-destructive `backup_restore_drill` readiness package with strict JSON evidence, collector integration, and gap inventory consumption. It validates backup/restore drill prerequisites only; it does not execute production restore, mutate PostgreSQL/firewall/Docker/systemd/conntrack/customer state, mark final Full CLI Production Operations acceptance, or open Phase 12, worker enforcement, UI, or Telegram.
+
 ## Current State
 
 ```text

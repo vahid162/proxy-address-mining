@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.291
+
+- feat(phase11): add non-destructive backup/restore drill readiness service, CLI, collector output, and gap inventory evidence consumption while keeping final acceptance and Phase 12 closed.
+
 ## 0.1.290
 
 - fix(phase11): keep controls gap inventory evidence-driven so no-evidence server pytest remains fail-closed while explicit collector controls evidence can advance to backup_restore_drill.
