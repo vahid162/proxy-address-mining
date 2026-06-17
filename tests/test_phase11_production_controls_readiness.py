@@ -68,8 +68,8 @@ def test_controls_contract_requires_explicit_safe_flags(tmp_path):
     (tmp_path / "production_controls_pause_block_expire.json").write_text(json.dumps(evidence), encoding="utf-8")
     report = contract.build_contract_readiness_report("production_controls_pause_block_expire", tmp_path)
     assert report["production_controls_pause_block_expire"] == "missing_or_partial"
-    assert "missing_or_unsafe_flag:mutation_performed" in report["blockers"]
-    assert "missing_or_unsafe_gate_flag:worker_enforcement_allowed" in report["blockers"]
+    assert "missing_safe_flag:mutation_performed" in report["blockers"]
+    assert "missing_safe_gate_flag:worker_enforcement_allowed" in report["blockers"]
 
 
 def test_gap_inventory_embeds_controls(monkeypatch):
