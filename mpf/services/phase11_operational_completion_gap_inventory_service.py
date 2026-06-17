@@ -16,6 +16,7 @@ from mpf.services.phase11_restart_autostart_proof_service import (
 from mpf.services.phase11_operational_completion_progression import active_progression
 from mpf.services.phase11_controlled_artifact_reapply_readiness_service import (
     READY as READINESS_READY,
+    NO_REAPPLY as READINESS_NO_REAPPLY,
     run_phase11_controlled_artifact_reapply_readiness,
 )
 from mpf.services.phase11_production_customer_lifecycle_execution_readiness_service import (
@@ -82,6 +83,12 @@ def _next_step(
         return "implement_production_customer_lifecycle_execution"
     if readiness_report and readiness_report.get("final_decision") == READINESS_READY:
         return "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"
+    if (
+        readiness_report
+        and readiness_report.get("final_decision") == READINESS_NO_REAPPLY
+        and not readiness_report.get("blockers")
+    ):
+        return "production_firewall_apply_verify_rollback"
     return str(active_progression()["next_required_step"])
 
 

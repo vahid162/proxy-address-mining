@@ -197,3 +197,37 @@ def test_gap_inventory_progression_and_usage_warnings_preserved(tmp_path):
         == "prepare_live_ready_controlled_artifact_reapply_package"
     )
     assert r["full_cli_production_operations"] == "missing_or_partial"
+
+
+def test_gap_inventory_treats_terminal_no_reapply_readiness_as_satisfied():
+    r = build_phase11_operational_completion_gap_inventory_report(
+        readiness_report={
+            "final_decision": "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT",
+            "blockers": [],
+            "live_ready_package_available": False,
+            "production_execution_available": False,
+            "controlled_artifact_execute_available": False,
+            "iptables_restore_invocation_allowed": False,
+            "phase12_start_allowed": False,
+            "worker_enforcement_allowed": "no",
+            "ui_allowed": "no",
+            "telegram_allowed": "no",
+        },
+        controls_readiness={
+            "production_controls_pause_block_expire": "missing_or_partial"
+        },
+        backup_restore_readiness={"backup_restore_drill": "missing_or_partial"},
+    )
+
+    assert r["next_required_step"] == "production_firewall_apply_verify_rollback"
+    assert (
+        r["next_required_step"]
+        != "prepare_live_ready_controlled_artifact_reapply_package"
+    )
+    assert r["full_cli_production_operations"] == "missing_or_partial"
+    assert r["phase12_start_allowed"] is False
+    assert r["worker_enforcement_allowed"] == "no"
+    assert r["ui_allowed"] == "no"
+    assert r["telegram_allowed"] == "no"
+    assert r["production_controls_pause_block_expire"] == "missing_or_partial"
+    assert r["backup_restore_drill"] == "missing_or_partial"

@@ -14,6 +14,7 @@ from mpf.services import phase11_live_ready_reapply_package_service as live_read
 READY = "READY_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
 BLOCKED = "BLOCKED_LIVE_READY_CONTROLLED_ARTIFACT_REAPPLY_PACKAGE"
 NO_REAPPLY = "NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT"
+NO_REAPPLY_NEXT_STEP = "review_no_reapply_controlled_artifacts_and_continue_phase11_operational_completion"
 
 
 def _as_list(value: object) -> list[object]:
@@ -166,6 +167,7 @@ def run_phase11_controlled_artifact_reapply_readiness(
         blockers = [b for b in blockers if b not in {"plan_not_ready", "package_not_ready", "package_payload_empty", "no_reapply_package_cannot_execute", "live_plan_not_safe", "live_plan_final_decision_blocked"}]
         if not blockers:
             final_decision = NO_REAPPLY
+            next_step = NO_REAPPLY_NEXT_STEP
     elif package_ready and verification_ready and not blockers:
         final_decision = READY
         live_ready = True
