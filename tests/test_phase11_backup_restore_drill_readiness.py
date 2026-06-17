@@ -104,7 +104,7 @@ def test_collector_writes_backup_restore_readiness_after_required_metadata():
     assert "backup_restore_drill_readiness" in text
 
     db_status_index = text.index('"${MPF_BIN}" db status > "${OUT_DIR}/db-status.txt"')
-    metadata_index = text.index("write_collector_metadata")
+    metadata_index = text.rindex("\nwrite_collector_metadata\n")
     backup_readiness_index = text.index('run_json "${OUT_DIR}/backup-restore-drill-readiness.json"')
     gap_inventory_index = text.index('run_json "${OUT_DIR}/phase11-operational-completion-gap-inventory.json"')
 
