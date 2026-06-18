@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.295
+- fix(phase11): fix generic real-customer activation package/preflight false blockers by normalizing empty/null deleted_at values and aligning accepted controlled MPF artifact taxonomy. Reinforce the 10-item Phase 11 matrix while keeping Full CLI Production Operations unaccepted, production_traffic/customer_onboarding_allowed controlled_cli_limited, no DB/firewall/NAT/runtime mutation, no iptables-restore, no Docker/systemd/conntrack changes, and no Phase 12/worker/UI/Telegram.
+
 ## 0.1.294
 - feat(phase11): add generic activation execution runner, iptables-save verification conversion, transcript import, and first-connect DB evidence guards.
 

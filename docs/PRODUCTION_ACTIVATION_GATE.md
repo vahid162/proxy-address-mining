@@ -1,15 +1,20 @@
 # Production / Customer Activation Gate
 
-## Acceptance Update (0.1.234)
+## Historical accepted boundary: controlled_cli_limited BTC on farm5
 
-Phase 11 is now accepted on farm5 only for `controlled_cli_limited` BTC operation. Controlled CLI/service-layer onboarding, controlled firewall apply, and controlled abuse automation paths are accepted boundaries. This does not enable unrestricted expansion, UI, Telegram, worker enforcement, or direct DB/firewall edits. Default configuration remains conservative and each controlled operation requires explicit operator evidence.
+Phase 11 is accepted on farm5 only for controlled CLI-limited BTC operation. Controlled CLI/service-layer onboarding, controlled firewall apply, and controlled abuse automation paths are accepted boundaries. This does not enable unrestricted expansion, UI, Telegram, worker enforcement, direct DB/firewall edits, or final Full CLI Production Operations acceptance. Legacy shell scripts remain reference material only.
 
+## Active gate: Phase 11 operational completion — Full CLI Production Operations
 
-Status: planned Phase 11 gate after Phase 10 final acceptance
+The active gate is the 10-item completion matrix. Item 9 is production generic real-customer activation (`production_generic_real_customer_activation`), and item 10 is final acceptance that sets `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`. Final acceptance remains blocked until a real DB-backed customer proves package, preflight, controlled apply, verify, external traffic, transcript/first-connect DB evidence, abuse coverage, and rollback evidence.
 
-This document defines the required Phase 11 gate for making the server operational for real customers through terminal commands before Worker Policy Enforcement, Local UI, Operator UI Actions, or Telegram phases.
+## Required evidence for cli_production
 
-This gate is not open now. It is a future explicit acceptance gate.
+`cli_production` requires restart/autostart proof, production customer lifecycle CLI execution, production firewall plan/apply/verify/rollback for real customer ports, production onboarding through CLI, usage/report/check evidence, abuse runner coverage for all active customers in all enabled lanes, pause/block/expire-run controls, backup/restore drill, production generic real-customer activation, and final acceptance evidence. Readiness surfaces alone are not enough.
+
+## Still blocked after 0.1.295
+
+Phase 12, worker enforcement, UI, Telegram, unrestricted production expansion, Docker/systemd/conntrack mutation, and unreviewed runtime apply remain closed. Package/preflight unblock is not apply and is not final operational acceptance.
 
 ## Purpose
 
