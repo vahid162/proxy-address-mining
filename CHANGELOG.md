@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.293
+
+- feat(phase11): add generic real-customer activation as official item 9 before final acceptance, with fail-closed package/preflight/apply/verify/runtime/rollback readiness service contracts and gap inventory integration.
+
 ## 0.1.292
 
 - fix(phase11): close pre-final CLI usability and readiness evidence inconsistencies without runtime mutation or final acceptance.
