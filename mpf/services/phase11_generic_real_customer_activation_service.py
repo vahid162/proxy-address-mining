@@ -165,6 +165,8 @@ def apply_activation_package(package: dict[str, Any], *, execute: bool = False, 
     report = _base("phase11_generic_real_customer_activation_apply", str(package.get("customer_key")))
     blockers = []
     if not execute: blockers.append("execute_flag_required")
+    if execute and restore_runner is None:
+        blockers.append("restore_runner_required_for_apply_execution")
     if os.environ.get("CI") and restore_runner is None: blockers.append("real_iptables_restore_forbidden_in_ci")
     if confirmed_package_sha256 != package.get("package_sha256"): blockers.append("package_hash_confirmation_mismatch")
     if confirmed_customer_key != package.get("customer_key"): blockers.append("target_customer_confirmation_mismatch")
@@ -174,9 +176,11 @@ def apply_activation_package(package: dict[str, Any], *, execute: bool = False, 
     if not operator_lock_id: blockers.append("operator_lock_or_restore_point_required")
     if blockers:
         return {**report, "production_generic_real_customer_activation": MISSING, "blockers": blockers, "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY", "next_required_step": "generic_real_customer_activation_apply"}
-    if restore_runner:
+    try:
         restore_runner(package["restore_payload"], test=True, noflush=True)
         restore_runner(package["restore_payload"], test=False, noflush=True)
+    except Exception as exc:  # noqa: BLE001 - operator apply evidence must fail closed.
+        return {**report, "production_generic_real_customer_activation": MISSING, "blockers": ["iptables_restore_runner_failed"], "error": str(exc), "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY", "next_required_step": "generic_real_customer_activation_apply"}
     return {**report, "production_generic_real_customer_activation": APPLY_PENDING_RUNTIME, "firewall_mutation_performed": True, "nat_mutation_performed": True, "mutation_performed": True, "iptables_restore_test_invoked": True, "iptables_restore_invoked": True, "blockers": [], "final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY_EXECUTED_PENDING_RUNTIME_EVIDENCE", "next_required_step": "generic_real_customer_activation_verify"}
 
 
