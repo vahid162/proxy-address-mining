@@ -9,8 +9,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import getpass
+import subprocess
 import uuid
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Protocol
 
@@ -25,6 +27,55 @@ RUNTIME_READY = "generic_real_customer_activation_runtime_evidence_ready"
 MISSING = "missing_or_partial"
 
 RESERVED_PORTS = {22, 80, 443, 2015, 5432, 60010}
+
+
+def run_iptables_restore(payload: str, *, test: bool, noflush: bool) -> dict[str, Any]:
+    """Operator-gated host runner for generic activation restore payloads.
+
+    The caller must satisfy all service-layer gates before this function is
+    injected. CI is always fail-closed.
+    """
+    if os.environ.get("CI"):
+        raise RuntimeError("real_iptables_restore_forbidden_in_ci")
+    if os.environ.get("MPF_PHASE11_GENERIC_ACTIVATION_APPLY") != "1":
+        raise RuntimeError("operator_env_gate_required_for_iptables_restore")
+    cmd = ["iptables-restore"]
+    if test:
+        cmd.append("--test")
+    if noflush:
+        cmd.append("--noflush")
+    result = subprocess.run(cmd, input=payload, text=True, capture_output=True, check=False)
+    evidence = {"command": cmd, "stdout": result.stdout, "stderr": result.stderr, "returncode": result.returncode, "test": test, "noflush": noflush}
+    if result.returncode != 0:
+        raise RuntimeError(json.dumps(evidence, sort_keys=True))
+    return evidence
+
+
+def snapshot_from_iptables_save(text: str) -> dict[str, Any]:
+    dnat_by_port: dict[str, list[str]] = {}
+    chains: list[str] = []
+    unknown: list[str] = []
+    backend_public_exposure = False
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith(':'):
+            chains.append(line.split()[0][1:])
+        if line.startswith('-N '):
+            chains.append(line.split()[1])
+        if 'MPF' in line and not any(tok in line for tok in ('MPFC_', 'MPF customer=', 'MPF_GUARD', 'MPF_ACCT', 'MPFO_')):
+            unknown.append(line)
+        if '-j DNAT' in line and '--dport' in line and '--to-destination' in line:
+            parts = line.split()
+            port = parts[parts.index('--dport') + 1]
+            target = parts[parts.index('--to-destination') + 1]
+            dnat_by_port.setdefault(str(port), []).append(target)
+        if ('--dport 60010' in line or 'dpt:60010' in line) and any(x in line for x in ('ACCEPT', '-j ACCEPT')):
+            backend_public_exposure = True
+    duplicate = [int(p) for p, vals in dnat_by_port.items() if len(vals) > 1]
+    return {"dnat_by_port": dnat_by_port, "chains": sorted(set(chains)), "unknown_mpf_artifacts": unknown, "duplicate_dnat_ports": duplicate, "conflicting_ports": [], "backend_public_exposure": backend_public_exposure}
+
 MUTATION_FLAGS = {
     "firewall_mutation_performed": False,
     "nat_mutation_performed": False,
@@ -176,12 +227,16 @@ def apply_activation_package(package: dict[str, Any], *, execute: bool = False, 
     if not operator_lock_id: blockers.append("operator_lock_or_restore_point_required")
     if blockers:
         return {**report, "production_generic_real_customer_activation": MISSING, "blockers": blockers, "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY", "next_required_step": "generic_real_customer_activation_apply"}
+    test_result = apply_result = None
     try:
-        restore_runner(package["restore_payload"], test=True, noflush=True)
-        restore_runner(package["restore_payload"], test=False, noflush=True)
-    except Exception as exc:  # noqa: BLE001 - operator apply evidence must fail closed.
-        return {**report, "production_generic_real_customer_activation": MISSING, "blockers": ["iptables_restore_runner_failed"], "error": str(exc), "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY", "next_required_step": "generic_real_customer_activation_apply"}
-    return {**report, "production_generic_real_customer_activation": APPLY_PENDING_RUNTIME, "firewall_mutation_performed": True, "nat_mutation_performed": True, "mutation_performed": True, "iptables_restore_test_invoked": True, "iptables_restore_invoked": True, "blockers": [], "final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY_EXECUTED_PENDING_RUNTIME_EVIDENCE", "next_required_step": "generic_real_customer_activation_verify"}
+        test_result = restore_runner(package["restore_payload"], test=True, noflush=True)
+    except Exception as exc:  # noqa: BLE001
+        return {**report, "package_id": package.get("package_id"), "package_sha256": package.get("package_sha256"), "public_port": package.get("public_port"), "backend_target": package.get("resolved_backend_target"), "rollback_artifact_path": rollback_artifact_path, "production_generic_real_customer_activation": MISSING, "iptables_restore_test_result": test_result, "iptables_restore_apply_result": None, "iptables_restore_test_invoked": True, "iptables_restore_invoked": False, "blockers": ["iptables_restore_test_failed"], "error": str(exc), "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY", "next_required_step": "generic_real_customer_activation_apply"}
+    try:
+        apply_result = restore_runner(package["restore_payload"], test=False, noflush=True)
+    except Exception as exc:  # noqa: BLE001
+        return {**report, "package_id": package.get("package_id"), "package_sha256": package.get("package_sha256"), "public_port": package.get("public_port"), "backend_target": package.get("resolved_backend_target"), "rollback_artifact_path": rollback_artifact_path, "production_generic_real_customer_activation": MISSING, "iptables_restore_test_result": test_result, "iptables_restore_apply_result": apply_result, "iptables_restore_test_invoked": True, "iptables_restore_invoked": False, "blockers": ["iptables_restore_apply_failed"], "error": str(exc), "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY", "next_required_step": "generic_real_customer_activation_apply"}
+    return {**report, "production_generic_real_customer_activation": APPLY_PENDING_RUNTIME, "package_id": package.get("package_id"), "package_sha256": package.get("package_sha256"), "public_port": package.get("public_port"), "backend_target": package.get("resolved_backend_target"), "rollback_artifact_path": rollback_artifact_path, "firewall_mutation_performed": True, "nat_mutation_performed": True, "mutation_performed": True, "iptables_restore_test_result": test_result, "iptables_restore_apply_result": apply_result, "iptables_restore_test_invoked": True, "iptables_restore_invoked": True, "blockers": [], "final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY_EXECUTED_PENDING_RUNTIME_EVIDENCE", "next_required_step": "generic_real_customer_activation_verify"}
 
 
 def verify_activation(package: dict[str, Any], live_snapshot: dict[str, Any]) -> dict[str, Any]:
@@ -220,18 +275,23 @@ def abuse_coverage_readiness(repo: ActivationRepository, customer_key: str) -> d
     return {**_base("phase11_generic_real_customer_activation_abuse_coverage", customer_key), "active_enabled_lane_customer_keys": sorted(active_keys), "abuse_hard_execution_enabled_by_this_pr": False, "production_generic_real_customer_activation_abuse_coverage": "ready" if not blockers else MISSING, "blockers": blockers, "final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_ABUSE_COVERAGE_READY" if not blockers else "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_ABUSE_COVERAGE"}
 
 
-def readiness_from_evidence(evidence: dict[str, Any] | None = None) -> dict[str, Any]:
+def readiness_from_evidence(evidence: dict[str, Any] | None = None, *, package: dict[str, Any] | None = None, preflight: dict[str, Any] | None = None, apply: dict[str, Any] | None = None, verify: dict[str, Any] | None = None, transcript: dict[str, Any] | None = None, first_connect_db: dict[str, Any] | None = None, abuse: dict[str, Any] | None = None, activation_mode: str | None = None) -> dict[str, Any]:
     if evidence and evidence.get("production_generic_real_customer_activation") == READY and evidence.get("final_decision") == "PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_READY" and not evidence.get("blockers"):
-        status = READY
-        decision = "PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_READY"
-        blockers: list[str] = []
-        next_step = "final_phase11_operational_completion_acceptance"
-    else:
-        status = MISSING
-        decision = "BLOCKED_PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_EVIDENCE"
-        blockers = ["production_generic_real_customer_activation_evidence_missing_or_partial"]
-        next_step = "production_generic_real_customer_activation"
-    return {**_base("phase11_generic_real_customer_activation_readiness"), "production_generic_real_customer_activation": status, "blockers": blockers, "final_decision": decision, "next_required_step": next_step}
+        return {**_base("phase11_generic_real_customer_activation_readiness"), "production_generic_real_customer_activation": READY, "blockers": [], "final_decision": "PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_READY", "next_required_step": "final_phase11_operational_completion_acceptance"}
+    checks = {
+        "package_ready": package and package.get("final_decision") == "GENERIC_REAL_CUSTOMER_ACTIVATION_PACKAGE_READY",
+        "preflight_ready": preflight and preflight.get("final_decision") == "GENERIC_REAL_CUSTOMER_ACTIVATION_PREFLIGHT_READY",
+        "apply_executed_pending_runtime_evidence": apply and apply.get("final_decision") == "GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY_EXECUTED_PENDING_RUNTIME_EVIDENCE",
+        "verify_ready": verify and verify.get("final_decision") == "GENERIC_REAL_CUSTOMER_ACTIVATION_VERIFY_READY",
+        "transcript_runtime_evidence_ready": transcript and transcript.get("final_decision") in {"GENERIC_REAL_CUSTOMER_ACTIVATION_TRANSCRIPT_EVIDENCE_READY", "PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_READY"},
+        "abuse_coverage_ready": abuse and abuse.get("final_decision") == "GENERIC_REAL_CUSTOMER_ACTIVATION_ABUSE_COVERAGE_READY",
+    }
+    if activation_mode == "first_connect":
+        checks["first_connect_db_evidence_ready"] = first_connect_db and first_connect_db.get("final_decision") == "GENERIC_REAL_CUSTOMER_ACTIVATION_FIRST_CONNECT_DB_EVIDENCE_READY"
+    missing = [k for k, ok in checks.items() if not ok]
+    if not missing and checks:
+        return {**_base("phase11_generic_real_customer_activation_readiness"), "production_generic_real_customer_activation": READY, **checks, "blockers": [], "final_decision": "PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_READY", "next_required_step": "final_phase11_operational_completion_acceptance"}
+    return {**_base("phase11_generic_real_customer_activation_readiness"), "production_generic_real_customer_activation": MISSING, **checks, "blockers": ["production_generic_real_customer_activation_evidence_missing_or_partial", *missing], "final_decision": "BLOCKED_PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_EVIDENCE", "next_required_step": "production_generic_real_customer_activation"}
 
 class ConfigActivationRepository:
     """Repository adapter that reads customers/lanes through existing services."""
@@ -278,3 +338,52 @@ class ConfigActivationRepository:
         if not res.ok:
             return []
         return [{"customer_key": c.customer_key, "lane": c.lane, "status": c.status, "deleted_at": c.deleted_at} for c in res.customers]
+
+
+def import_transcript_evidence(package: dict[str, Any], transcript: dict[str, Any]) -> dict[str, Any]:
+    blockers: list[str] = []
+    customer_key = str(package.get("customer_key"))
+    port = int(package.get("public_port"))
+    worker = str(transcript.get("operator_mapped_worker") or transcript.get("worker_name") or "")
+    if customer_key not in worker:
+        blockers.append("worker_scope_does_not_match_customer")
+    if int(transcript.get("connect_port") or -1) != port:
+        blockers.append("transcript_public_port_mismatch")
+    if not transcript.get("connect_host"):
+        blockers.append("connect_host_required")
+    if transcript.get("authorize_result") is not True:
+        blockers.append("authorize_result_not_true")
+    if not transcript.get("subscribe_result"):
+        blockers.append("subscribe_result_missing")
+    if not (transcript.get("mining_set_difficulty_received") or transcript.get("mining_notify_received") or transcript.get("mining.set_difficulty") or transcript.get("mining.notify")):
+        blockers.append("difficulty_or_notify_missing")
+    evidence = {"customer_key": customer_key, "public_port": port, "connect_host": transcript.get("connect_host"), "connect_port": transcript.get("connect_port"), "worker_name": worker, "subscribe_result_present": bool(transcript.get("subscribe_result")), "authorize_result": transcript.get("authorize_result"), "difficulty_or_notify_received": not any(b == "difficulty_or_notify_missing" for b in blockers), "share_submit_required": False, "collected_at": datetime.now(UTC).isoformat()}
+    return {**_base("phase11_generic_real_customer_activation_transcript_import", customer_key), "production_generic_real_customer_activation_runtime_evidence": "ready" if not blockers else MISSING, "evidence": evidence, "evidence_sha256": hashlib.sha256(json.dumps(evidence, sort_keys=True, default=str).encode()).hexdigest(), "blockers": blockers, "final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_TRANSCRIPT_EVIDENCE_READY" if not blockers else "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_TRANSCRIPT_EVIDENCE", "next_required_step": "generic_real_customer_activation_first_connect_db" if not blockers else "generic_real_customer_activation_runtime_evidence"}
+
+
+def first_connect_db_update(config: Any, customer_key: str, *, evidence_sha256: str | None, operator: str | None, reason: str | None, yes: bool) -> dict[str, Any]:
+    blockers=[]
+    if not yes: blockers.append("yes_required")
+    if not evidence_sha256: blockers.append("evidence_sha256_required")
+    if not operator: blockers.append("operator_required")
+    if not reason: blockers.append("reason_required")
+    if getpass.getuser() != "mpf": blockers.append("mpf_os_user_required")
+    if blockers:
+        return {**_base("phase11_generic_real_customer_activation_first_connect_db", customer_key), "blockers": blockers, "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_FIRST_CONNECT_DB", "next_required_step": "generic_real_customer_activation_first_connect_db"}
+    import psycopg
+    with psycopg.connect(config.database.url, connect_timeout=5) as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute("select id, activation_mode, first_connected_at, activated_at from customers where customer_key=%s", (customer_key,))
+                row=cur.fetchone()
+                if not row: raise RuntimeError("customer_missing")
+                cid, mode, before_first, before_act = row
+                if mode != "first_connect": raise RuntimeError("activation_mode_not_first_connect")
+                now=datetime.now(UTC)
+                cur.execute("update customers set first_connected_at=coalesce(first_connected_at,%s), activated_at=coalesce(activated_at,%s) where id=%s", (now, now, cid))
+                data=json.dumps({"evidence_sha256": evidence_sha256, "customer_key": customer_key, "first_connected_at": now.isoformat()}, sort_keys=True)
+                cur.execute("insert into events (event_type,severity,subject_type,subject_id,message,data_json,created_by) values ('customer.first_connect_activated','info','customer',%s,'First-connect activation evidence accepted',%s::jsonb,%s) returning id", (cid, data, operator))
+                eid=cur.fetchone()[0]
+                cur.execute("insert into audit_log (actor_type,actor_id,action,resource_type,resource_id,before_json,after_json,reason) values ('operator',%s,'customer.first_connect_activate','customer',%s,%s::jsonb,%s::jsonb,%s) returning id", (operator, cid, json.dumps({"first_connected_at": str(before_first), "activated_at": str(before_act)}), data, reason))
+                aid=cur.fetchone()[0]
+    return {**_base("phase11_generic_real_customer_activation_first_connect_db", customer_key), "db_mutation_performed": True, "mutation_performed": True, "evidence_sha256": evidence_sha256, "event_id": eid, "audit_id": aid, "blockers": [], "final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_FIRST_CONNECT_DB_EVIDENCE_READY", "next_required_step": "production_generic_real_customer_activation"}

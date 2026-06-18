@@ -126,3 +126,9 @@ Adds controlled exact-scope DB-only lifecycle execution evidence for `limited-bt
 ### 0.1.282 Read-only firewall completion evidence bundle note
 
 0.1.282 adds a standardized read-only Phase 11 firewall completion evidence bundle/preflight builder and verifier. It records manifest and SHA256SUMS evidence for backend target, read-only firewall snapshots, current controlled artifact gate, target-aware reapply diagnostics, and firewall completion readiness. This release performs no firewall apply, no `iptables-restore`, no rollback apply, no DB mutation, no Docker/systemd restart, no conntrack flush, no abuse execute, and no Phase 12 opening. Full CLI Production Operations remains not accepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`, and the next farm5 step is to sync 0.1.282, run the read-only firewall completion evidence collector, then run the operational surfaces collector with `MPF_FIREWALL_COMPLETION_EVIDENCE_DIR=<bundle-dir>` and verify only evidence/preflight moved forward while mutation and Phase 12 flags remain false.
+
+## 0.1.294 generic activation evidence requirements
+
+Item 9 (`production_generic_real_customer_activation`) now has an execution/evidence path, but it is not automatically accepted. Operators must provide evidence for package readiness, preflight readiness, guarded host apply, live verify from `iptables-save` conversion or snapshot JSON, external first-connect/transcript evidence, first-connect DB evidence for `activation_mode=first_connect`, and abuse coverage. The previously reported Windows synthetic Stratum transcript against `limited-btc-001:20101` proves only the compatibility controlled customer path and does not close item 9 or item 10.
+
+Final acceptance remains item 10 and remains blocked until reviewed farm5 real post-sync evidence proves all Phase 11 operational completion requirements. Phase 12/worker/UI/Telegram/timers remain closed.
