@@ -6,7 +6,7 @@ import tomllib
 import mpf
 
 
-EXPECTED_VERSION = "0.1.295"
+EXPECTED_VERSION = "0.1.296"
 
 
 def test_version_sources_are_consistent() -> None:
@@ -30,5 +30,5 @@ def test_ci_dev_extra_installs_pytest() -> None:
 
 def test_changelog_contains_runtime_first_governance_history() -> None:
     text = Path("CHANGELOG.md").read_text(encoding="utf-8")
-    assert "## 0.1.295" in text
+    assert "## 0.1.296" in text
     assert "strict runtime-first PR body validation" in text

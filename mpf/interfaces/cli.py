@@ -3843,88 +3843,300 @@ def production_backup_restore_drill_readiness(
 
 
 
-@production_app.command("real-customer-activation-package")
-def real_customer_activation_package(customer_key: str = typer.Option(..., "--customer-key"), config: Path | None = typer.Option(None, "--config", "-c"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    cfg = _load(config)
-    repo = phase11_generic_real_customer_activation_service.ConfigActivationRepository(cfg)
-    snapshot = json.loads(live_snapshot_file.read_text(encoding="utf-8")) if live_snapshot_file else None
-    report = phase11_generic_real_customer_activation_service.build_activation_package(repo, customer_key, live_snapshot=snapshot)
+
+GENERIC_ACTIVATION_RESTORE_RUNNER = phase11_generic_real_customer_activation_service.run_iptables_restore
+
+
+def _generic_json_error(component: str, blockers: list[str], *, error: str | None = None) -> dict[str, object]:
+    report: dict[str, object] = {
+        "component": component,
+        "repository_version": __version__,
+        "production_generic_real_customer_activation": "missing_or_partial",
+        "blockers": blockers,
+        "final_decision": "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_CLI_INPUT",
+        "next_required_step": component,
+        "firewall_mutation_performed": False,
+        "nat_mutation_performed": False,
+        "db_mutation_performed": False,
+        "conntrack_mutation_performed": False,
+        "docker_restart_performed": False,
+        "systemd_restart_performed": False,
+        "mutation_performed": False,
+        "phase12_start_allowed": False,
+        "worker_enforcement_allowed": "no",
+        "ui_allowed": "no",
+        "telegram_allowed": "no",
+    }
+    if error:
+        report["error"] = error
+    return report
+
+
+def _emit_generic_json(report: dict[str, object]) -> None:
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
-@production_app.command("real-customer-activation-readiness")
-def real_customer_activation_readiness(evidence_file: Path | None = typer.Option(None, "--evidence-file"), package_file: Path | None = typer.Option(None, "--package-file"), preflight_file: Path | None = typer.Option(None, "--preflight-file"), apply_file: Path | None = typer.Option(None, "--apply-file"), verify_file: Path | None = typer.Option(None, "--verify-file"), transcript_file: Path | None = typer.Option(None, "--transcript-file"), first_connect_db_file: Path | None = typer.Option(None, "--first-connect-db-file"), abuse_file: Path | None = typer.Option(None, "--abuse-file"), activation_mode: str | None = typer.Option(None, "--activation-mode"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    def load(p: Path | None):
-        return json.loads(p.read_text(encoding="utf-8")) if p else None
-    report = phase11_generic_real_customer_activation_service.readiness_from_evidence(load(evidence_file), package=load(package_file), preflight=load(preflight_file), apply=load(apply_file), verify=load(verify_file), transcript=load(transcript_file), first_connect_db=load(first_connect_db_file), abuse=load(abuse_file), activation_mode=activation_mode)
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+def _read_generic_json_file(path: Path | None, component: str, required_blocker: str) -> dict[str, object] | None:
+    if path is None:
+        _emit_generic_json(_generic_json_error(component, [required_blocker]))
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        _emit_generic_json(_generic_json_error(component, [f"{required_blocker}_read_failed"], error=str(exc)))
+        return None
+    if not isinstance(payload, dict):
+        _emit_generic_json(_generic_json_error(component, [f"{required_blocker}_must_be_json_object"]))
+        return None
+    return payload
+
+
+def _extract_generic_package(payload: dict[str, object]) -> dict[str, object]:
+    package = payload.get("package")
+    if isinstance(package, dict):
+        return package
+    return payload
+
+
+def _generic_snapshot_from_json_file(path: Path | None, component: str) -> dict[str, object] | None:
+    return _read_generic_json_file(path, component, "live_snapshot_file_required")
+
+
+def _generic_apply_prechecks(
+    package: dict[str, object],
+    preflight: dict[str, object] | None,
+    *,
+    execute: bool,
+    yes: bool,
+    confirmed_package_sha256: str | None,
+    confirmed_customer_key: str | None,
+    confirmed_public_port: int | None,
+    pre_apply_snapshot_file: Path | None,
+    rollback_artifact_path: str | None,
+    operator_lock_id: str | None,
+) -> list[str]:
+    blockers: list[str] = []
+    if not execute:
+        blockers.append("execute_flag_required")
+    if not yes:
+        blockers.append("yes_required")
+    if os.environ.get("MPF_PHASE11_GENERIC_ACTIVATION_APPLY") != "1":
+        blockers.append("operator_env_gate_required_for_real_restore_runner")
+    if not confirmed_package_sha256 or confirmed_package_sha256 != package.get("package_sha256"):
+        blockers.append("package_hash_confirmation_mismatch")
+    if not confirmed_customer_key or confirmed_customer_key != package.get("customer_key"):
+        blockers.append("target_customer_confirmation_mismatch")
+    try:
+        if int(confirmed_public_port or -1) != int(package.get("public_port", -2)):
+            blockers.append("target_port_confirmation_mismatch")
+    except (TypeError, ValueError):
+        blockers.append("target_port_confirmation_mismatch")
+    if pre_apply_snapshot_file is None:
+        blockers.append("pre_apply_iptables_save_snapshot_required")
+    elif not pre_apply_snapshot_file.is_file():
+        blockers.append("pre_apply_iptables_save_snapshot_readable_required")
+    if not rollback_artifact_path:
+        blockers.append("rollback_artifact_required")
+    if not operator_lock_id:
+        blockers.append("operator_lock_or_restore_point_required")
+    if preflight is None:
+        blockers.append("preflight_report_required")
+    else:
+        if preflight.get("final_decision") != "GENERIC_REAL_CUSTOMER_ACTIVATION_PREFLIGHT_READY":
+            blockers.append("preflight_report_not_ready")
+        if preflight.get("customer_key") not in (None, package.get("customer_key")):
+            blockers.append("preflight_customer_mismatch")
+        if preflight.get("package_sha256") not in (None, package.get("package_sha256")):
+            blockers.append("preflight_package_sha256_mismatch")
+        if preflight.get("public_port") not in (None, package.get("public_port")):
+            blockers.append("preflight_public_port_mismatch")
+    return sorted(set(blockers))
+
+
+def _generic_activation_package_impl(customer_key: str, config: Path | None, live_snapshot_file: Path | None, output: str) -> None:
+    snapshot = _generic_snapshot_from_json_file(live_snapshot_file, "generic_activation_package") if live_snapshot_file else None
+    if live_snapshot_file and snapshot is None:
+        return
+    cfg = _load(config)
+    repo = phase11_generic_real_customer_activation_service.ConfigActivationRepository(cfg)
+    _emit_generic_json(phase11_generic_real_customer_activation_service.build_activation_package(repo, customer_key, live_snapshot=snapshot))
+
+
+@production_app.command("generic-activation-snapshot")
+def generic_activation_snapshot(iptables_save_file: Path = typer.Option(..., "--iptables-save-file"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    try:
+        text = iptables_save_file.read_text(encoding="utf-8")
+    except OSError as exc:
+        _emit_generic_json(_generic_json_error("generic_activation_snapshot", ["iptables_save_file_read_failed"], error=str(exc)))
+        return
+    report = phase11_generic_real_customer_activation_service.snapshot_from_iptables_save(text)
+    report.update({"component": "phase11_generic_real_customer_activation_snapshot", "repository_version": __version__, "final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_SNAPSHOT_READY", "blockers": [], "next_required_step": "generic_real_customer_activation_package", "mutation_performed": False})
+    _emit_generic_json(report)
+
+
+@production_app.command("generic-activation-package")
+def generic_activation_package(customer_key: str = typer.Option(..., "--customer-key"), live_snapshot_file: Path = typer.Option(..., "--live-snapshot-file"), config: Path | None = typer.Option(None, "--config", "-c"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    _generic_activation_package_impl(customer_key, config, live_snapshot_file, output)
+
+
+@production_app.command("real-customer-activation-package")
+def real_customer_activation_package(customer_key: str = typer.Option(..., "--customer-key"), config: Path | None = typer.Option(None, "--config", "-c"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    _generic_activation_package_impl(customer_key, config, live_snapshot_file, output)
+
+
+@production_app.command("generic-activation-preflight")
+def generic_activation_preflight(package_file: Path = typer.Option(..., "--package-file"), live_snapshot_file: Path = typer.Option(..., "--live-snapshot-file"), confirmed_package_sha256: str | None = typer.Option(None, "--confirmed-package-sha256"), operator_context: str | None = typer.Option(None, "--operator-context"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    payload = _read_generic_json_file(package_file, "generic_activation_preflight", "package_file_required")
+    snapshot = _generic_snapshot_from_json_file(live_snapshot_file, "generic_activation_preflight")
+    if payload is None or snapshot is None:
+        return
+    package = _extract_generic_package(payload)
+    report = phase11_generic_real_customer_activation_service.preflight_activation_package(package, live_snapshot=snapshot, confirmed_package_sha256=confirmed_package_sha256, operator_context=operator_context)
+    report.setdefault("package_sha256", package.get("package_sha256")); report.setdefault("public_port", package.get("public_port"))
+    _emit_generic_json(report)
 
 
 @production_app.command("real-customer-activation-preflight")
 def real_customer_activation_preflight(package_file: Path = typer.Option(..., "--package-file"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file"), confirm_package_sha256: str | None = typer.Option(None, "--confirm-package-sha256"), operator_context: str | None = typer.Option(None, "--operator-context"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    package = json.loads(package_file.read_text(encoding="utf-8"))
-    if "package" in package and isinstance(package["package"], dict):
-        package = package["package"]
-    snapshot = json.loads(live_snapshot_file.read_text(encoding="utf-8")) if live_snapshot_file else None
-    report = phase11_generic_real_customer_activation_service.preflight_activation_package(package, live_snapshot=snapshot, confirmed_package_sha256=confirm_package_sha256, operator_context=operator_context)
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+    payload = _read_generic_json_file(package_file, "generic_activation_preflight", "package_file_required")
+    snapshot = _generic_snapshot_from_json_file(live_snapshot_file, "generic_activation_preflight") if live_snapshot_file else None
+    if payload is None:
+        return
+    _emit_generic_json(phase11_generic_real_customer_activation_service.preflight_activation_package(_extract_generic_package(payload), live_snapshot=snapshot, confirmed_package_sha256=confirm_package_sha256, operator_context=operator_context))
+
+
+@production_app.command("generic-activation-rollback-readiness")
+def generic_activation_rollback_readiness(package_file: Path = typer.Option(..., "--package-file"), pre_apply_snapshot_file: Path = typer.Option(..., "--pre-apply-snapshot-file"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    payload = _read_generic_json_file(package_file, "generic_activation_rollback_readiness", "package_file_required")
+    if payload is None:
+        return
+    report = phase11_generic_real_customer_activation_service.rollback_readiness(_extract_generic_package(payload), pre_apply_snapshot_path=str(pre_apply_snapshot_file) if pre_apply_snapshot_file.is_file() else None)
+    if not pre_apply_snapshot_file.is_file():
+        report["blockers"] = sorted(set([*report.get("blockers", []), "pre_apply_snapshot_readable_required"]))
+        report["final_decision"] = "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_ROLLBACK_READINESS"
+    _emit_generic_json(report)
+
+
+@production_app.command("real-customer-activation-rollback-readiness")
+def real_customer_activation_rollback_readiness(package_file: Path = typer.Option(..., "--package-file"), pre_apply_snapshot: str | None = typer.Option(None, "--pre-apply-snapshot"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    payload = _read_generic_json_file(package_file, "generic_activation_rollback_readiness", "package_file_required")
+    if payload is None:
+        return
+    _emit_generic_json(phase11_generic_real_customer_activation_service.rollback_readiness(_extract_generic_package(payload), pre_apply_snapshot_path=pre_apply_snapshot))
+
+
+@production_app.command("generic-activation-apply")
+def generic_activation_apply(package_file: Path = typer.Option(..., "--package-file"), preflight_report_file: Path | None = typer.Option(None, "--preflight-report-file"), confirmed_package_sha256: str | None = typer.Option(None, "--confirmed-package-sha256"), confirmed_customer_key: str | None = typer.Option(None, "--confirmed-customer-key"), confirmed_public_port: int | None = typer.Option(None, "--confirmed-public-port"), pre_apply_snapshot_file: Path | None = typer.Option(None, "--pre-apply-snapshot-file"), rollback_artifact_path: str | None = typer.Option(None, "--rollback-artifact-path"), operator_lock_id: str | None = typer.Option(None, "--operator-lock-id"), execute: bool = typer.Option(False, "--execute"), yes: bool = typer.Option(False, "--yes"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    payload = _read_generic_json_file(package_file, "generic_activation_apply", "package_file_required")
+    preflight = _read_generic_json_file(preflight_report_file, "generic_activation_apply", "preflight_report_required") if preflight_report_file else None
+    if payload is None:
+        return
+    package = _extract_generic_package(payload)
+    blockers = _generic_apply_prechecks(package, preflight, execute=execute, yes=yes, confirmed_package_sha256=confirmed_package_sha256, confirmed_customer_key=confirmed_customer_key, confirmed_public_port=confirmed_public_port, pre_apply_snapshot_file=pre_apply_snapshot_file, rollback_artifact_path=rollback_artifact_path, operator_lock_id=operator_lock_id)
+    if blockers:
+        report = phase11_generic_real_customer_activation_service.apply_activation_package(package, execute=False, confirmed_package_sha256=confirmed_package_sha256, confirmed_customer_key=confirmed_customer_key, confirmed_public_port=confirmed_public_port, pre_apply_snapshot_path=str(pre_apply_snapshot_file) if pre_apply_snapshot_file else None, rollback_artifact_path=rollback_artifact_path, operator_lock_id=operator_lock_id, restore_runner=None)
+        report["blockers"] = sorted(set([*report.get("blockers", []), *blockers]))
+        report["iptables_restore_test_invoked"] = False; report["iptables_restore_invoked"] = False
+        _emit_generic_json(report)
+        return
+    report = phase11_generic_real_customer_activation_service.apply_activation_package(package, execute=True, confirmed_package_sha256=confirmed_package_sha256, confirmed_customer_key=confirmed_customer_key, confirmed_public_port=confirmed_public_port, pre_apply_snapshot_path=str(pre_apply_snapshot_file), rollback_artifact_path=rollback_artifact_path, operator_lock_id=operator_lock_id, restore_runner=GENERIC_ACTIVATION_RESTORE_RUNNER)
+    _emit_generic_json(report)
 
 
 @production_app.command("real-customer-activation-apply")
 def real_customer_activation_apply(package_file: Path = typer.Option(..., "--package-file"), execute: bool = typer.Option(False, "--execute"), confirm_package_sha256: str | None = typer.Option(None, "--confirm-package-sha256"), confirm_customer_key: str | None = typer.Option(None, "--confirm-customer-key"), confirm_public_port: int | None = typer.Option(None, "--confirm-public-port"), pre_apply_snapshot: str | None = typer.Option(None, "--pre-apply-snapshot"), rollback_artifact: str | None = typer.Option(None, "--rollback-artifact"), operator_lock_id: str | None = typer.Option(None, "--operator-lock-id"), env_gate: str | None = typer.Option(None, "--env-gate"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    package = json.loads(package_file.read_text(encoding="utf-8"))
-    if "package" in package and isinstance(package["package"], dict):
-        package = package["package"]
-    runner = None
-    if execute and env_gate == "MPF_PHASE11_GENERIC_ACTIVATION_APPLY" and os.environ.get("MPF_PHASE11_GENERIC_ACTIVATION_APPLY") == "1" and not os.environ.get("CI"):
-        runner = phase11_generic_real_customer_activation_service.run_iptables_restore
-    report = phase11_generic_real_customer_activation_service.apply_activation_package(package, execute=execute, confirmed_package_sha256=confirm_package_sha256, confirmed_customer_key=confirm_customer_key, confirmed_public_port=confirm_public_port, pre_apply_snapshot_path=pre_apply_snapshot, rollback_artifact_path=rollback_artifact, operator_lock_id=operator_lock_id, restore_runner=runner)
-    if execute and runner is None:
-        report.setdefault("blockers", []).append("operator_env_gate_required_for_real_restore_runner")
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+    payload = _read_generic_json_file(package_file, "generic_activation_apply", "package_file_required")
+    if payload is None:
+        return
+    package = _extract_generic_package(payload)
+    report = phase11_generic_real_customer_activation_service.apply_activation_package(package, execute=False, confirmed_package_sha256=confirm_package_sha256, confirmed_customer_key=confirm_customer_key, confirmed_public_port=confirm_public_port, pre_apply_snapshot_path=pre_apply_snapshot, rollback_artifact_path=rollback_artifact, operator_lock_id=operator_lock_id, restore_runner=None)
+    if execute:
+        report["blockers"] = sorted(set([*report.get("blockers", []), "compatibility_alias_apply_blocked_use_generic_activation_apply", "preflight_report_required", "yes_required"]))
+    report["iptables_restore_test_invoked"] = False
+    report["iptables_restore_invoked"] = False
+    report["firewall_mutation_performed"] = False
+    report["nat_mutation_performed"] = False
+    report["mutation_performed"] = False
+    report["next_required_step"] = "use_generic_activation_apply_with_full_preflight_confirmations"
+    _emit_generic_json(report)
+
+
+@production_app.command("generic-activation-verify")
+def generic_activation_verify(package_file: Path = typer.Option(..., "--package-file"), live_snapshot_file: Path = typer.Option(..., "--live-snapshot-file"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    payload = _read_generic_json_file(package_file, "generic_activation_verify", "package_file_required")
+    snapshot = _generic_snapshot_from_json_file(live_snapshot_file, "generic_activation_verify")
+    if payload is None or snapshot is None:
+        return
+    _emit_generic_json(phase11_generic_real_customer_activation_service.verify_activation(_extract_generic_package(payload), snapshot))
 
 
 @production_app.command("real-customer-activation-verify")
 def real_customer_activation_verify(package_file: Path = typer.Option(..., "--package-file"), live_snapshot_file: Path = typer.Option(..., "--live-snapshot-file"), iptables_save: bool = typer.Option(False, "--iptables-save"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    package = json.loads(package_file.read_text(encoding="utf-8"))
-    if "package" in package and isinstance(package["package"], dict):
-        package = package["package"]
-    text = live_snapshot_file.read_text(encoding="utf-8")
-    snapshot = phase11_generic_real_customer_activation_service.snapshot_from_iptables_save(text) if iptables_save else json.loads(text)
-    report = phase11_generic_real_customer_activation_service.verify_activation(package, snapshot)
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+    payload = _read_generic_json_file(package_file, "generic_activation_verify", "package_file_required")
+    if payload is None:
+        return
+    try:
+        text = live_snapshot_file.read_text(encoding="utf-8")
+        snapshot = phase11_generic_real_customer_activation_service.snapshot_from_iptables_save(text) if iptables_save else json.loads(text)
+    except (OSError, json.JSONDecodeError) as exc:
+        _emit_generic_json(_generic_json_error("generic_activation_verify", ["live_snapshot_file_read_failed"], error=str(exc)))
+        return
+    _emit_generic_json(phase11_generic_real_customer_activation_service.verify_activation(_extract_generic_package(payload), snapshot))
 
 
-@production_app.command("real-customer-activation-runtime-evidence")
-def real_customer_activation_runtime_evidence(package_file: Path = typer.Option(..., "--package-file"), external_reachable: bool = typer.Option(False, "--external-reachable"), backend_public_exposed: bool = typer.Option(False, "--backend-public-exposed"), appears_in_reports: bool = typer.Option(False, "--appears-in-reports"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    package = json.loads(package_file.read_text(encoding="utf-8"))
-    if "package" in package and isinstance(package["package"], dict):
-        package = package["package"]
-    report = phase11_generic_real_customer_activation_service.runtime_evidence(package, external_reachable=external_reachable, backend_public_exposed=backend_public_exposed, appears_in_reports=appears_in_reports)
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
-
+@production_app.command("generic-activation-transcript-import")
+def generic_activation_transcript_import(package_file: Path = typer.Option(..., "--package-file"), transcript_file: Path = typer.Option(..., "--transcript-file"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    payload = _read_generic_json_file(package_file, "generic_activation_transcript_import", "package_file_required")
+    transcript = _read_generic_json_file(transcript_file, "generic_activation_transcript_import", "transcript_file_required")
+    if payload is None or transcript is None:
+        return
+    _emit_generic_json(phase11_generic_real_customer_activation_service.import_transcript_evidence(_extract_generic_package(payload), transcript))
 
 
 @production_app.command("real-customer-activation-transcript-import")
 def real_customer_activation_transcript_import(package_file: Path = typer.Option(..., "--package-file"), transcript_json: Path = typer.Option(..., "--transcript-json"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    package = json.loads(package_file.read_text(encoding="utf-8"))
-    if "package" in package and isinstance(package["package"], dict):
-        package = package["package"]
-    transcript = json.loads(transcript_json.read_text(encoding="utf-8"))
-    report = phase11_generic_real_customer_activation_service.import_transcript_evidence(package, transcript)
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+    generic_activation_transcript_import(package_file, transcript_json, output="json")
+
+
+@production_app.command("generic-activation-first-connect-db")
+def generic_activation_first_connect_db(customer_key: str = typer.Option(..., "--customer-key"), evidence_sha256: str | None = typer.Option(None, "--evidence-sha256"), operator: str | None = typer.Option(None, "--operator"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes"), output: Literal["json"] = typer.Option("json", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    _emit_generic_json(phase11_generic_real_customer_activation_service.first_connect_db_update(_load(config), customer_key, evidence_sha256=evidence_sha256, operator=operator, reason=reason, yes=yes))
+
 
 @production_app.command("real-customer-activation-first-connect-db")
 def real_customer_activation_first_connect_db(customer_key: str = typer.Option(..., "--customer-key"), evidence_sha256: str | None = typer.Option(None, "--evidence-sha256"), operator: str | None = typer.Option(None, "--operator"), reason: str | None = typer.Option(None, "--reason"), yes: bool = typer.Option(False, "--yes"), output: Literal["json", "human"] = typer.Option("json", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
-    report = phase11_generic_real_customer_activation_service.first_connect_db_update(_load(config), customer_key, evidence_sha256=evidence_sha256, operator=operator, reason=reason, yes=yes)
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+    generic_activation_first_connect_db(customer_key, evidence_sha256, operator, reason, yes, output="json", config=config)
 
-@production_app.command("real-customer-activation-rollback-readiness")
-def real_customer_activation_rollback_readiness(package_file: Path = typer.Option(..., "--package-file"), pre_apply_snapshot: str | None = typer.Option(None, "--pre-apply-snapshot"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
-    package = json.loads(package_file.read_text(encoding="utf-8"))
-    if "package" in package and isinstance(package["package"], dict):
-        package = package["package"]
-    report = phase11_generic_real_customer_activation_service.rollback_readiness(package, pre_apply_snapshot_path=pre_apply_snapshot)
-    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+@production_app.command("generic-activation-abuse-coverage")
+def generic_activation_abuse_coverage(customer_key: str = typer.Option(..., "--customer-key"), output: Literal["json"] = typer.Option("json", "--output"), config: Path | None = typer.Option(None, "--config", "-c")) -> None:
+    repo = phase11_generic_real_customer_activation_service.ConfigActivationRepository(_load(config))
+    _emit_generic_json(phase11_generic_real_customer_activation_service.abuse_coverage_readiness(repo, customer_key))
+
+
+@production_app.command("generic-activation-readiness")
+def generic_activation_readiness(package_report_file: Path | None = typer.Option(None, "--package-report-file"), preflight_report_file: Path | None = typer.Option(None, "--preflight-report-file"), apply_report_file: Path | None = typer.Option(None, "--apply-report-file"), verify_report_file: Path | None = typer.Option(None, "--verify-report-file"), transcript_report_file: Path | None = typer.Option(None, "--transcript-report-file"), first_connect_db_report_file: Path | None = typer.Option(None, "--first-connect-db-report-file"), abuse_report_file: Path | None = typer.Option(None, "--abuse-report-file"), activation_mode: str | None = typer.Option(None, "--activation-mode"), output: Literal["json"] = typer.Option("json", "--output")) -> None:
+    def load(p: Path | None, name: str):
+        return _read_generic_json_file(p, "generic_activation_readiness", f"{name}_file_required") if p else None
+    report = phase11_generic_real_customer_activation_service.readiness_from_evidence(package=load(package_report_file, "package_report"), preflight=load(preflight_report_file, "preflight_report"), apply=load(apply_report_file, "apply_report"), verify=load(verify_report_file, "verify_report"), transcript=load(transcript_report_file, "transcript_report"), first_connect_db=load(first_connect_db_report_file, "first_connect_db_report"), abuse=load(abuse_report_file, "abuse_report"), activation_mode=activation_mode)
+    _emit_generic_json(report)
+
+
+@production_app.command("real-customer-activation-readiness")
+def real_customer_activation_readiness(evidence_file: Path | None = typer.Option(None, "--evidence-file"), package_file: Path | None = typer.Option(None, "--package-file"), preflight_file: Path | None = typer.Option(None, "--preflight-file"), apply_file: Path | None = typer.Option(None, "--apply-file"), verify_file: Path | None = typer.Option(None, "--verify-file"), transcript_file: Path | None = typer.Option(None, "--transcript-file"), first_connect_db_file: Path | None = typer.Option(None, "--first-connect-db-file"), abuse_file: Path | None = typer.Option(None, "--abuse-file"), activation_mode: str | None = typer.Option(None, "--activation-mode"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    def load(p: Path | None):
+        return _read_generic_json_file(p, "generic_activation_readiness", "evidence_file_required") if p else None
+    report = phase11_generic_real_customer_activation_service.readiness_from_evidence(load(evidence_file), package=load(package_file), preflight=load(preflight_file), apply=load(apply_file), verify=load(verify_file), transcript=load(transcript_file), first_connect_db=load(first_connect_db_file), abuse=load(abuse_file), activation_mode=activation_mode)
+    _emit_generic_json(report)
+
+
+@production_app.command("real-customer-activation-runtime-evidence")
+def real_customer_activation_runtime_evidence(package_file: Path = typer.Option(..., "--package-file"), external_reachable: bool = typer.Option(False, "--external-reachable"), backend_public_exposed: bool = typer.Option(False, "--backend-public-exposed"), appears_in_reports: bool = typer.Option(False, "--appears-in-reports"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    payload = _read_generic_json_file(package_file, "generic_activation_runtime_evidence", "package_file_required")
+    if payload is None:
+        return
+    _emit_generic_json(phase11_generic_real_customer_activation_service.runtime_evidence(_extract_generic_package(payload), external_reachable=external_reachable, backend_public_exposed=backend_public_exposed, appears_in_reports=appears_in_reports))
+
 
 @production_app.command("phase11-operational-completion-gap-inventory")
 def production_phase11_operational_completion_gap_inventory(
