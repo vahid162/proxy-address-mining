@@ -12,6 +12,7 @@ from mpf.services.phase11_controlled_artifact_taxonomy import (
 _ALLOWED = {
     20001: {"customer": "canary-btc-001", "chain": "MPFC_20001", "out_chain": "MPFO_20001"},
     20101: {"customer": "limited-btc-001", "chain": "MPFC_20101", "out_chain": "MPFO_20101"},
+    60046: {"customer": "vahid-btc-real-60046", "chain": "MPFC_60046", "out_chain": None},
 }
 _ALLOWED_CUSTOMERS = {v["customer"]: port for port, v in _ALLOWED.items()}
 _ALLOWED_SUFFIXES = {
@@ -27,6 +28,30 @@ _ALLOWED_SUFFIXES = {
 }
 _BACKEND_GUARD_RE = re.compile(r"^mpf:backend_guard:btc:60010$")
 _HOOK_RE = re.compile(r"^mpf:hook:(nat_prerouting|filter_input|verified_user_forward_post_dnat:(backend_guard|accounting|customers))$")
+
+_GENERIC_ACTIVATION_COMMENT_RE = re.compile(r"^MPF customer=([A-Za-z0-9_.:-]+) port=(\d+)$")
+
+
+def _line_has_backend_dport(line: str, port: int = 60010) -> bool:
+    return bool(re.search(rf"(?:--dport\s+{port}\b|\bdpt:{port}\b)", line))
+
+
+def _is_docker_bridge_internal_backend_accept_line(line: str) -> bool:
+    return (
+        line.startswith("-A DOCKER ")
+        and re.search(r"\s-d\s+\d{1,3}(?:\.\d{1,3}){3}/32\b", line) is not None
+        and re.search(r"\s-o\s+br-[A-Za-z0-9_.:-]+\b", line) is not None
+        and _line_has_backend_dport(line, 60010)
+        and re.search(r"(?:^|\s)-j\s+ACCEPT(?:\s|$)", line) is not None
+    )
+
+
+def _is_forbidden_backend_public_exposure_line(line: str) -> bool:
+    return (
+        _line_has_backend_dport(line, 60010)
+        and re.search(r"(?:^|\s)-j\s+ACCEPT(?:\s|$)", line) is not None
+        and not _is_docker_bridge_internal_backend_accept_line(line)
+    )
 
 
 def _phase_gate_ok(phase_status_text: str) -> bool:
@@ -109,6 +134,31 @@ def _validate_rule(chain: str, line: str, expected_backend_target: str | None) -
     unknown: list[str] = []
     allowed: list[str] = []
     comment = _parse_comment_text(line)
+    generic_comment = _GENERIC_ACTIVATION_COMMENT_RE.match(comment or "")
+    port = _dport(line)
+    if generic_comment:
+        customer = generic_comment.group(1)
+        comment_port = int(generic_comment.group(2))
+        if customer != "vahid-btc-real-60046" or comment_port != 60046:
+            unknown.append(f"unknown_generic_activation_comment:{customer}:{comment_port}")
+            return unknown, allowed
+        if port not in {None, 60046}:
+            unknown.append(f"generic_activation_port_mismatch:{customer}:{port}")
+        if chain == "PREROUTING":
+            if "-j DNAT" not in line:
+                unknown.append("generic_activation_prerouting_not_dnat")
+            target = _target(line)
+            if expected_backend_target != "172.18.0.2:60010" or target != "172.18.0.2:60010":
+                unknown.append(f"dnat_target_mismatch:60046->{target or 'missing'}")
+        elif chain == "DOCKER-USER":
+            if _ctorigdstport(line) != 60046 or "-j MPFC_60046" not in line:
+                unknown.append(f"generic_activation_docker_user_mismatch:{_ctorigdstport(line)}")
+        else:
+            unknown.append(f"generic_activation_comment_unexpected_chain:{chain}")
+        if not unknown:
+            allowed.append(f"generic_activation:{customer}:60046")
+        return unknown, allowed
+
     classification = classify_controlled_artifact(chain=chain, comment=comment)
     if classification == "unknown_mpf_artifact":
         unknown.append(f"unknown_rule:{chain}:{comment or 'no_comment'}")
@@ -118,7 +168,6 @@ def _validate_rule(chain: str, line: str, expected_backend_target: str | None) -
         return unknown, allowed
 
     customer_comment = _parse_customer_comment(comment)
-    port = _dport(line)
     if customer_comment:
         customer, suffix = customer_comment
         if customer not in _ALLOWED_CUSTOMERS:
@@ -170,6 +219,11 @@ def _validate_rule(chain: str, line: str, expected_backend_target: str | None) -
 
     if chain == "MPF_NAT_PRE" and ("-j DNAT" not in line or _target(line) is None):
         unknown.append("mpf_nat_pre_non_dnat_or_incomplete_rule")
+    elif chain == "MPFC_60046" and comment is None:
+        if line.strip() == "-A MPFC_60046 -j RETURN":
+            allowed.append("generic_activation:MPFC_60046:return")
+        else:
+            unknown.append("unknown_rule:MPFC_60046:no_comment")
     elif is_mpf_like_chain(chain):
         if chain in OFFICIAL_CONTROLLED_CHAINS:
             allowed.append(f"chain_ref:{chain}")
@@ -197,6 +251,10 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
     has_dnat = any("MPF_NAT_PRE" in ln and "-j DNAT" in ln and "--to-destination" in ln for ln in lines)
     if has_dnat and expected_backend_target is None:
         blockers.append("expected_backend_target_required")
+
+    forbidden_public_runtime_exposure = any(_is_forbidden_backend_public_exposure_line(ln) for ln in lines if ln.startswith("-A "))
+    if forbidden_public_runtime_exposure:
+        blockers.append("forbidden_public_runtime_exposure_detected")
 
     for ln in lines:
         ch = _parse_chain_decl(ln)
@@ -226,6 +284,8 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
 
     if not phase_ok or expected_version != __version__:
         decision = "BLOCKED_PHASE_GATE_MISMATCH"
+    elif forbidden_public_runtime_exposure:
+        decision = "BLOCKED_FORBIDDEN_PUBLIC_RUNTIME_EXPOSURE"
     elif unknown:
         decision = "BLOCKED_UNKNOWN_MPF_ARTIFACTS"
     elif known_present:
@@ -247,7 +307,7 @@ def build_phase11_current_controlled_artifact_gate_report(*, iptables_save_text:
         "duplicate_controlled_artifact_count": len(duplicate_artifacts),
         "duplicate_nat_redirects": duplicate_nat,
         "duplicate_nat_redirect_count": len(duplicate_nat),
-        "forbidden_public_runtime_exposure": False,
+        "forbidden_public_runtime_exposure": forbidden_public_runtime_exposure,
         "production_gates_remain_closed": True,
         "blockers": sorted(set(blockers + (["unknown_mpf_artifacts_detected"] if unknown else []))),
         "warnings": sorted(set(warnings)),

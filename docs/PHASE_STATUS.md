@@ -67,6 +67,19 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 - Farm5 0.1.276 operational surfaces evidence directory reviewed: `/tmp/phase11-operational-surfaces-evidence-0.1.276-20260616T051203Z`. It showed controlled backend target OK at `172.18.0.2:60010`, artifact gate with target `PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS`, `verify_current_phase_gate` false-blocked without target, customer lifecycle doctor READY, firewall operational surface false-blocked without target, usage/report/check surface READY, restart/autostart proof READY, and gap inventory still requiring Full CLI Production Operations.
 - Phase 11 operational completion remains not accepted; `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`; Phase 12, worker enforcement, UI, and Telegram remain closed.
 
+
+### 0.1.298 — Phase 11 current gate recognizes official generic activation artifacts
+
+- Recognizes official Phase 11 generic real-customer activation artifacts for `vahid-btc-real-60046` / port `60046` in the current controlled artifact gate.
+- Keeps unrelated or malformed unknown MPF artifacts fail-closed.
+- Keeps backend public exposure forbidden.
+- Does not run first-connect DB.
+- Does not accept Full CLI Production Operations.
+- Does not set `production_traffic=cli_production`.
+- Does not set `customer_onboarding_allowed=cli_production`.
+- Does not open Phase 12, worker enforcement, UI, or Telegram.
+- Next farm5 step after sync: rerun current phase safety gate; rerun generic-activation-verify using a fresh 0.1.298 snapshot; if both are READY/PASS, run first-connect DB evidence.
+
 ## 0.1.264 Current Phase 11 operational completion blocker
 
 Farm5 0.1.263 fresh packet-path evidence was READY, the live-ready package was READY, and execute-preflight was READY with `blockers=[]`. Guarded execute failed safely before `iptables-restore --test`, apply, or firewall mutation because canonical execute identity still treated package-bound placeholder backend metadata as hard identity drift against real Docker runtime metadata. The next_required_step is to offline sync 0.1.264 to farm5, regenerate fresh packet-path evidence, build a READY live-ready package, pass execute-preflight, then run guarded controlled artifact reapply execute only if all hard safety identity checks remain matched and `blockers=[]`.
