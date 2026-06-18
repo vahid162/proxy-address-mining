@@ -1,4 +1,6 @@
 0.1.279 lifecycle execution hardening note: farm5 evidence proves `mpf` is the correct controlled lifecycle execution user (`sudo -u mpf /usr/local/bin/mpf ...`). Packages now include operator_context, preflight blocks non-mpf execute context and unwritable backup roots, execute re-runs preflight and reports controlled JSON errors/orphan backup artifacts, and verify fails closed as JSON for missing/invalid evidence, missing/corrupt backups, missing DB rows, and correlation mismatches. Controlled lifecycle execute was not run by this PR; production_traffic and customer_onboarding_allowed remain controlled_cli_limited, backup_restore_drill and Full CLI Production Operations remain not ready, and Phase 12/worker/UI/Telegram remain closed.
+Phase 11 completion is now a 10-item matrix: items 1-8 remain the previous operational surfaces, item 9 is production generic real-customer activation, and item 10 is final acceptance. Final acceptance remains the last gate and must set `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`. Generic Real-Customer Activation is required before final acceptance; this does not authorize uncontrolled production expansion, Phase 12, worker enforcement, UI, Telegram, timers, or daemons. Until final acceptance, production_traffic and customer_onboarding_allowed remain controlled_cli_limited.
+
 
 0.1.276 restart/autostart strict JSON evidence note: farm5 0.1.275 evidence at `/tmp/phase11-restart-autostart-proof-0.1.275-20260615T190637Z` proved the controlled artifact gate passed with backend target `172.18.0.2:60010`, unknown_mpf_artifacts=[], duplicate_nat_redirect_count=0, forbidden_public_runtime_exposure=false, production gates closed, and the restart/autostart proof payload READY, but `proof-report.json` was not strict JSON because shell provenance comments preceded the JSON object. This release keeps JSON captures strict, moves provenance to sidecar metadata, propagates the supplied evidence directory through post-cleanup summary/gap inventory, fails closed on malformed JSON evidence, and adds a read-only production customer lifecycle execution readiness package. Phase 11 operational completion remains not accepted; production_traffic and customer_onboarding_allowed remain controlled_cli_limited; Phase 12, worker enforcement, UI, and Telegram remain closed. Next runtime step: production customer lifecycle execution.
 
@@ -38,7 +40,8 @@ Final acceptance must prove all of these operational surfaces through CLI/servic
 6. production abuse runner for all active customers in all enabled lanes;
 7. pause/block/expire-run operational controls;
 8. backup/restore drill;
-9. final acceptance that sets `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
+9. production generic real-customer activation (`production_generic_real_customer_activation`);
+10. final acceptance that sets `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
 
 ## Final Acceptance Criteria
 
@@ -51,6 +54,7 @@ production_usage_report_check_evidence: READY
 production_abuse_runner: READY
 production_controls_pause_block_expire: READY
 backup_restore_drill: READY
+production_generic_real_customer_activation: READY
 full_cli_production_operations: READY
 unknown_mpf_artifacts: []
 forbidden_public_runtime_exposure: false

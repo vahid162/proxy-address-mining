@@ -1,4 +1,6 @@
 
+0.1.293 Phase 11 completion index note: official Full CLI Production Operations completion is now 10 items; `production_generic_real_customer_activation` is item 9 and final acceptance is item 10/last. Gates remain controlled_cli_limited until final acceptance; Phase 12, worker enforcement, UI, Telegram, timers, and daemons remain closed.
+
 0.1.267 controlled execute recovery note: farm5 0.1.266 proved guarded execute reached `iptables-restore --test --noflush` and `iptables-restore --noflush` with `apply_succeeded=true`, but post-apply verification failed closed because the current artifact gate used a narrower allowlist than the official controlled artifact taxonomy and did not carry the resolved backend target consistently. The immediate recovery used a manually reviewed exact-inverse rollback from the package rollback_plan; rollback test passed, rollback apply succeeded, and the post-rollback gate returned `PASS_NO_CUSTOMER_ARTIFACTS` with MPF/proxy doctors OK and production gates still closed. Before any new execute, taxonomy/gate/post-verify alignment and the reviewed exact-inverse rollback executor path are required.
 Phase 11 verified binding note (0.1.253): explicit DOCKER-USER/FORWARD post-DNAT artifact graph binding and non-executing controlled package evidence generation are implemented; execution, Phase 12, worker enforcement, UI, and Telegram remain blocked. See `docs/PHASE_11_FARM5_0_1_252_FILTER_PACKET_PATH_READY_EVIDENCE.md`.
 
@@ -114,7 +116,7 @@ Current Phase 11 step:
 ```text
 Phase 12 Worker Policy Enforcement remains blocked until final Phase 11 operational completion acceptance.
 UI, Telegram, worker enforcement, buyer panel, public API, and public backend exposure remain closed.
-Full CLI Production Operations acceptance must prove the expanded matrix: restart/autostart proof, production customer lifecycle CLI execution, production firewall plan/apply/verify/rollback for real customer ports, production onboarding flow through CLI, production usage/report/check evidence, production abuse runner for all active customers in all enabled lanes, pause/block/expire-run operational controls, backup/restore drill, and final acceptance that sets production_traffic=cli_production and customer_onboarding_allowed=cli_production.
+Full CLI Production Operations acceptance must prove the expanded matrix: restart/autostart proof, production customer lifecycle CLI execution, production firewall plan/apply/verify/rollback for real customer ports, production onboarding flow through CLI, production usage/report/check evidence, production abuse runner for all active customers in all enabled lanes, pause/block/expire-run operational controls, backup/restore drill, production generic real-customer activation, and final acceptance that sets production_traffic=cli_production and customer_onboarding_allowed=cli_production.
 docs/PHASE_STATUS.md is authoritative for active phase language.
 Until final acceptance, current production/onboarding gates remain controlled_cli_limited and direct/ad-hoc DB or firewall mutation remains forbidden.
 Phase 10 is accepted context only unless docs/PHASE_STATUS.md explicitly reopens it.

@@ -1,4 +1,6 @@
 0.1.269 controlled post-apply semantic classification note: fixes the 0.1.268 post-apply verification mismatch by comparing official Phase 11 controlled artifacts with semantic/canonical forms for iptables-save normalizations (`-m tcp`, connlimit saddr, hashlimit rate/expiry) while preserving exact package payload hash behavior before apply. Farm5 is safe after the official rollback returned PASS_NO_CUSTOMER_ARTIFACTS; after sync, rerun read-only/package/preflight before any guarded execute. AI PR creation is hardened through scripts/create_runtime_first_pr.sh only.
+0.1.293 generic activation requirement: the old 9-item Phase 11 operational completion matrix is now a 10-item matrix. Items 1-8 remain unchanged, item 9 is production generic real-customer activation for arbitrary active DB-backed BTC customers, and item 10 is final acceptance. Final acceptance remains last and must not be next_required_step until `production_generic_real_customer_activation` is ready from explicit package/preflight/apply/verify/runtime evidence.
+
 
 
 

@@ -74,6 +74,7 @@ def test_gap_inventory_service_is_fail_closed_and_read_only() -> None:
         "production_abuse_runner",
         "production_controls_pause_block_expire",
         "backup_restore_drill",
+        "production_generic_real_customer_activation",
         "full_cli_production_operations",
     ):
         assert report[key] == "missing_or_partial"
@@ -101,7 +102,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.292"
+    assert report["repository_version"] == "0.1.293"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -141,7 +142,7 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
     def fake_run(config_path, **kwargs):
         packet_path_evidence_dir = kwargs.get("packet_path_evidence_dir")
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.292", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.293", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
@@ -549,7 +550,7 @@ def test_gap_inventory_honors_explicit_controls_readiness_ready() -> None:
 def _ready_controls_json() -> dict[str, object]:
     return {
         "component": "phase11_production_controls_pause_block_expire_readiness",
-        "repository_version": "0.1.292",
+        "repository_version": "0.1.293",
         "phase11_operational_completion_required": True,
         "readiness_scope": "read_only_controls_preflight",
         "target_customer_key": "limited-btc-001",
@@ -635,3 +636,45 @@ def test_gap_inventory_cli_no_evidence_controls_remains_fail_closed_and_read_onl
     assert report["phase12_start_allowed"] is False
     for key in ("mutation_performed", "db_mutation_performed", "firewall_apply_performed", "conntrack_flush_performed", "docker_restart_performed", "systemd_restart_performed"):
         assert report[key] is False
+
+
+def test_phase11_completion_matrix_has_10_items_and_final_acceptance_last() -> None:
+    text = Path("docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md").read_text(encoding="utf-8")
+    assert "9. production generic real-customer activation" in text
+    assert "10. final acceptance" in text
+    assert text.index("9. production generic real-customer activation") < text.index("10. final acceptance")
+
+
+def test_gap_inventory_generic_activation_blocks_final_acceptance_when_first_8_ready() -> None:
+    report = build_phase11_operational_completion_gap_inventory_report(
+        readiness_report={"final_decision":"NO_REAPPLY_REQUIRED_CONTROLLED_ARTIFACTS_PRESENT","blockers":[]},
+        lifecycle_execution_evidence_json=None,
+        firewall_completion_readiness={"production_firewall_apply_verify_rollback":"production_firewall_apply_verify_rollback_ready","final_decision":"PRODUCTION_FIREWALL_APPLY_VERIFY_ROLLBACK_EVIDENCE_READY","blockers":[],"phase12_start_allowed":False},
+        onboarding_readiness={"production_onboarding_flow":"production_onboarding_flow_ready"},
+        usage_report_check_surface={"usage_report_check_surface_ready":True,"final_decision":"USAGE_REPORT_CHECK_SURFACE_READY","blockers":[]},
+        abuse_runner_readiness={"production_abuse_runner":"production_abuse_runner_ready"},
+        controls_readiness={"production_controls_pause_block_expire":"production_controls_pause_block_expire_ready"},
+        backup_restore_readiness={"backup_restore_drill":"backup_restore_drill_ready"},
+    )
+    # restart/lifecycle remain fail-closed here; explicit direct test below covers all prior items.
+    assert report["production_generic_real_customer_activation"] == "missing_or_partial"
+    assert report["full_cli_production_operations"] == "missing_or_partial"
+
+
+def test_gap_inventory_next_step_generic_activation_before_final_acceptance(monkeypatch) -> None:
+    import mpf.services.phase11_operational_completion_gap_inventory_service as svc
+    monkeypatch.setattr(svc, "build_phase11_restart_autostart_proof_report", lambda evidence_dir=None: {"restart_autostart_proof":"ready","final_decision":"RESTART_AUTOSTART_PROOF_READY"})
+    monkeypatch.setattr(svc, "run_phase11_production_customer_lifecycle_execution_readiness_report", lambda *a, **k: {"production_customer_lifecycle_execution":"controlled_execution_evidence_ready"})
+    report = svc.build_phase11_operational_completion_gap_inventory_report(
+        evidence_dir=Path('.'),
+        firewall_completion_readiness={"production_firewall_apply_verify_rollback":"production_firewall_apply_verify_rollback_ready","final_decision":"PRODUCTION_FIREWALL_APPLY_VERIFY_ROLLBACK_EVIDENCE_READY","blockers":[],"phase12_start_allowed":False},
+        onboarding_readiness={"production_onboarding_flow":"production_onboarding_flow_ready"},
+        usage_report_check_surface={"usage_report_check_surface_ready":True,"final_decision":"USAGE_REPORT_CHECK_SURFACE_READY","blockers":[]},
+        abuse_runner_readiness={"production_abuse_runner":"production_abuse_runner_ready"},
+        controls_readiness={"production_controls_pause_block_expire":"production_controls_pause_block_expire_ready"},
+        backup_restore_readiness={"backup_restore_drill":"backup_restore_drill_ready"},
+        generic_activation_readiness={"production_generic_real_customer_activation":"missing_or_partial"},
+    )
+    assert report["next_required_step"] == "production_generic_real_customer_activation"
+    assert report["next_required_step"] != "final_phase11_operational_completion_acceptance"
+    assert report["full_cli_production_operations_acceptance_pr_required"] is False

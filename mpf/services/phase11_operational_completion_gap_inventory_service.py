@@ -43,6 +43,10 @@ from mpf.services.phase11_backup_restore_drill_readiness_service import (
     READY as BACKUP_RESTORE_READY,
     build_phase11_backup_restore_drill_readiness_report,
 )
+from mpf.services.phase11_generic_real_customer_activation_service import (
+    READY as GENERIC_ACTIVATION_READY,
+    readiness_from_evidence as generic_activation_readiness_from_evidence,
+)
 
 _MISSING_OR_PARTIAL = "missing_or_partial"
 
@@ -198,6 +202,7 @@ def build_phase11_operational_completion_gap_inventory_report(
     abuse_runner_readiness: dict[str, object] | None = None,
     controls_readiness: dict[str, object] | None = None,
     backup_restore_readiness: dict[str, object] | None = None,
+    generic_activation_readiness: dict[str, object] | None = None,
 ) -> dict[str, object]:
     """Return the expanded post-acceptance Phase 11 gap inventory without mutation."""
 
@@ -382,11 +387,21 @@ def build_phase11_operational_completion_gap_inventory_report(
             backup_restore_readiness = explicit_backup_restore
         else:
             backup_restore_readiness = build_phase11_backup_restore_drill_readiness_report(evidence_dir)
+    if generic_activation_readiness is None:
+        generic_activation_readiness = generic_activation_readiness_from_evidence(
+            _load_evidence_json(evidence_dir, "production-generic-real-customer-activation-readiness.json")
+            or _load_evidence_json(evidence_dir, "generic-real-customer-activation-runtime-evidence.json")
+        )
     controls_item = controls_readiness.get(
         "production_controls_pause_block_expire", _MISSING_OR_PARTIAL
     )
     backup_item = backup_restore_readiness.get(
         "backup_restore_drill", _MISSING_OR_PARTIAL
+    )
+    generic_activation_item = (
+        GENERIC_ACTIVATION_READY
+        if (generic_activation_readiness or {}).get("production_generic_real_customer_activation") == GENERIC_ACTIVATION_READY
+        else _MISSING_OR_PARTIAL
     )
     order = [
         ("production_onboarding_flow", onboarding_item),
@@ -394,6 +409,7 @@ def build_phase11_operational_completion_gap_inventory_report(
         ("production_abuse_runner", abuse_item),
         ("production_controls_pause_block_expire", controls_item),
         ("backup_restore_drill", backup_item),
+        ("production_generic_real_customer_activation", generic_activation_item),
     ]
     next_required_step = _next_step(
         restart_status, persistence_plan_report, readiness_report, lifecycle_readiness
@@ -450,6 +466,8 @@ def build_phase11_operational_completion_gap_inventory_report(
         "production_controls_pause_block_expire_readiness": controls_readiness,
         "backup_restore_drill": backup_item,
         "backup_restore_drill_readiness": backup_restore_readiness,
+        "production_generic_real_customer_activation": generic_activation_item,
+        "production_generic_real_customer_activation_readiness": generic_activation_readiness,
         "full_cli_production_operations": (
             "full_cli_production_operations_ready"
             if full_ready
@@ -594,6 +612,7 @@ def run_phase11_operational_completion_gap_inventory_report(
     abuse_runner_readiness: dict[str, object] | None = None,
     controls_readiness: dict[str, object] | None = None,
     backup_restore_readiness: dict[str, object] | None = None,
+    generic_activation_readiness: dict[str, object] | None = None,
 ) -> dict[str, object]:
     """Read live persistence plan data and render the gap inventory without mutation."""
 
@@ -657,4 +676,5 @@ def run_phase11_operational_completion_gap_inventory_report(
         abuse_runner_readiness=abuse_runner_readiness,
         controls_readiness=controls_readiness,
         backup_restore_readiness=backup_restore_readiness,
+        generic_activation_readiness=generic_activation_readiness,
     )

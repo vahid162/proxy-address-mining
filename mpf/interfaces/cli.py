@@ -21,6 +21,7 @@ from mpf.services import (
     abuse_controlled_package_service,
     abuse_operational_service,
     firewall_apply_gate_readiness_service,
+    phase11_generic_real_customer_activation_service,
     firewall_no_customer_apply_acceptance_gate_service,
     firewall_no_customer_apply_execution_acceptance_service,
     firewall_no_customer_apply_execution_gate_service,
@@ -3836,6 +3837,70 @@ def production_backup_restore_drill_readiness(
     typer.echo(f"final_decision: {report.get('final_decision')}")
     typer.echo(f"blockers: {report.get('blockers')}")
 
+
+
+
+
+
+@production_app.command("real-customer-activation-package")
+def real_customer_activation_package(customer_key: str = typer.Option(..., "--customer-key"), config: Path | None = typer.Option(None, "--config", "-c"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    cfg = _load(config)
+    repo = phase11_generic_real_customer_activation_service.ConfigActivationRepository(cfg)
+    snapshot = json.loads(live_snapshot_file.read_text(encoding="utf-8")) if live_snapshot_file else None
+    report = phase11_generic_real_customer_activation_service.build_activation_package(repo, customer_key, live_snapshot=snapshot)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+@production_app.command("real-customer-activation-readiness")
+def real_customer_activation_readiness(output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    report = phase11_generic_real_customer_activation_service.readiness_from_evidence(None)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+@production_app.command("real-customer-activation-preflight")
+def real_customer_activation_preflight(package_file: Path = typer.Option(..., "--package-file"), live_snapshot_file: Path | None = typer.Option(None, "--live-snapshot-file"), confirm_package_sha256: str | None = typer.Option(None, "--confirm-package-sha256"), operator_context: str | None = typer.Option(None, "--operator-context"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    package = json.loads(package_file.read_text(encoding="utf-8"))
+    if "package" in package and isinstance(package["package"], dict):
+        package = package["package"]
+    snapshot = json.loads(live_snapshot_file.read_text(encoding="utf-8")) if live_snapshot_file else None
+    report = phase11_generic_real_customer_activation_service.preflight_activation_package(package, live_snapshot=snapshot, confirmed_package_sha256=confirm_package_sha256, operator_context=operator_context)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+@production_app.command("real-customer-activation-apply")
+def real_customer_activation_apply(package_file: Path = typer.Option(..., "--package-file"), execute: bool = typer.Option(False, "--execute"), confirm_package_sha256: str | None = typer.Option(None, "--confirm-package-sha256"), confirm_customer_key: str | None = typer.Option(None, "--confirm-customer-key"), confirm_public_port: int | None = typer.Option(None, "--confirm-public-port"), pre_apply_snapshot: str | None = typer.Option(None, "--pre-apply-snapshot"), rollback_artifact: str | None = typer.Option(None, "--rollback-artifact"), operator_lock_id: str | None = typer.Option(None, "--operator-lock-id"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    package = json.loads(package_file.read_text(encoding="utf-8"))
+    if "package" in package and isinstance(package["package"], dict):
+        package = package["package"]
+    report = phase11_generic_real_customer_activation_service.apply_activation_package(package, execute=execute, confirmed_package_sha256=confirm_package_sha256, confirmed_customer_key=confirm_customer_key, confirmed_public_port=confirm_public_port, pre_apply_snapshot_path=pre_apply_snapshot, rollback_artifact_path=rollback_artifact, operator_lock_id=operator_lock_id)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+@production_app.command("real-customer-activation-verify")
+def real_customer_activation_verify(package_file: Path = typer.Option(..., "--package-file"), live_snapshot_file: Path = typer.Option(..., "--live-snapshot-file"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    package = json.loads(package_file.read_text(encoding="utf-8"))
+    if "package" in package and isinstance(package["package"], dict):
+        package = package["package"]
+    snapshot = json.loads(live_snapshot_file.read_text(encoding="utf-8"))
+    report = phase11_generic_real_customer_activation_service.verify_activation(package, snapshot)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+@production_app.command("real-customer-activation-runtime-evidence")
+def real_customer_activation_runtime_evidence(package_file: Path = typer.Option(..., "--package-file"), external_reachable: bool = typer.Option(False, "--external-reachable"), backend_public_exposed: bool = typer.Option(False, "--backend-public-exposed"), appears_in_reports: bool = typer.Option(False, "--appears-in-reports"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    package = json.loads(package_file.read_text(encoding="utf-8"))
+    if "package" in package and isinstance(package["package"], dict):
+        package = package["package"]
+    report = phase11_generic_real_customer_activation_service.runtime_evidence(package, external_reachable=external_reachable, backend_public_exposed=backend_public_exposed, appears_in_reports=appears_in_reports)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
+
+
+@production_app.command("real-customer-activation-rollback-readiness")
+def real_customer_activation_rollback_readiness(package_file: Path = typer.Option(..., "--package-file"), pre_apply_snapshot: str | None = typer.Option(None, "--pre-apply-snapshot"), output: Literal["json", "human"] = typer.Option("json", "--output")) -> None:
+    package = json.loads(package_file.read_text(encoding="utf-8"))
+    if "package" in package and isinstance(package["package"], dict):
+        package = package["package"]
+    report = phase11_generic_real_customer_activation_service.rollback_readiness(package, pre_apply_snapshot_path=pre_apply_snapshot)
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 @production_app.command("phase11-operational-completion-gap-inventory")
 def production_phase11_operational_completion_gap_inventory(
