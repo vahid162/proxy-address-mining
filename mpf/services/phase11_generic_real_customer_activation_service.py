@@ -37,6 +37,8 @@ def run_iptables_restore(payload: str, *, test: bool, noflush: bool) -> dict[str
     """
     if os.environ.get("CI"):
         raise RuntimeError("real_iptables_restore_forbidden_in_ci")
+    if os.environ.get("MPF_PHASE11_GENERIC_ACTIVATION_APPLY") != "1":
+        raise RuntimeError("operator_env_gate_required_for_iptables_restore")
     cmd = ["iptables-restore"]
     if test:
         cmd.append("--test")

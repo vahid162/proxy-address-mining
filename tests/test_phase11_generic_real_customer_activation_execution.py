@@ -76,6 +76,46 @@ def test_transcript_import_accepts_and_rejects_scope():
     assert "worker_scope_does_not_match_customer" in rb["blockers"]
 
 
+def test_run_iptables_restore_requires_env_gate_before_subprocess(monkeypatch):
+    called = False
+
+    def fake_run(*args, **kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("subprocess.run must not be invoked without env gate")
+
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.delenv("MPF_PHASE11_GENERIC_ACTIVATION_APPLY", raising=False)
+    monkeypatch.setattr(svc.subprocess, "run", fake_run)
+    try:
+        svc.run_iptables_restore("payload", test=True, noflush=True)
+    except RuntimeError as exc:
+        assert str(exc) == "operator_env_gate_required_for_iptables_restore"
+    else:
+        raise AssertionError("expected RuntimeError")
+    assert called is False
+
+
+def test_run_iptables_restore_ci_blocks_even_with_env_gate(monkeypatch):
+    called = False
+
+    def fake_run(*args, **kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("subprocess.run must not be invoked in CI")
+
+    monkeypatch.setenv("CI", "1")
+    monkeypatch.setenv("MPF_PHASE11_GENERIC_ACTIVATION_APPLY", "1")
+    monkeypatch.setattr(svc.subprocess, "run", fake_run)
+    try:
+        svc.run_iptables_restore("payload", test=True, noflush=True)
+    except RuntimeError as exc:
+        assert str(exc) == "real_iptables_restore_forbidden_in_ci"
+    else:
+        raise AssertionError("expected RuntimeError")
+    assert called is False
+
+
 def test_no_hardcoded_controlled_paths_in_generic_service():
     text=Path('mpf/services/phase11_generic_real_customer_activation_service.py').read_text()
     for forbidden in ('20001','20101','60045','canary-btc-001','limited-btc-001'):

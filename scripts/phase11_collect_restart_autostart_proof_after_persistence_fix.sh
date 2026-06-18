@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-VERSION="0.1.293"
+VERSION="0.1.294"
 OUT_DIR="${1:-/tmp/phase11-restart-autostart-proof-after-persistence-fix-$(date -u +%Y%m%dT%H%M%SZ)}"
 MPF_BIN="${MPF_BIN:-mpf}"
 mkdir -p "$OUT_DIR"
