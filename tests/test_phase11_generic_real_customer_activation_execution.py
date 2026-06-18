@@ -359,3 +359,73 @@ def test_real_customer_activation_apply_compat_alias_blocks_runner_even_with_env
     assert data["iptables_restore_invoked"] is False
     assert data["mutation_performed"] is False
     assert called is False
+
+
+def docker_bridge_snapshot_text():
+    return """*nat
+:PREROUTING ACCEPT [0:0]
+:DOCKER - [0:0]
+-A PREROUTING -p tcp -m tcp --dport 60046 -j DNAT --to-destination 172.18.0.2:60010
+-A DOCKER -d 127.0.0.1/32 ! -i br-bc842836bac9 -p tcp -m tcp --dport 60010 -j DNAT --to-destination 172.18.0.2:60010
+COMMIT
+*filter
+:DOCKER-USER - [0:0]
+:DOCKER - [0:0]
+:MPFC_60046 - [0:0]
+-A DOCKER-USER -p tcp -m conntrack --ctorigdstport 60046 -m comment --comment "MPF customer=vahid-btc-real-60046 port=60046" -j MPFC_60046
+-A MPFC_60046 -j RETURN
+-A DOCKER -d 172.18.0.2/32 ! -i br-bc842836bac9 -o br-bc842836bac9 -p tcp -m tcp --dport 60010 -j ACCEPT
+COMMIT
+"""
+
+
+def test_docker_bridge_internal_backend_accept_is_not_public_exposure():
+    snap = svc.snapshot_from_iptables_save(docker_bridge_snapshot_text())
+    assert snap["backend_public_exposure"] is False
+    assert snap["unknown_mpf_artifacts"] == []
+    assert snap["duplicate_dnat_ports"] == []
+    verify = svc.verify_activation(pkg(port=60046, key="vahid-btc-real-60046"), snap)
+    assert verify["final_decision"] == "GENERIC_REAL_CUSTOMER_ACTIVATION_VERIFY_READY"
+    assert verify["blockers"] == []
+
+
+def test_real_public_backend_accept_still_blocks_verify():
+    snap = svc.snapshot_from_iptables_save(docker_bridge_snapshot_text() + "\n-A INPUT -p tcp -m tcp --dport 60010 -j ACCEPT\n")
+    assert snap["backend_public_exposure"] is True
+    verify = svc.verify_activation(pkg(port=60046, key="vahid-btc-real-60046"), snap)
+    assert verify["final_decision"] == "BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_VERIFY"
+    assert "backend_public_exposure_forbidden" in verify["blockers"]
+
+
+def test_full_generic_activation_readiness_assembly_with_first_connect():
+    readiness = svc.readiness_from_evidence(
+        package={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_PACKAGE_READY"},
+        preflight={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_PREFLIGHT_READY"},
+        apply={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY_EXECUTED_PENDING_RUNTIME_EVIDENCE"},
+        verify={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_VERIFY_READY"},
+        transcript={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_TRANSCRIPT_EVIDENCE_READY"},
+        first_connect_db={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_FIRST_CONNECT_DB_EVIDENCE_READY"},
+        abuse={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_ABUSE_COVERAGE_READY"},
+        activation_mode="first_connect",
+    )
+    assert readiness["production_generic_real_customer_activation"] == svc.READY
+    assert readiness["final_decision"] == "PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_READY"
+    assert readiness["next_required_step"] == "final_phase11_operational_completion_acceptance"
+    for key in ("package_ready", "preflight_ready", "apply_executed_pending_runtime_evidence", "verify_ready", "transcript_runtime_evidence_ready", "first_connect_db_evidence_ready", "abuse_coverage_ready"):
+        assert readiness[key] is True
+    assert readiness["phase12_start_allowed"] is False
+
+
+def test_first_connect_activation_readiness_blocks_when_db_evidence_missing():
+    readiness = svc.readiness_from_evidence(
+        package={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_PACKAGE_READY"},
+        preflight={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_PREFLIGHT_READY"},
+        apply={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY_EXECUTED_PENDING_RUNTIME_EVIDENCE"},
+        verify={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_VERIFY_READY"},
+        transcript={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_TRANSCRIPT_EVIDENCE_READY"},
+        abuse={"final_decision": "GENERIC_REAL_CUSTOMER_ACTIVATION_ABUSE_COVERAGE_READY"},
+        activation_mode="first_connect",
+    )
+    assert readiness["production_generic_real_customer_activation"] == svc.MISSING
+    assert "first_connect_db_evidence_ready" in readiness["blockers"]
+    assert readiness["next_required_step"] == "production_generic_real_customer_activation"

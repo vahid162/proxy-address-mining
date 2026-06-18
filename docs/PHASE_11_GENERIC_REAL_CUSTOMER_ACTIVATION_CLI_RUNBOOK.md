@@ -1,17 +1,21 @@
 # Phase 11 Generic Real-Customer Activation CLI Runbook
 
-Version target after sync: `0.1.296`.
+Version target after sync: `0.1.297`.
 
 This runbook is the focused farm5 next step for `vahid-btc-real-60046` / BTC / public port `60046`. This PR does not authorize uncontrolled production expansion, does not accept Full CLI Production Operations, does not set `production_traffic=cli_production`, and does not open Phase 12, worker enforcement, UI, or Telegram. 60046 is the only current generic real-customer activation candidate.
 
 Any failure must stop and produce evidence. Do not repair iptables manually unless a separate reviewed rollback or emergency procedure explicitly authorizes it. Do not test 60046 externally until controlled apply succeeds and verify passes.
+
+## 0.1.297 verify classifier note
+
+Version 0.1.297 fixes the generic activation verifier so Docker bridge-internal backend ACCEPT rules for `172.18.0.2/32` on `-o br-*` and backend port `60010` do not count as public backend exposure. Real public backend `60010` exposure remains fail-closed. For the already-applied `60046` state, keep the controlled order: verify first, use the existing transcript evidence, run first-connect DB evidence only after verify is READY, rerun abuse coverage, rerun readiness, then stop before final acceptance. This runbook explicitly does not accept Phase 11 or Full CLI Production Operations.
 
 ## Commands
 
 Use an evidence directory for all artifacts:
 
 ```bash
-export EVIDENCE_DIR=/tmp/phase11-generic-activation-0.1.296-vahid-btc-real-60046-$(date -u +%Y%m%dT%H%M%SZ)
+export EVIDENCE_DIR=/tmp/phase11-generic-activation-0.1.297-vahid-btc-real-60046-$(date -u +%Y%m%dT%H%M%SZ)
 mkdir -p "$EVIDENCE_DIR"
 ```
 

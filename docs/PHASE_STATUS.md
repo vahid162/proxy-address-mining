@@ -49,6 +49,16 @@ Phase 11 planning/readiness note (0.1.227): fixes Phase11E limited activation ex
 
 # PHASE STATUS
 
+### 0.1.297 Phase 11 generic real-customer activation verify classifier fix (2026-06-18)
+
+- Fixes the Phase 11 generic real-customer activation verify false-positive after controlled apply for `vahid-btc-real-60046` on BTC public port `60046`.
+- Docker bridge-internal backend ACCEPT rules, such as container `/32` destination rules on `-o br-*` in the DOCKER chain for backend port `60010`, are classified as non-public.
+- Real public backend exposure remains fail-closed and still blocks verify with `backend_public_exposure_forbidden`.
+- Enables the already-tested item-9 evidence chain to reach formal READY after verify plus controlled first-connect DB evidence.
+- Does not accept Full CLI Production Operations, does not set `production_traffic=cli_production`, and does not set `customer_onboarding_allowed=cli_production`.
+- Does not open Phase 12, worker enforcement, UI, Telegram, timers, daemons, or unrestricted expansion.
+- Next runtime step after sync: rerun `generic-activation-verify` on existing post-apply evidence; if READY, run `generic-activation-first-connect-db` as `sudo -u mpf` using transcript evidence sha256 `3c2857e1da4afe2e69ef12ef079142e277d1659100586ec088d83c69bcbd24ec`; then run `generic-activation-readiness` and the operational gap inventory. Expected `next_required_step`: `final_phase11_operational_completion_acceptance`.
+
 ### 0.1.277 Phase 11 operational surfaces backend-target consolidation (2026-06-16)
 
 - Current phase safety gate and firewall operational surface now resolve/pass `expected_backend_target`, preventing false `BLOCKED_UNKNOWN_MPF_ARTIFACTS` for known controlled DNAT artifacts.
