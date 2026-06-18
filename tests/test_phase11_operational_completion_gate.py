@@ -102,7 +102,7 @@ def test_gap_inventory_cli_returns_fail_closed_json() -> None:
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--output", "json"])
     assert result.exit_code == 0, result.output
     report = json.loads(result.output)
-    assert report["repository_version"] == "0.1.295"
+    assert report["repository_version"] == "0.1.296"
     assert report["final_decision"] == "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED"
     assert report["phase12_start_allowed"] is False
     assert report["mutation_performed"] is False
@@ -142,7 +142,7 @@ def test_gap_inventory_cli_accepts_packet_path_evidence_dir(monkeypatch, tmp_pat
     def fake_run(config_path, **kwargs):
         packet_path_evidence_dir = kwargs.get("packet_path_evidence_dir")
         seen["packet_path_evidence_dir"] = packet_path_evidence_dir
-        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.295", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
+        return {"component": "phase11_operational_completion_gap_inventory", "repository_version": "0.1.296", "final_decision": "PHASE11_FULL_CLI_PRODUCTION_OPERATIONS_REQUIRED", "phase12_start_allowed": False, "mutation_performed": False, "next_required_step": "sync_and_review_live_ready_controlled_artifact_reapply_package_on_farm5"}
 
     monkeypatch.setattr(cli.phase11_operational_completion_gap_inventory_service, "run_phase11_operational_completion_gap_inventory_report", fake_run)
     result = RUNNER.invoke(app, ["production", "phase11-operational-completion-gap-inventory", "--packet-path-evidence-dir", str(tmp_path), "--output", "json"])
@@ -550,7 +550,7 @@ def test_gap_inventory_honors_explicit_controls_readiness_ready() -> None:
 def _ready_controls_json() -> dict[str, object]:
     return {
         "component": "phase11_production_controls_pause_block_expire_readiness",
-        "repository_version": "0.1.295",
+        "repository_version": "0.1.296",
         "phase11_operational_completion_required": True,
         "readiness_scope": "read_only_controls_preflight",
         "target_customer_key": "limited-btc-001",
@@ -678,3 +678,15 @@ def test_gap_inventory_next_step_generic_activation_before_final_acceptance(monk
     assert report["next_required_step"] == "production_generic_real_customer_activation"
     assert report["next_required_step"] != "final_phase11_operational_completion_acceptance"
     assert report["full_cli_production_operations_acceptance_pr_required"] is False
+
+
+def test_generic_activation_cli_does_not_import_subprocess_or_open_closed_surfaces() -> None:
+    cli_text = Path("mpf/interfaces/cli.py").read_text(encoding="utf-8")
+    assert "import subprocess" not in cli_text
+    runbook = Path("docs/PHASE_11_GENERIC_REAL_CUSTOMER_ACTIVATION_CLI_RUNBOOK.md").read_text(encoding="utf-8")
+    assert "does not accept Full CLI Production Operations" in runbook
+    assert "Phase 12" in runbook and "does not open" in runbook
+    phase_status = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    assert "production_traffic: controlled_cli_limited" in phase_status
+    assert "customer_onboarding_allowed: controlled_cli_limited" in phase_status
+    assert "phase12_start_allowed: no" in phase_status

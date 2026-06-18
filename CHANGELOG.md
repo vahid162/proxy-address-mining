@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.296
+
+- feat(phase11): add official CLI path for generic real-customer activation package/preflight/apply/verify/transcript/first-connect/readiness; PR/CI does not execute runtime apply, Full CLI Production Operations remains unaccepted, `production_traffic` and `customer_onboarding_allowed` remain controlled_cli_limited, and Phase 12/worker/UI/Telegram remain closed. Next farm5 step is CLI regeneration/review followed by controlled apply only with all confirmations and `MPF_PHASE11_GENERIC_ACTIVATION_APPLY=1`.
+
 ## 0.1.295
 - fix(phase11): fix generic real-customer activation package/preflight false blockers by normalizing empty/null deleted_at values and aligning accepted controlled MPF artifact taxonomy. Reinforce the 10-item Phase 11 matrix while keeping Full CLI Production Operations unaccepted, production_traffic/customer_onboarding_allowed controlled_cli_limited, no DB/firewall/NAT/runtime mutation, no iptables-restore, no Docker/systemd/conntrack changes, and no Phase 12/worker/UI/Telegram.
 

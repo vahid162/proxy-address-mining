@@ -244,3 +244,81 @@ def test_no_hardcoded_controlled_paths_in_generic_service():
     text=Path('mpf/services/phase11_generic_real_customer_activation_service.py').read_text()
     for forbidden in ('20001','20101','60045','canary-btc-001','limited-btc-001'):
         assert forbidden not in text
+
+
+def _write_json(path, payload):
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def test_generic_cli_snapshot_preflight_verify_transcript_readiness(tmp_path):
+    runner = CliRunner()
+    package = {"package": pkg(port=60046, key="vahid-btc-real-60046")}
+    pkg_file = _write_json(tmp_path / "pkg.json", package)
+    snap_file = _write_json(tmp_path / "snap.json", clean_snapshot())
+    pre = runner.invoke(app, ["production", "generic-activation-preflight", "--package-file", str(pkg_file), "--live-snapshot-file", str(snap_file), "--confirmed-package-sha256", "sha", "--operator-context", "operator-reviewed", "--output", "json"])
+    assert pre.exit_code == 0, pre.output
+    pre_data = json.loads(pre.stdout)
+    assert pre_data["final_decision"] == "GENERIC_REAL_CUSTOMER_ACTIVATION_PREFLIGHT_READY"
+    verify = runner.invoke(app, ["production", "generic-activation-verify", "--package-file", str(pkg_file), "--live-snapshot-file", str(snap_file), "--output", "json"])
+    assert verify.exit_code == 0, verify.output
+    assert json.loads(verify.stdout)["final_decision"] == "GENERIC_REAL_CUSTOMER_ACTIVATION_VERIFY_READY"
+    transcript_file = _write_json(tmp_path / "transcript.json", {"connect_host":"85.198.11.110", "connect_port":60046, "worker_name":"vahid-btc-real-60046.worker1", "authorize_result": True, "subscribe_result": [1], "mining_notify_received": True})
+    transcript = runner.invoke(app, ["production", "generic-activation-transcript-import", "--package-file", str(pkg_file), "--transcript-file", str(transcript_file), "--output", "json"])
+    assert transcript.exit_code == 0, transcript.output
+    assert json.loads(transcript.stdout)["final_decision"] == "GENERIC_REAL_CUSTOMER_ACTIVATION_TRANSCRIPT_EVIDENCE_READY"
+    readiness = runner.invoke(app, ["production", "generic-activation-readiness", "--package-report-file", str(_write_json(tmp_path / "pkg_report.json", {"final_decision":"GENERIC_REAL_CUSTOMER_ACTIVATION_PACKAGE_READY"})), "--preflight-report-file", str(_write_json(tmp_path / "pre.json", pre_data)), "--output", "json"])
+    assert readiness.exit_code == 0, readiness.output
+    rdata = json.loads(readiness.stdout)
+    assert rdata["final_decision"] == "BLOCKED_PRODUCTION_GENERIC_REAL_CUSTOMER_ACTIVATION_EVIDENCE"
+    assert "apply_executed_pending_runtime_evidence" in rdata["blockers"]
+
+
+def test_generic_cli_apply_guards_and_fake_runner_order(tmp_path, monkeypatch):
+    import mpf.interfaces.cli as cli
+    runner = CliRunner()
+    p = _write_json(tmp_path / "pkg.json", {"package": pkg()})
+    pre = _write_json(tmp_path / "pre.json", {"final_decision":"GENERIC_REAL_CUSTOMER_ACTIVATION_PREFLIGHT_READY", "customer_key":"generic-btc-xyz", "public_port":23456, "package_sha256":"sha"})
+    snap = _write_json(tmp_path / "before.json", {"snapshot":"present"})
+    calls = []
+    monkeypatch.setenv("MPF_PHASE11_GENERIC_ACTIVATION_APPLY", "1")
+    monkeypatch.setattr(cli, "GENERIC_ACTIVATION_RESTORE_RUNNER", lambda payload, *, test, noflush: calls.append((test, noflush)) or {"returncode":0, "test":test, "noflush":noflush})
+    base = ["production", "generic-activation-apply", "--package-file", str(p), "--preflight-report-file", str(pre), "--confirmed-package-sha256", "sha", "--confirmed-customer-key", "generic-btc-xyz", "--confirmed-public-port", "23456", "--pre-apply-snapshot-file", str(snap), "--rollback-artifact-path", str(tmp_path / "rollback.json"), "--operator-lock-id", "lock", "--output", "json"]
+    blocked = runner.invoke(app, base + ["--execute"])
+    assert blocked.exit_code == 0, blocked.output
+    data = json.loads(blocked.stdout)
+    assert "yes_required" in data["blockers"]
+    assert data["iptables_restore_test_invoked"] is False
+    assert calls == []
+    ok = runner.invoke(app, base + ["--execute", "--yes"])
+    assert ok.exit_code == 0, ok.output
+    data = json.loads(ok.stdout)
+    assert data["final_decision"] == "GENERIC_REAL_CUSTOMER_ACTIVATION_APPLY_EXECUTED_PENDING_RUNTIME_EVIDENCE"
+    assert calls == [(True, True), (False, True)]
+
+
+def test_generic_cli_apply_blocks_preflight_mismatch_before_runner(tmp_path, monkeypatch):
+    import mpf.interfaces.cli as cli
+    called = False
+    def runner(*args, **kwargs):
+        nonlocal called
+        called = True
+    monkeypatch.setenv("MPF_PHASE11_GENERIC_ACTIVATION_APPLY", "1")
+    monkeypatch.setattr(cli, "GENERIC_ACTIVATION_RESTORE_RUNNER", runner)
+    p = _write_json(tmp_path / "pkg.json", {"package": pkg()})
+    pre = _write_json(tmp_path / "pre.json", {"final_decision":"BLOCKED_GENERIC_REAL_CUSTOMER_ACTIVATION_PREFLIGHT", "customer_key":"other", "public_port":9999, "package_sha256":"bad"})
+    snap = _write_json(tmp_path / "before.json", {})
+    res = CliRunner().invoke(app, ["production", "generic-activation-apply", "--package-file", str(p), "--preflight-report-file", str(pre), "--confirmed-package-sha256", "sha", "--confirmed-customer-key", "generic-btc-xyz", "--confirmed-public-port", "23456", "--pre-apply-snapshot-file", str(snap), "--rollback-artifact-path", "rb", "--operator-lock-id", "lock", "--execute", "--yes", "--output", "json"])
+    assert res.exit_code == 0, res.output
+    data = json.loads(res.stdout)
+    assert "preflight_report_not_ready" in data["blockers"]
+    assert "preflight_customer_mismatch" in data["blockers"]
+    assert data["iptables_restore_invoked"] is False
+    assert called is False
+
+
+def test_generic_activation_runbook_does_not_accept_full_cli_operations():
+    text = Path("docs/PHASE_11_GENERIC_REAL_CUSTOMER_ACTIVATION_CLI_RUNBOOK.md").read_text(encoding="utf-8")
+    assert "does not accept Full CLI Production Operations" in text
+    assert "Stop before final Phase 11 acceptance" in text
+    assert "60046 is the only current generic real-customer activation candidate" in text
