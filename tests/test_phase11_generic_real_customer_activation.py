@@ -49,6 +49,12 @@ def test_live_artifacts_preflight_apply_verify_runtime_and_abuse_contracts(monke
     assert svc.preflight_activation_package(pkg, live_snapshot={"unknown_mpf_artifacts":[]}, confirmed_package_sha256=pkg["package_sha256"], operator_context="op")["production_generic_real_customer_activation"] == svc.PREFLIGHT_READY
     monkeypatch.setenv("CI", "1")
     assert "execute_flag_required" in svc.apply_activation_package(pkg)["blockers"]
+    no_runner = svc.apply_activation_package(pkg, execute=True, confirmed_package_sha256=pkg["package_sha256"], confirmed_customer_key="alpha-btc-23456", confirmed_public_port=23456, pre_apply_snapshot_path="pre", rollback_artifact_path="rb", operator_lock_id="lock")
+    assert "restore_runner_required_for_apply_execution" in no_runner["blockers"]
+    assert no_runner.get("iptables_restore_invoked") is not True
+    assert no_runner["firewall_mutation_performed"] is False
+    assert no_runner["nat_mutation_performed"] is False
+    assert no_runner["mutation_performed"] is False
     calls=[]
     applied = svc.apply_activation_package(pkg, execute=True, confirmed_package_sha256=pkg["package_sha256"], confirmed_customer_key="alpha-btc-23456", confirmed_public_port=23456, pre_apply_snapshot_path="pre", rollback_artifact_path="rb", operator_lock_id="lock", restore_runner=lambda *a, **k: calls.append((a,k)))
     assert applied["iptables_restore_invoked"] is True and len(calls) == 2
