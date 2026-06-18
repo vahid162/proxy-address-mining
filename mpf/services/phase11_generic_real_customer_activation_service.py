@@ -101,6 +101,27 @@ def _deleted_at_is_set(value: object) -> bool:
     return True
 
 
+def _line_has_backend_dport(line: str, port: int = 60010) -> bool:
+    return bool(re.search(rf"(?:--dport\s+{port}\b|\bdpt:{port}\b)", line))
+
+
+def _is_docker_bridge_internal_backend_accept(line: str) -> bool:
+    """Return True only for Docker's bridge-internal container backend ACCEPT.
+
+    The accepted shape is intentionally narrow: a DOCKER-chain ACCEPT to a
+    container /32 destination over an output bridge interface for the backend
+    port. Other ACCEPTs for the backend port remain fail-closed as public
+    exposure candidates.
+    """
+    return (
+        line.startswith("-A DOCKER ")
+        and re.search(r"\s-d\s+\d{1,3}(?:\.\d{1,3}){3}/32\b", line) is not None
+        and re.search(r"\s-o\s+br-[A-Za-z0-9_.:-]+\b", line) is not None
+        and _line_has_backend_dport(line, 60010)
+        and re.search(r"(?:^|\s)-j\s+ACCEPT(?:\s|$)", line) is not None
+    )
+
+
 def snapshot_from_iptables_save(text: str) -> dict[str, Any]:
     dnat_by_port: dict[str, list[str]] = {}
     chains: list[str] = []
@@ -121,8 +142,9 @@ def snapshot_from_iptables_save(text: str) -> dict[str, Any]:
             port = parts[parts.index('--dport') + 1]
             target = parts[parts.index('--to-destination') + 1]
             dnat_by_port.setdefault(str(port), []).append(target)
-        if ('--dport 60010' in line or 'dpt:60010' in line) and any(x in line for x in ('ACCEPT', '-j ACCEPT')):
-            backend_public_exposure = True
+        if _line_has_backend_dport(line, 60010) and re.search(r"(?:^|\s)-j\s+ACCEPT(?:\s|$)", line):
+            if not _is_docker_bridge_internal_backend_accept(line):
+                backend_public_exposure = True
     duplicate = [int(p) for p, vals in dnat_by_port.items() if len(vals) > 1]
     return {"dnat_by_port": dnat_by_port, "chains": sorted(set(chains)), "unknown_mpf_artifacts": unknown, "duplicate_dnat_ports": duplicate, "conflicting_ports": [], "backend_public_exposure": backend_public_exposure}
 

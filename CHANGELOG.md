@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.297
+
+- fix(phase11): classify Docker bridge-internal backend ACCEPT rules as non-public for generic real-customer activation verify while keeping real backend 60010 exposure fail-closed; enables item-9 readiness to proceed after verify plus first-connect DB evidence without accepting Full CLI Production Operations.
+
 ## 0.1.296
 
 - feat(phase11): add official CLI path for generic real-customer activation package/preflight/apply/verify/transcript/first-connect/readiness; PR/CI does not execute runtime apply, Full CLI Production Operations remains unaccepted, `production_traffic` and `customer_onboarding_allowed` remain controlled_cli_limited, and Phase 12/worker/UI/Telegram remain closed. Next farm5 step is CLI regeneration/review followed by controlled apply only with all confirmations and `MPF_PHASE11_GENERIC_ACTIVATION_APPLY=1`.
