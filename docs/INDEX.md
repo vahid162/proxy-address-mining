@@ -722,3 +722,5 @@ Current Phase 11E operator runbook: `docs/PHASE_11E_SINGLE_CUSTOMER_RUNTIME_STRA
 ## 0.1.257 Phase 11 live-ready verified packet-path reapply package
 
 This update creates a live-ready package/review artifact from the verified packet-path/filter-hook binding. It still does not execute `iptables-restore`, does not apply firewall changes, does not accept restart/autostart proof, and does not accept Full CLI Production Operations. Phase 12, worker enforcement, UI, Telegram, timers, daemons, public backend/API, and unrestricted production remain closed; production traffic and customer onboarding remain `controlled_cli_limited`.
+
+- 0.1.294 generic activation execution/evidence path is documented in `docs/PHASE_STATUS.md` and `docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md`; final acceptance remains last and Phase 12 remains closed.
