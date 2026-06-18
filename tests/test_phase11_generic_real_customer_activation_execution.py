@@ -56,8 +56,8 @@ def test_cli_apply_without_env_gate_blocks(tmp_path):
     res=CliRunner().invoke(app,["production","real-customer-activation-apply","--package-file",str(p),"--execute","--confirm-package-sha256","sha","--confirm-customer-key","generic-btc-xyz","--confirm-public-port","23456","--pre-apply-snapshot","/tmp/before","--rollback-artifact","/tmp/rb","--operator-lock-id","lock","--output","json"])
     assert res.exit_code == 0
     data=json.loads(res.stdout)
-    assert "operator_env_gate_required_for_real_restore_runner" in data["blockers"]
-    assert data["iptables_restore_invoked"] is False if "iptables_restore_invoked" in data else True
+    assert "compatibility_alias_apply_blocked_use_generic_activation_apply" in data["blockers"]
+    assert data["iptables_restore_invoked"] is False
 
 
 def test_iptables_save_converter_and_verify_arbitrary_port():
@@ -322,3 +322,40 @@ def test_generic_activation_runbook_does_not_accept_full_cli_operations():
     assert "does not accept Full CLI Production Operations" in text
     assert "Stop before final Phase 11 acceptance" in text
     assert "60046 is the only current generic real-customer activation candidate" in text
+
+
+def test_real_customer_activation_apply_compat_alias_blocks_runner_even_with_env_gate(tmp_path, monkeypatch):
+    import mpf.interfaces.cli as cli
+    called = False
+
+    def runner(*args, **kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("compatibility alias must not inject restore runner")
+
+    monkeypatch.setenv("MPF_PHASE11_GENERIC_ACTIVATION_APPLY", "1")
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.setattr(cli, "GENERIC_ACTIVATION_RESTORE_RUNNER", runner)
+    p = _write_json(tmp_path / "pkg.json", {"package": pkg()})
+    res = CliRunner().invoke(app, [
+        "production", "real-customer-activation-apply",
+        "--package-file", str(p),
+        "--execute",
+        "--env-gate", "MPF_PHASE11_GENERIC_ACTIVATION_APPLY",
+        "--confirm-package-sha256", "sha",
+        "--confirm-customer-key", "generic-btc-xyz",
+        "--confirm-public-port", "23456",
+        "--pre-apply-snapshot", str(tmp_path / "before.json"),
+        "--rollback-artifact", str(tmp_path / "rollback.json"),
+        "--operator-lock-id", "lock",
+        "--output", "json",
+    ])
+    assert res.exit_code == 0, res.output
+    data = json.loads(res.stdout)
+    assert "compatibility_alias_apply_blocked_use_generic_activation_apply" in data["blockers"]
+    assert "preflight_report_required" in data["blockers"]
+    assert "yes_required" in data["blockers"]
+    assert data["iptables_restore_test_invoked"] is False
+    assert data["iptables_restore_invoked"] is False
+    assert data["mutation_performed"] is False
+    assert called is False

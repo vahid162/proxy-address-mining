@@ -4049,11 +4049,15 @@ def real_customer_activation_apply(package_file: Path = typer.Option(..., "--pac
     if payload is None:
         return
     package = _extract_generic_package(payload)
-    runner = GENERIC_ACTIVATION_RESTORE_RUNNER if execute and env_gate == "MPF_PHASE11_GENERIC_ACTIVATION_APPLY" and os.environ.get("MPF_PHASE11_GENERIC_ACTIVATION_APPLY") == "1" and not os.environ.get("CI") else None
-    report = phase11_generic_real_customer_activation_service.apply_activation_package(package, execute=execute, confirmed_package_sha256=confirm_package_sha256, confirmed_customer_key=confirm_customer_key, confirmed_public_port=confirm_public_port, pre_apply_snapshot_path=pre_apply_snapshot, rollback_artifact_path=rollback_artifact, operator_lock_id=operator_lock_id, restore_runner=runner)
-    if execute and runner is None:
-        report.setdefault("blockers", []).append("operator_env_gate_required_for_real_restore_runner")
-        report.setdefault("iptables_restore_invoked", False)
+    report = phase11_generic_real_customer_activation_service.apply_activation_package(package, execute=False, confirmed_package_sha256=confirm_package_sha256, confirmed_customer_key=confirm_customer_key, confirmed_public_port=confirm_public_port, pre_apply_snapshot_path=pre_apply_snapshot, rollback_artifact_path=rollback_artifact, operator_lock_id=operator_lock_id, restore_runner=None)
+    if execute:
+        report["blockers"] = sorted(set([*report.get("blockers", []), "compatibility_alias_apply_blocked_use_generic_activation_apply", "preflight_report_required", "yes_required"]))
+    report["iptables_restore_test_invoked"] = False
+    report["iptables_restore_invoked"] = False
+    report["firewall_mutation_performed"] = False
+    report["nat_mutation_performed"] = False
+    report["mutation_performed"] = False
+    report["next_required_step"] = "use_generic_activation_apply_with_full_preflight_confirmations"
     _emit_generic_json(report)
 
 
