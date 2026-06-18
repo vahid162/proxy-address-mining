@@ -111,3 +111,61 @@ def test_dnat_payload_requires_expected_backend_target_when_present():
     assert r['final_decision'] == 'BLOCKED_UNKNOWN_MPF_ARTIFACTS'
     assert 'expected_backend_target_required' in r['blockers']
     assert any(str(x).startswith('dnat_target_unresolved') for x in r['unknown_mpf_artifacts'])
+
+GENERIC_60046 = '''*filter
+:DOCKER-USER - [0:0]
+:MPFC_60046 - [0:0]
+-A DOCKER -d 172.18.0.2/32 ! -i br-abc123 -o br-abc123 -p tcp -m tcp --dport 60010 -j ACCEPT
+-A DOCKER-USER -p tcp -m conntrack --ctstate DNAT --ctorigdstport 60046 -m comment --comment "MPF customer=vahid-btc-real-60046 port=60046" -j MPFC_60046
+-A MPFC_60046 -j RETURN
+COMMIT
+*nat
+-A PREROUTING -p tcp -m tcp --dport 60046 -m comment --comment "MPF customer=vahid-btc-real-60046 port=60046" -j DNAT --to-destination 172.18.0.2:60010
+COMMIT
+'''
+
+def test_real_farm5_generic_activation_60046_artifacts_pass_current_gate():
+    r = build_phase11_current_controlled_artifact_gate_report(
+        iptables_save_text=GENERIC_60046,
+        phase_status_text=PHASE,
+        expected_backend_target="172.18.0.2:60010",
+    )
+    assert r['final_decision'] == 'PASS_WITH_KNOWN_CONTROLLED_PHASE11_ARTIFACTS'
+    assert r['unknown_mpf_artifacts'] == []
+    assert r['blockers'] == []
+    assert r['forbidden_public_runtime_exposure'] is False
+    assert r['production_gates_remain_closed'] is True
+
+
+def test_generic_activation_unknown_port_or_comment_still_blocks():
+    text = GENERIC_60046.replace('MPFC_60046', 'MPFC_60047').replace('port=60046', 'port=60047').replace('--dport 60046', '--dport 60047').replace('--ctorigdstport 60046', '--ctorigdstport 60047')
+    r = build_phase11_current_controlled_artifact_gate_report(
+        iptables_save_text=text,
+        phase_status_text=PHASE,
+        expected_backend_target="172.18.0.2:60010",
+    )
+    assert r['final_decision'] == 'BLOCKED_UNKNOWN_MPF_ARTIFACTS'
+    assert r['unknown_mpf_artifacts']
+
+
+def test_generic_activation_60046_wrong_backend_target_blocks():
+    text = GENERIC_60046.replace('172.18.0.2:60010', '172.18.0.9:60010')
+    r = build_phase11_current_controlled_artifact_gate_report(
+        iptables_save_text=text,
+        phase_status_text=PHASE,
+        expected_backend_target="172.18.0.2:60010",
+    )
+    assert r['final_decision'] == 'BLOCKED_UNKNOWN_MPF_ARTIFACTS'
+    assert any(str(x).startswith('dnat_target_mismatch:60046') for x in r['unknown_mpf_artifacts'])
+
+
+def test_backend_60010_public_accept_still_blocks_current_gate():
+    text = GENERIC_60046 + '-A INPUT -p tcp -m tcp --dport 60010 -j ACCEPT\n'
+    r = build_phase11_current_controlled_artifact_gate_report(
+        iptables_save_text=text,
+        phase_status_text=PHASE,
+        expected_backend_target="172.18.0.2:60010",
+    )
+    assert r['final_decision'] == 'BLOCKED_FORBIDDEN_PUBLIC_RUNTIME_EXPOSURE'
+    assert r['forbidden_public_runtime_exposure'] is True
+    assert 'forbidden_public_runtime_exposure_detected' in r['blockers']

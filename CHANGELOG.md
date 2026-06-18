@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.298
+- fix(phase11): recognize official 60046 generic activation artifacts in the current controlled artifact gate while keeping unknown artifacts and backend public exposure fail-closed.
+
 ## 0.1.297
 
 - fix(phase11): classify Docker bridge-internal backend ACCEPT rules as non-public for generic real-customer activation verify while keeping real backend 60010 exposure fail-closed; enables item-9 readiness to proceed after verify plus first-connect DB evidence without accepting Full CLI Production Operations.

@@ -19,6 +19,7 @@ OFFICIAL_CONTROLLED_CHAINS = frozenset({
     "MPFO_20001",
     "MPFC_20101",
     "MPFO_20101",
+    "MPFC_60046",
 })
 OFFICIAL_CONTROLLED_COMMENTS = frozenset({
     "mpf:hook:nat_prerouting",
