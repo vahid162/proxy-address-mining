@@ -95,3 +95,12 @@ Phase 15 — Telegram
 ```
 
 These later phases must remain service-layer interfaces over the accepted runtime path, not new implementation backends.
+
+## Phase 11 target vocabulary and acceptance guard
+
+- Phase 11 controlled boundary target: `controlled_cli_limited`. This boundary is accepted for controlled BTC operation on farm5 only.
+- Phase 11 operational completion final target: `cli_production`. Only final acceptance may set `production_traffic=cli_production` and `customer_onboarding_allowed=cli_production`.
+- AI-safe Runtime-first is a discipline for moving through evidence-backed runtime gates; it is not a shortcut around the Phase 11 completion matrix.
+- Final acceptance is forbidden based only on report-only/readiness surfaces. `final_acceptance_ready` requires `generic_customer_ready` plus all other 10 matrix items.
+- Readiness vocabulary: `surface_ready` means a command/report surface exists; `evidence_ready` means supplied artifacts validate; `controlled_execution_ready` means operator-gated execution prerequisites are met; `runtime_verified_ready` means post-execution runtime proof exists; `generic_customer_ready` means package, preflight, controlled apply, verify, external traffic, transcript/first-connect DB, abuse, and rollback evidence are complete for a real DB-backed customer; `final_acceptance_ready` means generic customer readiness plus the full 10-item matrix.
+- Phase 12, worker enforcement, UI, and Telegram remain closed before later accepted phases.

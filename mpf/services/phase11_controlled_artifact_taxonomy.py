@@ -9,6 +9,7 @@ OFFICIAL_CONTROLLED_CHAINS = frozenset({
     "MPF_INPUT",
     "MPF_CUSTOMERS",
     "MPF_GUARD",
+    "MPF_ACCT",
     "MPF_ACCT_IN",
     "MPF_ACCT_OUT",
     "MPF_NAT_PRE",

@@ -15,8 +15,10 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Protocol
+import re
 
 from mpf import __version__
+from mpf.services.phase11_controlled_artifact_taxonomy import classify_controlled_artifact
 from mpf.services.phase11_controlled_backend_target_service import build_controlled_backend_target_report, expected_backend_target_from_report
 
 READY = "production_generic_real_customer_activation_ready"
@@ -51,6 +53,54 @@ def run_iptables_restore(payload: str, *, test: bool, noflush: bool) -> dict[str
     return evidence
 
 
+def _parse_iptables_comment(line: str) -> str | None:
+    match = re.search(r'--comment\s+(?:"([^"]+)"|\'([^\']+)\'|(\S+))', line)
+    if not match:
+        return None
+    return next(group for group in match.groups() if group is not None)
+
+
+def _is_known_generic_mpf_line(line: str) -> bool:
+    chain = ""
+    if line.startswith(":"):
+        chain = line.split()[0][1:]
+    elif line.startswith("-N "):
+        chain = line.split()[1]
+    elif line.startswith("-A "):
+        chain = line.split()[1]
+    comment = _parse_iptables_comment(line)
+    if chain.startswith(("MPFC_", "MPFO_")) and chain.split("_", 1)[1].isdigit():
+        return True
+    if chain.startswith("MPFL_") and chain.split("_", 1)[1]:
+        return True
+    if comment and re.fullmatch(r"MPF customer=[A-Za-z0-9_.:-]+ port=\d+", comment):
+        return True
+    if comment and comment.startswith("mpf:hook:"):
+        return True
+    if comment:
+        parts = comment.split(":")
+        if len(parts) == 3 and parts[0] == "mpf" and parts[1] and parts[2] in {"customer_nat_redirect", "dispatch", "accounting", "connlimit", "hashlimit"}:
+            return True
+    classification = classify_controlled_artifact(chain=chain, comment=comment)
+    if classification == "official_phase11_controlled_artifact":
+        return True
+    return False
+
+
+def _has_unknown_mpf_artifact(line: str) -> bool:
+    if not re.search(r"(?:MPF|MPFBTC|MPFC_|MPFO_|MPFL_|\bmpf:|customer_)", line):
+        return False
+    return not _is_known_generic_mpf_line(line)
+
+
+def _deleted_at_is_set(value: object) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return value.strip().lower() not in {"", "none", "null"}
+    return True
+
+
 def snapshot_from_iptables_save(text: str) -> dict[str, Any]:
     dnat_by_port: dict[str, list[str]] = {}
     chains: list[str] = []
@@ -64,7 +114,7 @@ def snapshot_from_iptables_save(text: str) -> dict[str, Any]:
             chains.append(line.split()[0][1:])
         if line.startswith('-N '):
             chains.append(line.split()[1])
-        if 'MPF' in line and not any(tok in line for tok in ('MPFC_', 'MPF customer=', 'MPF_GUARD', 'MPF_ACCT', 'MPFO_')):
+        if _has_unknown_mpf_artifact(line):
             unknown.append(line)
         if '-j DNAT' in line and '--dport' in line and '--to-destination' in line:
             parts = line.split()
@@ -111,10 +161,10 @@ class StaticActivationRepository:
         return self.policies.get(customer_key)
 
     def find_active_port_conflicts(self, lane: str, port: int, customer_key: str) -> list[dict[str, Any]]:
-        return [c for key, c in self.customers.items() if key != customer_key and c.get("lane") == lane and c.get("status") == "active" and c.get("deleted_at") is None and int(c.get("public_port", -1)) == port]
+        return [c for key, c in self.customers.items() if key != customer_key and c.get("lane") == lane and c.get("status") == "active" and not _deleted_at_is_set(c.get("deleted_at")) and int(c.get("public_port", -1)) == port]
 
     def list_active_customers(self) -> list[dict[str, Any]]:
-        return [c for c in self.customers.values() if c.get("status") == "active" and c.get("deleted_at") is None]
+        return [c for c in self.customers.values() if c.get("status") == "active" and not _deleted_at_is_set(c.get("deleted_at"))]
 
 
 def _base(component: str, customer_key: str | None = None) -> dict[str, Any]:
@@ -134,7 +184,7 @@ def _eligibility(repo: ActivationRepository, customer_key: str) -> tuple[dict[st
     lane = repo.get_lane(lane_name)
     policy = repo.get_current_policy(customer_key)
     if customer.get("status") != "active": blockers.append("customer_not_active")
-    if customer.get("deleted_at") is not None: blockers.append("customer_deleted")
+    if _deleted_at_is_set(customer.get("deleted_at")): blockers.append("customer_deleted")
     if customer.get("paused") is True: blockers.append("customer_paused")
     if customer.get("expired") is True or customer.get("expires_at") == "expired": blockers.append("customer_expired")
     if not lane: blockers.append("lane_missing")
