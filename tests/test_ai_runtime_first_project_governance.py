@@ -6,7 +6,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate_runtime_first_pr_body.py"
-TEMPLATE = ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md"
+RUNTIME_TEMPLATE = ROOT / ".github" / "PULL_REQUEST_TEMPLATE" / "runtime-first.md"
+GOVERNANCE_TEMPLATE = ROOT / ".github" / "PULL_REQUEST_TEMPLATE" / "governance.md"
 COPILOT_INSTRUCTIONS = ROOT / ".github" / "copilot-instructions.md"
 RULE_DOC = ROOT / "docs" / "AI_RUNTIME_FIRST_PR_FLOW_RULE.md"
 WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
@@ -56,6 +57,7 @@ def _body(pr_class: str, *, deliverables: str = "- Adds a verifier primitive.", 
         "runtime-first bundle": " ",
         "acceptance-review": " ",
         "evidence/docs exception": " ",
+        "governance-documentation": " ",
     }
     checked[pr_class] = "x"
     return f"""
@@ -81,6 +83,7 @@ Version: 0.1.257 -> 0.1.258
 - [{checked['runtime-first bundle']}] runtime-first bundle
 - [{checked['acceptance-review']}] acceptance-review
 - [{checked['evidence/docs exception']}] evidence/docs exception
+- [{checked['governance-documentation']}] governance-documentation
 
 ## Current blocker(s) being addressed
 
@@ -108,13 +111,13 @@ It adds an executable validator and tests.
 
 
 def test_pr_template_contains_all_runtime_first_required_fields() -> None:
-    text = TEMPLATE.read_text(encoding="utf-8")
+    text = RUNTIME_TEMPLATE.read_text(encoding="utf-8")
     for field in REQUIRED_FIELDS:
         assert field in text
 
 
 def test_pr_template_tells_ai_agents_to_prevalidate_pr_body_before_creation() -> None:
-    text = TEMPLATE.read_text(encoding="utf-8")
+    text = RUNTIME_TEMPLATE.read_text(encoding="utf-8")
     for phrase in PR_BODY_PREVALIDATION_PHRASES:
         assert phrase in text
     assert "generic body" in text
@@ -151,8 +154,15 @@ def test_ai_instructions_forbid_direct_gh_pr_create_and_require_wrapper() -> Non
 
 
 def test_pr_template_references_runtime_first_pr_wrapper() -> None:
-    text = TEMPLATE.read_text(encoding="utf-8")
+    text = RUNTIME_TEMPLATE.read_text(encoding="utf-8")
     assert "scripts/create_runtime_first_pr.sh /tmp/pr_body.md" in text
+
+
+def test_governance_template_defaults_to_governance_class() -> None:
+    text = GOVERNANCE_TEMPLATE.read_text(encoding="utf-8")
+    assert "governance-documentation" in text
+    assert "- [x] governance-documentation" in text
+    assert "must not be used for runtime/evidence work" in text
 
 def test_validator_rejects_weak_report_only_pr_body(tmp_path: Path) -> None:
     result = _run_validator(tmp_path, "## Why\n\nOnly records evidence.\n")
@@ -225,11 +235,13 @@ def test_ci_validates_runtime_first_pr_body_before_tests() -> None:
     assert "validate-pr-body:" in text
     assert "tests:" in text
     assert "name: Validate runtime-first PR body" in text
-    assert "types: [opened, synchronize, reopened, edited]" in text
-    assert "if: github.event_name == 'pull_request'" in text
+    assert "types: [opened, synchronize, reopened, edited, ready_for_review]" in text
+    assert "if: github.event_name == 'pull_request' && !github.event.pull_request.draft" in text
     assert "PR_BODY: ${{ github.event.pull_request.body }}" in text
     assert "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md" in text
     assert text.index("name: Validate runtime-first PR body") < text.index("name: Run tests")
+    assert "if: always()" in text
+    assert "needs.validate-pr-body.result == 'success'" not in text
 
 
 
@@ -268,6 +280,7 @@ Low risk. This PR changes AI governance, PR validation, tests, documentation, an
 - [ ] runtime-first bundle
 - [ ] acceptance-review
 - [ ] evidence/docs exception
+- [ ] governance-documentation
 
 ## Current blocker(s) being addressed
 
@@ -387,6 +400,7 @@ def test_print_template_contains_only_official_pr_class_taxonomy() -> None:
         "runtime-first bundle",
         "acceptance-review",
         "evidence/docs exception",
+        "governance-documentation",
     ]
     assert "docs/evidence-only" not in pr_section
     assert "test-only" not in pr_section
@@ -404,3 +418,89 @@ def test_print_template_contains_version_line_and_validator_command() -> None:
     assert result.returncode == 0
     assert "Version: X.Y.Z -> A.B.C" in result.stdout
     assert "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md" in result.stdout
+
+
+def test_validator_accepts_valid_governance_documentation_body_without_runtime_fields(tmp_path: Path) -> None:
+    body = """
+## Why
+
+Governance CI needs a scoped body contract.
+
+## What
+
+- Add class-aware validation.
+
+## How to test
+
+- python -m pytest -q
+
+## PR class
+
+- [ ] implementation
+- [ ] controlled-runtime
+- [ ] verifier-doctor-package
+- [ ] runtime-first bundle
+- [ ] acceptance-review
+- [ ] evidence/docs exception
+- [x] governance-documentation
+"""
+    result = _run_validator(tmp_path, body)
+    assert result.returncode == 0, result.stderr
+
+
+def test_strict_runtime_class_still_rejects_missing_runtime_fields(tmp_path: Path) -> None:
+    body = """
+## Why
+
+Runtime work needs strict validation.
+
+## What
+
+- Add runtime change.
+
+## How to test
+
+- python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
+
+## PR class
+
+- [x] implementation
+- [ ] controlled-runtime
+- [ ] verifier-doctor-package
+- [ ] runtime-first bundle
+- [ ] acceptance-review
+- [ ] evidence/docs exception
+- [ ] governance-documentation
+"""
+    result = _run_validator(tmp_path, body)
+    assert result.returncode != 0
+    assert "Missing required SemVer bump line" in result.stderr
+    assert "next_required_step before this PR" in result.stderr
+    assert "Runtime deliverable" in result.stderr
+
+
+def test_validator_rejects_multiple_selected_pr_classes(tmp_path: Path) -> None:
+    body = _body("implementation").replace("- [ ] governance-documentation", "- [x] governance-documentation")
+    result = _run_validator(tmp_path, body)
+    assert result.returncode != 0
+    assert "Choose only one PR class" in result.stderr
+
+
+def test_governance_print_template_produces_governance_class() -> None:
+    result = subprocess.run(
+        [sys.executable, str(VALIDATOR), "--print-template", "governance-documentation"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert result.returncode == 0
+    assert "- [x] governance-documentation" in result.stdout
+    assert "Version: X.Y.Z" not in result.stdout
+    assert "next_required_step" not in result.stdout
+
+
+def test_single_file_pr_template_removed_after_preserving_named_templates() -> None:
+    assert not (ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md").exists()
+    assert RUNTIME_TEMPLATE.exists()
+    assert GOVERNANCE_TEMPLATE.exists()

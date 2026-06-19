@@ -37,9 +37,10 @@ Rules:
 - Do not replace the validated `/tmp/pr_body.md` content with an auto-generated summary.
 - If `python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md` fails, fix `/tmp/pr_body.md` and rerun it before creating the PR.
 - The PR body must contain exactly one checked PR class and all required runtime-first sections.
-- This local validation is mandatory even though CI validates the PR body again.
-- Approximate PR templates are forbidden. AI agents must use the exact template printed by `python scripts/validate_runtime_first_pr_body.py --print-template`.
-- AI agents must not change the PR class taxonomy. The only official classes are `implementation`, `controlled-runtime`, `verifier-doctor-package`, `runtime-first bundle`, `acceptance-review`, and `evidence/docs exception`.
+- This local validation is mandatory even though CI validates the PR body again. CI must still run pytest when PR body validation fails so code-test results are never hidden.
+- Approximate PR templates are forbidden. AI agents must use the exact strict runtime-first template printed by `python scripts/validate_runtime_first_pr_body.py --print-template` for runtime-first work.
+- For completed CI/template/validator/AI-governance/documentation-contract work only, agents may use `python scripts/validate_runtime_first_pr_body.py --print-template governance-documentation`. The `governance-documentation` class must not be used for runtime/evidence work or to bypass an active runtime blocker.
+- AI agents must not change the PR class taxonomy. The only official classes are `implementation`, `controlled-runtime`, `verifier-doctor-package`, `runtime-first bundle`, `acceptance-review`, `evidence/docs exception`, and `governance-documentation`.
 - Unofficial PR class checkboxes such as `docs/evidence-only`, `test-only`, and `refactor-only` are forbidden and must be rejected.
 - If validation fails, fix `/tmp/pr_body.md` before creating or updating the PR.
 - A merged PR with approximate taxonomy is not precedent; the validator must reject that shape going forward.

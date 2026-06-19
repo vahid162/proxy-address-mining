@@ -5,12 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
 
 jobs:
   validate-pr-body:
     name: Validate runtime-first PR body
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
@@ -32,7 +32,7 @@ jobs:
   tests:
     name: pytest
     needs: [validate-pr-body]
-    if: always() && (github.event_name == 'push' || needs.validate-pr-body.result == 'success')
+    if: always()
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
