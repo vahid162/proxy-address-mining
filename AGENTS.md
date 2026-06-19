@@ -44,8 +44,10 @@ Do not require every AI task to read all domain documents.
 
 - Run the narrowest relevant tests plus any required validators for the changed files.
 - Keep version metadata and changelog entries consistent when a release/version bump is required.
-- PR bodies must pass the repository runtime-first PR validator when required.
+- PR bodies must pass the repository runtime-first PR validator when required. Use `python scripts/validate_runtime_first_pr_body.py --print-template` for strict runtime-first work, or `python scripts/validate_runtime_first_pr_body.py --print-template governance-documentation` only for completed CI/template/validator/AI-governance/documentation-contract work.
+- The `governance-documentation` PR class cannot be used for runtime/evidence work or to bypass active runtime-first work. Runtime-first blockers still require strict runtime-first classes or a valid evidence/docs exception.
 - Runtime-forward PR rule: AI agents must not call `gh pr create` directly; use `scripts/create_runtime_first_pr.sh` when repository policy requires the PR wrapper. No two consecutive PRs in the same active phase/subphase may be report-only unless the second PR records a real blocker and exact next implementation scope.
+- CI PR body validation failures must not suppress pytest; test results must remain visible even when PR body validation fails.
 
 ## Historical Reference
 

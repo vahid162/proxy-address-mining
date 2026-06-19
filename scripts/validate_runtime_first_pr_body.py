@@ -13,8 +13,10 @@ PR_CLASSES = (
     "runtime-first bundle",
     "acceptance-review",
     "evidence/docs exception",
+    "governance-documentation",
 )
-REQUIRED_SECTIONS = (
+STRICT_RUNTIME_CLASSES = set(PR_CLASSES) - {"governance-documentation"}
+REQUIRED_STRICT_SECTIONS = (
     "PR class",
     "Current blocker(s) being addressed",
     "next_required_step before this PR",
@@ -23,7 +25,8 @@ REQUIRED_SECTIONS = (
     "Why this is not another report-only PR",
     "If evidence/docs exception",
 )
-RUNTIME_CLASSES = set(PR_CLASSES) - {"evidence/docs exception"}
+REQUIRED_GOVERNANCE_SECTIONS = ("Why", "What", "How to test", "PR class")
+RUNTIME_CLASSES = set(PR_CLASSES) - {"evidence/docs exception", "governance-documentation"}
 GENERIC_AI_SUMMARY_HEADINGS = {"motivation", "description", "testing"}
 VERSION_LINE_RE = re.compile(r"(?m)^Version:\s*\d+\.\d+\.\d+\s*->\s*\d+\.\d+\.\d+\s*$")
 REQUIRED_VALIDATOR_COMMAND = "python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md"
@@ -57,6 +60,7 @@ Risk + Rollback
 - [ ] runtime-first bundle
 - [ ] acceptance-review
 - [ ] evidence/docs exception
+- [ ] governance-documentation
 
 ## Current blocker(s) being addressed
 
@@ -83,6 +87,35 @@ Risk + Rollback
 - Why runtime-first work is unsafe, blocked, or technically impossible:
 - Exact next runtime-first PR that must follow:
 """
+GOVERNANCE_PR_BODY_TEMPLATE = """<!--
+Governance/documentation is only for completed repository-governance outcomes such as CI, templates, validators, AI instructions, or documentation contracts.
+It must not be used for runtime/evidence work or to bypass an active runtime blocker.
+-->
+
+## Why
+
+<1-2 lines explaining why this governance/documentation PR is needed now.>
+
+## What
+
+- <2-5 concrete governance/documentation changes.>
+
+## How to test
+
+- python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
+- python -m pytest -q <targeted tests>
+- python -m pytest -q
+
+## PR class
+
+- [ ] implementation
+- [ ] controlled-runtime
+- [ ] verifier-doctor-package
+- [ ] runtime-first bundle
+- [ ] acceptance-review
+- [ ] evidence/docs exception
+- [x] governance-documentation
+"""
 
 
 def _normalize_heading(value: str) -> str:
@@ -107,6 +140,8 @@ def _has_content(text: str) -> bool:
         if not stripped or stripped in {"-", "*"}:
             continue
         if re.fullmatch(r"[-*]\s*\[[ xX]\]\s*.+", stripped):
+            continue
+        if stripped.startswith("<!--") or stripped.endswith("-->"):
             continue
         cleaned_lines.append(stripped)
     return bool("\n".join(cleaned_lines).strip())
@@ -135,29 +170,7 @@ def _looks_like_generic_ai_summary(sections: dict[str, str]) -> bool:
     return GENERIC_AI_SUMMARY_HEADINGS.issubset(set(sections))
 
 
-def validate(body: str) -> list[str]:
-    errors: list[str] = []
-    sections = _sections(body)
-    if _looks_like_generic_ai_summary(sections):
-        errors.append(
-            "Generic AI-generated PR body detected: replace Motivation/Description/Testing with "
-            "the repository runtime-first PR template before creating or updating the PR."
-        )
-
-    for section in REQUIRED_SECTIONS:
-        if section.lower() not in sections:
-            errors.append(f"Missing required section: '{section}'. Add a markdown heading named exactly this.")
-
-    if not VERSION_LINE_RE.search(body):
-        errors.append("Missing required SemVer bump line: 'Version: X.Y.Z -> A.B.C'.")
-
-    how_to_test = sections.get("how to test", "")
-    if REQUIRED_VALIDATOR_COMMAND not in how_to_test:
-        errors.append(
-            "Section 'How to test' must include: "
-            f"{REQUIRED_VALIDATOR_COMMAND}"
-        )
-
+def _validate_class_taxonomy(sections: dict[str, str], errors: list[str]) -> str | None:
     pr_class_section = sections.get("pr class", "")
     selected = _selected_classes(pr_class_section)
     options = _pr_class_options(pr_class_section)
@@ -173,11 +186,42 @@ def validate(body: str) -> list[str]:
             errors.append("PR class is missing official checkbox option(s): " + ", ".join(missing) + ".")
         if not unexpected and not missing:
             errors.append("PR class checkboxes must match the official taxonomy exactly and in canonical order.")
-
     if not selected:
         errors.append("Choose exactly one PR class by checking one box under 'PR class'.")
     elif len(selected) > 1:
         errors.append(f"Choose only one PR class; currently checked: {', '.join(selected)}.")
+    return selected[0] if len(selected) == 1 else None
+
+
+def validate(body: str) -> list[str]:
+    errors: list[str] = []
+    sections = _sections(body)
+    if _looks_like_generic_ai_summary(sections):
+        errors.append(
+            "Generic AI-generated PR body detected: replace Motivation/Description/Testing with "
+            "the repository runtime-first PR template before creating or updating the PR."
+        )
+
+    selected_class = _validate_class_taxonomy(sections, errors)
+    if selected_class == "governance-documentation":
+        for section in REQUIRED_GOVERNANCE_SECTIONS:
+            content = sections.get(section.lower(), "")
+            if section.lower() not in sections:
+                errors.append(f"Missing required section: '{section}'. Add a markdown heading named exactly this.")
+            elif section != "PR class" and not _has_content(content):
+                errors.append(f"Section '{section}' cannot be empty. Explain it in plain language.")
+        return errors
+
+    for section in REQUIRED_STRICT_SECTIONS:
+        if section.lower() not in sections:
+            errors.append(f"Missing required section: '{section}'. Add a markdown heading named exactly this.")
+
+    if not VERSION_LINE_RE.search(body):
+        errors.append("Missing required SemVer bump line: 'Version: X.Y.Z -> A.B.C'.")
+
+    how_to_test = sections.get("how to test", "")
+    if REQUIRED_VALIDATOR_COMMAND not in how_to_test:
+        errors.append("Section 'How to test' must include: " f"{REQUIRED_VALIDATOR_COMMAND}")
 
     for section in (
         "Current blocker(s) being addressed",
@@ -188,7 +232,6 @@ def validate(body: str) -> list[str]:
         if not _has_content(content):
             errors.append(f"Section '{section}' cannot be empty. Explain it in plain language.")
 
-    selected_class = selected[0] if len(selected) == 1 else None
     if selected_class in RUNTIME_CLASSES:
         content = sections.get("runtime deliverable(s) in this pr", "")
         if not _has_content(content):
@@ -205,9 +248,7 @@ def validate(body: str) -> list[str]:
                 "'Why runtime-first work is unsafe, blocked, or technically impossible:'."
             )
         if not next_pr:
-            errors.append(
-                "Evidence/docs exception requires the exact next runtime-first PR that must follow."
-            )
+            errors.append("Evidence/docs exception requires the exact next runtime-first PR that must follow.")
     return errors
 
 
@@ -215,9 +256,15 @@ def main(argv: list[str]) -> int:
     if len(argv) == 2 and argv[1] == "--print-template":
         print(REQUIRED_PR_BODY_TEMPLATE)
         return 0
+    if len(argv) == 3 and argv[1] == "--print-template" and argv[2] == "governance-documentation":
+        print(GOVERNANCE_PR_BODY_TEMPLATE)
+        return 0
+    if argv[1:2] == ["--print-template"]:
+        print("Usage: validate_runtime_first_pr_body.py --print-template [governance-documentation]", file=sys.stderr)
+        return 2
     if len(argv) != 2:
         print("Usage: validate_runtime_first_pr_body.py PATH_TO_PR_BODY.md", file=sys.stderr)
-        print("       validate_runtime_first_pr_body.py --print-template", file=sys.stderr)
+        print("       validate_runtime_first_pr_body.py --print-template [governance-documentation]", file=sys.stderr)
         return 2
     path = Path(argv[1])
     if not path.exists():
@@ -230,6 +277,12 @@ def main(argv: list[str]) -> int:
             print(f"- {error}", file=sys.stderr)
         print("\nRequired runtime-first PR body template:", file=sys.stderr)
         print(REQUIRED_PR_BODY_TEMPLATE, file=sys.stderr)
+        print(
+            "\nFor completed CI/template/validator/AI-governance/documentation-contract work, use "
+            "`python scripts/validate_runtime_first_pr_body.py --print-template governance-documentation`. "
+            "Do not use governance-documentation for runtime/evidence work or to bypass an active runtime blocker.",
+            file=sys.stderr,
+        )
         print(
             "\nFix the PR body, save it to /tmp/pr_body.md, rerun this validator, then create or update the PR body with the validated text.",
             file=sys.stderr,
