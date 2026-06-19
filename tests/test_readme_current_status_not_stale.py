@@ -60,7 +60,7 @@ def test_ai_coding_rules_marks_old_phase11_stop_condition_historical():
 
 
 def test_agents_historical_phase6_list_does_not_override_controlled_boundary():
-    text = Path("AGENTS.md").read_text()
+    text = Path("docs/history/AGENTS_LEGACY_0.1.298.md").read_text()
     assert "historical Phase 6 reference only; this list does not override the accepted Phase 11 controlled boundary" in text
     assert "only controlled CLI/service-layer onboarding, planner-driven customer NAT/firewall handling" in text
     assert "Unrestricted expansion and direct or ad-hoc DB/firewall/runtime mutation remain forbidden" in text

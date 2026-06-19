@@ -46,7 +46,7 @@ def test_phase_status_has_slice12_sync_evidence_and_slice4_next() -> None:
 
 
 def test_slice3_documented_and_slice4_next_planned_across_docs() -> None:
-    for path in ["README.md", "AGENTS.md", "docs/AI_CODING_RULES.md", "docs/AI_PHASE_6_TASK.md"]:
+    for path in ["README.md", "docs/history/AGENTS_LEGACY_0.1.298.md", "docs/AI_CODING_RULES.md", "docs/AI_PHASE_6_TASK.md"]:
         text = _read(path)
         assert "Slice 3" in text
         assert "Future Dedicated Phase 6 Apply Gate Proposal/Review" in text

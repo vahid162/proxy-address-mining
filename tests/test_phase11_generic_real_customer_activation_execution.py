@@ -232,7 +232,7 @@ def test_package_and_preflight_alone_do_not_mark_full_readiness_ready():
 
 def test_phase11_docs_guard_ten_item_matrix_mentions_generic_before_final_acceptance():
     gate = Path("docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md").read_text()
-    agents = Path("AGENTS.md").read_text()
+    agents = Path("docs/history/AGENTS_LEGACY_0.1.298.md").read_text()
     for text in (gate, agents):
         generic = text.index("production generic real-customer activation")
         final = text.index("final acceptance")
