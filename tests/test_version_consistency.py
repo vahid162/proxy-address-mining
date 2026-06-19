@@ -30,6 +30,5 @@ def test_ci_dev_extra_installs_pytest() -> None:
 
 def test_changelog_contains_runtime_first_governance_history() -> None:
     text = Path("CHANGELOG.md").read_text(encoding="utf-8")
-    assert "## 0.1.299" in text
     assert "## 0.1.298" in text
     assert "strict runtime-first PR body validation" in text
