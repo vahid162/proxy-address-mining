@@ -10,7 +10,7 @@ def test_collector_controls_readiness_safe():
         assert f not in text
 
 def test_version_01383():
-    assert Path('VERSION').read_text().strip() == '0.1.298'
-    assert mpf.__version__ == '0.1.298'
-    assert 'version = "0.1.298"' in Path('pyproject.toml').read_text()
-    assert '## 0.1.298' in Path('CHANGELOG.md').read_text()
+    assert Path('VERSION').read_text().strip() == '0.1.299'
+    assert mpf.__version__ == '0.1.299'
+    assert 'version = "0.1.299"' in Path('pyproject.toml').read_text()
+    assert '## 0.1.299' in Path('CHANGELOG.md').read_text()

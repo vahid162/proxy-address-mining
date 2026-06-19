@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.299
+
+- docs(governance): establish the root AGENTS.md as the concise canonical GPT/Codex entrypoint, archive the former instructions unchanged as non-authorizing history, and keep dynamic project state authority in docs/PHASE_STATUS.md.
+
 ## 0.1.298
 - fix(phase11): recognize official 60046 generic activation artifacts in the current controlled artifact gate while keeping unknown artifacts and backend public exposure fail-closed.
 
