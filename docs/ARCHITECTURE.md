@@ -1,72 +1,37 @@
 # ARCHITECTURE
 
-Status: Draft v1
+Status: Canonical architecture contract
 
-This document defines the target architecture for `proxy-address-mining`.
-It is written as an implementation contract for humans and AI coding agents.
+This document defines static architecture authority for `proxy-address-mining`. Current runtime state, current phase, gates, and permissions come only from [`docs/PHASE_STATUS.md`](PHASE_STATUS.md).
 
 ## Goal
 
-Build a Python-first, API-first, database-backed mining customer gateway control plane.
+Build a Python-first, API-first, PostgreSQL-backed mining customer gateway control plane for a forward-only customer gateway.
 
-The server role is:
-
-```text
-forward-only customer gateway
-```
-
-The data plane is:
+## Data plane
 
 ```text
-customer_port
-  -> firewall policy
-  -> NAT redirect
-  -> lane backend port
-  -> simple-forwarder / gost
-  -> v2rayA
-  -> mining pool
+customer_port -> firewall policy -> NAT redirect -> lane backend -> forwarder -> v2rayA -> pool
 ```
 
-The first production lane is BTC:
+Lanes model coin/backend routing. New coins are added as lanes, not copied scripts.
+
+## Product and expansion boundaries
+
+UI, Telegram, worker enforcement, buyer-facing features, public exposure, public API, and broad production expansion are future or out-of-scope unless a current explicit gate in `docs/PHASE_STATUS.md` opens them. They must never become implementation backends.
+
+## API-first service model
+
+Business logic lives in domain and service modules. Interfaces call the same service layer:
 
 ```text
-BTC customer ports -> backend 60010 -> forwarder -> v2rayA -> pool
+CLI / Local UI / Future API / Future Buyer UI / Future Telegram
+  -> request DTO / command object
+  -> service layer
+  -> repositories / adapters
+  -> event + audit record
+  -> response DTO
 ```
-
-Future coins such as ZEC and LTC must be added as lanes, not as copied scripts.
-
-## Non-goals
-
-The following are out of scope for the first stable control-plane version:
-
-- fee-aware Stratum routing
-- public web panel
-- multi-server central dashboard
-- billing / financial accounting
-- Telegram write actions
-- direct nftables migration
-- real-time packet streaming in UI
-- auto-tuning firewall policy
-- heavy enterprise RBAC
-- production worker-name enforcement before session/worker timeline and Stratum-aware enforcement exist
-
-## Architecture Rule: API First
-
-API-first means the system is designed around explicit service contracts before CLI or UI behavior.
-
-Business logic must live in domain/service modules.
-
-Interfaces must call the same service layer:
-
-```text
-CLI
-Local Web UI
-Future Buyer UI
-Telegram bot
-Future internal REST API
-```
-
-No interface may own business logic.
 
 Forbidden patterns:
 
@@ -79,366 +44,89 @@ Telegram command -> directly runs shell command
 Job runner -> bypasses service validation
 ```
 
-Required pattern:
-
-```text
-interface
-  -> request DTO / command object
-  -> service layer
-  -> repositories / adapters
-  -> event + audit record
-  -> response DTO
-```
-
-The CLI is a thin operator client, not the core application.
-
-## Target Repository Layout
-
-```text
-/opt/mpf-py/
-  mpf/
-    domain/
-      abuse.py
-      blocks.py
-      buyers.py
-      customers.py
-      events.py
-      firewall_model.py
-      lanes.py
-      policies.py
-      usage.py
-      workers.py
-
-    services/
-      abuse_service.py
-      block_service.py
-      buyer_service.py
-      customer_service.py
-      firewall_service.py
-      job_service.py
-      report_service.py
-      usage_service.py
-      worker_policy_service.py
-
-    repositories/
-      abuse_repo.py
-      buyer_repo.py
-      customer_repo.py
-      event_repo.py
-      firewall_repo.py
-      job_repo.py
-      usage_repo.py
-      worker_repo.py
-
-    adapters/
-      db.py
-      conntrack.py
-      docker_compose.py
-      firewall_iptables.py
-      firewall_nft.py
-      tcpdump.py
-      notifier_telegram.py
-      worker_enforcement.py
-
-    interfaces/
-      cli.py
-      api.py
-      ui.py
-      buyer_ui.py
-      telegram_bot.py
-
-    jobs/
-      abuse_runner.py
-      backup_runner.py
-      block_expiry.py
-      session_reconcile.py
-      usage_snapshot.py
-
-    migrations/
-    tests/
-
-  configs/
-    mpf.yaml
-
-  systemd/
-```
-
-## Module Responsibilities
+## Module responsibilities
 
 ### Domain
 
-Domain modules contain pure business rules and state machines.
-They should not call subprocesses, Docker, iptables, conntrack, or the network.
-
-Examples:
-
-- customer validity
-- policy transitions
-- abuse state transition
-- lane collision rules
-- firewall desired model objects
-- buyer account/service access rules
-- worker policy matching rules
+Domain modules contain pure business rules and state machines. They do not call subprocesses, Docker, iptables, conntrack, systemd, the database, or the network.
 
 ### Services
 
-Services orchestrate domain logic, repositories, adapters, events, and transactions.
-
-Examples:
-
-- add customer
-- renew customer
-- build firewall plan
-- apply firewall plan
-- run abuse scan
-- create restore point
-- produce buyer-safe service report
-- create buyer action request
-- evaluate worker policy, later
+Services orchestrate domain logic, repositories, adapters, transactions, locks, events, audit, restore points, and evidence.
 
 ### Repositories
 
-Repositories read and write PostgreSQL state.
-They must not contain business decisions.
+Repositories own PostgreSQL persistence and queries. PostgreSQL is the source of truth for control-plane state.
 
 ### Adapters
 
-Adapters are the only modules allowed to talk to external systems:
-
-- iptables / iptables-save / iptables-restore
-- nftables, later
-- Docker Compose
-- conntrack
-- tcpdump
-- systemd, if needed
-- Telegram, later
-- worker enforcement adapter, later
+Adapters own external I/O: firewall backends, Docker, conntrack, tcpdump, systemd integration, notifications, and future worker-enforcement integrations.
 
 ### Interfaces
 
-Interfaces expose commands or UI/API endpoints.
-They must be thin wrappers around service calls.
+Interfaces expose commands or endpoints and remain thin wrappers around service calls.
+
+### Jobs
+
+Jobs are scheduled entrypoints that call services, use locks, emit evidence, and record events/audit. They must not bypass service validation.
 
 ## Configuration
 
-The canonical config path is:
+Local configuration is file-based and should remain separate from mutable runtime state. Configuration supplies local paths, database connection details, firewall backend, lane definitions, and safe defaults.
+
+
+## Canonical paths
+
+The canonical local operating paths are:
 
 ```text
-/etc/mpf/mpf.yaml
+/opt/mpf-py        application checkout/runtime package path
+/etc/mpf/mpf.yaml local configuration file
+/var/lib/mpf      durable application data
+/var/log/mpf      logs and diagnostics
+/var/backups/mpf  backups and restore-point artifacts
 ```
 
-Initial required fields:
+These paths describe the static operating model. They do not authorize live server mutation, installation, migration, or production execution.
 
-```yaml
-server:
-  name: farm-new-1
-  timezone: Europe/Berlin
+## Lane model
 
-paths:
-  app: /opt/mpf-py
-  data: /var/lib/mpf
-  logs: /var/log/mpf
-  backups: /var/backups/mpf
+A lane owns the protocol or coin, backend port, firewall chain prefix, upstreams, forwarder configuration, and enabled state. Customer-facing ports attach to lanes through policy and firewall planning. New coins or protocols must be modeled as lanes rather than copied scripts or one-off per-coin command paths.
 
-database:
-  url: postgresql:///mpf
+## Source-of-truth boundary
 
-firewall:
-  backend: iptables
-  apply_mode: plan_only
-  lock_path: /run/mpf-firewall.lock
+PostgreSQL is authoritative for production control-plane state. Flat files, JSON artifacts, CSV exports, and SQLite may be used only for import, export, debug, test, evidence, or compatibility artifacts. They must not become split production state or an alternate source of truth for customers, policy, firewall, usage, abuse, events, or audit.
 
-lanes:
-  btc:
-    enabled: true
-    backend_port: 60010
-    chain_prefix: MPFBTC
-    upstreams:
-      - host: bitcoin.viabtc.io
-        port: 3333
+## Customer, buyer, and operator identity boundary
 
-abuse:
-  enabled: true
-  threshold_sec: 3600
-  grace_sec: 900
-```
+Customers are service and port allocation records. Buyer and operator identities are separate access, ownership, or review concepts and must not be conflated with customer service records. Future buyer-facing interfaces are read-only first and may not directly mutate customer policy, firewall, abuse, block, pause, or database state.
 
-During Phase 0 and Phase 1, `firewall.apply_mode` must remain `plan_only`.
+## Worker-enforcement boundary
 
-## Lane Model
+Worker identity is Stratum-layer evidence. Worker enforcement cannot be implemented as firewall-only enforcement because firewall rules do not prove worker identity. Future worker enforcement requires session/worker evidence, approved adapters, service-layer decisions, audit records, and rollback/disable paths.
 
-Lane is a first-class model from day one.
+## Sequencing and authorization links
 
-A lane owns:
+Implementation sequencing and long-term product ordering live in [`docs/ROADMAP.md`](ROADMAP.md). Current runtime authorization, phase state, gates, and next required work remain only in [`docs/PHASE_STATUS.md`](PHASE_STATUS.md).
 
-- coin / protocol name
-- backend port
-- firewall chain prefix
-- upstream pool endpoints
-- forwarder configuration
-- enabled / disabled status
+## Firewall lifecycle
 
-BTC uses backend `60010`.
-
-Additional coins must be created by adding lanes, not by copying scripts or duplicating command trees.
-
-## Source of Truth
-
-PostgreSQL is the source of truth.
-
-Allowed uses of flat files or SQLite:
-
-- import from old scripts
-- export for debugging
-- temporary compatibility tooling
-- backup artifacts
-
-Forbidden uses:
-
-- primary customer database
-- primary abuse state database
-- primary usage state database
-- split production state across multiple SQLite files
-
-## Buyer Account Boundary
-
-Buyer accounts are future work, but the boundary must exist early.
-
-Rules:
-
-- `customers` are service/port records, not human login identities.
-- buyer accounts and buyer users are separate from operators.
-- first buyer UI must be read-only.
-- buyer reports must come from report services, not direct table access.
-- buyer-initiated changes should create reviewed action requests, not directly mutate production state.
-- buyer UI must never directly mutate firewall, abuse state, customer policy, blocks, pauses, or usage state.
-
-## Worker Policy and Enforcement Boundary
-
-Worker names are Stratum-layer identities.
-Firewall rules alone cannot reliably enforce a worker-name block.
-
-Required future direction:
+Firewall changes use the service and adapter boundary:
 
 ```text
-worker observation / session timeline
-  -> worker policy service
-  -> worker enforcement adapter, later
-  -> event/audit/evidence
+read DB/config -> build desired model -> generate plan -> show diff -> create restore point -> acquire lock -> apply atomically -> verify -> event/audit -> rollback path
 ```
 
-Phase 2 may model worker identity and worker policy state.
-Production worker enforcement must wait until session/worker evidence and a suitable data-plane enforcement adapter exist.
+The preferred apply family is snapshot/restore based, not direct one-off command mutation from interfaces.
 
-## Firewall Lifecycle
+## Scheduling direction
 
-Every firewall operation must follow this lifecycle:
+Recurring automation should use systemd timers/services through service-layer jobs, with locks, evidence, and audit records. Mixing hidden cron behavior with systemd direction is not part of the canonical design.
 
-```text
-read DB/config
-  -> build desired model
-  -> generate plan
-  -> show human diff + JSON diff
-  -> create restore point
-  -> backup live firewall snapshot
-  -> acquire lock
-  -> apply atomically
-  -> verify
-  -> record event
-  -> rollback plan if verify fails
-```
+## Event and audit requirements
 
-No code path may apply a single ad-hoc iptables command for production state.
+Dangerous decisions, state transitions, side effects, verification results, restore points, and rollback outcomes must produce event/audit records. Audit records must be sufficient for operator review without exposing secrets.
 
-## Jobs and Scheduling
+## Future interface boundaries
 
-Use systemd timers, not mixed cron/systemd automation.
-
-Every recurring job must record `job_runs`.
-Every job that can overlap must use `scheduler_locks`.
-
-Required early jobs:
-
-- usage snapshot
-- abuse runner
-- block expiry
-- backup runner
-- session reconcile, later
-
-## Events and Audit
-
-Every meaningful action must create an event.
-
-Required event categories:
-
-- customer changed
-- firewall planned
-- firewall applied
-- firewall rollback planned
-- abuse entered
-- abuse hard applied
-- abuse unhard applied
-- block added / expired
-- pause added / removed
-- backup created / failed
-- restore point created
-- job succeeded / failed
-- buyer action requested, later
-- worker policy event, later
-
-Events must be structured enough for CLI, UI, reports, and Telegram notifications.
-
-## Local UI, Buyer UI, and Telegram
-
-UI and Telegram are future interfaces only.
-
-Rules:
-
-- local UI must bind only to `127.0.0.1` or Unix socket
-- first local UI version is read-only
-- first buyer UI version is read-only
-- no UI direct DB writes
-- no UI direct firewall writes
-- no buyer UI direct policy/firewall/abuse writes
-- Telegram starts as notifications only
-- Telegram actions require allowlist and confirmation, later
-
-## Implementation Order
-
-Do not start production data-plane behavior until the earlier phase gates pass.
-
-Recommended order:
-
-```text
-0. architecture freeze
-1. preflight + bootstrap
-2. PostgreSQL + config + domain model
-3. CLI / internal API
-4. compose forward-only + proxy doctor
-5. customer CRUD in DB only
-6. firewall planner
-7. usage accounting
-8. abuse 1h core
-9. check / report / diagnostics
-10. session / worker / policy timeline
-11. local UI read-only
-12. buyer-safe read-only reporting, after local UI foundations
-13. UI actions with confirmation
-14. Telegram notifications / commands
-15. worker policy enforcement, only after worker evidence and data-plane support
-```
-
-## AI Coding Rules
-
-AI coding agents must preserve these invariants:
-
-- no business logic in CLI handlers
-- no direct firewall mutation outside firewall service/adapters
-- no direct DB mutation outside repositories/services
-- no production firewall apply while `apply_mode=plan_only`
-- no customer can be excluded from abuse scanning unless explicit exemption with reason and expiry exists
-- no lane-specific copied command tree
-- no buyer account stored as a customer service row
-- no worker block represented as firewall-only
-- no secrets in repository
-- no destructive action without event and restore point
+Future UI and Telegram work may call only service contracts and must preserve validation, authorization, restore, evidence, event, and audit boundaries. Future worker enforcement requires explicit gated support and cannot be implemented as a firewall-only shortcut.

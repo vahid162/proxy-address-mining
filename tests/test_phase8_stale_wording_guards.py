@@ -24,6 +24,8 @@ def test_verify_current_phase_gate_messages_are_not_stale() -> None:
     assert "Phase 12" in text
 
 
-def test_ai_coding_rules_contains_controlled_worker_pre_acceptance_stop_condition() -> None:
+def test_ai_coding_rules_redirect_keeps_non_authorizing_compatibility_anchor() -> None:
     text = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
-    assert "## Phase 8 Controlled Worker Pre-Acceptance Stop Condition" in text
+    assert "Phase 8 Controlled Worker Pre-Acceptance Stop Condition" in text
+    assert "Compatibility redirect" in text
+    assert "docs/GUIDELINES.md" in text

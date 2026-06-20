@@ -71,9 +71,10 @@ def test_legacy_index_preserves_prior_historical_reading_lists_as_non_authorizin
     assert "docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md" in text
 
 
-def test_ai_coding_rules_marks_old_phase11_stop_condition_historical():
+def test_ai_coding_rules_redirects_old_phase11_stop_condition_to_history():
     text = Path("docs/AI_CODING_RULES.md").read_text()
-    assert "Historical pre-final-acceptance Phase 11 planning-readiness stop condition (non-authorizing reference only):" in text
+    assert "Historical pre-final-acceptance Phase 11 planning-readiness stop condition (non-authorizing reference only)" in text
+    assert "docs/history/AI_CODING_RULES_LEGACY_0.1.301.md" in text
     assert "\nPhase 11 planning-readiness stop condition:" not in text
 
 

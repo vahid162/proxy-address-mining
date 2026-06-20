@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.302
+
+- docs: add canonical product and engineering contracts, first runtime-first service-layer ADR, historical compatibility redirects, and extended document-contract enforcement.
+- safety: no runtime authorization, server behavior, phase gate, firewall, database, Docker, systemd, conntrack, customer, abuse, worker, UI, Telegram, or production-traffic behavior changed.
+
 ## 0.1.301
 
 - chore(governance): add contribution guidance, document-contract validation, regression coverage, and CI enforcement only; no runtime authorization or server mutation behavior changes.

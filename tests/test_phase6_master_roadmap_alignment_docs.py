@@ -5,10 +5,15 @@ def _read(path: str) -> str:
     return Path(path).read_text(encoding="utf-8")
 
 
-def test_roadmap_phase7_phase8_unchanged() -> None:
+def test_roadmap_is_canonical_long_term_product_order() -> None:
     t = _read("docs/ROADMAP.md")
-    assert "## Phase 7 — Usage + Policy/Reject Accounting" in t
-    assert "## Phase 8 — Abuse 1h Core" in t
+    assert "Status: Canonical long-term product roadmap" in t
+    assert "docs/PHASE_STATUS.md" in t
+    assert "## 6. Usage" in t
+    assert "## 7. Abuse" in t
+    assert "## 10. Future UI" in t
+    assert "## 11. Future Telegram" in t
+    assert "## 12. Future worker enforcement" in t
 
 
 def test_remaining_plan_marks_phase6g_h_as_substeps_and_finite_slices() -> None:

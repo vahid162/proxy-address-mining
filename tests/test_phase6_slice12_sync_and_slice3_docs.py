@@ -45,12 +45,15 @@ def test_phase_status_has_slice12_sync_evidence_and_slice4_next() -> None:
     assert "abuse_automation_allowed: yes" not in text
 
 
-def test_slice3_documented_and_slice4_next_planned_across_docs() -> None:
-    for path in ["docs/history/README_LEGACY_0.1.299.md", "docs/history/AGENTS_LEGACY_0.1.298.md", "docs/AI_CODING_RULES.md", "docs/AI_PHASE_6_TASK.md"]:
+def test_slice3_legacy_content_remains_in_archives_not_active_redirect() -> None:
+    for path in ["docs/history/README_LEGACY_0.1.299.md", "docs/history/AGENTS_LEGACY_0.1.298.md", "docs/AI_PHASE_6_TASK.md"]:
         text = _read(path)
         assert "Slice 3" in text
         assert "Future Dedicated Phase 6 Apply Gate Proposal/Review" in text
         assert "Apply Slice 2 — Restore Point + Lock + DB Apply Record Readiness (planned" not in text
+    active = _read("docs/AI_CODING_RULES.md")
+    assert "Compatibility redirect" in active
+    assert "docs/history/AI_CODING_RULES_LEGACY_0.1.301.md" in active
 
 
 def test_no_authorization_introduced_in_changed_docs() -> None:

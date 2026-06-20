@@ -8,9 +8,13 @@ It is not a shell-script migration, an unrestricted production traffic switch, a
 
 - [AGENTS.md](AGENTS.md) — AI operating instructions and repository task-routing rules.
 - [Documentation index](docs/INDEX.md) — concise map for humans and AI agents.
+- [Product requirements](docs/PRD.md) — canonical product scope and success criteria.
+- [Engineering guidelines](docs/GUIDELINES.md) — canonical engineering and AI-safe implementation rules.
 - [Phase status](docs/PHASE_STATUS.md) — only authority for dynamic project state.
 - [Safety](docs/SAFETY.md) — safety restrictions and non-negotiable guardrails.
 - [Architecture](docs/ARCHITECTURE.md) — architecture boundaries and service-layer rules.
+- [Roadmap](docs/ROADMAP.md) — long-term product evolution, not current authorization.
+- [ADRs](docs/ADR/) — architectural decisions.
 - [Changelog](CHANGELOG.md) — release history.
 - [Version](VERSION) — current package/version metadata.
 

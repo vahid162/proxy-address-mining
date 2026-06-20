@@ -19,13 +19,31 @@ REQUIRED_FILES = (
     "mpf/__init__.py",
     "docs/INDEX.md",
     "docs/PHASE_STATUS.md",
+    "docs/PRD.md",
+    "docs/GUIDELINES.md",
     "docs/SAFETY.md",
     "docs/ARCHITECTURE.md",
+    "docs/ROADMAP.md",
+    "docs/ADR/0001-runtime-first-service-layer-boundary.md",
     ".github/PULL_REQUEST_TEMPLATE/runtime-first.md",
     ".github/workflows/ci.yml",
 )
 ENTRYPOINTS = ("README.md", "AGENTS.md", "docs/INDEX.md")
 LINK_CHECK_FILES = ("AGENTS.md", "README.md", "docs/INDEX.md", "CONTRIBUTING.md")
+CANONICAL_INDEX_ROUTES = (
+    "docs/PRD.md",
+    "docs/GUIDELINES.md",
+    "docs/ROADMAP.md",
+    "docs/ADR/0001-runtime-first-service-layer-boundary.md",
+)
+STATIC_CANONICAL_DOCS = (
+    "docs/PRD.md",
+    "docs/GUIDELINES.md",
+    "docs/ROADMAP.md",
+    "docs/ADR/0001-runtime-first-service-layer-boundary.md",
+    "docs/ARCHITECTURE.md",
+    "docs/SAFETY.md",
+)
 SNAPSHOT_KEYS = (
     "current_accepted_phase",
     "current_working_phase",
@@ -134,6 +152,22 @@ def validate_document_contract(root: str | Path = ".") -> ValidationResult:
             if "docs/history" in lower and any(word in lower for word in ("authority", "authoritative", "current phase", "dynamic state")):
                 if not any(word in lower for word in ("non-authorizing", "not authority", "not override", "historical", "audit", "context")):
                     violations.append(f"{rel}:{lineno} appears to use docs/history/ as canonical dynamic-state authority")
+
+
+    index_path = root_path / "docs/INDEX.md"
+    if index_path.is_file():
+        index_links = {_link_path(link) for link in _markdown_links(_read(index_path))}
+        for route in CANONICAL_INDEX_ROUTES:
+            if route not in index_links and route.removeprefix("docs/") not in index_links:
+                violations.append(f"docs/INDEX.md must link to canonical route: {route}")
+
+    for rel in STATIC_CANONICAL_DOCS:
+        path = root_path / rel
+        if not path.is_file():
+            continue
+        for lineno, line in enumerate(_read(path).splitlines(), start=1):
+            if re.match(rf"^\s*({'|'.join(re.escape(k) for k in SNAPSHOT_KEYS)})\s*:", line):
+                violations.append(f"{rel}:{lineno} contains forbidden dynamic-state assignment snapshot: {line.strip()}")
 
     for rel in LINK_CHECK_FILES:
         path = root_path / rel
