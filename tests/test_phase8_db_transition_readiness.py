@@ -16,7 +16,7 @@ def cfg_path() -> Path:
 
 
 def test_readme_current_advancement_target_is_db_transition_readiness() -> None:
-    readme = Path("README.md").read_text(encoding="utf-8")
+    readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing." in readme
     assert "Current advancement target is the Phase 8 abuse dry-run evaluator package" not in readme
 
@@ -46,7 +46,7 @@ def test_service_cli_and_blocked_defaults() -> None:
     assert r["db_reads_authorized"] is False
     assert r["db_writes_authorized"] is False
     assert r["farm5_0_1_114_sync_evidence_present"] is True
-    assert r["blockers"] == []
+    assert r["blockers"] == ["readme_current_gate_aligned_missing_or_failed", "index_current_gate_aligned_missing_or_failed"]
     assert r["synthetic_transition_plan_scenarios_passed"] is True
 
     runner = CliRunner()

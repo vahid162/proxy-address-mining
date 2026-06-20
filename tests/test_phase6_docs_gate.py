@@ -29,5 +29,5 @@ def test_phase6_c_accepted_server_results_subsection_present() -> None:
 
 
 def test_phase6_c_acceptance_doc_indexed() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md" in text

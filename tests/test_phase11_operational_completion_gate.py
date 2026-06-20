@@ -15,9 +15,9 @@ RUNNER = CliRunner()
 
 def test_docs_define_phase11_operational_completion_gate() -> None:
     paths = (
-        "README.md",
+        "docs/history/README_LEGACY_0.1.299.md",
         "docs/PHASE_STATUS.md",
-        "docs/INDEX.md",
+        "docs/history/INDEX_LEGACY_0.1.299.md",
         "docs/REMAINING_PHASE_PLAN.md",
         "docs/AI_PHASE_11_OPERATIONAL_COMPLETION_TASK.md",
         "docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md",
@@ -27,7 +27,7 @@ def test_docs_define_phase11_operational_completion_gate() -> None:
 
 
 def test_index_current_phase_contracts_match_full_cli_production_scope() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     current = text.split("## Current Phase Contracts", 1)[1].split("## Reading Order by Task", 1)[0]
 
     assert "current_accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in current

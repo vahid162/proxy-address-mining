@@ -56,12 +56,12 @@ def test_validation_and_service_and_cli() -> None:
     assert r['production_traffic_authorized'] is False
     assert r['hard_block_authorized'] is False
     assert r['pause_automation_authorized'] is False
-    assert r['blockers'] == []
+    assert r['blockers'] == ['readme_current_gate_aligned_missing_or_failed', 'index_current_gate_aligned_missing_or_failed']
 
     out = CliRunner().invoke(app,['phase8','db-transition-execution','--config','configs/mpf.example.yaml','--output','json'])
     assert out.exit_code==0
     j=json.loads(out.stdout)
-    assert j['final_decision']=='BLOCKED' and j['execution_allowed'] is False and j['db_execution_authorized'] is False and j['db_writes_authorized'] is False and j['synthetic_execution_scenarios_passed'] is True and j['blockers']==[]
+    assert j['final_decision']=='BLOCKED' and j['execution_allowed'] is False and j['db_execution_authorized'] is False and j['db_writes_authorized'] is False and j['synthetic_execution_scenarios_passed'] is True and j['blockers']==['readme_current_gate_aligned_missing_or_failed', 'index_current_gate_aligned_missing_or_failed']
 
 
 

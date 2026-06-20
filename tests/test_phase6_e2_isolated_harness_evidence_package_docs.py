@@ -47,7 +47,7 @@ def test_phase_status_stays_non_accepting_for_e3():
 
 
 def test_index_includes_e2_in_required_sections():
-    t = _read("docs/INDEX.md")
+    t = _read("docs/history/INDEX_LEGACY_0.1.299.md")
 
     start_here = t.split("## Start Here", 1)[1].split("## Core Contracts", 1)[0]
     current_phase = t.split("## Current Phase Contracts", 1)[1].split("## Reading Order by Task", 1)[0]

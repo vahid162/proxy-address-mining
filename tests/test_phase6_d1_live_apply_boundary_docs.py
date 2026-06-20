@@ -64,7 +64,7 @@ def test_ai_phase6_task_explicit_d1_boundary_language() -> None:
 
 
 def test_index_current_phase_contracts_read_list_exact_and_sequential() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     block = _extract_current_phase_read_block(text)
     expected = """1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_6_TASK.md`
@@ -102,7 +102,7 @@ def test_index_current_phase_contracts_read_list_exact_and_sequential() -> None:
 
 
 def test_index_has_separate_descriptions_and_no_malformed_numbering() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "### `docs/AI_PHASE_6_TASK.md`" in text
     assert (
         "Defines the active AI coding boundary for current Phase 6 planner/offline contract work and references the Phase 6-D1 boundary."

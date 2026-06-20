@@ -21,7 +21,7 @@ def test_phase11_farm5_0_1_149_evidence_doc_and_gate_tokens() -> None:
 
 
 def test_docs_plan_and_script_alignment_for_0_1_149() -> None:
-    readme = Path("README.md").read_text(encoding="utf-8")
+    readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     script = Path("scripts/verify_current_phase_gate.sh").read_text(encoding="utf-8")
 

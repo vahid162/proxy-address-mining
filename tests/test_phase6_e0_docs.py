@@ -51,7 +51,7 @@ def _extract_current_phase_read_block(text: str) -> str:
 
 
 def test_index_current_phase_read_block_includes_e0_exact_and_sequential() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     block = _extract_current_phase_read_block(text)
     expected = """1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_6_TASK.md`
@@ -89,7 +89,7 @@ def test_index_current_phase_read_block_includes_e0_exact_and_sequential() -> No
 
 
 def test_index_documentation_summary_places_e0_before_roadmap_and_not_after_final_rule() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     e0 = "### `docs/PHASE_6_E0_ISOLATED_APPLY_HARNESS.md`"
     summary_anchor = "## Documentation Summary"
     roadmap_anchor = "## Current Roadmap Snapshot"
@@ -100,7 +100,7 @@ def test_index_documentation_summary_places_e0_before_roadmap_and_not_after_fina
 
 
 def test_index_current_phase_text_mentions_e0_isolated_only() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "Phase 6-E3 accepted" in text
     assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing" in text
 
@@ -136,7 +136,7 @@ def test_ai_phase6_task_e0_status_and_no_stale_d0_wording() -> None:
 
 
 def test_index_no_stale_d0_next_step_wording_and_has_e0_guidance() -> None:
-    text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "The next safe step is Phase 6-D0 / Phase 6-D documentation/test-only boundary review" not in text
     assert "Phase 6-D1 is accepted as a documentation/test-only live-apply boundary contract" not in text
     assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing." in text

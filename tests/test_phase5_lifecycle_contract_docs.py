@@ -82,7 +82,7 @@ def test_phase5_task_references_lifecycle_contract_and_stop_conditions() -> None
 
 
 def test_index_includes_lifecycle_contract_in_phase5_reading_path() -> None:
-    text = read_doc("docs/INDEX.md")
+    text = read_doc("docs/history/INDEX_LEGACY_0.1.299.md")
 
     assert "docs/CUSTOMER_LIFECYCLE.md" in text
     assert "customer lifecycle" in text.lower()

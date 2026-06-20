@@ -72,7 +72,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 def test_index_includes_e3_doc_in_required_sections() -> None:
-    text = _read("docs/INDEX.md")
+    text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
     start_here = _between(text, "## Start Here", "## Core Contracts")
     current_phase = _between(text, "## Current Phase Contracts", "## Reading Order by Task")
     doc_summary = _between(text, "## Documentation Summary", "## Current Roadmap Snapshot")

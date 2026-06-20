@@ -54,7 +54,7 @@ def test_phase_status_has_required_current_state_and_e0_e1_wording() -> None:
 
 
 def test_index_references_acceptance_doc_in_required_sections() -> None:
-    t = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    t = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "docs/PHASE_6_E0_ACCEPTANCE_EVIDENCE.md" in t
     assert "## Start Here" in t and "## Current Phase Contracts" in t
     assert "## Documentation Summary" in t
@@ -104,7 +104,7 @@ def test_phase_status_e0_section_placement_and_no_stale_next_step_wording() -> N
 
 
 def test_index_single_documentation_summary_and_no_duplicate_after_final_rule() -> None:
-    t = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    t = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert t.count("## Documentation Summary") == 1
     summary = t.index("## Documentation Summary")
     roadmap = t.index("## Current Roadmap Snapshot")

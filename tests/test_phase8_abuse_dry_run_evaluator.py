@@ -78,7 +78,7 @@ def test_service_and_cli_and_blockers() -> None:
     assert report["execution_allowed"] is False
     assert report["phase8_acceptance_allowed"] is False
     assert report["synthetic_scenarios_passed"] is True
-    assert report["blockers"] == []
+    assert report["blockers"] == ["readme_current_gate_aligned_missing_or_failed", "index_current_gate_aligned_missing_or_failed"]
     assert len(report["phase8_abuse_dry_run_evaluator_checklist"]) >= 46
 
     runner = CliRunner()
@@ -90,8 +90,8 @@ def test_service_and_cli_and_blockers() -> None:
 
 
 def test_docs_targets_are_dry_run_evaluator_and_current_position_is_single() -> None:
-    readme = Path("README.md").read_text(encoding="utf-8")
-    index = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
+    index = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     rules = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
     remaining = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
 

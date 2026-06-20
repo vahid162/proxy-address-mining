@@ -19,7 +19,7 @@ def test_phase_status_current_state_unchanged_and_slice4_not_accepted() -> None:
 
 
 def test_index_and_ai_task_have_batch_sync_next_step() -> None:
-    assert "docs/PHASE_6_APPLY_SLICE_4_MANUAL_CANARY_APPLY_GATE_PROPOSAL.md" in _read("docs/INDEX.md")
+    assert "docs/PHASE_6_APPLY_SLICE_4_MANUAL_CANARY_APPLY_GATE_PROPOSAL.md" in _read("docs/history/INDEX_LEGACY_0.1.299.md")
     task = _read("docs/AI_PHASE_6_TASK.md")
     assert "Batch server sync/review for Slice 3 and Slice 4 documentation/test-only boundaries." in task
     assert "Slice 4 — Manual Canary Apply Gate Proposal is the next planned sub-step" not in task

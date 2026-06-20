@@ -38,8 +38,8 @@ def test_runtime_first_does_not_open_current_gates() -> None:
 
 def test_docs_reading_map_references_runtime_first() -> None:
     assert "docs/AI_SAFE_RUNTIME_FIRST.md" in Path("AGENTS.md").read_text(encoding="utf-8")
-    assert "docs/AI_SAFE_RUNTIME_FIRST.md" in Path("README.md").read_text(encoding="utf-8")
-    index_text = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    assert "docs/AI_SAFE_RUNTIME_FIRST.md" in Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
+    index_text = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "Phase 11 production/customer activation work" in index_text
     assert "Current active add-on read first" in index_text
     assert "docs/AI_SAFE_RUNTIME_FIRST.md" in index_text

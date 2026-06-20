@@ -24,7 +24,7 @@ def test_phase_status_phase6g_accepted_non_authorizing() -> None:
 
 
 def test_index_lists_phase6g_in_required_sections() -> None:
-    text = _read("docs/INDEX.md")
+    text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
     assert "15. `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`" in text
     assert "16. `docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md`" in text
     assert "Current Phase Contracts add-on: `docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md`" in text

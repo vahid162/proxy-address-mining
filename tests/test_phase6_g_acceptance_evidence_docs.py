@@ -48,7 +48,7 @@ def test_phase_status_does_not_enable_forbidden_state() -> None:
 
 
 def test_index_includes_phase6g_acceptance_in_required_sections() -> None:
-    text = _read("docs/INDEX.md")
+    text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
     assert "docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md" in text
     start_here = text[text.index("## Start Here"):text.index("## Core Contracts")]
     current_phase = text[text.index("## Current Phase Contracts"):text.index("## Reading Order by Task")]

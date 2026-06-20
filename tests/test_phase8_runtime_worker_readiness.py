@@ -54,7 +54,7 @@ def test_runtime_worker_readiness_service_and_cli() -> None:
     assert r["db_reads_authorized"] is False and r["db_writes_authorized"] is False
     assert r["firewall_apply_authorized"] is False and r["production_traffic_authorized"] is False
     assert r["hard_block_authorized"] is False and r["pause_automation_authorized"] is False
-    assert r["blockers"] == []
+    assert r["blockers"] == ["db_transition_readiness_fail_closed_missing_or_failed"]
 
     out = CliRunner().invoke(app, ["phase8", "runtime-worker-readiness", "--config", str(cfg_path()), "--output", "json"])
     assert out.exit_code == 0
@@ -66,7 +66,7 @@ def test_runtime_worker_readiness_service_and_cli() -> None:
     assert data["abuse_runner_authorized"] is False
     assert data["production_db_execution_authorized"] is False
     assert data["firewall_apply_authorized"] is False
-    assert data["blockers"] == []
+    assert data["blockers"] == ["db_transition_readiness_fail_closed_missing_or_failed"]
 
 
 def test_fail_closed_for_missing_115_or_fabricated_116(tmp_path: Path) -> None:

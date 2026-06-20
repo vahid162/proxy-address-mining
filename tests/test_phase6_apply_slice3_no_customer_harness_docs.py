@@ -41,7 +41,7 @@ def test_docs_alignment_and_non_authorization_bundle() -> None:
         "docs/AI_CODING_RULES.md",
     ]
     text = "\n".join(_read(d).lower() for d in docs)
-    assert "docs/phase_6_apply_slice_3_controlled_no_customer_harness.md" in _read("docs/INDEX.md").lower()
+    assert "docs/phase_6_apply_slice_3_controlled_no_customer_harness.md" in _read("docs/history/INDEX_LEGACY_0.1.299.md").lower()
     assert "future dedicated phase 6 apply gate proposal/review" in _read("docs/AI_PHASE_6_TASK.md").lower()
     required = [
         "does not authorize no-customer apply",

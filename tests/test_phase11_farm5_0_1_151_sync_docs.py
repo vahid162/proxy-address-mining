@@ -18,7 +18,7 @@ def test_phase11_farm5_0_1_151_evidence_doc_required_tokens() -> None:
 
 
 def test_readme_plan_phase_status_align_0_1_151() -> None:
-    readme = Path("README.md").read_text(encoding="utf-8")
+    readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
     phase_status = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
 

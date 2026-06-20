@@ -56,7 +56,7 @@ def test_phase_status_current_state_unchanged_and_phase6_d1_doce0_present() -> N
 
 
 def test_index_remaining_plan_and_non_authorization_constraints() -> None:
-    index_text = _read("docs/INDEX.md")
+    index_text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
     remaining_text = _read("docs/REMAINING_PHASE_PLAN.md")
     acceptance_text = _read("docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md")
     ai_phase6_text = _read("docs/AI_PHASE_6_TASK.md")
@@ -92,7 +92,7 @@ def _extract_current_phase_read_block(index_text: str) -> str:
 
 
 def test_index_current_phase_contracts_read_block_exact_1_to_18_with_d1_acceptance_doc() -> None:
-    text = _read("docs/INDEX.md")
+    text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
     block = _extract_current_phase_read_block(text)
     expected = """1. `docs/PHASE_STATUS.md`
 2. `docs/AI_PHASE_6_TASK.md`
@@ -130,7 +130,7 @@ def test_index_current_phase_contracts_read_block_exact_1_to_18_with_d1_acceptan
 
 
 def test_index_documentation_summary_has_d1_acceptance_evidence_entry() -> None:
-    text = _read("docs/INDEX.md")
+    text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
     assert "### `docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md`" in text
     assert "accepted farm5 evidence" in text
     assert "does not authorize live apply" in text
