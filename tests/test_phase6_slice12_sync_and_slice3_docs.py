@@ -59,7 +59,7 @@ def test_slice3_legacy_content_remains_in_archives_not_active_redirect() -> None
 def test_no_authorization_introduced_in_changed_docs() -> None:
     docs = [
         "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/history/README_LEGACY_0.1.299.md",
         "AGENTS.md",
@@ -91,4 +91,4 @@ def test_no_authorization_introduced_in_changed_docs() -> None:
     ]
     for item in forbidden:
         assert item not in text
-    assert "normal -> over_tracking -> over_grace -> hard" in (_read("AGENTS.md") + _read("docs/REMAINING_PHASE_PLAN.md"))
+    assert "normal -> over_tracking -> over_grace -> hard" in (_read("AGENTS.md") + _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md"))

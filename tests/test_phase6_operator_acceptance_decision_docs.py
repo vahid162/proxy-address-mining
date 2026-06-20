@@ -8,7 +8,7 @@ def test_docs_regression_phase6_operator_acceptance() -> None:
     assert 'production_traffic: none' in ps
     assert 'firewall_apply_allowed: no' in ps
     assert 'abuse_automation_allowed: no' in ps
-    rem = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8').lower()
+    rem = Path('docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md').read_text(encoding='utf-8').lower()
     assert '0.1.99' in rem
     ai = Path('docs/AI_PHASE_6_TASK.md').read_text(encoding='utf-8')
     assert 'latest recorded farm5 sync evidence is 0.1.99' in ai

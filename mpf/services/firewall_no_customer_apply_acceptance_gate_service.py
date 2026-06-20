@@ -55,7 +55,7 @@ def build_no_customer_apply_acceptance_gate_report(cfg: MPFConfig, repo_root: Pa
     no_customer_apply_scaffold_section_present = False
 
     if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
+        blockers.append("historical phase-status archive is missing")
         text = ""
     else:
         text = phase_status.read_text(encoding="utf-8")

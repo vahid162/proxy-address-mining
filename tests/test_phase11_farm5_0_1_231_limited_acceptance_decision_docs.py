@@ -1,7 +1,7 @@
 from pathlib import Path
 DOC = Path("docs/PHASE_11_FARM5_0_1_231_LIMITED_ACCEPTANCE_DECISION_READY.md").read_text()
 STATUS = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
-PLAN = Path("docs/REMAINING_PHASE_PLAN.md").read_text()
+PLAN = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text()
 INDEX = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
 def _current_state(text):
     return text.split("## Current State", 1)[1].split("## Accepted Server Results", 1)[0]

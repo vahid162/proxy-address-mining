@@ -93,7 +93,7 @@ def test_docs_targets_are_dry_run_evaluator_and_current_position_is_single() -> 
     readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     index = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     rules = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
-    remaining = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    remaining = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text(encoding="utf-8")
 
     assert "DB-only controlled transition readiness package" in readme
     assert "report-only/non-mutating/non-authorizing" in readme
@@ -115,7 +115,7 @@ def test_service_blockers_when_docs_stale_or_prior_contract_missing(tmp_path: Pa
     (repo / "docs/INDEX.md").write_text("stale", encoding="utf-8")
     (repo / "docs/AI_CODING_RULES.md").write_text("stale", encoding="utf-8")
     (repo / "docs/AI_PHASE_8_TASK.md").write_text("stale", encoding="utf-8")
-    (repo / "docs/REMAINING_PHASE_PLAN.md").write_text("stale", encoding="utf-8")
+    (repo / "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").write_text("stale", encoding="utf-8")
     (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\n", encoding="utf-8")
 
     cfg = load_config(example_config_path())

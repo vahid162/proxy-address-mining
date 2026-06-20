@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from mpf.services.historical_phase_status import read_historical_phase_status
+from mpf.services.historical_phase_status import read_historical_phase_status, read_historical_remaining_phase_plan
 
 from mpf.config import MPFConfig
 from mpf.services.phase7_policy_reject_accounting_contract_service import build_phase7_policy_reject_accounting_contract_report
@@ -37,7 +37,7 @@ def build_phase7_final_acceptance_readiness_report(cfg: MPFConfig, repo_root: Pa
     phase_status = read_historical_phase_status(root)
     readme = _read(root / "README.md")
     ai_phase7 = _read(root / "docs/AI_PHASE_7_TASK.md").lower()
-    remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md").lower()
+    remaining = read_historical_remaining_phase_plan(root).lower()
 
     usage_policy = build_phase7_usage_policy_readiness_report(cfg, repo_root=root)
     usage_contract = build_phase7_usage_accounting_contract_report(cfg, repo_root=root)

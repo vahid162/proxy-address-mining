@@ -6,7 +6,7 @@ def _read(path: str) -> str:
 
 
 def test_remaining_plan_runtime_approval_and_versions():
-    text = _read("docs/REMAINING_PHASE_PLAN.md")
+    text = _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md")
     assert "No-customer runtime execution approval readiness" in text
     assert "latest recorded farm5 sync evidence is 0.1.100" in text
 

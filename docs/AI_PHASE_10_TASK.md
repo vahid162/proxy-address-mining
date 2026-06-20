@@ -1,26 +1,10 @@
-# AI Phase 10 Task — Session / Worker / Policy / Share Timeline
+# AI Phase 10 Task
 
-Status: Accepted (by this PR) / Phase 11 Planning-Readiness Next
+This filename is retained for historical compatibility only.
 
-## Current boundary
-- Phase 10 is accepted by this PR.
-- Phase 10A/10B/10C are implemented.
-- Phase 10D/10E are implemented.
-- Phase 10F is implemented.
-- Phase 10 final-acceptance-readiness is complete.
-- This PR implements Phase 10 final acceptance.
-- This PR does not authorize Phase 11 production activation.
-- Controlled CLI canary remains Phase 11 and requires fresh farm5 0.1.137 sync/test evidence.
+Phase 10 task and acceptance material is historical context. It does not define the current phase, runtime authorization, or next required step.
 
-## Implemented report-only outputs
-- `mpf phase10 readiness --output json`
-- `mpf phase10 implementation-readiness --output json`
-- `mpf phase10 final-acceptance-readiness --output json`
-- `mpf phase10 final-acceptance --output json`
+Current phase, runtime authorization, and next required step exist only in `docs/PHASE_STATUS.md`.
 
-## Next target
-- Phase 11 Production / Customer Activation Gate planning/readiness.
-- Controlled CLI canary remains a Phase 11 step after fresh farm5 0.1.137 sync/test evidence.
-
-## Forbidden in current boundary
-No production traffic, no firewall apply, no customer NAT/rules, no abuse automation, no real worker runtime, no scheduler/timer, no collector daemon, no production DB execution, no UI, no Telegram.
+Historical Phase 10 task content is preserved in:
+`docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md`

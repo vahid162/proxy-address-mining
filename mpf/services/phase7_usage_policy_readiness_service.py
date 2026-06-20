@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from mpf.services.historical_phase_status import read_historical_phase_status
+from mpf.services.historical_phase_status import read_historical_phase_status, read_historical_remaining_phase_plan
 from mpf.config import MPFConfig
 
 def _read(path: Path) -> str:
@@ -16,7 +16,7 @@ def build_phase7_usage_policy_readiness_report(cfg: MPFConfig, repo_root: Path |
     phase_status = read_historical_phase_status(root)
     readme = _read(root / "README.md")
     ai_phase7 = _read(root / "docs/AI_PHASE_7_TASK.md")
-    remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
+    remaining = read_historical_remaining_phase_plan(root)
     blockers: list[str] = []
     current_state_preserved = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status and "current_working_phase: Phase 7 — Usage + Policy/Reject Accounting" in phase_status
     phase6_accepted = "current_accepted_phase: Phase 6 — Firewall Planner accepted on farm5" in phase_status

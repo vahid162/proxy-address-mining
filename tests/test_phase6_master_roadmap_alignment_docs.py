@@ -17,7 +17,7 @@ def test_roadmap_is_canonical_long_term_product_order() -> None:
 
 
 def test_remaining_plan_marks_phase6g_h_as_substeps_and_finite_slices() -> None:
-    t = _read("docs/REMAINING_PHASE_PLAN.md")
+    t = _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md")
     assert "Remaining Phase 6 Alignment With Master Roadmap" in t
     assert "Phase 6-G and Phase 6-H are safety sub-steps inside Phase 6, not new top-level roadmap phases." in t
     for s in [
@@ -46,7 +46,7 @@ def test_phase_status_current_state_unchanged() -> None:
 def test_forbidden_authorizations_not_introduced() -> None:
     docs = [
         "docs/ROADMAP.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
@@ -77,6 +77,6 @@ def test_forbidden_authorizations_not_introduced() -> None:
 
 
 def test_abuse_invariant_preserved() -> None:
-    text = _read("docs/ABUSE.md") + "\n" + _read("docs/REMAINING_PHASE_PLAN.md")
+    text = _read("docs/ABUSE.md") + "\n" + _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md")
     assert "normal -> over_tracking -> over_grace -> hard" in text
     assert "must not be weakened" in text

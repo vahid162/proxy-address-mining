@@ -78,7 +78,7 @@ def _build_blockers(cfg: MPFConfig, repo_root: Path) -> tuple[list[str], bool]:
     phase_status = repo_root / "docs" / "PHASE_STATUS.md"
     current_state_preserved = False
     if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
+        blockers.append("historical phase-status archive is missing")
     else:
         parsed = _parse_current_state_block(phase_status.read_text(encoding="utf-8"))
         if parsed is None:

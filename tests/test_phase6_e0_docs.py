@@ -106,7 +106,7 @@ def test_index_current_phase_text_mentions_e0_isolated_only() -> None:
 
 
 def test_remaining_phase_plan_phase6e_formatting_clean() -> None:
-    text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    text = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text(encoding="utf-8")
     assert "## Phase 6-E — Isolated Apply Harness" in text
     assert "Phase 6-E0 accepted on farm5" in text
     assert "Host production firewall mutation remains forbidden" in text

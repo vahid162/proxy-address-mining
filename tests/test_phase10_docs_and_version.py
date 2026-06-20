@@ -4,13 +4,13 @@ from mpf import __version__
 
 
 def test_version_consistency():
-    assert Path("VERSION").read_text().strip() == "0.1.303"
-    assert __version__ == "0.1.303"
-    assert 'version = "0.1.303"' in Path("pyproject.toml").read_text(encoding="utf-8")
+    assert Path("VERSION").read_text().strip() == "0.1.304"
+    assert __version__ == "0.1.304"
+    assert 'version = "0.1.304"' in Path("pyproject.toml").read_text(encoding="utf-8")
 
 
 def test_phase10_docs_present():
-    t = Path("docs/AI_PHASE_10_TASK.md").read_text(encoding="utf-8")
+    t = Path("docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md").read_text(encoding="utf-8")
     assert "Phase 10 is accepted by this PR." in t
     assert "Phase 10A/10B/10C are implemented." in t
     assert "Phase 10D/10E are implemented." in t

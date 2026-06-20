@@ -56,7 +56,7 @@ def build_no_customer_apply_scaffold_report(cfg: MPFConfig, repo_root: Path | No
     controlled_restore_lock_record_evidence_present = False
 
     if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
+        blockers.append("historical phase-status archive is missing")
     else:
         text = phase_status.read_text(encoding="utf-8")
         current_state = _parse_current_state_block(text)

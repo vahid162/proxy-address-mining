@@ -42,7 +42,7 @@ def build_no_customer_apply_package_report(cfg: MPFConfig, repo_root: Path | Non
     ps=root/"docs"/"PHASE_STATUS.md"
     blockers=[]; errors=[]
     text=ps.read_text(encoding='utf-8') if ps.exists() else ""
-    if not ps.exists(): blockers.append("docs/PHASE_STATUS.md is missing")
+    if not ps.exists(): blockers.append("historical phase-status archive is missing")
     current=_parse_current_state_block(text)
     current_state_preserved=current is not None and all(current.get(k)==v for k,v in _EXPECTED_CURRENT_STATE.items())
     if current is None:blockers.append("Current State block missing or malformed in docs/PHASE_STATUS.md")

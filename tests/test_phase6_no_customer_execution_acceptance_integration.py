@@ -27,7 +27,7 @@ def test_static_safety_patterns_absent():
 
 
 def test_remaining_plan_has_single_finite_path():
-    txt=Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    txt=Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text(encoding="utf-8")
     assert txt.count("## Finite Remaining Path")==1
 
 def test_ai_phase6_task_mentions_new_commands_and_no_stale_target():

@@ -20,7 +20,7 @@ def test_docs_do_not_authorize_live_apply_or_host_mutation() -> None:
         'docs/PHASE_6_E1_ISOLATED_HARNESS_HARDENING.md',
         'docs/AI_PHASE_6_TASK.md',
         'docs/FIREWALL.md',
-        'docs/REMAINING_PHASE_PLAN.md',
+        'docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md',
     ]
     text = '\n'.join(Path(d).read_text(encoding='utf-8') for d in docs)
     assert 'does not authorize host production firewall mutation' in text

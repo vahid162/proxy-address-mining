@@ -21,7 +21,7 @@ def _all_false(r:dict[str,object])->bool:return all(r.get(k) is False for k in F
 def build_no_customer_apply_execution_acceptance_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
  root=repo_root or Path(__file__).resolve().parents[2]; ps=root/'docs'/'PHASE_STATUS.md'; blockers=[]; errors=[]
  text=ps.read_text(encoding='utf-8') if ps.exists() else ''
- if not ps.exists(): blockers.append('docs/PHASE_STATUS.md is missing')
+ if not ps.exists(): blockers.append('historical phase-status archive is missing')
  cur=_parse_current_state_block(text)
  expected={"current_accepted_phase":"Phase 5 — Customer CRUD in DB Only accepted on farm5","current_working_phase":"Phase 6 — Firewall Planner","server_state":"farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active","production_traffic":"none","firewall_apply_allowed":"no","abuse_automation_allowed":"no","customer_onboarding_allowed":"db_only","proxy_data_plane_allowed":"limited_runtime_local_only","ui_allowed":"no","telegram_allowed":"no","live_snapshot_read_allowed":"iptables_save_read_only","restore_lock_record_execution_allowed":"controlled_boundary_only"}
  current_state_preserved=cur is not None and all(cur.get(k)==v for k,v in expected.items())

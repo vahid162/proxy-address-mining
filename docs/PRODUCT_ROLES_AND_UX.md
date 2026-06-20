@@ -1,13 +1,13 @@
 # Product Roles and UX Journey Contract
 
-Status: Phase 5-F2 contract (documentation-only)
+Status: future product and UX contract (documentation-only)
 
-## Scope and phase gate
+## Scope and contract boundary
 
-Phase 5 is **DB-only**: `current_working_phase: Phase 5 — Customer CRUD in DB Only`.
+Historical note: this contract was introduced during an earlier phase. Current phase, runtime authorization, and next required step are defined only in `docs/PHASE_STATUS.md`.
 
 This document defines the future product roles, UI/Telegram boundaries, action journey, and operator-facing UX contract for `proxy-address-mining`.
-It does **not** authorize UI runtime, Telegram runtime, public API exposure, firewall/NAT changes, collectors, automation, or DB mutations in Phase 5.
+It does **not** authorize UI runtime, Telegram runtime, public API exposure, firewall/NAT changes, collectors, automation, or DB mutations.
 
 Runtime impact: none.
 Firewall impact: none.
@@ -16,7 +16,7 @@ UI impact: none.
 Telegram impact: none.
 Production traffic impact: none.
 
-Strictly forbidden in Phase 5:
+Not authorized by this contract:
 
 ```text
 no UI service

@@ -10,7 +10,7 @@ def test_phase_status_current_state_unchanged_and_sync_evidence_present():
 
 
 def test_remaining_plan_and_ai_phase_task_updated():
-    r = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    r = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text(encoding="utf-8")
     assert "latest recorded farm5 sync evidence is 0.1.94" in r
     assert "Controlled no-customer runtime execution evidence — current next target" in r
 

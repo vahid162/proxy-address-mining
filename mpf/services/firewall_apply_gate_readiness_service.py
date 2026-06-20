@@ -58,7 +58,7 @@ def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = N
     current_state_preserved = False
 
     if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
+        blockers.append("historical phase-status archive is missing")
     else:
         text = phase_status.read_text(encoding="utf-8")
         farm5_sync_evidence_present = "version accepted on farm5: 0.1.88" in text and "Phase 6 Apply Gate Proposal Review — Documentation Sync" in text

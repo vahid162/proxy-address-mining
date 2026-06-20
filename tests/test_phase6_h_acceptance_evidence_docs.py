@@ -59,7 +59,7 @@ def test_index_includes_phase6h_acceptance_in_required_sections() -> None:
 def test_no_doc_authorizes_forbidden_live_behaviors_now() -> None:
     docs = [
         'docs/history/PHASE_STATUS_LEGACY_0.1.302.md', 'docs/INDEX.md', 'docs/AI_PHASE_6_TASK.md', 'docs/FIREWALL.md',
-        'docs/ROADMAP.md', 'docs/REMAINING_PHASE_PLAN.md', 'docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md',
+        'docs/ROADMAP.md', 'docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md', 'docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md',
     ]
     combined = '\n'.join(_read(p).lower() for p in docs)
     forbidden = [

@@ -14,4 +14,4 @@ phase12_start_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only'''
 def test_phase_status_current_state_target(): assert TARGET in Path('docs/PHASE_STATUS.md').read_text()
-def test_remaining_plan_phase11_operational_completion(): assert '## Phase 11 operational completion Active Target Position (0.1.237)' in Path('docs/REMAINING_PHASE_PLAN.md').read_text()
+def test_remaining_plan_phase11_operational_completion(): assert '## Phase 11 operational completion Active Target Position (0.1.237)' in Path('docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md').read_text()

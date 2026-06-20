@@ -69,7 +69,7 @@ def test_apply_gate_readiness_and_gate_review_remain_blocked_in_phase_status() -
 
 
 def test_remaining_phase_plan_aligned_with_controlled_execution_boundary() -> None:
-    text = _read("docs/REMAINING_PHASE_PLAN.md")
+    text = _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md")
     assert "executed once on farm5 under the accepted controlled boundary" in text
     assert "no uncontrolled restore point writes, lock acquisition, or DB apply writes" in text
     for marker in (

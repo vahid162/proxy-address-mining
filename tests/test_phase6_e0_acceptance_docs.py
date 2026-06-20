@@ -61,7 +61,7 @@ def test_index_references_acceptance_doc_in_required_sections() -> None:
 
 
 def test_remaining_plan_and_safety_wording() -> None:
-    t = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    t = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text(encoding="utf-8")
     assert "must not mutate the host production firewall" in t
 
 
@@ -77,7 +77,7 @@ def test_abuse_invariant_and_no_e1_live_authorization() -> None:
     for file in [
         "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
     ]:

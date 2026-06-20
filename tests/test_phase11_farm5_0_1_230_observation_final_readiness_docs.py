@@ -22,6 +22,6 @@ def test_phase_status_current_state_stays_closed():
 
 def test_index_and_remaining_plan_reference_new_read_only_step():
     assert "PHASE_11_FARM5_0_1_230_OBSERVATION_FINAL_READINESS_READY.md" in Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
-    remaining = Path("docs/REMAINING_PHASE_PLAN.md").read_text()
+    remaining = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text()
     assert "Phase 11 0.1.231 Active Target Position" in remaining
     assert "phase11_controlled_boundary_acceptance_package_pr" in remaining

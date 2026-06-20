@@ -64,7 +64,7 @@ def test_no_doc_authorizes_forbidden_live_behaviors_now() -> None:
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
         "docs/ROADMAP.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md",
     ]
     combined = "\n".join(_read(p).lower() for p in docs)

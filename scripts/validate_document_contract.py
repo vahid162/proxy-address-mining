@@ -26,10 +26,62 @@ REQUIRED_FILES = (
     "docs/SAFETY.md",
     "docs/ARCHITECTURE.md",
     "docs/ROADMAP.md",
+    "docs/REMAINING_PHASE_PLAN.md",
+    "docs/AI_PHASE_10_TASK.md",
+    "docs/WORKER_POLICY.md",
+    "docs/CONTROL_RULES.md",
+    "docs/PRODUCT_ROLES_AND_UX.md",
     "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md",
     "docs/ADR/0001-runtime-first-service-layer-boundary.md",
     ".github/PULL_REQUEST_TEMPLATE/runtime-first.md",
     ".github/workflows/ci.yml",
+)
+LEGACY_ARCHIVES = {
+    "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md": (
+        "# Non-authorizing historical snapshot\n\n"
+        "This file preserves the complete prior active `docs/REMAINING_PHASE_PLAN.md` as historical planning context for audit and continuity. "
+        "It is non-authorizing and must not override `AGENTS.md`, the active `docs/PHASE_STATUS.md`, or current canonical contracts.\n\n"
+        "---\n"
+    ),
+    "docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md": (
+        "# Non-authorizing historical snapshot\n\n"
+        "This file preserves the complete prior active `docs/AI_PHASE_10_TASK.md` as historical Phase 10 task context for audit and continuity. "
+        "It is non-authorizing and must not override `AGENTS.md`, the active `docs/PHASE_STATUS.md`, or current canonical contracts.\n\n"
+        "---\n"
+    ),
+}
+ACTIVE_REDIRECTS = {
+    "docs/REMAINING_PHASE_PLAN.md": "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
+    "docs/AI_PHASE_10_TASK.md": "docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md",
+}
+STALE_ACTIVE_DOCS = (
+    "docs/REMAINING_PHASE_PLAN.md",
+    "docs/AI_PHASE_10_TASK.md",
+    "docs/WORKER_POLICY.md",
+    "docs/CONTROL_RULES.md",
+    "docs/PRODUCT_ROLES_AND_UX.md",
+)
+STALE_ACTIVE_PATTERNS = (
+    "Current Position",
+    "Current Position update",
+    "Active Target Position",
+    "Current boundary",
+    "current_working_phase: Phase",
+    "Current accepted phase is Phase",
+    "Current working phase is Phase",
+    "Repository version after this PR is 0.1.",
+    "Current repository state:",
+    "At the time this contract is added, the working phase is:",
+    "Phase 5 is **DB-only**",
+    "Strictly forbidden in Phase 5",
+)
+INIT_STALE_PATTERNS = (
+    "Current repository state:",
+    "Phase 11",
+    "Phase 12",
+    "controlled_cli_limited",
+    "worker enforcement",
+    "unrestricted production expansion",
 )
 ENTRYPOINTS = ("README.md", "AGENTS.md", "docs/INDEX.md")
 LINK_CHECK_FILES = ("AGENTS.md", "README.md", "docs/INDEX.md", "CONTRIBUTING.md")
@@ -149,6 +201,50 @@ def _validate_legacy_phase_status(root_path: Path, violations: list[str]) -> Non
     if not text.startswith(required_prefix):
         violations.append("docs/history/PHASE_STATUS_LEGACY_0.1.302.md must begin with the non-authorizing notice and separator")
 
+
+def _validate_retired_phase_snapshots(root_path: Path, violations: list[str]) -> None:
+    for rel, prefix in LEGACY_ARCHIVES.items():
+        path = root_path / rel
+        if not path.is_file():
+            violations.append(f"Missing required non-authorizing archive: {rel}")
+            continue
+        text = _read(path)
+        if not text.startswith(prefix):
+            violations.append(f"{rel} must begin with the required non-authorizing notice and separator")
+
+    for rel, archive in ACTIVE_REDIRECTS.items():
+        path = root_path / rel
+        if not path.is_file():
+            continue
+        text = _read(path)
+        lower = text.lower()
+        if "docs/PHASE_STATUS.md" not in text:
+            violations.append(f"{rel} must route current state to docs/PHASE_STATUS.md")
+        if archive not in text:
+            violations.append(f"{rel} must link to preserved archive: {archive}")
+        if "compatibility" not in lower or ("historical" not in lower and "non-authorizing" not in lower):
+            violations.append(f"{rel} must state its historical/non-authorizing compatibility purpose")
+
+    for rel in STALE_ACTIVE_DOCS:
+        path = root_path / rel
+        if not path.is_file():
+            continue
+        text = _read(path)
+        for pattern in STALE_ACTIVE_PATTERNS:
+            if pattern in text:
+                violations.append(f"{rel} contains stale active-state snapshot marker: {pattern}")
+
+    init_path = root_path / "mpf/__init__.py"
+    if init_path.is_file():
+        text = _read(init_path)
+        if "docs/PHASE_STATUS.md" not in text:
+            violations.append("mpf/__init__.py must point runtime authorization to docs/PHASE_STATUS.md")
+        if "Importing this package performs no DB, firewall, conntrack, Docker, or systemd mutation." not in text:
+            violations.append("mpf/__init__.py must preserve the non-mutating import guarantee")
+        for pattern in INIT_STALE_PATTERNS:
+            if pattern in text:
+                violations.append(f"mpf/__init__.py contains stale dynamic-state prose: {pattern}")
+
 def validate_document_contract(root: str | Path = ".") -> ValidationResult:
     root_path = Path(root).resolve()
     violations: list[str] = []
@@ -189,6 +285,7 @@ def validate_document_contract(root: str | Path = ".") -> ValidationResult:
 
     _validate_phase_status(root_path, violations)
     _validate_legacy_phase_status(root_path, violations)
+    _validate_retired_phase_snapshots(root_path, violations)
 
     for rel in ENTRYPOINTS:
         path = root_path / rel

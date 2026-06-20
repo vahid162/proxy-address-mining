@@ -4,7 +4,7 @@ DOC = Path("docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md")
 PHASE_STATUS = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
 INDEX = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
 AI_TASK = Path("docs/AI_PHASE_6_TASK.md").read_text()
-REMAINING = Path("docs/REMAINING_PHASE_PLAN.md").read_text()
+REMAINING = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text()
 README = Path("docs/history/README_LEGACY_0.1.299.md").read_text()
 HIST = Path("docs/HISTORICAL_COMPATIBILITY_ANCHORS.md").read_text()
 

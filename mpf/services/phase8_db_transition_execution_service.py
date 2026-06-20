@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 
-from mpf.services.historical_phase_status import read_historical_phase_status
+from mpf.services.historical_phase_status import read_historical_phase_status, read_historical_remaining_phase_plan
 
 from mpf.config import MPFConfig
 from mpf.domain.abuse_db_transition_execution import AbuseDBExecutionRequest, AbuseDBExecutionResult, build_dry_run_execution_result, validate_db_execution_request
@@ -45,7 +45,7 @@ def build_phase8_db_transition_execution_report(cfg: MPFConfig, repo_root: Path 
     phase_status = read_historical_phase_status(root)
     rules = txt("docs/AI_CODING_RULES.md")
     ai = txt("docs/AI_PHASE_8_TASK.md")
-    remaining = txt("docs/REMAINING_PHASE_PLAN.md")
+    remaining = read_historical_remaining_phase_plan(root)
 
     sm = build_phase8_abuse_state_machine_contract_report(cfg, root)
     er = build_phase8_abuse_evidence_reporting_contract_report(cfg, root)

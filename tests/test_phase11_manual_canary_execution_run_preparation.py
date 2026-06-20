@@ -59,7 +59,7 @@ def test_docs_and_plan_alignment() -> None:
     readme = Path("README.md").read_text(encoding="utf-8")
     assert "Latest recorded farm5 sync evidence is 0.1.153." not in readme
 
-    rem = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    rem = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text(encoding="utf-8")
     assert "latest recorded farm5 sync evidence is 0.1.159" in rem
     assert "Next target: sync latest main to farm5, run explicit operator-approved single-canary execution once, and collect evidence; if execution blocks, implement the exact missing primitive reported as `accepted_single_canary_host_apply_primitive`." in rem
     assert "## Phase 11 operational completion Active Target Position (0.1.237)" in rem

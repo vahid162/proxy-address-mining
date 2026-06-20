@@ -134,7 +134,7 @@ def test_remaining_plan_fallback_task_alignment_without_name_error(tmp_path, mon
     write("docs/history/PHASE_STATUS_LEGACY_0.1.302.md", "current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\nplanning/readiness\nsynced to 0.1.121\nsynced to 0.1.119\nproduction_traffic: none\nfirewall_apply_allowed: no\niptables-restore blocked\nabuse_automation_allowed: no\nui_allowed: no\ntelegram_allowed: no\n")
     write("docs/AI_CODING_RULES.md", "controlled worker dry-run gate stop condition\nAI agents use PR bodies as operational context\n")
     write("docs/AI_PHASE_8_TASK.md", "Phase 8 task text without the first alignment phrase.\n")
-    write("docs/REMAINING_PHASE_PLAN.md", "Current target is Phase 8 controlled worker dry-run gate preparation package.\n")
+    write("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md", "Current target is Phase 8 controlled worker dry-run gate preparation package.\n")
     write(".github/PULL_REQUEST_TEMPLATE/runtime-first.md", "Why\nWhat\nHow to test\nVersion: X.Y.Z -> A.B.C\nRisk + Rollback\n")
     write("docs/ABUSE.md", "normal over_tracking over_grace hard 3600 firewall failure farms-over alone worker-over\n")
     write("VERSION", "0.1.122\n")

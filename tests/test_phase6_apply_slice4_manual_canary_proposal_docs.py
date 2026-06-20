@@ -29,7 +29,7 @@ def test_docs_do_not_authorize_runtime_actions_now_and_abuse_invariant_preserved
     files = [
         "docs/PHASE_6_APPLY_SLICE_4_MANUAL_CANARY_APPLY_GATE_PROPOSAL.md",
         "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/AI_PHASE_6_TASK.md",
         "README.md",
         "AGENTS.md",

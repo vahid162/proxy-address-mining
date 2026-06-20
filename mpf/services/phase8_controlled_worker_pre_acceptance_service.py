@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-from mpf.services.historical_phase_status import read_historical_phase_status
+from mpf.services.historical_phase_status import read_historical_phase_status, read_historical_remaining_phase_plan
 
 from mpf.config import MPFConfig
 from mpf.domain.abuse_worker_pre_acceptance import (
@@ -40,7 +40,7 @@ def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_ro
     phase_status = read_historical_phase_status(root)
     rules = _read(root / "docs/AI_CODING_RULES.md")
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
-    rem = _read(root / "docs/REMAINING_PHASE_PLAN.md")
+    rem = read_historical_remaining_phase_plan(root)
     pr_template = _read(root / ".github/PULL_REQUEST_TEMPLATE/runtime-first.md")
     abuse_doc = _read(root / "docs/ABUSE.md")
     abuse_doc_l = abuse_doc.lower()

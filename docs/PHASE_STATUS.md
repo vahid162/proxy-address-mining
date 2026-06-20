@@ -8,7 +8,7 @@ Historical release notes, evidence summaries, and prior phase-status narratives 
 
 ## Repository state
 
-- Repository version after this PR: `0.1.303`.
+- Current repository version: `0.1.304`.
 - Documentation/state separation is completed by this release.
 - No server deployment, runtime mutation, database mutation, firewall mutation, Docker/systemd/conntrack change, customer-state change, abuse execution, worker enforcement, UI, Telegram, or production-traffic change is implied by this repository release.
 

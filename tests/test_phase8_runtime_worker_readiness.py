@@ -76,7 +76,7 @@ def test_fail_closed_for_missing_115_or_fabricated_116(tmp_path: Path) -> None:
     (repo / "docs/INDEX.md").write_text("runtime/worker integration readiness", encoding="utf-8")
     (repo / "docs/AI_CODING_RULES.md").write_text("Phase 8 runtime/worker readiness stop condition", encoding="utf-8")
     (repo / "docs/AI_PHASE_8_TASK.md").write_text("Runtime/Worker Integration Readiness", encoding="utf-8")
-    (repo / "docs/REMAINING_PHASE_PLAN.md").write_text("Current target is Phase 8 runtime/worker integration readiness package.", encoding="utf-8")
+    (repo / "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").write_text("Current target is Phase 8 runtime/worker integration readiness package.", encoding="utf-8")
     (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\nsynced to 0.1.116\n", encoding="utf-8")
     r = build_phase8_runtime_worker_integration_readiness_report(load_config(cfg_path()), repo_root=repo)
     assert "farm5_0_1_115_sync_evidence_present_missing_or_failed" in r["blockers"]
