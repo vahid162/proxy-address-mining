@@ -83,6 +83,6 @@ def test_static_no_forbidden_runtime_calls_in_new_surface() -> None:
 
 
 def test_phase_status_not_marked_phase11_accepted() -> None:
-    t = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    t = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "current_accepted_phase: Phase 10" in t
     assert "current_working_phase: Phase 11" in t

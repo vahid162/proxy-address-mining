@@ -28,7 +28,7 @@ def make_repo(tmp_path: Path) -> Path:
         "VERSION": "1.2.3\n",
         "pyproject.toml": "[project]\nname = 'x'\nversion = '1.2.3'\n",
         "mpf/__init__.py": "__version__ = '1.2.3'\n",
-        "docs/INDEX.md": "Index routes dynamic state to docs/PHASE_STATUS.md and keeps [history](history/) non-authorizing. [Debug](DEBUG_LOG.md) [Legacy](history/PHASE_STATUS_LEGACY_0.1.302.md) [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n",
+        "docs/INDEX.md": "Index routes dynamic state to docs/PHASE_STATUS.md and keeps [history](history/) non-authorizing. [Debug](DEBUG_LOG.md) [Legacy](history/PHASE_STATUS_LEGACY_0.1.302.md) [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [Anchors](HISTORICAL_COMPATIBILITY_ANCHORS.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n",
         "docs/PHASE_STATUS.md": '# PHASE STATUS\n\n## Authority and scope\n\n## Repository state\n\n## Current phase and authorization\n\ncurrent_accepted_phase: Phase X\n\n## Next required step\n\nnext_required_step: thing\n\n## Required evidence before runtime action\n\n## Active task documents\n\n## Historical records\n',
         "docs/DEBUG_LOG.md": "# Debug Journal\n\nNo entries.\n",
         "docs/history/PHASE_STATUS_LEGACY_0.1.302.md": '# Non-authorizing historical snapshot\n\nThis file preserves the complete prior active `docs/PHASE_STATUS.md` as historical context for audit and continuity. It is non-authorizing and must not override `AGENTS.md`, the active `docs/PHASE_STATUS.md`, or current canonical contracts.\n\n---\nold\n',
@@ -37,6 +37,7 @@ def make_repo(tmp_path: Path) -> Path:
         "docs/SAFETY.md": "safety\n",
         "docs/ARCHITECTURE.md": "architecture\n",
         "docs/ROADMAP.md": "roadmap routes current state to docs/PHASE_STATUS.md\n",
+        "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md": "# Historical Compatibility Anchors\n\nCurrent phase, gate, and authorization values exist only in docs/PHASE_STATUS.md.\n",
         "docs/ADR/0001-runtime-first-service-layer-boundary.md": "adr routes current state to docs/PHASE_STATUS.md\n",
         "docs/history/OLD.md": "old\n",
         ".github/PULL_REQUEST_TEMPLATE/runtime-first.md": "template\n",
@@ -73,7 +74,7 @@ def test_missing_prd_or_guidelines_fails(tmp_path: Path) -> None:
 
 def test_index_missing_canonical_route_fails(tmp_path: Path) -> None:
     root = make_repo(tmp_path)
-    write(root / "docs/INDEX.md", "Index routes dynamic state to docs/PHASE_STATUS.md. [PRD](PRD.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n")
+    write(root / "docs/INDEX.md", "Index routes dynamic state to docs/PHASE_STATUS.md. [PRD](PRD.md) [Roadmap](ROADMAP.md) [Anchors](HISTORICAL_COMPATIBILITY_ANCHORS.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n")
     assert any("docs/INDEX.md must link to canonical route: docs/GUIDELINES.md" in v for v in violations(root))
 
 
@@ -192,7 +193,7 @@ def test_missing_phase_status_legacy_archive_fails(tmp_path: Path) -> None:
 
 def test_missing_index_routes_for_debug_log_and_phase_status_archive_fail(tmp_path: Path) -> None:
     root = make_repo(tmp_path)
-    write(root / "docs/INDEX.md", "Index routes dynamic state to docs/PHASE_STATUS.md. [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n")
+    write(root / "docs/INDEX.md", "Index routes dynamic state to docs/PHASE_STATUS.md. [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [Anchors](HISTORICAL_COMPATIBILITY_ANCHORS.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n")
     result = violations(root)
     assert any("docs/INDEX.md must link to canonical route: docs/DEBUG_LOG.md" in v for v in result)
     assert any("docs/INDEX.md must link to canonical route: docs/history/PHASE_STATUS_LEGACY_0.1.302.md" in v for v in result)
@@ -219,3 +220,19 @@ def test_debug_log_dynamic_state_assignment_fails(tmp_path: Path) -> None:
     root = make_repo(tmp_path)
     write(root / "docs/DEBUG_LOG.md", "# Debug Journal\n\nproduction_traffic: open\n")
     assert any("docs/DEBUG_LOG.md:3" in v and "dynamic-state assignment" in v for v in violations(root))
+
+
+def test_historical_compatibility_anchors_do_not_masquerade_as_current_state() -> None:
+    root = Path(__file__).resolve().parents[1]
+    text = (root / "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md").read_text(encoding="utf-8")
+    assert "Current phase, gate, and authorization values exist only in docs/PHASE_STATUS.md." in text
+    forbidden = (
+        "current_accepted_phase:",
+        "current_working_phase:",
+        "production_traffic:",
+        "firewall_apply_allowed:",
+        "abuse_automation_allowed:",
+        "customer_onboarding_allowed:",
+        "phase12_start_allowed:",
+    )
+    assert not any(token in text for token in forbidden)

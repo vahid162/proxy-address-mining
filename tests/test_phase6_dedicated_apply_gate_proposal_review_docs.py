@@ -6,7 +6,7 @@ def _read(path: str) -> str:
 
 
 def test_phase_status_current_state_unchanged_and_proposal_section_present() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     current_state = """current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
 current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
@@ -30,7 +30,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only"""
 
 
 def test_proposal_review_contains_required_non_authorizing_terms() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     required = [
         "proposal/review only",
         "documentation/test-only",
@@ -57,7 +57,7 @@ def test_proposal_review_contains_required_non_authorizing_terms() -> None:
 
 
 def test_controlled_execution_evidence_stays_under_controlled_section() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     controlled_start = text.index("### Phase 6 Controlled Restore/Lock/DB Apply Record Execution — Server Evidence")
     proposal_start = text.index("### Phase 6 Dedicated Apply Gate — Proposal Review")
     controlled_slice = text[controlled_start:proposal_start]
@@ -84,7 +84,7 @@ def test_remaining_plan_ai_task_and_readme_alignment() -> None:
     assert "read-only iptables-save live snapshot is authorized and evidenced." in ai_task
     assert "unauthorized iptables-save execution remains forbidden." in ai_task
 
-    assert "docs/PHASE_STATUS.md" in readme
+    assert "docs/history/PHASE_STATUS_LEGACY_0.1.302.md" in readme
     assert "Phase 6-H accepted" not in readme
     assert "Phase 6 Dedicated Apply Gate Proposal/Review" in readme
     assert "\niptables-save execution\n" not in readme

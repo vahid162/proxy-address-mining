@@ -11,7 +11,7 @@ def test_slice4_doc_exists_and_status() -> None:
 
 
 def test_phase_status_current_state_unchanged_and_slice4_not_accepted() -> None:
-    phase = _read("docs/PHASE_STATUS.md")
+    phase = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in phase
     assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in phase
     assert "### Phase 6 Apply Slice 4" not in phase
@@ -28,7 +28,7 @@ def test_index_and_ai_task_have_batch_sync_next_step() -> None:
 def test_docs_do_not_authorize_runtime_actions_now_and_abuse_invariant_preserved() -> None:
     files = [
         "docs/PHASE_6_APPLY_SLICE_4_MANUAL_CANARY_APPLY_GATE_PROPOSAL.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/REMAINING_PHASE_PLAN.md",
         "docs/AI_PHASE_6_TASK.md",
         "README.md",

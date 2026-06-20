@@ -39,7 +39,7 @@ def test_e2_doc_preserves_abuse_invariant():
 
 
 def test_phase_status_stays_non_accepting_for_e3():
-    t = _read("docs/PHASE_STATUS.md")
+    t = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in t
     assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in t
     assert "Phase 6-G is accepted as controlled live apply gate planning / pre-apply review only, documentation/test-only and non-authorizing" in t
@@ -62,7 +62,7 @@ def test_index_includes_e2_in_required_sections():
 def test_no_e2_authorization_anywhere():
     docs = [
         "docs/PHASE_6_E2_ISOLATED_HARNESS_EVIDENCE_PACKAGE.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",

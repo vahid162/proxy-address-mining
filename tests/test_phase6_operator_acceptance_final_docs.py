@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def test_phase_status_current_state_phase6_accepted_phase7_working() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     required = [
         "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5",
         "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness",

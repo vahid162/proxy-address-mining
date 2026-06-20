@@ -6,6 +6,8 @@ It is non-authorizing.
 Current dynamic project state is defined only by `docs/PHASE_STATUS.md`.
 Current AI instructions are defined by root `AGENTS.md`.
 
+Historical phase-status material is preserved in `docs/history/PHASE_STATUS_LEGACY_0.1.302.md`.
+
 0.1.296 Phase 11 generic activation CLI path note: adds official mpf production generic activation CLI commands for package/preflight/rollback-readiness/apply/verify/transcript/first-connect/abuse/readiness. This does not execute runtime apply in PR/CI, does not accept Full CLI Production Operations, does not set production_traffic or customer_onboarding_allowed to cli_production, and Phase 12/worker/UI/Telegram remain closed. Next server step after sync is to regenerate package/preflight through CLI, review evidence, then run controlled apply only with all confirmations and MPF_PHASE11_GENERIC_ACTIVATION_APPLY=1.
 
 0.1.295 Phase 11 generic activation unblock note: fixes false generic real-customer activation package/preflight blockers for DB-backed `vahid-btc-real-60046` by normalizing empty/null `deleted_at` values and aligning accepted controlled MPF artifact taxonomy. This does not accept Full CLI Production Operations, does not run apply, and does not mutate DB/firewall/NAT/runtime. `production_traffic` and `customer_onboarding_allowed` remain `controlled_cli_limited`; Phase 12, worker enforcement, UI, and Telegram remain closed.

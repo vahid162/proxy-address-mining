@@ -126,7 +126,7 @@ def test_index_has_separate_descriptions_and_no_malformed_numbering() -> None:
 
 
 def test_phase_status_gate_values_unchanged() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     required = [
         "production_traffic: none",
         "firewall_apply_allowed: no",

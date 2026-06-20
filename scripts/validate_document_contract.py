@@ -26,6 +26,7 @@ REQUIRED_FILES = (
     "docs/SAFETY.md",
     "docs/ARCHITECTURE.md",
     "docs/ROADMAP.md",
+    "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md",
     "docs/ADR/0001-runtime-first-service-layer-boundary.md",
     ".github/PULL_REQUEST_TEMPLATE/runtime-first.md",
     ".github/workflows/ci.yml",
@@ -36,12 +37,14 @@ CANONICAL_INDEX_ROUTES = (
     "docs/PRD.md",
     "docs/GUIDELINES.md",
     "docs/ROADMAP.md",
+    "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md",
     "docs/ADR/0001-runtime-first-service-layer-boundary.md",
 )
 STATIC_CANONICAL_DOCS = (
     "docs/PRD.md",
     "docs/GUIDELINES.md",
     "docs/ROADMAP.md",
+    "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md",
     "docs/ADR/0001-runtime-first-service-layer-boundary.md",
     "docs/ARCHITECTURE.md",
     "docs/SAFETY.md",

@@ -6,7 +6,7 @@ def test_phase6_f_acceptance_doc_exists():
 
 
 def test_phase_status_current_state_unchanged():
-    text = Path("docs/PHASE_STATUS.md").read_text()
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
     expected = """## Current State
 
 ```text
@@ -29,7 +29,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 def test_phase6_f_block_in_accepted_results_before_warning():
-    text = Path("docs/PHASE_STATUS.md").read_text()
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
     accepted = text.index("## Accepted Server Results")
     warning = text.index("## Current Server Warning")
     block = text[accepted:warning]
@@ -38,7 +38,7 @@ def test_phase6_f_block_in_accepted_results_before_warning():
 
 
 def test_phase_status_next_step_and_no_authorization_tokens():
-    text = Path("docs/PHASE_STATUS.md").read_text().lower()
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text().lower()
     assert "phase 6-g — controlled live apply gate planning / pre-apply review" in text
     assert "documentation/test-only and non-authorizing" in text
     forbidden = [
@@ -58,7 +58,7 @@ def test_phase_status_next_step_and_no_authorization_tokens():
 
 def test_no_doc_authorizes_live_actions_now():
     docs = [
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",

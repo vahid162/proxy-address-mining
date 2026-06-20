@@ -34,7 +34,7 @@ def test_phase6_e0_acceptance_doc_exists_and_contains_required_evidence() -> Non
 
 
 def test_phase_status_has_required_current_state_and_e0_e1_wording() -> None:
-    t = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    t = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     for needle in [
         "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5",
         "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness",
@@ -75,7 +75,7 @@ def test_abuse_invariant_and_no_e1_live_authorization() -> None:
     assert "no silent skip" in t
 
     for file in [
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/REMAINING_PHASE_PLAN.md",
         "docs/AI_PHASE_6_TASK.md",
@@ -91,7 +91,7 @@ def test_abuse_invariant_and_no_e1_live_authorization() -> None:
 
 
 def test_phase_status_e0_section_placement_and_no_stale_next_step_wording() -> None:
-    t = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    t = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert t.index("### Phase 6-E0 — Isolated Apply Harness Contracts") < t.index("## Current Server Warning")
     assert t.index("### Phase 6-E0 — Isolated Apply Harness Contracts") < t.index("## Next Planned Step")
     next_step = t[t.index("## Next Planned Step") :]

@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 from pathlib import Path
+
+from mpf.services.historical_phase_status import historical_phase_status_path, read_historical_phase_status
 import uuid
 
 from mpf.config import MPFConfig
@@ -134,7 +136,7 @@ def _default_record_writer(cfg: MPFConfig, payload: dict[str, object]) -> dict[s
 
 def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path | None = None, *, execute_controlled_boundary: bool = False, operator: str | None = None, reason: str | None = None, yes: bool = False, record_writer=None, connection_factory=None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = root / "docs" / "PHASE_STATUS.md"
+    phase_status = historical_phase_status_path(root)
     blockers: list[str] = []
     warnings: list[str] = []
     errors: list[str] = []

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+
+from mpf.services.historical_phase_status import read_historical_phase_status
 from typing import Any
 
 from mpf.config import MPFConfig
@@ -39,8 +41,7 @@ def _dangerous_flags_enabled(report: dict[str, Any]) -> list[str]:
 
 def build_phase10_final_acceptance_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_path = root / "docs/PHASE_STATUS.md"
-    phase = phase_path.read_text(encoding="utf-8") if phase_path.exists() else ""
+    phase = read_historical_phase_status(root)
 
     readiness = build_phase10_final_acceptance_readiness_report(cfg, repo_root=root)
     evidence_present = (root / "docs/PHASE_10_FARM5_0_1_136_SYNC_TEST_EVIDENCE.md").exists()

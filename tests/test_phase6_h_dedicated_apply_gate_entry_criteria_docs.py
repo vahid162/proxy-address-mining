@@ -24,7 +24,7 @@ def test_phase6_h_status_and_abuse_invariant() -> None:
 
 
 def test_phase_status_current_state_block_unchanged_and_phase6h_position() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     expected = """## Current State
 
 ```text
@@ -60,7 +60,7 @@ def test_index_and_ai_phase6_task_reference_phase6h() -> None:
 def test_no_doc_authorizes_live_behaviors_now() -> None:
     docs = [
         "docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",

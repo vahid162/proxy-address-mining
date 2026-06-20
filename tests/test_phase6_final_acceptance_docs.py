@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def test_docs_updated_for_096_and_new_commands():
-    ps=Path('docs/PHASE_STATUS.md').read_text(encoding='utf-8')
+    ps=Path('docs/history/PHASE_STATUS_LEGACY_0.1.302.md').read_text(encoding='utf-8')
     assert 'farm5 synced to 0.1.98' in ps
     assert '652 passed' in ps
     assert '/var/backups/mpf/source-before-zip-sync-20260515T083309Z' in ps

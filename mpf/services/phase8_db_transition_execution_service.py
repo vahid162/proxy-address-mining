@@ -1,6 +1,8 @@
 from __future__ import annotations
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.domain.abuse_db_transition_execution import AbuseDBExecutionRequest, AbuseDBExecutionResult, build_dry_run_execution_result, validate_db_execution_request
 from mpf.repositories.abuse_transition_execution_repo import AbuseTransitionExecutionRepo, InMemoryAbuseTransitionExecutionRepo
@@ -40,7 +42,7 @@ def _base_req(**kw: object) -> AbuseDBExecutionRequest:
 def build_phase8_db_transition_execution_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     txt = lambda p: (root / p).read_text(encoding="utf-8") if (root / p).exists() else ""
-    phase_status = txt("docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     rules = txt("docs/AI_CODING_RULES.md")
     ai = txt("docs/AI_PHASE_8_TASK.md")
     remaining = txt("docs/REMAINING_PHASE_PLAN.md")

@@ -26,7 +26,7 @@ def test_phase11_docs_reference_runtime_first_boundary() -> None:
 
 
 def test_runtime_first_does_not_open_current_gates() -> None:
-    status = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    status = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in status
     assert "production_traffic: none" in status
     assert "firewall_apply_allowed: no" in status

@@ -90,14 +90,14 @@ def test_phase6_c_acceptance_doc_exists_and_has_required_markers() -> None:
 
 
 def test_phase_status_does_not_enable_live_apply() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "firewall_apply_allowed: no" in text
     assert "production_traffic: none" in text
     assert "abuse_automation_allowed: no" in text
 
 
 def test_phase_status_next_step_mentions_phase6_e1_and_not_authorize_live_apply() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     tl = text.lower()
     assert "## Next Planned Step" in text
     assert "Phase 6-E1" in text
@@ -107,7 +107,7 @@ def test_phase_status_next_step_mentions_phase6_e1_and_not_authorize_live_apply(
 def test_no_stale_json_short_flag_examples_introduced() -> None:
     docs = [
         "docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/FIREWALL.md",
     ]
     for path in docs:
@@ -129,7 +129,7 @@ def test_phase6_docs_no_stale_short_json_flags() -> None:
         "docs/PHASE_6_C0_APPLY_GATE_READINESS.md",
         "docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md",
         "docs/PHASE_6_C_ACCEPTANCE_EVIDENCE.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/FIREWALL.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
@@ -158,7 +158,7 @@ def test_gate_review_json_examples_use_output_json_if_present() -> None:
         "docs/PHASE_6_C1_APPLY_GATE_RISK_MATRIX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
     ]
     for path in docs:
         data = Path(path).read_text(encoding="utf-8")

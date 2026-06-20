@@ -177,7 +177,7 @@ def test_static_safety_tokens() -> None:
 
 
 def test_phase_status_execution_gate_sync_evidence_tokens_present() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "### Phase 6 Restore/Lock/DB Apply Record Execution Gate Scaffold — Server Sync" in text
     required = [
         "pytest with venv during sync: 566 passed in 12.51s",
@@ -200,7 +200,7 @@ def test_phase_status_execution_gate_sync_evidence_tokens_present() -> None:
 
 
 def test_phase_status_current_state_block_unchanged() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     expected = """current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
 current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
@@ -217,7 +217,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only"""
 
 
 def test_phase6_controlled_execution_gate_proposal_review_section_present() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Gate — Proposal Review" in text
     required = [
         "proposal/review only",
@@ -237,7 +237,7 @@ def test_phase6_controlled_execution_gate_proposal_review_section_present() -> N
 
 
 def test_phase6_controlled_execution_gate_proposal_review_acceptance_criteria_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     required = [
         "operator approval is explicitly recorded",
         "fresh farm5 evidence is included",
@@ -261,7 +261,7 @@ def test_phase6_controlled_execution_gate_proposal_review_acceptance_criteria_to
 
 
 def test_phase6_controlled_execution_gate_proposal_review_still_forbidden_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     forbidden_listed = [
         "iptables-restore",
         "live firewall apply",
@@ -280,7 +280,7 @@ def test_phase6_controlled_execution_gate_proposal_review_still_forbidden_tokens
 
 
 def test_phase6_controlled_execution_boundary_accepted_section_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Boundary — Accepted" in text
     required = [
         "accepted boundary only",
@@ -307,7 +307,7 @@ def test_phase6_controlled_execution_boundary_accepted_section_tokens() -> None:
 
 
 def test_phase6_controlled_execution_boundary_accepted_still_forbidden_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     forbidden_listed = [
         "iptables-restore",
         "live firewall apply",

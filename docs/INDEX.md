@@ -44,6 +44,7 @@ For most tasks, read only the documents needed for the requested scope, in this 
 - Architectural decisions: [`docs/ADR/`](ADR/) and [`ADR 0001`](ADR/0001-runtime-first-service-layer-boundary.md).
 - Current state, gates, and runtime authorization: [`docs/PHASE_STATUS.md`](PHASE_STATUS.md) — the only current-state authority.
 - Debugging lessons: [`docs/DEBUG_LOG.md`](DEBUG_LOG.md) — curated confirmed lessons, not raw logs and not current authority.
+- Historical compatibility anchors: [`docs/HISTORICAL_COMPATIBILITY_ANCHORS.md`](HISTORICAL_COMPATIBILITY_ANCHORS.md) — non-authorizing historical/reference-only anchors.
 - Historical material: [`docs/history/`](history/).
 - Data model: [`docs/DATA_MODEL.md`](DATA_MODEL.md).
 - Firewall policy: [`docs/FIREWALL.md`](FIREWALL.md).

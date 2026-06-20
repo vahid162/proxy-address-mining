@@ -181,7 +181,7 @@ def test_version_docs_are_0253_after_bump():
     assert 'version = "0.1.303"' in Path("pyproject.toml").read_text()
     assert "0.1.299" in Path("CHANGELOG.md").read_text()
     readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text()
-    phase = Path("docs/PHASE_STATUS.md").read_text()
+    phase = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
     assert "artifact_graph_binding_ready=true" in readme
     assert "controlled_artifact_reapply_package_evidence_ready=true" in phase
 

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.services import firewall_apply_gate_readiness_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service
 

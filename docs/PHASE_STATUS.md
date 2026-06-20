@@ -35,8 +35,9 @@ telegram_allowed: no
 phase12_start_allowed: no
 live_snapshot_read_allowed: iptables_save_read_only
 restore_lock_record_execution_allowed: controlled_boundary_only
-full_cli_production_operations: not_accepted
 ```
+
+Full CLI Production Operations is not accepted.
 
 Controlled firewall and abuse boundaries remain operator-gated and do not authorize unrestricted automation, direct mutation, public backend/API exposure, broad production expansion, worker enforcement, UI, Telegram, timers, daemons, or Phase 12 work.
 

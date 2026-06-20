@@ -6,12 +6,12 @@ def _read(path: str) -> str:
 
 
 def test_phase_status_current_state_restore_lock_controlled_boundary_only() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "restore_lock_record_execution_allowed: controlled_boundary_only" in text
 
 
 def test_phase_status_contains_controlled_execution_server_evidence() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution — Server Evidence" in text
     for marker in (
         "583 passed",
@@ -30,7 +30,7 @@ def test_phase_status_contains_controlled_execution_server_evidence() -> None:
 
 
 def test_phase_status_evidence_section_placement_and_no_list_interruption() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     accepted_heading = "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Boundary — Accepted"
     evidence_heading = "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution — Server Evidence"
     must_not_perform_anchor = "The future implementation must not perform:"
@@ -48,7 +48,7 @@ def test_phase_status_evidence_section_placement_and_no_list_interruption() -> N
 
 
 def test_phase_status_controlled_execution_keeps_non_authorizing_scope() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     for marker in (
         "no firewall apply",
         "no iptables-restore",
@@ -63,7 +63,7 @@ def test_phase_status_controlled_execution_keeps_non_authorizing_scope() -> None
 
 
 def test_apply_gate_readiness_and_gate_review_remain_blocked_in_phase_status() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "apply-gate-readiness: final_decision=BLOCKED" in text
     assert "gate-review: final_decision=BLOCKED; applyable=false; live_apply_allowed=false" in text
 

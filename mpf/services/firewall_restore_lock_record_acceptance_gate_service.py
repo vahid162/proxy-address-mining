@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import historical_phase_status_path, read_historical_phase_status
+
 from mpf.config import MPFConfig
 
 _EXPECTED_CURRENT_STATE = {
@@ -41,7 +43,7 @@ def _parse_current_state_block(text: str) -> dict[str, str] | None:
 
 def build_restore_lock_record_acceptance_gate_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = root / "docs" / "PHASE_STATUS.md"
+    phase_status = historical_phase_status_path(root)
 
     blockers: list[str] = []
     warnings: list[str] = []

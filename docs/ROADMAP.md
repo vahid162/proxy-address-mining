@@ -68,3 +68,6 @@ Future Telegram support is a gated interface over services. Write actions remain
 ## 12. Future worker enforcement
 
 Worker enforcement is a future gated stage requiring session/worker evidence, approved adapters, service-layer decisions, event/audit records, and rollback/disable paths.
+
+
+Historical phase-status release/evidence material is preserved as non-authorizing context in [`docs/history/PHASE_STATUS_LEGACY_0.1.302.md`](history/PHASE_STATUS_LEGACY_0.1.302.md).

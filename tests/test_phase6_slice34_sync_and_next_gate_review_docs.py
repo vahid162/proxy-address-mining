@@ -1,7 +1,7 @@
 from pathlib import Path
 
 DOCS = [
-    "docs/PHASE_STATUS.md",
+    "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
     "README.md",
     "AGENTS.md",
     "docs/AI_CODING_RULES.md",
@@ -16,7 +16,7 @@ def _text(path: str) -> str:
 
 
 def test_phase_status_current_state_unchanged_and_sync_evidence_present() -> None:
-    phase = _text("docs/PHASE_STATUS.md")
+    phase = _text("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert """current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
 current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
@@ -40,7 +40,7 @@ telegram_allowed: no""" in phase
 
 
 def test_stale_next_step_wording_removed() -> None:
-    phase = _text("docs/PHASE_STATUS.md")
+    phase = _text("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "Next planned Phase 6 implementation sub-step is Apply Slice 4" not in phase
     assert "batch server sync/review for Slice 3 and Slice 4" not in phase
 

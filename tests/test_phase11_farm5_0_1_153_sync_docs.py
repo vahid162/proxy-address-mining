@@ -36,7 +36,7 @@ def test_docs_alignment_after_0_1_153_evidence_recording() -> None:
     assert "UI remains no." in plan
     assert "Telegram remains no." in plan
 
-    phase_status = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    phase_status = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "current_accepted_phase: Phase 10" in phase_status
     assert "current_working_phase: Phase 11" in phase_status
     assert "Phase 11D actual execution not authorized" in phase_status or "actual canary execution not accepted" in phase_status

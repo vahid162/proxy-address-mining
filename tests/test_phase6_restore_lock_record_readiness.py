@@ -158,7 +158,7 @@ def test_apply_gate_readiness_contains_gate_and_readiness_fields() -> None:
 
 
 def test_phase_status_docs_mentions_readiness_vs_gate_distinction() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "`restore-lock-record-readiness` remains report-only readiness" in text
     assert "`restore-lock-record-gate` is the proposal-boundary/preflight" in text
 

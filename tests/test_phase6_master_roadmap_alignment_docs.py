@@ -8,7 +8,7 @@ def _read(path: str) -> str:
 def test_roadmap_is_canonical_long_term_product_order() -> None:
     t = _read("docs/ROADMAP.md")
     assert "Status: Canonical long-term product roadmap" in t
-    assert "docs/PHASE_STATUS.md" in t
+    assert "docs/history/PHASE_STATUS_LEGACY_0.1.302.md" in t
     assert "## 6. Usage" in t
     assert "## 7. Abuse" in t
     assert "## 10. Future UI" in t
@@ -31,7 +31,7 @@ def test_remaining_plan_marks_phase6g_h_as_substeps_and_finite_slices() -> None:
 
 
 def test_phase_status_current_state_unchanged() -> None:
-    t = _read("docs/PHASE_STATUS.md")
+    t = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in t
     assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in t
     assert "production_traffic: none" in t
@@ -47,7 +47,7 @@ def test_forbidden_authorizations_not_introduced() -> None:
     docs = [
         "docs/ROADMAP.md",
         "docs/REMAINING_PHASE_PLAN.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
         "docs/SAFETY.md",

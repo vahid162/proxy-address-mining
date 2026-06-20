@@ -16,7 +16,7 @@ def cfg_path() -> Path:
 
 
 def test_phase_status_0_1_119_evidence_present() -> None:
-    phase = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    phase = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "Phase 8 farm5 0.1.119 Controlled Worker Gate Sync Evidence" in phase
     assert "synced to 0.1.119" in phase
     assert "production_traffic: none" in phase

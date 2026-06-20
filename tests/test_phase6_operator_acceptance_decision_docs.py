@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def test_docs_regression_phase6_operator_acceptance() -> None:
-    ps = Path('docs/PHASE_STATUS.md').read_text(encoding='utf-8')
+    ps = Path('docs/history/PHASE_STATUS_LEGACY_0.1.302.md').read_text(encoding='utf-8')
     assert 'current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5' in ps
     assert 'current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness' in ps
     assert 'production_traffic: none' in ps

@@ -20,7 +20,7 @@ def test_phase11_farm5_0_1_151_evidence_doc_required_tokens() -> None:
 def test_readme_plan_phase_status_align_0_1_151() -> None:
     readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
-    phase_status = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    phase_status = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
 
     assert "Latest recorded farm5 sync evidence is 0.1.153." not in readme
     assert "Phase 11 is accepted: controlled CLI-limited production/customer activation is ready on farm5" in readme

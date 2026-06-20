@@ -76,16 +76,16 @@ def test_phase10_implementation_readiness_accepted():
 
 
 def test_phase10_implementation_fail_closed_missing_evidence(tmp_path: Path):
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8"), encoding="utf-8")
     r = build_phase10_implementation_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
     assert "farm5_0_1_135_sync_test_evidence_missing" in r["blockers"]
 
 
 def test_phase10_implementation_fail_closed_missing_gate(tmp_path: Path):
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs/PHASE_STATUS.md").write_text("invalid", encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("invalid", encoding="utf-8")
     (tmp_path / "docs/PHASE_10_FARM5_0_1_135_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
     r = build_phase10_implementation_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
@@ -254,16 +254,16 @@ def test_phase10_final_acceptance_cli_json():
 
 
 def test_phase10_final_acceptance_fail_closed_missing_evidence(tmp_path: Path):
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8"), encoding="utf-8")
     r = build_phase10_final_acceptance_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
     assert "farm5_0_1_135_sync_test_evidence_missing" in r["blockers"]
 
 
 def test_phase10_final_acceptance_fail_closed_missing_gate(tmp_path: Path):
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs/PHASE_STATUS.md").write_text("invalid", encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("invalid", encoding="utf-8")
     (tmp_path / "docs/PHASE_10_FARM5_0_1_135_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
     r = build_phase10_final_acceptance_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
@@ -340,8 +340,8 @@ def test_phase10_final_acceptance_cli_json_new():
 
 
 def test_phase10_final_acceptance_fail_closed_missing_evidence_doc(tmp_path: Path):
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8"), encoding="utf-8")
     (tmp_path / "docs/PHASE_10_FARM5_0_1_135_SYNC_TEST_EVIDENCE.md").write_text("x", encoding="utf-8")
     r = build_phase10_final_acceptance_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
