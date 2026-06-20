@@ -28,8 +28,10 @@ def make_repo(tmp_path: Path) -> Path:
         "VERSION": "1.2.3\n",
         "pyproject.toml": "[project]\nname = 'x'\nversion = '1.2.3'\n",
         "mpf/__init__.py": "__version__ = '1.2.3'\n",
-        "docs/INDEX.md": "Index routes dynamic state to docs/PHASE_STATUS.md and keeps [history](history/) non-authorizing. [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n",
-        "docs/PHASE_STATUS.md": "state\n",
+        "docs/INDEX.md": "Index routes dynamic state to docs/PHASE_STATUS.md and keeps [history](history/) non-authorizing. [Debug](DEBUG_LOG.md) [Legacy](history/PHASE_STATUS_LEGACY_0.1.302.md) [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n",
+        "docs/PHASE_STATUS.md": '# PHASE STATUS\n\n## Authority and scope\n\n## Repository state\n\n## Current phase and authorization\n\ncurrent_accepted_phase: Phase X\n\n## Next required step\n\nnext_required_step: thing\n\n## Required evidence before runtime action\n\n## Active task documents\n\n## Historical records\n',
+        "docs/DEBUG_LOG.md": "# Debug Journal\n\nNo entries.\n",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md": '# Non-authorizing historical snapshot\n\nThis file preserves the complete prior active `docs/PHASE_STATUS.md` as historical context for audit and continuity. It is non-authorizing and must not override `AGENTS.md`, the active `docs/PHASE_STATUS.md`, or current canonical contracts.\n\n---\nold\n',
         "docs/PRD.md": "product scope routes current state to docs/PHASE_STATUS.md\n",
         "docs/GUIDELINES.md": "engineering rules route current state to docs/PHASE_STATUS.md\n",
         "docs/SAFETY.md": "safety\n",
@@ -174,3 +176,46 @@ def test_active_canonical_contracts_have_no_dynamic_state_assignments() -> None:
     root = Path(__file__).resolve().parents[1]
     result = module.validate_document_contract(root)
     assert not [v for v in result.violations if "dynamic-state assignment" in v]
+
+
+def test_missing_debug_log_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    (root / "docs/DEBUG_LOG.md").unlink()
+    assert any("Missing required canonical file: docs/DEBUG_LOG.md" in v for v in violations(root))
+
+
+def test_missing_phase_status_legacy_archive_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    (root / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").unlink()
+    assert any("Missing required canonical file: docs/history/PHASE_STATUS_LEGACY_0.1.302.md" in v for v in violations(root))
+
+
+def test_missing_index_routes_for_debug_log_and_phase_status_archive_fail(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/INDEX.md", "Index routes dynamic state to docs/PHASE_STATUS.md. [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n")
+    result = violations(root)
+    assert any("docs/INDEX.md must link to canonical route: docs/DEBUG_LOG.md" in v for v in result)
+    assert any("docs/INDEX.md must link to canonical route: docs/history/PHASE_STATUS_LEGACY_0.1.302.md" in v for v in result)
+
+
+def test_active_phase_status_with_release_notes_before_title_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/PHASE_STATUS.md", "0.1.302 release note\n\n# PHASE STATUS\n\n## Authority and scope\n## Repository state\n## Current phase and authorization\n## Next required step\n## Required evidence before runtime action\n## Active task documents\n## Historical records\n")
+    assert any("must start with '# PHASE STATUS'" in v for v in violations(root))
+
+
+def test_active_phase_status_missing_required_heading_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/PHASE_STATUS.md", "# PHASE STATUS\n\n## Authority and scope\n")
+    assert any("docs/PHASE_STATUS.md missing required heading: Repository state" in v for v in violations(root))
+
+
+def test_valid_active_phase_status_plus_legacy_archive_passes(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    assert violations(root) == ()
+
+
+def test_debug_log_dynamic_state_assignment_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/DEBUG_LOG.md", "# Debug Journal\n\nproduction_traffic: open\n")
+    assert any("docs/DEBUG_LOG.md:3" in v and "dynamic-state assignment" in v for v in violations(root))
