@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.301
+
+- chore(governance): add contribution guidance, document-contract validation, regression coverage, and CI enforcement only; no runtime authorization or server mutation behavior changes.
+
 ## 0.1.300
 
 - fix(phase8): make the report-only controlled-worker pre-acceptance validator read the named strict runtime-first PR template and use the existing remaining-plan text for fallback task alignment; no runtime mutation or authorization behavior changed.
