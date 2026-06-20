@@ -41,8 +41,6 @@ def build_phase8_db_transition_execution_report(cfg: MPFConfig, repo_root: Path 
     root = repo_root or Path(__file__).resolve().parents[2]
     txt = lambda p: (root / p).read_text(encoding="utf-8") if (root / p).exists() else ""
     phase_status = txt("docs/PHASE_STATUS.md")
-    readme = txt("README.md")
-    index = txt("docs/INDEX.md")
     rules = txt("docs/AI_CODING_RULES.md")
     ai = txt("docs/AI_PHASE_8_TASK.md")
     remaining = txt("docs/REMAINING_PHASE_PLAN.md")
@@ -90,8 +88,8 @@ def build_phase8_db_transition_execution_report(cfg: MPFConfig, repo_root: Path 
         "db_transition_readiness_fail_closed": rd.get("final_decision") == "BLOCKED" and rd.get("execution_allowed") is False,
         "ai_phase8_task_present": "DB-Only Controlled Transition Execution" in ai,
         "remaining_plan_db_execution_target_aligned": "Current target is Phase 8 DB-only controlled transition execution package." in remaining,
-        "readme_current_gate_aligned": "DB-only controlled transition execution package" in readme,
-        "index_current_gate_aligned": "DB-only controlled transition execution" in index,
+        "phase_status_current_gate_aligned": "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status,
+        "phase8_task_current_gate_aligned": "DB-Only Controlled Transition Execution" in ai,
         "ai_coding_rules_current_gate_aligned": "Phase 8 DB-only execution stop condition" in rules,
         "apply_mode_plan_only": cfg.firewall.apply_mode == "plan_only",
         "runtime_activation_disabled": cfg.proxy.runtime_activation_allowed is False,

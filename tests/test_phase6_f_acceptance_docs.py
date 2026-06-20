@@ -82,7 +82,7 @@ def test_no_doc_authorizes_live_actions_now():
 
 
 def test_index_contains_phase6_f_acceptance_in_required_sections():
-    idx = Path("docs/INDEX.md").read_text()
+    idx = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
     assert "docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md" in idx
 
 
@@ -97,7 +97,7 @@ def test_abuse_invariant_preserved_in_f_acceptance_doc():
 
 
 def test_index_phase6_f_acceptance_location_and_wording():
-    idx = Path("docs/INDEX.md").read_text()
+    idx = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
 
     start_here = idx[idx.index("## Start Here"):idx.index("## Core Contracts")]
     assert "docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md" in start_here

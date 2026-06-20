@@ -48,7 +48,7 @@ def test_phase_status_does_not_enable_forbidden_state() -> None:
 
 
 def test_index_includes_phase6h_acceptance_in_required_sections() -> None:
-    text = _read('docs/INDEX.md')
+    text = _read('docs/history/INDEX_LEGACY_0.1.299.md')
     start_here = text[text.index('## Start Here'):text.index('## Core Contracts')]
     current_phase = text[text.index('## Current Phase Contracts'):text.index('## Reading Order by Task')]
     assert 'docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md' in start_here
@@ -102,7 +102,7 @@ def test_phase_status_next_step_not_planned_only() -> None:
 
 
 def test_index_phase6h_summaries_inside_documentation_summary_not_stop_conditions() -> None:
-    text = _read('docs/INDEX.md')
+    text = _read('docs/history/INDEX_LEGACY_0.1.299.md')
     doc_summary = text.split('## Documentation Summary', 1)[1].split('## Current Roadmap Snapshot', 1)[0]
     stop_block = text.split('## Stop Conditions', 1)[1]
     assert '### `docs/PHASE_6_H_DEDICATED_APPLY_GATE_ENTRY_CRITERIA.md`' in doc_summary
@@ -112,7 +112,7 @@ def test_index_phase6h_summaries_inside_documentation_summary_not_stop_condition
 
 
 def test_index_current_phase_step_says_phase6h_accepted() -> None:
-    text = _read('docs/INDEX.md')
+    text = _read('docs/history/INDEX_LEGACY_0.1.299.md')
     assert 'Phase 6-H accepted as dedicated apply gate entry criteria / authorization boundary only, documentation/test-only and non-authorizing.' in text
 
 

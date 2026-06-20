@@ -5,7 +5,7 @@ def test_docs_and_readme_updates() -> None:
     d = Path('docs/PHASE_11D_ACTUAL_MANUAL_CANARY_EXECUTION_RUN_PACKAGE.md').read_text(encoding='utf-8')
     assert 'manual-canary-execute --output json' in d
 
-    r = Path('README.md').read_text(encoding='utf-8')
+    r = Path('docs/history/README_LEGACY_0.1.299.md').read_text(encoding='utf-8')
     assert 'Phase 11 is accepted: controlled CLI-limited production/customer activation is ready on farm5' in r
 
     rp = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')

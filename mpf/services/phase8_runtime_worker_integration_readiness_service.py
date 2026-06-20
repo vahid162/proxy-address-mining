@@ -27,8 +27,6 @@ def build_phase8_runtime_worker_integration_readiness_report(cfg: MPFConfig, rep
     phase_status = _read(root / "docs/PHASE_STATUS.md")
     ai = _read(root / "docs/AI_PHASE_8_TASK.md")
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
-    readme = _read(root / "README.md")
-    index = _read(root / "docs/INDEX.md")
     rules = _read(root / "docs/AI_CODING_RULES.md")
 
     sm = build_phase8_abuse_state_machine_contract_report(cfg, root)
@@ -82,8 +80,8 @@ def build_phase8_runtime_worker_integration_readiness_report(cfg: MPFConfig, rep
         "db_transition_execution_fail_closed": ex.get("final_decision") == "BLOCKED" and ex.get("execution_allowed") is False,
         "ai_phase8_task_present": "Runtime/Worker Integration Readiness" in ai,
         "remaining_plan_runtime_worker_target_aligned": "Current target is Phase 8 runtime/worker integration readiness package." in remaining,
-        "readme_current_gate_aligned": "runtime/worker integration readiness package" in readme,
-        "index_current_gate_aligned": "runtime/worker integration readiness" in index,
+        "phase_status_current_gate_aligned": "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status,
+        "phase8_task_current_gate_aligned": "Runtime/Worker Integration Readiness" in ai,
         "ai_coding_rules_current_gate_aligned": "Phase 8 runtime/worker readiness stop condition" in rules,
         "apply_mode_plan_only": cfg.firewall.apply_mode == "plan_only",
         "runtime_activation_disabled": cfg.proxy.runtime_activation_allowed is False,

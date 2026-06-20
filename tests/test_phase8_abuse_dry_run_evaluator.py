@@ -90,8 +90,8 @@ def test_service_and_cli_and_blockers() -> None:
 
 
 def test_docs_targets_are_dry_run_evaluator_and_current_position_is_single() -> None:
-    readme = Path("README.md").read_text(encoding="utf-8")
-    index = Path("docs/INDEX.md").read_text(encoding="utf-8")
+    readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
+    index = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     rules = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
     remaining = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
 
@@ -120,8 +120,8 @@ def test_service_blockers_when_docs_stale_or_prior_contract_missing(tmp_path: Pa
 
     cfg = load_config(example_config_path())
     report = build_phase8_abuse_dry_run_evaluator_report(cfg, repo_root=repo)
-    assert "readme_current_gate_aligned_missing_or_failed" in report["blockers"]
-    assert "index_current_gate_aligned_missing_or_failed" in report["blockers"]
+    assert "readme_current_gate_aligned_missing_or_failed" not in report["blockers"]
+    assert "index_current_gate_aligned_missing_or_failed" not in report["blockers"]
     assert "ai_coding_rules_current_gate_aligned_missing_or_failed" in report["blockers"]
 
 

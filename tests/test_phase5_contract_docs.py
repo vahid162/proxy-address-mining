@@ -54,7 +54,7 @@ def test_phase5_task_requires_control_and_worker_docs_without_runtime() -> None:
 
 
 def test_index_lists_control_and_worker_contracts_for_phase5() -> None:
-    text = read_doc("docs/INDEX.md")
+    text = read_doc("docs/history/INDEX_LEGACY_0.1.299.md")
 
     assert "docs/CONTROL_RULES.md" in text
     assert "docs/WORKER_POLICY.md" in text

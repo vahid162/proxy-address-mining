@@ -40,7 +40,7 @@ def test_phase6_e3_accepted_block_location_and_next_step():
 
 
 def test_index_contains_e3_acceptance_doc_in_required_sections():
-    idx = Path("docs/INDEX.md").read_text()
+    idx = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
     assert "`docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md`" in idx
     assert "accepted farm5 evidence; non-authorizing" in idx
     assert "docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md" in idx
@@ -80,7 +80,7 @@ def test_abuse_invariant_preserved_in_e3_acceptance_doc():
 
 
 def test_no_stale_e3_next_step_wording_in_readme_and_ai_phase6_task():
-    readme = Path("README.md").read_text()
+    readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text()
     ai_task = Path("docs/AI_PHASE_6_TASK.md").read_text()
 
     assert "with Phase 6-E3 isolated/non-production next step" not in readme

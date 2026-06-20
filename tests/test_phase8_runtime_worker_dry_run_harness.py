@@ -47,7 +47,8 @@ def test_service_cli_and_fail_closed(tmp_path: Path):
     assert r['execution_allowed'] is False and r['phase8_acceptance_allowed'] is False
     assert r['latest_recorded_farm5_sync_evidence']=='0.1.115'
     assert r['no_farm5_0_1_116_sync_evidence_claimed'] is True and r['no_farm5_0_1_117_sync_evidence_claimed'] is True
-    assert r['runtime_worker_readiness_present'] is True and r['runtime_worker_readiness_fail_closed'] is True
+    assert r['runtime_worker_readiness_present'] is True
+    assert r['runtime_worker_readiness_fail_closed'] is True
     assert r['synthetic_worker_cycles_passed'] is True and r['blockers']==[]
     out=CliRunner().invoke(app,['phase8','runtime-worker-dry-run-harness','--config','configs/mpf.example.yaml','--output','json'])
     assert out.exit_code==0

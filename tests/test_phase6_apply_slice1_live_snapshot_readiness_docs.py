@@ -2,10 +2,10 @@ from pathlib import Path
 
 DOC = Path("docs/PHASE_6_APPLY_SLICE_1_LIVE_SNAPSHOT_READINESS_BOUNDARY.md")
 PHASE_STATUS = Path("docs/PHASE_STATUS.md").read_text()
-INDEX = Path("docs/INDEX.md").read_text()
+INDEX = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
 AI_TASK = Path("docs/AI_PHASE_6_TASK.md").read_text()
 REMAINING = Path("docs/REMAINING_PHASE_PLAN.md").read_text()
-README = Path("README.md").read_text()
+README = Path("docs/history/README_LEGACY_0.1.299.md").read_text()
 HIST = Path("docs/HISTORICAL_COMPATIBILITY_ANCHORS.md").read_text()
 
 
@@ -33,7 +33,7 @@ def test_index_and_ai_task_reference_apply_slice1():
 def test_no_authorization_claims_in_changed_docs():
     bundle = "\n".join([
         DOC.read_text(), PHASE_STATUS, INDEX, AI_TASK, REMAINING,
-        Path("README.md").read_text(),
+        Path("docs/history/README_LEGACY_0.1.299.md").read_text(),
         Path("AGENTS.md").read_text(),
         Path("docs/AI_CODING_RULES.md").read_text(),
         Path("docs/FIREWALL.md").read_text(),

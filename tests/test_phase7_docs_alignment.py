@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def test_readme_phase_alignment() -> None:
-    t = Path("README.md").read_text(encoding="utf-8")
+    t = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     hist = Path("docs/HISTORICAL_COMPATIBILITY_ANCHORS.md").read_text(encoding="utf-8")
     assert "accepted_phase: Phase 11 — Production / Customer Activation Gate accepted on farm5" in t
     assert "working_phase: Phase 11 operational completion" in t
@@ -18,7 +18,7 @@ def test_readme_phase_alignment() -> None:
 
 
 def test_readme_stale_wording_removed() -> None:
-    t = Path("README.md").read_text(encoding="utf-8")
+    t = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "Phase 8 is planning/readiness only" not in t
     assert "Current Accepted/Working Boundary (Phase 7 accepted / Phase 8 working)" not in t
     assert "Current target is farm5 controlled worker dry-run evidence collection preparation" not in t

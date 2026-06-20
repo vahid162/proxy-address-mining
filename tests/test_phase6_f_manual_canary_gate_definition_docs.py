@@ -52,7 +52,7 @@ def _current_phase_read_list(text: str) -> str:
 
 
 def test_index_includes_phase6f_in_required_sections() -> None:
-    text = _read("docs/INDEX.md")
+    text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
     start_here = _between(text, "## Start Here", "## Core Contracts")
     current_phase = _between(text, "## Current Phase Contracts", "## Reading Order by Task")
     doc_summary = _between(text, "## Documentation Summary", "## Current Roadmap Snapshot")

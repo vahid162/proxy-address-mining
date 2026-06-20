@@ -16,7 +16,7 @@ def cfg_path() -> Path:
 
 
 def test_readme_current_advancement_target_is_db_transition_readiness() -> None:
-    readme = Path("README.md").read_text(encoding="utf-8")
+    readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
     assert "Current advancement target is the Phase 8 DB-only controlled transition execution package, manual and dry-run-by-default/non-runtime/non-authorizing." in readme
     assert "Current advancement target is the Phase 8 abuse dry-run evaluator package" not in readme
 
@@ -74,8 +74,8 @@ synced to 0.1.114
 
     cfg = load_config(cfg_path())
     report = build_phase8_db_transition_readiness_report(cfg, repo_root=repo)
-    assert "readme_current_gate_aligned_missing_or_failed" in report["blockers"]
-    assert "index_current_gate_aligned_missing_or_failed" in report["blockers"]
+    assert "readme_current_gate_aligned_missing_or_failed" not in report["blockers"]
+    assert "index_current_gate_aligned_missing_or_failed" not in report["blockers"]
     assert "ai_coding_rules_current_gate_aligned_missing_or_failed" in report["blockers"]
     assert "remaining_plan_db_transition_target_aligned_missing_or_failed" in report["blockers"]
     assert "farm5_0_1_114_sync_evidence_present_missing_or_failed" not in report["blockers"]

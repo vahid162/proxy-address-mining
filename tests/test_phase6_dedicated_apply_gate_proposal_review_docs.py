@@ -68,7 +68,7 @@ def test_controlled_execution_evidence_stays_under_controlled_section() -> None:
 def test_remaining_plan_ai_task_and_readme_alignment() -> None:
     remaining = _read("docs/REMAINING_PHASE_PLAN.md")
     ai_task = _read("docs/AI_PHASE_6_TASK.md")
-    readme = _read("README.md")
+    readme = _read("docs/history/README_LEGACY_0.1.299.md")
 
     assert "docs/PHASE_STATUS.md remains the authoritative gate." in remaining
     assert "read-only iptables-save live snapshot path is explicitly authorized and evidenced" in remaining.lower()

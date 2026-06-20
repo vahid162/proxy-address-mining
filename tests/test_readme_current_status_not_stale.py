@@ -1,56 +1,74 @@
 from pathlib import Path
 
 
-def _section(text: str, heading: str, next_heading: str) -> str:
-    return text.split(heading, 1)[1].split(next_heading, 1)[0]
+README = Path("README.md")
+PHASE_STATUS = Path("docs/PHASE_STATUS.md")
+README_LEGACY = Path("docs/history/README_LEGACY_0.1.299.md")
+INDEX_LEGACY = Path("docs/history/INDEX_LEGACY_0.1.299.md")
 
 
-def test_readme_current_status_is_phase11_accepted():
-    text = Path("README.md").read_text()
-    current = _section(text, "## Current Status", "Historical compatibility anchors")
-    assert "Phase 11 — Production / Customer Activation Gate accepted on farm5" in current
-    assert "Latest recorded farm5 sync evidence is 0.1.153" not in current
-    assert "Actual canary execution has not been performed" not in current
-    assert "Do not use this repository for production customer traffic yet" not in current
+def test_readme_is_concise_human_entrypoint_without_dynamic_state():
+    text = README.read_text()
+    assert text.startswith("# Proxy Address Mining\n")
+    for link in (
+        "[AGENTS.md](AGENTS.md)",
+        "[Documentation index](docs/INDEX.md)",
+        "[Phase status](docs/PHASE_STATUS.md)",
+        "[Safety](docs/SAFETY.md)",
+        "[Architecture](docs/ARCHITECTURE.md)",
+        "[Changelog](CHANGELOG.md)",
+        "[Version](VERSION)",
+    ):
+        assert link in text
+    assert "It is not a shell-script migration" in text
+    assert "git diff --check" in text
+    assert "python -m pytest -q" in text
+    for forbidden in (
+        "next_required_step",
+        "farm evidence",
+        "Phase 6",
+        "Phase 11 operational completion",
+        "production_traffic =",
+        "firewall_apply_allowed =",
+        "customer_onboarding_allowed =",
+    ):
+        assert forbidden not in text
 
 
-def test_readme_current_boundary_has_post_acceptance_invariants_only():
-    text = Path("README.md").read_text()
-    boundary = _section(text, "## Current Accepted/Working Boundary", "## Implemented So Far")
+def test_current_dynamic_state_lives_in_phase_status_not_readme():
+    readme = README.read_text()
+    phase_status = PHASE_STATUS.read_text()
     for expected in (
-        "production_traffic = controlled_cli_limited",
-        "firewall_apply_allowed = controlled",
-        "abuse_automation_allowed = controlled",
-        "customer_onboarding_allowed = controlled_cli_limited",
-        "proxy_data_plane_allowed = limited_runtime_local_only",
-        "worker_enforcement_allowed = no",
-        "ui_allowed = no",
-        "telegram_allowed = no",
-        "live_snapshot_read_allowed = iptables_save_read_only",
-        "restore_lock_record_execution_allowed = controlled_boundary_only",
-        "firewall.apply_mode = plan_only",
-        "proxy.runtime_activation_allowed = false",
+        "next_required_step",
+        "production_traffic",
+        "customer_onboarding_allowed",
+        "Phase 11",
     ):
-        assert expected in boundary
-    for stale in (
-        "production_traffic = none",
-        "firewall_apply_allowed = no",
-        "abuse_automation_allowed = no",
-        "customer_onboarding_allowed = db_only",
-    ):
-        assert stale not in boundary
+        assert expected in phase_status
+    assert "next_required_step" not in readme
+    assert "production_traffic =" not in readme
+    assert "customer_onboarding_allowed =" not in readme
 
 
-def test_readme_forbidden_section_allows_only_controlled_paths():
-    text = Path("README.md").read_text()
-    boundary = _section(text, "Forbidden now:", "Required invariants remain:")
-    assert "unrestricted production traffic expansion" in boundary
-    assert "customer onboarding outside the controlled CLI/service-layer path" in boundary
-    assert "firewall apply, rollback, or verify outside the controlled operator-gated path" in boundary
-    assert "iptables-restore execution outside the accepted controlled path" in boundary
-    assert "worker enforcement before Phase 11 operational completion acceptance" in boundary
-    assert "\nproduction traffic\n" not in boundary
-    assert "\nlive firewall apply\n" not in boundary
+def test_legacy_readme_preserves_prior_dynamic_boundary_as_non_authorizing_history():
+    text = README_LEGACY.read_text()
+    assert text.startswith("# Historical Reference\n")
+    assert "It is non-authorizing." in text
+    assert "Current dynamic project state is defined only by `docs/PHASE_STATUS.md`." in text
+    assert "Current AI instructions are defined by root `AGENTS.md`." in text
+    assert "## Current Status" in text
+    assert "## Current Accepted/Working Boundary" in text
+    assert "production_traffic = controlled_cli_limited" in text
+    assert "firewall_apply_allowed = controlled" in text
+
+
+def test_legacy_index_preserves_prior_historical_reading_lists_as_non_authorizing_history():
+    text = INDEX_LEGACY.read_text()
+    assert text.startswith("# Historical Reference\n")
+    assert "It is non-authorizing." in text
+    assert "## Current Phase Contracts" in text
+    assert "docs/PHASE_6_D1_LIVE_APPLY_BOUNDARY.md" in text
+    assert "docs/PHASE_11_OPERATIONAL_COMPLETION_GATE.md" in text
 
 
 def test_ai_coding_rules_marks_old_phase11_stop_condition_historical():
@@ -65,8 +83,3 @@ def test_agents_historical_phase6_list_does_not_override_controlled_boundary():
     assert "only controlled CLI/service-layer onboarding, planner-driven customer NAT/firewall handling" in text
     assert "Unrestricted expansion and direct or ad-hoc DB/firewall/runtime mutation remain forbidden" in text
     assert "constraints still forbidden now" not in text
-
-
-def test_current_contract_docs_have_0_1_235_update():
-    for file_name in ("docs/INDEX.md", "docs/PHASE_STATUS.md"):
-        assert "0.1.235" in Path(file_name).read_text()

@@ -33,7 +33,7 @@ def test_phase6_e2_accepted_and_e3_next_step_and_safety():
         p: Path(p).read_text()
         for p in [
             "docs/PHASE_STATUS.md",
-            "docs/INDEX.md",
+            "docs/history/INDEX_LEGACY_0.1.299.md",
             "docs/AI_PHASE_6_TASK.md",
             "docs/FIREWALL.md",
             "docs/REMAINING_PHASE_PLAN.md",
@@ -46,7 +46,7 @@ def test_phase6_e2_accepted_and_e3_next_step_and_safety():
     assert "Future dedicated Phase 6 apply gate remains not accepted and not authorized" in ps
     assert "non-authorizing" in ps
 
-    idx = docs["docs/INDEX.md"]
+    idx = docs["docs/history/INDEX_LEGACY_0.1.299.md"]
     assert "docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md" in idx
 
     forbidden = [

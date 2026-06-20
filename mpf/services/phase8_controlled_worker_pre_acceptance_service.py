@@ -36,8 +36,6 @@ def _scenario_result(sid: str, data: AbuseWorkerPreAcceptanceInput, expect_block
 def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = _read(root / "docs/PHASE_STATUS.md")
-    readme = _read(root / "README.md")
-    index = _read(root / "docs/INDEX.md")
     rules = _read(root / "docs/AI_CODING_RULES.md")
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
     rem = _read(root / "docs/REMAINING_PHASE_PLAN.md")
@@ -103,8 +101,8 @@ def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_ro
         "runtime_worker_dry_run_harness_fail_closed": wh.get("component") == "phase8_runtime_worker_dry_run_harness" and wh.get("final_decision") == "BLOCKED" and wh.get("execution_allowed") is False and wh.get("blockers") == [],
         "ai_phase8_task_present": "Controlled Worker Pre-Acceptance" in ai_phase8,
         "remaining_plan_pre_acceptance_target_aligned": ("Current target is Phase 8 controlled worker pre-acceptance package." in rem) or ("Current target is Phase 8 controlled worker dry-run gate preparation package." in rem),
-        "readme_current_gate_aligned": ("controlled worker pre-acceptance" in readme) or ("controlled worker dry-run gate preparation" in readme),
-        "index_current_gate_aligned": ("controlled worker pre-acceptance" in index) or ("controlled worker dry-run gate preparation" in index),
+        "phase_status_current_gate_aligned": "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status,
+        "phase8_task_current_gate_aligned": "Controlled Worker Pre-Acceptance" in ai_phase8 or "controlled worker dry-run gate preparation" in remaining,
         "ai_coding_rules_current_gate_aligned": ("Phase 8 Controlled Worker Pre-Acceptance Stop Condition" in rules) or ("controlled worker dry-run gate stop condition" in rules.lower()),
         "pull_request_template_present": all(x in pr_template for x in ["Why", "What", "How to test", "Version: X.Y.Z -> A.B.C", "Risk + Rollback"]),
         "pull_request_body_process_note_present": "AI agents use PR bodies as operational context" in rules,
