@@ -7,7 +7,7 @@ V={"expected_version":"0.1.218","repository_version":"0.1.218","candidate_custom
 
 def call(tmp_path, **kw):
  p=tmp_path/'v.json'; p.write_text(json.dumps(V)); h=hashlib.sha256(p.read_bytes()).hexdigest()
- base=dict(expected_version='0.1.300',current_controlled_artifact_gate_sha256='abc',visibility_bundle_json=p,visibility_bundle_json_sha256=h,operator_confirmed=True,i_understand_read_only=True,i_understand_no_activation=True,i_understand_no_firewall_apply=True,i_understand_no_db_mutation=True,i_understand_no_restart=True,i_understand_no_abuse_automation=True)
+ base=dict(expected_version='0.1.301',current_controlled_artifact_gate_sha256='abc',visibility_bundle_json=p,visibility_bundle_json_sha256=h,operator_confirmed=True,i_understand_read_only=True,i_understand_no_activation=True,i_understand_no_firewall_apply=True,i_understand_no_db_mutation=True,i_understand_no_restart=True,i_understand_no_abuse_automation=True)
  base.update(kw)
  return s.build_phase11e_source_evidence_bundle_report(cfg(), **base)
 
@@ -16,7 +16,7 @@ def full_sources():
   phase_status={'production_traffic':'none','firewall_apply_allowed':'no','abuse_automation_allowed':'no','customer_onboarding_allowed':'db_only','ui_allowed':'no','telegram_allowed':'no'},
   mpf_doctor={'status':'OK','ok':True},db_status={'status':'OK','ok':True},proxy_doctor={'status':'OK','ok':True},
   lanes=[{'name':'btc','enabled':True}],customers=[{'customer_key':'limited-btc-001','status':'paused','lane':'btc'}],
-  current_controlled_artifact_gate={'repository_version':'0.1.300','current_phase_gate_ok':True,'unknown_mpf_artifacts':[],'forbidden_public_runtime_exposure':False,'production_gates_remain_closed':True,'final_decision':'PASS_NO_CUSTOMER_ARTIFACTS'},
+  current_controlled_artifact_gate={'repository_version':'0.1.301','current_phase_gate_ok':True,'unknown_mpf_artifacts':[],'forbidden_public_runtime_exposure':False,'production_gates_remain_closed':True,'final_decision':'PASS_NO_CUSTOMER_ARTIFACTS'},
   runtime_order_observations={'source_files':['a'],'source_hashes':{'a':'h'}},exposure_observations={'source_files':['b'],'source_hashes':{'b':'h'}},abuse_contract_observations={'source_files':['c'],'source_hashes':{'c':'h'}}
  )
 
