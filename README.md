@@ -24,6 +24,7 @@ Verified repository checks used by this documentation contract:
 
 ```bash
 git diff --check
+python scripts/validate_document_contract.py .
 python -m pytest -q
 python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
 ```

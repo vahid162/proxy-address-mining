@@ -57,7 +57,7 @@ def test_phase_status_current_state_unchanged_and_phase6_d1_doce0_present() -> N
 
 def test_index_remaining_plan_and_non_authorization_constraints() -> None:
     index_text = _read("docs/history/INDEX_LEGACY_0.1.299.md")
-    remaining_text = _read("docs/REMAINING_PHASE_PLAN.md")
+    remaining_text = _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md")
     acceptance_text = _read("docs/PHASE_6_D1_ACCEPTANCE_EVIDENCE.md")
     ai_phase6_text = _read("docs/AI_PHASE_6_TASK.md")
     firewall_text = _read("docs/FIREWALL.md")

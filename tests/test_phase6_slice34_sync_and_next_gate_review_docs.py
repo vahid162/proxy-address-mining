@@ -7,7 +7,7 @@ DOCS = [
     "docs/AI_CODING_RULES.md",
     "docs/AI_PHASE_6_TASK.md",
     "docs/INDEX.md",
-    "docs/REMAINING_PHASE_PLAN.md",
+    "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
 ]
 
 
@@ -48,7 +48,7 @@ def test_stale_next_step_wording_removed() -> None:
 def test_docs_aligned_and_no_positive_authorization() -> None:
     corpus = "\n".join(_text(p).lower() for p in DOCS)
     assert "next operational step: batch server sync/review for slice 3 and slice 4" not in corpus
-    assert "not accepted by server evidence yet" not in _text("docs/REMAINING_PHASE_PLAN.md").lower()
+    assert "not accepted by server evidence yet" not in _text("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").lower()
 
     assert "dedicated apply gate remains not accepted and not authorized" in corpus
     assert "no manual canary apply" in corpus

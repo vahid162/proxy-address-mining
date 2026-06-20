@@ -8,7 +8,7 @@ def test_docs_and_readme_updates() -> None:
     r = Path('docs/history/README_LEGACY_0.1.299.md').read_text(encoding='utf-8')
     assert 'Phase 11 is accepted: controlled CLI-limited production/customer activation is ready on farm5' in r
 
-    rp = Path('docs/REMAINING_PHASE_PLAN.md').read_text(encoding='utf-8')
+    rp = Path('docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md').read_text(encoding='utf-8')
     assert 'Current blocker before this PR: single_canary_restore_payload_renderer_missing.' in rp
     assert 'single_canary_host_apply_context_not_confirmed' in rp
     assert 'accepted_single_canary_host_apply_execution_missing' in rp

@@ -66,7 +66,7 @@ def test_controlled_execution_evidence_stays_under_controlled_section() -> None:
 
 
 def test_remaining_plan_ai_task_and_readme_alignment() -> None:
-    remaining = _read("docs/REMAINING_PHASE_PLAN.md")
+    remaining = _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md")
     ai_task = _read("docs/AI_PHASE_6_TASK.md")
     readme = _read("docs/history/README_LEGACY_0.1.299.md")
 
@@ -96,7 +96,7 @@ def test_abuse_invariant_still_present_in_docs() -> None:
         [
             _read("AGENTS.md"),
             _read("docs/AI_PHASE_6_TASK.md"),
-            _read("docs/REMAINING_PHASE_PLAN.md"),
+            _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md"),
         ]
     )
     assert "normal -> over_tracking -> over_grace -> hard" in corpus

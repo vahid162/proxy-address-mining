@@ -176,9 +176,9 @@ def test_helper_script_exits_nonzero_on_blocked_decisions(tmp_path):
 
 
 def test_version_docs_are_0253_after_bump():
-    assert __version__ == "0.1.303"
-    assert Path("VERSION").read_text().strip() == "0.1.303"
-    assert 'version = "0.1.303"' in Path("pyproject.toml").read_text()
+    assert __version__ == "0.1.304"
+    assert Path("VERSION").read_text().strip() == "0.1.304"
+    assert 'version = "0.1.304"' in Path("pyproject.toml").read_text()
     assert "0.1.299" in Path("CHANGELOG.md").read_text()
     readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text()
     phase = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
@@ -227,7 +227,7 @@ def test_source_0252_bundle_verifies_under_0254_runtime_and_package_helpers(tmp_
     _rewrite_bundle_as_source_0252(bundle)
 
     verifier = verify_packet_path_bundle(bundle)
-    assert verifier["repository_version"] == "0.1.303"
+    assert verifier["repository_version"] == "0.1.304"
     assert verifier["source_repository_version"] == "0.1.252"
     assert verifier["bundle_integrity_valid"] is True
     assert verifier["readiness_eligible"] is True

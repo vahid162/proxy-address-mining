@@ -52,7 +52,7 @@ def test_no_doc_authorizes_live_apply_or_related_actions_now():
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/PHASE_6_E3_ACCEPTANCE_EVIDENCE.md",
     ]
     text = "\n".join(Path(p).read_text().lower() for p in docs)

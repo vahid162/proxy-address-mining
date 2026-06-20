@@ -62,7 +62,7 @@ def test_no_doc_authorizes_live_actions_now():
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/ROADMAP.md",
         "docs/PHASE_6_F_ACCEPTANCE_EVIDENCE.md",
     ]
@@ -116,6 +116,6 @@ def test_index_phase6_f_acceptance_location_and_wording():
 
 
 def test_remaining_phase_plan_no_longer_points_to_phase6f_as_next_step():
-    text = Path("docs/REMAINING_PHASE_PLAN.md").read_text()
+    text = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text()
     assert "The next planned implementation step is Phase 6-F" not in text
     assert "Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review" in text

@@ -8,7 +8,7 @@ def test_phase_status_has_no_stale_active_phase7_working_sentence() -> None:
 
 
 def test_remaining_plan_current_position_not_stale() -> None:
-    text = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
+    text = Path("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").read_text(encoding="utf-8")
     assert "- Phase 6 is the accepted phase" not in text
     assert "- Phase 7 is the working phase" not in text
     assert "- Current work is Phase 7 planning/readiness" not in text

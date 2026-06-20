@@ -66,7 +66,7 @@ def test_no_e2_authorization_anywhere():
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
     ]
     combined = "\n".join(_read(p).lower() for p in docs)
     banned = [

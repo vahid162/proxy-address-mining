@@ -53,7 +53,7 @@ def build_live_snapshot_read_report(cfg: MPFConfig, repo_root: Path | None = Non
     current_state_preserved = False
     gate_authorized = False
     if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
+        blockers.append("historical phase-status archive is missing")
     else:
         current_state = _parse_current_state_block(phase_status.read_text(encoding="utf-8"))
         if current_state is None:

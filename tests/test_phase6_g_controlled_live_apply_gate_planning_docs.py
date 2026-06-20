@@ -38,7 +38,7 @@ def test_no_doc_authorizes_live_apply_now() -> None:
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/ROADMAP.md",
         "docs/PHASE_6_G_CONTROLLED_LIVE_APPLY_GATE_PLANNING.md",
     ]
@@ -59,9 +59,9 @@ def test_no_doc_authorizes_live_apply_now() -> None:
 
 
 def test_no_stale_phase6f_next_planned_wording() -> None:
-    docs = ["README.md", "docs/INDEX.md", "docs/AI_PHASE_6_TASK.md", "docs/REMAINING_PHASE_PLAN.md", "docs/ROADMAP.md"]
+    docs = ["README.md", "docs/INDEX.md", "docs/AI_PHASE_6_TASK.md", "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md", "docs/ROADMAP.md"]
     combined = "\n".join(_read(p) for p in docs)
-    assert "next planned step is Phase 6-F" not in _read("README.md") + _read("docs/AI_PHASE_6_TASK.md") + _read("docs/REMAINING_PHASE_PLAN.md") + _read("docs/ROADMAP.md")
+    assert "next planned step is Phase 6-F" not in _read("README.md") + _read("docs/AI_PHASE_6_TASK.md") + _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md") + _read("docs/ROADMAP.md")
 
 
 def test_abuse_invariant_preserved() -> None:

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.304
+
+- Retired active stale phase snapshots to non-authorizing archives and compatibility redirects.
+- Strengthened document contract enforcement against stale current-state duplication.
+- No runtime authorization, server state, firewall, DB, Docker, systemd, conntrack, customer, abuse, worker, UI, Telegram, or production traffic behavior changed.
+
 ## 0.1.303
 
 - Separated active phase status from legacy release/evidence history while preserving prior `docs/PHASE_STATUS.md` content as a non-authorizing archive.

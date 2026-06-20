@@ -27,7 +27,7 @@ def make_repo(tmp_path: Path) -> Path:
         "CHANGELOG.md": "# Changelog\n\n## 1.2.3\n\n- entry\n",
         "VERSION": "1.2.3\n",
         "pyproject.toml": "[project]\nname = 'x'\nversion = '1.2.3'\n",
-        "mpf/__init__.py": "__version__ = '1.2.3'\n",
+        "mpf/__init__.py": "\"\"\"MPF Python control plane package.\n\nCurrent runtime authorization is defined only in docs/PHASE_STATUS.md.\nImporting this package performs no DB, firewall, conntrack, Docker, or systemd mutation.\n\"\"\"\n\n__version__ = '1.2.3'\n",
         "docs/INDEX.md": "Index routes dynamic state to docs/PHASE_STATUS.md and keeps [history](history/) non-authorizing. [Debug](DEBUG_LOG.md) [Legacy](history/PHASE_STATUS_LEGACY_0.1.302.md) [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [Anchors](HISTORICAL_COMPATIBILITY_ANCHORS.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n",
         "docs/PHASE_STATUS.md": '# PHASE STATUS\n\n## Authority and scope\n\n## Repository state\n\n## Current phase and authorization\n\ncurrent_accepted_phase: Phase X\n\n## Next required step\n\nnext_required_step: thing\n\n## Required evidence before runtime action\n\n## Active task documents\n\n## Historical records\n',
         "docs/DEBUG_LOG.md": "# Debug Journal\n\nNo entries.\n",
@@ -37,9 +37,16 @@ def make_repo(tmp_path: Path) -> Path:
         "docs/SAFETY.md": "safety\n",
         "docs/ARCHITECTURE.md": "architecture\n",
         "docs/ROADMAP.md": "roadmap routes current state to docs/PHASE_STATUS.md\n",
+        "docs/REMAINING_PHASE_PLAN.md": "# Remaining Phase Plan\n\nThis filename is retained for historical compatibility only.\n\nCurrent phase, runtime authorization, and next required step exist only in `docs/PHASE_STATUS.md`.\n\nHistorical planning records are preserved in:\n`docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md`\n\nHistorical material cannot authorize runtime work, server mutation, deployment claims, phase advancement, or gate changes.\n",
+        "docs/AI_PHASE_10_TASK.md": "# AI Phase 10 Task\n\nThis filename is retained for historical compatibility only.\n\nPhase 10 task and acceptance material is historical context. It does not define the current phase, runtime authorization, or next required step.\n\nCurrent phase, runtime authorization, and next required step exist only in `docs/PHASE_STATUS.md`.\n\nHistorical Phase 10 task content is preserved in:\n`docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md`\n",
+        "docs/WORKER_POLICY.md": "Historical note: this contract was introduced during an earlier phase. Current phase, runtime authorization, and next required step are defined only in `docs/PHASE_STATUS.md`.\nThis document does **not** authorize worker runtime behavior.\n",
+        "docs/CONTROL_RULES.md": "Historical note: this contract was introduced during an earlier phase. Current phase, runtime authorization, and next required step are defined only in `docs/PHASE_STATUS.md`.\nThis document does **not** authorize runtime controls.\n",
+        "docs/PRODUCT_ROLES_AND_UX.md": "Historical note: this contract was introduced during an earlier phase. Current phase, runtime authorization, and next required step are defined only in `docs/PHASE_STATUS.md`.\nThis document does **not** authorize UI runtime or Telegram runtime.\nNot authorized by this contract.\n",
         "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md": "# Historical Compatibility Anchors\n\nCurrent phase, gate, and authorization values exist only in docs/PHASE_STATUS.md.\n",
         "docs/ADR/0001-runtime-first-service-layer-boundary.md": "adr routes current state to docs/PHASE_STATUS.md\n",
         "docs/history/OLD.md": "old\n",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md": "# Non-authorizing historical snapshot\n\nThis file preserves the complete prior active `docs/REMAINING_PHASE_PLAN.md` as historical planning context for audit and continuity. It is non-authorizing and must not override `AGENTS.md`, the active `docs/PHASE_STATUS.md`, or current canonical contracts.\n\n---\nold\n",
+        "docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md": "# Non-authorizing historical snapshot\n\nThis file preserves the complete prior active `docs/AI_PHASE_10_TASK.md` as historical Phase 10 task context for audit and continuity. It is non-authorizing and must not override `AGENTS.md`, the active `docs/PHASE_STATUS.md`, or current canonical contracts.\n\n---\nold\n",
         ".github/PULL_REQUEST_TEMPLATE/runtime-first.md": "template\n",
         ".github/workflows/ci.yml": "name: CI\n",
     }
@@ -249,3 +256,45 @@ def test_historical_phase_status_helper_never_falls_back_to_active(tmp_path: Pat
     (tmp_path / "docs/history").mkdir(parents=True)
     (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("legacy", encoding="utf-8")
     assert read_historical_phase_status(tmp_path) == "legacy"
+
+
+def test_missing_retired_remaining_plan_archive_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    (root / "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").unlink()
+    assert any("Missing required non-authorizing archive: docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md" in v for v in violations(root))
+
+
+def test_missing_retired_ai_phase10_archive_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    (root / "docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md").unlink()
+    assert any("Missing required non-authorizing archive: docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md" in v for v in violations(root))
+
+
+def test_invalid_retired_archive_notice_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md", "# Wrong\n---\nold\n")
+    assert any("must begin with the required non-authorizing notice" in v for v in violations(root))
+
+
+def test_stale_current_position_marker_in_remaining_plan_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/REMAINING_PHASE_PLAN.md", "Current Position\ndocs/PHASE_STATUS.md\ndocs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md\nhistorical compatibility only\n")
+    assert any("docs/REMAINING_PHASE_PLAN.md contains stale active-state snapshot marker: Current Position" in v for v in violations(root))
+
+
+def test_stale_phase5_snapshots_in_future_contracts_fail(tmp_path: Path) -> None:
+    for rel in ("docs/WORKER_POLICY.md", "docs/CONTROL_RULES.md", "docs/PRODUCT_ROLES_AND_UX.md"):
+        root = make_repo(tmp_path / rel.replace("/", "_"))
+        write(root / rel, "Phase 5 is **DB-only**\nStrictly forbidden in Phase 5\ncurrent_working_phase: Phase 5\n")
+        assert any(rel in v and "stale active-state snapshot marker" in v for v in violations(root))
+
+
+def test_dynamic_state_duplication_in_init_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "mpf/__init__.py", "\"\"\"Current runtime authorization is defined only in docs/PHASE_STATUS.md.\nImporting this package performs no DB, firewall, conntrack, Docker, or systemd mutation.\nPhase 12 worker enforcement controlled_cli_limited\n\"\"\"\n__version__ = '1.2.3'\n")
+    assert any("mpf/__init__.py contains stale dynamic-state prose" in v for v in violations(root))
+
+
+def test_clean_current_state_routes_pass_validation(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    assert violations(root) == ()

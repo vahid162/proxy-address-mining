@@ -91,7 +91,7 @@ def test_no_docs_authorize_phase6e3_live_apply_or_mutations() -> None:
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
     ]
     all_text = "\n".join(_read(p).lower() for p in docs)
     forbidden = [

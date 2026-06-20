@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from mpf.services.historical_phase_status import read_historical_phase_status
+from mpf.services.historical_phase_status import read_historical_phase_status, read_historical_remaining_phase_plan
 
 from mpf.config import MPFConfig
 from mpf.domain.abuse_dry_run_evaluator import (
@@ -41,7 +41,7 @@ def build_phase8_abuse_dry_run_evaluator_report(cfg: MPFConfig, repo_root: Path 
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = read_historical_phase_status(root)
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
-    remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
+    remaining = read_historical_remaining_phase_plan(root)
     ai_rules = _read(root / "docs/AI_CODING_RULES.md")
 
     sm = build_phase8_abuse_state_machine_contract_report(cfg, root)

@@ -9,15 +9,9 @@ Database migration impact: none in the current phase
 This document defines the future control-intent model for `proxy-address-mining`.
 It is a contract for humans and AI coding agents so Phase 5 customer CRUD does not create schema, service, or naming dead ends for later block, pause, whitelist, rate-limit, worker, routing, reporting, UI, and automation work.
 
-## Current Phase Boundary
+## Contract boundary
 
-The current project gate is defined by `docs/PHASE_STATUS.md`.
-
-At the time this contract is added, the working phase is:
-
-```text
-Phase 5 — Customer CRUD in DB Only
-```
+Historical note: this contract was introduced during an earlier phase. Current phase, runtime authorization, and next required step are defined only in `docs/PHASE_STATUS.md`.
 
 This document does **not** authorize runtime controls.
 

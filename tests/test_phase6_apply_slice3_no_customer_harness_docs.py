@@ -33,7 +33,7 @@ def test_docs_alignment_and_non_authorization_bundle() -> None:
     docs = [
         "docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md",
         "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/INDEX.md",
         "README.md",

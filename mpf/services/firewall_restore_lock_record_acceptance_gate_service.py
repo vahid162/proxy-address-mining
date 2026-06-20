@@ -58,7 +58,7 @@ def build_restore_lock_record_acceptance_gate_report(cfg: MPFConfig, repo_root: 
     farm5_time_sync_resolved = False
 
     if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
+        blockers.append("historical phase-status archive is missing")
     else:
         text = phase_status.read_text(encoding="utf-8")
         current_state = _parse_current_state_block(text)

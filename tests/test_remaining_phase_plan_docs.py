@@ -5,41 +5,51 @@ def _read(p: str) -> str:
     return Path(p).read_text(encoding="utf-8")
 
 
-def test_current_position_updates() -> None:
+def test_remaining_phase_plan_is_non_authorizing_redirect() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
-    current = t.split("## Current Position", 1)[1].split("## Finite Remaining Path", 1)[0]
-    assert "- Current accepted phase is Phase 10." in current
-    assert "- Current working phase is Phase 11 Production / Customer Activation Gate planning/readiness." in current
-    assert "- Repository version after this PR is 0.1.216." in current
-    assert "- post-apply evidence READY is recorded from farm5 0.1.205." in current
-    assert "- 20101 controlled NAT/filter primitive artifact exists and is pending runtime-path/Stratum/visibility evidence." in current
-    assert "- after 0.1.216 sync and full pytest, next intended farm5 step is long-lived external Stratum + runtime evidence collection/classification for 20101." in current
-    assert "- then Stratum transcript evidence and visibility bundle." in current
-    assert "- production traffic remains none." in current
-    assert "- firewall apply remains no." in current
-    assert "- customer onboarding remains db_only." in current
-    assert "- abuse automation remains no." in current
-    assert "- UI remains no." in current
-    assert "- Telegram remains no." in current
+    assert t.startswith("# Remaining Phase Plan")
+    assert "historical compatibility only" in t
+    assert "Current phase, runtime authorization, and next required step exist only in `docs/PHASE_STATUS.md`" in t
+    assert "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md" in t
+    assert "cannot authorize runtime work" in t
 
 
-def test_finite_path_updates() -> None:
+def test_remaining_phase_plan_archive_retains_historical_text() -> None:
+    t = _read("docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md")
+    assert t.startswith("# Non-authorizing historical snapshot")
+    body = t.split("---\n", 1)[1]
+    assert "## Current Position" in body
+    assert "- Current accepted phase is Phase 10." in body
+    assert "- Repository version after this PR is 0.1.216." in body
+
+
+def test_remaining_phase_plan_redirect_has_no_stale_snapshot_markers() -> None:
     t = _read("docs/REMAINING_PHASE_PLAN.md")
-    assert "11. Phase 11 Production / Customer Activation Gate" in t
-    assert "12. Phase 11 operational completion" in t
-    assert "14. Phase 13 Local UI" in t
-    assert "15. Phase 14 Operator UI Actions" in t
-    assert "16. Phase 15 Telegram" in t
+    stale = (
+        "Current Position",
+        "Current Position update",
+        "Active Target Position",
+        "Current accepted phase is Phase",
+        "Repository version after this PR is 0.1.",
+        "current_working_phase: Phase",
+    )
+    for marker in stale:
+        assert marker not in t
 
 
-def test_ai_phase10_task_marks_acceptance() -> None:
+def test_ai_phase10_task_is_historical_redirect() -> None:
     t = _read("docs/AI_PHASE_10_TASK.md")
-    assert "Phase 10 is accepted by this PR." in t
-    assert "This PR implements Phase 10 final acceptance." in t
-    assert "does not authorize Phase 11 production activation" in t
-    assert "Phase 11 Production / Customer Activation Gate planning/readiness." in t
+    assert t.startswith("# AI Phase 10 Task")
+    assert "historical compatibility only" in t
+    assert "does not define the current phase" in t
+    assert "docs/PHASE_STATUS.md" in t
+    assert "docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md" in t
 
 
-def test_phase11_non_accepted_and_gates_closed() -> None:
-    t = _read("docs/REMAINING_PHASE_PLAN.md")
-    assert "real customer traffic remains blocked until runtime path evidence, Stratum transcript, visibility bundle, abuse 1h coverage, restart/container-order evidence, and a later explicit acceptance PR." in t
+def test_ai_phase10_archive_retains_historical_phase10_text() -> None:
+    t = _read("docs/history/AI_PHASE_10_TASK_LEGACY_0.1.303.md")
+    assert t.startswith("# Non-authorizing historical snapshot")
+    body = t.split("---\n", 1)[1]
+    assert "# AI Phase 10 Task" in body
+    assert "Phase 10 is accepted by this PR." in body
+    assert "This PR implements Phase 10 final acceptance." in body

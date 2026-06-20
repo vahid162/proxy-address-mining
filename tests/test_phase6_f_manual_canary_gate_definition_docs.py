@@ -73,7 +73,7 @@ def test_no_doc_authorizes_live_apply_or_related_mutations_now() -> None:
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/ROADMAP.md",
     ]
     all_text = "\n".join(_read(p).lower() for p in docs)
@@ -93,7 +93,7 @@ def test_no_doc_authorizes_live_apply_or_related_mutations_now() -> None:
 
 
 def test_no_stale_wording_phase6e3_as_next_safe_work() -> None:
-    docs = ["docs/INDEX.md", "docs/AI_PHASE_6_TASK.md", "docs/history/PHASE_STATUS_LEGACY_0.1.302.md", "docs/REMAINING_PHASE_PLAN.md"]
+    docs = ["docs/INDEX.md", "docs/AI_PHASE_6_TASK.md", "docs/history/PHASE_STATUS_LEGACY_0.1.302.md", "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md"]
     all_text = "\n".join(_read(p).lower() for p in docs)
     assert "next safe work is phase 6-e3" not in all_text
     assert "phase 6-e3 is the current next planned step" not in all_text

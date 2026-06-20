@@ -81,7 +81,7 @@ def _mk_repo(tmp_path: Path, phase_status: str, readme: str = "DB-only controlle
     (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(phase_status, encoding="utf-8")
     (repo / "docs/INDEX.md").write_text(index, encoding="utf-8")
     (repo / "docs/AI_CODING_RULES.md").write_text(rules, encoding="utf-8")
-    (repo / "docs/REMAINING_PHASE_PLAN.md").write_text(remaining, encoding="utf-8")
+    (repo / "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md").write_text(remaining, encoding="utf-8")
     (repo / "docs/AI_PHASE_8_TASK.md").write_text(ai, encoding="utf-8")
     return repo
 

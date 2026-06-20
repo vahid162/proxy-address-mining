@@ -80,7 +80,7 @@ def build_no_customer_apply_execution_gate_report(cfg: MPFConfig, repo_root: Pat
     errors: list[str] = []
     text = phase_status.read_text(encoding="utf-8") if phase_status.exists() else ""
     if not phase_status.exists():
-        blockers.append("docs/PHASE_STATUS.md is missing")
+        blockers.append("historical phase-status archive is missing")
 
     current_state = _parse_current_state_block(text)
     current_state_preserved = current_state is not None and all(current_state.get(k) == v for k, v in _EXPECTED_CURRENT_STATE.items())

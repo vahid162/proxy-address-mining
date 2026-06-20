@@ -18,7 +18,9 @@ def test_product_roles_and_ux_doc_exists() -> None:
 def test_phase5_db_only_and_forbidden_runtime_boundaries_are_documented() -> None:
     text = read_doc()
 
-    assert "Phase 5 is **DB-only**" in text
+    assert "Historical note: this contract was introduced during an earlier phase." in text
+    assert "Current phase, runtime authorization, and next required step are defined only in `docs/PHASE_STATUS.md`" in text
+    assert "Not authorized by this contract" in text
     assert "no UI service" in text
     assert "no buyer UI service" in text
     assert "no Telegram bot" in text

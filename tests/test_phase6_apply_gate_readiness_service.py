@@ -66,7 +66,7 @@ def test_service_fails_closed_when_phase_status_missing(tmp_path: Path) -> None:
     (tmp_path / "docs" / "PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md").write_text("x", encoding="utf-8")
     report = firewall_apply_gate_readiness_service.build_apply_gate_readiness_report(cfg, repo_root=tmp_path)
     assert report["final_decision"] == "BLOCKED"
-    assert any("PHASE_STATUS" in b for b in report["blockers"])
+    assert any("historical phase-status archive" in b for b in report["blockers"])
 
 
 def test_service_has_no_subprocess_or_forbidden_commands() -> None:

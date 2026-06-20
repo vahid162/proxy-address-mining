@@ -50,7 +50,7 @@ def test_docs_do_not_authorize_live_apply_boundary_breaks() -> None:
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
-        "docs/REMAINING_PHASE_PLAN.md",
+        "docs/history/REMAINING_PHASE_PLAN_LEGACY_0.1.303.md",
         "docs/PHASE_6_E1_ACCEPTANCE_EVIDENCE.md",
     ]
     combined = "\n".join(_read(d).lower() for d in docs)

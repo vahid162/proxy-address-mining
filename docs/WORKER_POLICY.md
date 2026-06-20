@@ -9,15 +9,9 @@ Database migration impact: none in the current phase
 This document defines the future worker policy and worker routing boundary for `proxy-address-mining`.
 It exists so AI coding agents do not accidentally implement worker behavior as unsafe firewall-only logic or premature automation.
 
-## Current Phase Boundary
+## Contract boundary
 
-The current project gate is defined by `docs/PHASE_STATUS.md`.
-
-At the time this contract is added, the working phase is:
-
-```text
-Phase 5 — Customer CRUD in DB Only
-```
+Historical note: this contract was introduced during an earlier phase. Current phase, runtime authorization, and next required step are defined only in `docs/PHASE_STATUS.md`.
 
 This document does **not** authorize worker runtime behavior.
 

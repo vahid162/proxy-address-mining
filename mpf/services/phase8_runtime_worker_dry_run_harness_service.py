@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-from mpf.services.historical_phase_status import read_historical_phase_status
+from mpf.services.historical_phase_status import read_historical_phase_status, read_historical_remaining_phase_plan
 
 from mpf.config import MPFConfig
 from mpf.domain.abuse_worker_dry_run_harness import AbuseWorkerDryRunCycleInput, AbuseWorkerDryRunItem, build_worker_dry_run_cycle_id, evaluate_worker_dry_run_cycle
@@ -20,7 +20,7 @@ def _read(p: Path) -> str:
 
 def build_phase8_runtime_worker_dry_run_harness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root=repo_root or Path(__file__).resolve().parents[2]
-    phase_status=read_historical_phase_status(root); ai=_read(root/'docs/AI_PHASE_8_TASK.md'); rem=_read(root/'docs/REMAINING_PHASE_PLAN.md'); readme=_read(root/'README.md'); idx=_read(root/'docs/INDEX.md'); rules=_read(root/'docs/AI_CODING_RULES.md')
+    phase_status=read_historical_phase_status(root); ai=_read(root/'docs/AI_PHASE_8_TASK.md'); rem=read_historical_remaining_phase_plan(root); readme=_read(root/'README.md'); idx=_read(root/'docs/INDEX.md'); rules=_read(root/'docs/AI_CODING_RULES.md')
     sm=build_phase8_abuse_state_machine_contract_report(cfg,root); er=build_phase8_abuse_evidence_reporting_contract_report(cfg,root); dr=build_phase8_abuse_dry_run_evaluator_report(cfg,root); rd=build_phase8_db_transition_readiness_report(cfg,root); ex=build_phase8_db_transition_execution_report(cfg,root); rw=build_phase8_runtime_worker_integration_readiness_report(cfg,root)
     def run(sid:str, **kw: object)->dict[str, object]:
         payload=dict(item_id=f'{sid}-item',customer_id=1,lane_id=1,customer_key='c1',port=50001,current_state='normal',synthetic_evidence_status='ok',synthetic_decision_hint='normal')
