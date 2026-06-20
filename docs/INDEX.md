@@ -67,3 +67,10 @@ For most tasks, read only the documents needed for the requested scope, in this 
 ## Historical references
 
 The [`docs/history/`](history/) directory preserves former active documents for audit and continuity only. These files are non-authorizing and must not override `AGENTS.md`, `docs/PHASE_STATUS.md`, `docs/SAFETY.md`, `docs/ARCHITECTURE.md`, or other current active contracts.
+
+Preserved legacy snapshots for this canonical-contract work:
+
+- [`docs/history/ROADMAP_LEGACY_0.1.301.md`](history/ROADMAP_LEGACY_0.1.301.md)
+- [`docs/history/AI_CODING_RULES_LEGACY_0.1.301.md`](history/AI_CODING_RULES_LEGACY_0.1.301.md)
+- [`docs/history/ARCHITECTURE_LEGACY_0.1.301.md`](history/ARCHITECTURE_LEGACY_0.1.301.md)
+- [`docs/history/SAFETY_LEGACY_0.1.301.md`](history/SAFETY_LEGACY_0.1.301.md)

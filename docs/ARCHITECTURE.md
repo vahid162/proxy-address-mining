@@ -74,6 +74,41 @@ Jobs are scheduled entrypoints that call services, use locks, emit evidence, and
 
 Local configuration is file-based and should remain separate from mutable runtime state. Configuration supplies local paths, database connection details, firewall backend, lane definitions, and safe defaults.
 
+
+## Canonical paths
+
+The canonical local operating paths are:
+
+```text
+/opt/mpf-py        application checkout/runtime package path
+/etc/mpf/mpf.yaml local configuration file
+/var/lib/mpf      durable application data
+/var/log/mpf      logs and diagnostics
+/var/backups/mpf  backups and restore-point artifacts
+```
+
+These paths describe the static operating model. They do not authorize live server mutation, installation, migration, or production execution.
+
+## Lane model
+
+A lane owns the protocol or coin, backend port, firewall chain prefix, upstreams, forwarder configuration, and enabled state. Customer-facing ports attach to lanes through policy and firewall planning. New coins or protocols must be modeled as lanes rather than copied scripts or one-off per-coin command paths.
+
+## Source-of-truth boundary
+
+PostgreSQL is authoritative for production control-plane state. Flat files, JSON artifacts, CSV exports, and SQLite may be used only for import, export, debug, test, evidence, or compatibility artifacts. They must not become split production state or an alternate source of truth for customers, policy, firewall, usage, abuse, events, or audit.
+
+## Customer, buyer, and operator identity boundary
+
+Customers are service and port allocation records. Buyer and operator identities are separate access, ownership, or review concepts and must not be conflated with customer service records. Future buyer-facing interfaces are read-only first and may not directly mutate customer policy, firewall, abuse, block, pause, or database state.
+
+## Worker-enforcement boundary
+
+Worker identity is Stratum-layer evidence. Worker enforcement cannot be implemented as firewall-only enforcement because firewall rules do not prove worker identity. Future worker enforcement requires session/worker evidence, approved adapters, service-layer decisions, audit records, and rollback/disable paths.
+
+## Sequencing and authorization links
+
+Implementation sequencing and long-term product ordering live in [`docs/ROADMAP.md`](ROADMAP.md). Current runtime authorization, phase state, gates, and next required work remain only in [`docs/PHASE_STATUS.md`](PHASE_STATUS.md).
+
 ## Firewall lifecycle
 
 Firewall changes use the service and adapter boundary:

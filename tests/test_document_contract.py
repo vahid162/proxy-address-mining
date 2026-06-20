@@ -133,3 +133,44 @@ def test_cli_exit_code_is_non_zero_on_failure_and_zero_on_success(tmp_path: Path
     bad = subprocess.run([sys.executable, str(SCRIPT), str(root)], text=True, capture_output=True, check=False)
     assert bad.returncode != 0
     assert "document-contract violation:" in bad.stderr
+
+
+def test_required_legacy_preservation_snapshots_exist() -> None:
+    root = Path(__file__).resolve().parents[1]
+    for rel in (
+        "docs/history/ARCHITECTURE_LEGACY_0.1.301.md",
+        "docs/history/SAFETY_LEGACY_0.1.301.md",
+    ):
+        text = (root / rel).read_text(encoding="utf-8")
+        assert text.startswith("# Non-authorizing historical snapshot\n")
+        assert "current authority is in the active canonical contracts" in text
+        assert "docs/PHASE_STATUS.md" in text
+        assert "\n---\n\n# " in text
+
+
+def test_active_architecture_restores_durable_static_sections() -> None:
+    root = Path(__file__).resolve().parents[1]
+    text = (root / "docs/ARCHITECTURE.md").read_text(encoding="utf-8")
+    for expected in (
+        "/etc/mpf/mpf.yaml",
+        "/opt/mpf-py",
+        "/var/lib/mpf",
+        "/var/log/mpf",
+        "/var/backups/mpf",
+        "lane owns the protocol or coin, backend port, firewall chain prefix, upstreams, forwarder configuration, and enabled state",
+        "PostgreSQL is authoritative for production control-plane state",
+        "must not become split production state",
+        "Customers are service and port allocation records",
+        "Future buyer-facing interfaces are read-only first",
+        "Worker identity is Stratum-layer evidence",
+        "cannot be implemented as firewall-only enforcement",
+        "docs/ROADMAP.md",
+        "docs/PHASE_STATUS.md",
+    ):
+        assert expected in text
+
+
+def test_active_canonical_contracts_have_no_dynamic_state_assignments() -> None:
+    root = Path(__file__).resolve().parents[1]
+    result = module.validate_document_contract(root)
+    assert not [v for v in result.violations if "dynamic-state assignment" in v]

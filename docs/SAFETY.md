@@ -6,6 +6,10 @@ Status: Canonical safety contract
 
 [`docs/PHASE_STATUS.md`](PHASE_STATUS.md) alone controls current runtime authorization. Architecture-stage or historical examples in this safety contract do not authorize current work or any runtime mutation.
 
+## Historical preservation
+
+Detailed legacy safety rationale and historical phase examples are preserved as non-authorizing context in [`docs/history/SAFETY_LEGACY_0.1.301.md`](history/SAFETY_LEGACY_0.1.301.md). Do not use that archive as current runtime authorization.
+
 ## Safety goal
 
 The project manages customer-facing mining gateway traffic and firewall policy. Mistakes can disconnect customers, expose backend ports, or block valid traffic. The default posture is fail-closed and evidence-backed.
