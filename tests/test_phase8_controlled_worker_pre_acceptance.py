@@ -81,3 +81,76 @@ def test_cli_json_output():
     assert data['final_decision'] == 'BLOCKED'
     assert data['execution_allowed'] is False
     assert data['controlled_worker_dry_run_allowed_now'] is False
+
+
+def test_service_uses_named_runtime_first_template_and_keeps_all_authorizations_false(monkeypatch):
+    import mpf.services.phase8_controlled_worker_pre_acceptance_service as svc
+
+    read_paths: list[Path] = []
+    original_read = svc._read
+
+    def tracked_read(path: Path) -> str:
+        read_paths.append(path)
+        return original_read(path)
+
+    monkeypatch.setattr(svc, "_read", tracked_read)
+    r = svc.build_phase8_controlled_worker_pre_acceptance_report(cfg())
+
+    assert r["pull_request_template_present"] is True
+    assert "pull_request_template_present_missing_or_failed" not in r["blockers"]
+    assert Path(".github/PULL_REQUEST_TEMPLATE/runtime-first.md") in [p.relative_to(Path.cwd()) for p in read_paths if p.is_relative_to(Path.cwd())]
+    assert Path(".github/PULL_REQUEST_TEMPLATE.md") not in [p.relative_to(Path.cwd()) for p in read_paths if p.is_relative_to(Path.cwd())]
+    assert r["final_decision"] == "BLOCKED"
+
+    false_authorization_flags = [
+        "execution_allowed",
+        "phase8_acceptance_allowed",
+        "runtime_worker_authorized",
+        "scheduler_authorized",
+        "timer_authorized",
+        "abuse_runner_authorized",
+        "production_db_execution_authorized",
+        "db_writes_authorized",
+        "firewall_apply_authorized",
+        "production_traffic_authorized",
+        "hard_block_authorized",
+        "soft_block_authorized",
+        "pause_automation_authorized",
+        "ui_authorized",
+        "telegram_authorized",
+    ]
+    for flag in false_authorization_flags:
+        assert r[flag] is False
+
+
+def test_remaining_plan_fallback_task_alignment_without_name_error(tmp_path, monkeypatch):
+    import mpf.services.phase8_controlled_worker_pre_acceptance_service as svc
+
+    def write(rel: str, content: str) -> None:
+        path = tmp_path / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+
+    write("docs/PHASE_STATUS.md", "current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\nplanning/readiness\nsynced to 0.1.121\nsynced to 0.1.119\nproduction_traffic: none\nfirewall_apply_allowed: no\niptables-restore blocked\nabuse_automation_allowed: no\nui_allowed: no\ntelegram_allowed: no\n")
+    write("docs/AI_CODING_RULES.md", "controlled worker dry-run gate stop condition\nAI agents use PR bodies as operational context\n")
+    write("docs/AI_PHASE_8_TASK.md", "Phase 8 task text without the first alignment phrase.\n")
+    write("docs/REMAINING_PHASE_PLAN.md", "Current target is Phase 8 controlled worker dry-run gate preparation package.\n")
+    write(".github/PULL_REQUEST_TEMPLATE/runtime-first.md", "Why\nWhat\nHow to test\nVersion: X.Y.Z -> A.B.C\nRisk + Rollback\n")
+    write("docs/ABUSE.md", "normal over_tracking over_grace hard 3600 firewall failure farms-over alone worker-over\n")
+    write("VERSION", "0.1.122\n")
+
+    blocked = {"component": "unused", "final_decision": "BLOCKED"}
+    monkeypatch.setattr(svc, "build_phase8_abuse_state_machine_contract_report", lambda cfg, root: {**blocked, "component": "phase8_abuse_state_machine_contract"})
+    monkeypatch.setattr(svc, "build_phase8_abuse_evidence_reporting_contract_report", lambda cfg, root: {**blocked, "component": "phase8_abuse_evidence_reporting_contract"})
+    monkeypatch.setattr(svc, "build_phase8_abuse_dry_run_evaluator_report", lambda cfg, root: {**blocked, "component": "phase8_abuse_dry_run_evaluator"})
+    monkeypatch.setattr(svc, "build_phase8_db_transition_readiness_report", lambda cfg, root: {**blocked, "component": "phase8_db_transition_readiness"})
+    monkeypatch.setattr(svc, "build_phase8_db_transition_execution_report", lambda cfg, root: {**blocked, "component": "phase8_db_transition_execution"})
+    monkeypatch.setattr(svc, "build_phase8_runtime_worker_integration_readiness_report", lambda cfg, root: {**blocked, "component": "phase8_runtime_worker_integration_readiness"})
+    monkeypatch.setattr(svc, "build_phase8_runtime_worker_dry_run_harness_report", lambda cfg, root: {"component": "phase8_runtime_worker_dry_run_harness", "final_decision": "BLOCKED", "execution_allowed": False, "blockers": []})
+
+    r = svc.build_phase8_controlled_worker_pre_acceptance_report(cfg(), repo_root=tmp_path)
+
+    assert r["phase8_task_current_gate_aligned"] is True
+    assert r["pull_request_template_present"] is True
+    assert "pull_request_template_present_missing_or_failed" not in r["blockers"]
+    assert r["final_decision"] == "BLOCKED"

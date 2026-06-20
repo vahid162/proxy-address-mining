@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.300
+
+- fix(phase8): make the report-only controlled-worker pre-acceptance validator read the named strict runtime-first PR template and use the existing remaining-plan text for fallback task alignment; no runtime mutation or authorization behavior changed.
+
 ## 0.1.299
 
 - docs(governance): establish the root AGENTS.md as the concise canonical GPT/Codex entrypoint, archive the former instructions unchanged as non-authorizing history, and keep dynamic project state authority in docs/PHASE_STATUS.md.
