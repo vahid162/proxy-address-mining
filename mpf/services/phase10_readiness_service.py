@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf import __version__
 from mpf.config import MPFConfig
 from mpf.services.phase9_diagnostics_common import DANGEROUS_AUTHORIZATION_FLAGS, all_flags_false, false_flags
@@ -17,7 +19,7 @@ def _read(path: Path) -> str:
 def build_phase10_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     del cfg
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase = _read(root / "docs/PHASE_STATUS.md")
+    phase = read_historical_phase_status(root)
     farm5_0_1_130 = _read(root / "docs/PHASE_10_FARM5_0_1_130_SYNC_TEST_EVIDENCE.md")
     farm5_0_1_131 = _read(root / "docs/PHASE_10_FARM5_0_1_131_SYNC_TEST_EVIDENCE.md")
     farm5_0_1_133 = _read(root / "docs/PHASE_10_FARM5_0_1_133_SYNC_TEST_EVIDENCE.md")

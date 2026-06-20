@@ -4,6 +4,8 @@ import hashlib
 import subprocess
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.services import firewall_snapshot_parser
 

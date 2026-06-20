@@ -12,23 +12,7 @@ These strings are:
 
 Authoritative current phase/gate source:
 
-```text
-docs/PHASE_STATUS.md
-```
-
-Current active state remains:
-
-```text
-accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
-working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
-production_traffic: none
-firewall_apply_allowed: no
-abuse_automation_allowed: no
-customer_onboarding_allowed: db_only
-proxy_data_plane_allowed: limited_runtime_local_only
-ui_allowed: no
-telegram_allowed: no
-```
+Current phase, gate, and authorization values exist only in docs/PHASE_STATUS.md.
 
 No production/firewall/canary/runtime/abuse/UI/Telegram gate is opened by this document.
 

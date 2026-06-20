@@ -6,7 +6,7 @@ def test_phase6_e3_acceptance_doc_exists():
 
 
 def test_phase_status_current_state_unchanged():
-    text = Path("docs/PHASE_STATUS.md").read_text()
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
     expected = """## Current State
 
 ```text
@@ -29,7 +29,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 def test_phase6_e3_accepted_block_location_and_next_step():
-    text = Path("docs/PHASE_STATUS.md").read_text()
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
     assert "### Phase 6-E3 — Isolated Harness Evidence Review / Non-Authorizing Gate Checklist" in text
     assert "version accepted on farm5: 0.1.70" in text
     accepted_start = text.index("## Accepted Server Results")
@@ -48,7 +48,7 @@ def test_index_contains_e3_acceptance_doc_in_required_sections():
 
 def test_no_doc_authorizes_live_apply_or_related_actions_now():
     docs = [
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",

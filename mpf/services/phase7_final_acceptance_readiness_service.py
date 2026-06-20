@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.services.phase7_policy_reject_accounting_contract_service import build_phase7_policy_reject_accounting_contract_report
 from mpf.services.phase7_reports_doctor_service import build_phase7_doctor_report, build_phase7_reports_summary
@@ -32,7 +34,7 @@ def _runtime_safety_flags() -> dict[str, bool]:
 
 def build_phase7_final_acceptance_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     readme = _read(root / "README.md")
     ai_phase7 = _read(root / "docs/AI_PHASE_7_TASK.md").lower()
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md").lower()

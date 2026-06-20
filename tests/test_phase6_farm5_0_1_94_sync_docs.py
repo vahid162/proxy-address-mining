@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def test_phase_status_current_state_unchanged_and_sync_evidence_present():
-    t = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    t = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in t
     assert "farm5 synced to 0.1.94" in t
     assert "631 passed" in t

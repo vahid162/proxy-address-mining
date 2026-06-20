@@ -10,7 +10,7 @@ def test_e1_acceptance_evidence_exists() -> None:
 
 
 def test_phase_status_current_state_block_unchanged() -> None:
-    t = _read("docs/PHASE_STATUS.md")
+    t = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     expected = """## Current State
 
 ```text
@@ -33,7 +33,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 def test_phase_status_has_e1_accepted_evidence_and_e2_next_step() -> None:
-    t = _read("docs/PHASE_STATUS.md")
+    t = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "### Phase 6-E1 — Isolated Harness Contract Hardening" in t
     assert "version accepted on farm5: 0.1.63" in t
     assert "pytest with venv: 392 passed" in t
@@ -46,7 +46,7 @@ def test_docs_do_not_authorize_live_apply_boundary_breaks() -> None:
         "README.md",
         "AGENTS.md",
         "docs/AI_CODING_RULES.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",

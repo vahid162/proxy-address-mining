@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf import __version__
 from mpf.config import MPFConfig
 from mpf.domain.controlled_worker_dry_run import ControlledWorkerDryRunInput, evaluate_controlled_worker_dry_run
@@ -15,7 +17,7 @@ def _read(p: Path) -> str:
 def build_phase8_controlled_worker_dry_run_report(cfg: MPFConfig, repo_root: Path | None = None, *, operator_confirmed: bool = False, batch_limit: int = 5) -> dict[str, object]:
     _ = cfg
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     gate_doc = _read(root / "docs/PHASE_8_CONTROLLED_WORKER_DRY_RUN_GATE.md")
     result = evaluate_controlled_worker_dry_run(ControlledWorkerDryRunInput(
         repository_version=__version__, latest_recorded_farm5_sync_evidence="0.1.121", operator_confirmed=operator_confirmed,

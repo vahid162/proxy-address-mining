@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import historical_phase_status_path, read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.services import firewall_manual_canary_customer_acceptance_readiness_service, firewall_manual_canary_customer_proposal_service, firewall_manual_canary_customer_server_evidence_service, firewall_no_customer_apply_acceptance_gate_service, phase6_final_acceptance_readiness_service, phase6_final_acceptance_review_service, phase6_operator_acceptance_decision_service, firewall_no_customer_apply_execution_acceptance_service, firewall_no_customer_apply_execution_gate_service, firewall_no_customer_apply_package_service, firewall_no_customer_apply_scaffold_service, firewall_no_customer_runtime_execution_approval_service, firewall_no_customer_runtime_execution_evidence_service, firewall_restore_lock_record_acceptance_gate_service, firewall_restore_lock_record_execution_gate_service, firewall_restore_lock_record_gate_service, firewall_restore_lock_record_readiness_service
 
@@ -42,7 +44,7 @@ def _parse_current_state_block(text: str) -> dict[str, str] | None:
 
 def build_apply_gate_readiness_report(cfg: MPFConfig, repo_root: Path | None = None, include_runtime_approval_summary: bool = True, include_runtime_evidence_summary: bool = True, include_manual_canary_summary: bool = True, include_manual_canary_server_evidence_summary: bool = False, include_phase6_final_acceptance_summary: bool = False, include_phase6_final_acceptance_review_summary: bool = False, include_phase6_operator_acceptance_decision_summary: bool = False) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = root / "docs" / "PHASE_STATUS.md"
+    phase_status = historical_phase_status_path(root)
     dedicated_doc = root / "docs" / "PHASE_6_DEDICATED_APPLY_GATE_PROPOSAL_REVIEW.md"
 
     blockers: list[str] = []

@@ -16,7 +16,7 @@ def test_phase6_f_doc_exists() -> None:
 
 
 def test_phase_status_current_state_unchanged_and_phase6f_accepted() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     expected = """## Current State
 
 ```text
@@ -69,7 +69,7 @@ def test_index_includes_phase6f_in_required_sections() -> None:
 def test_no_doc_authorizes_live_apply_or_related_mutations_now() -> None:
     docs = [
         "docs/PHASE_6_F_MANUAL_CANARY_GATE_DEFINITION.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",
@@ -93,7 +93,7 @@ def test_no_doc_authorizes_live_apply_or_related_mutations_now() -> None:
 
 
 def test_no_stale_wording_phase6e3_as_next_safe_work() -> None:
-    docs = ["docs/INDEX.md", "docs/AI_PHASE_6_TASK.md", "docs/PHASE_STATUS.md", "docs/REMAINING_PHASE_PLAN.md"]
+    docs = ["docs/INDEX.md", "docs/AI_PHASE_6_TASK.md", "docs/history/PHASE_STATUS_LEGACY_0.1.302.md", "docs/REMAINING_PHASE_PLAN.md"]
     all_text = "\n".join(_read(p).lower() for p in docs)
     assert "next safe work is phase 6-e3" not in all_text
     assert "phase 6-e3 is the current next planned step" not in all_text

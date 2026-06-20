@@ -10,7 +10,7 @@ def test_phase6_h_acceptance_doc_exists() -> None:
 
 
 def test_phase_status_current_state_unchanged() -> None:
-    text = _read('docs/PHASE_STATUS.md')
+    text = _read('docs/history/PHASE_STATUS_LEGACY_0.1.302.md')
     expected = """## Current State
 
 ```text
@@ -33,7 +33,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 def test_phase_status_has_phase6h_accepted_evidence() -> None:
-    text = _read('docs/PHASE_STATUS.md')
+    text = _read('docs/history/PHASE_STATUS_LEGACY_0.1.302.md')
     assert '### Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary' in text
     assert 'version accepted on farm5: 0.1.79' in text
     assert 'docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md added' in text
@@ -41,7 +41,7 @@ def test_phase_status_has_phase6h_accepted_evidence() -> None:
 
 
 def test_phase_status_does_not_enable_forbidden_state() -> None:
-    text = _read('docs/PHASE_STATUS.md')
+    text = _read('docs/history/PHASE_STATUS_LEGACY_0.1.302.md')
     assert 'firewall_apply_allowed: yes' not in text
     assert 'production_traffic: enabled' not in text
     assert 'abuse_automation_allowed: yes' not in text
@@ -58,7 +58,7 @@ def test_index_includes_phase6h_acceptance_in_required_sections() -> None:
 
 def test_no_doc_authorizes_forbidden_live_behaviors_now() -> None:
     docs = [
-        'docs/PHASE_STATUS.md', 'docs/INDEX.md', 'docs/AI_PHASE_6_TASK.md', 'docs/FIREWALL.md',
+        'docs/history/PHASE_STATUS_LEGACY_0.1.302.md', 'docs/INDEX.md', 'docs/AI_PHASE_6_TASK.md', 'docs/FIREWALL.md',
         'docs/ROADMAP.md', 'docs/REMAINING_PHASE_PLAN.md', 'docs/PHASE_6_H_ACCEPTANCE_EVIDENCE.md',
     ]
     combined = '\n'.join(_read(p).lower() for p in docs)
@@ -85,7 +85,7 @@ def test_abuse_invariant_preserved() -> None:
 
 
 def test_phase_status_phase6h_placement_and_no_bottom_duplicate() -> None:
-    text = _read('docs/PHASE_STATUS.md')
+    text = _read('docs/history/PHASE_STATUS_LEGACY_0.1.302.md')
     g = text.index('### Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review')
     h = text.index('### Phase 6-H — Dedicated Apply Gate Entry Criteria / Authorization Boundary')
     warning = text.index('## Current Server Warning')
@@ -95,7 +95,7 @@ def test_phase_status_phase6h_placement_and_no_bottom_duplicate() -> None:
 
 
 def test_phase_status_next_step_not_planned_only() -> None:
-    text = _read('docs/PHASE_STATUS.md')
+    text = _read('docs/history/PHASE_STATUS_LEGACY_0.1.302.md')
     assert 'Next planned documentation/test-only step is Phase 6-H' not in text
     assert 'Phase 6-H is planned only' not in text
     assert 'Future dedicated Phase 6 apply gate remains not accepted and not authorized.' in text

@@ -1,5 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
+
+from mpf.services.historical_phase_status import read_historical_phase_status
 from mpf import __version__
 from mpf.config import MPFConfig
 from mpf.services.phase9_diagnostics_common import _read, false_flags, all_flags_false
@@ -12,7 +14,7 @@ def _section(name: str, summary: str) -> dict[str, object]:
 
 def build_phase9_diagnostics_bundle_report(cfg: MPFConfig, repo_root: Path | None=None) -> dict[str, object]:
     root=repo_root or Path(__file__).resolve().parents[2]
-    phase=_read(root/'docs/PHASE_STATUS.md')
+    phase=read_historical_phase_status(root)
     p8=_read(root/'docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md')
     gate_ok='current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5' in phase and 'current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness' in phase
     latest='0.1.124' if 'synced to 0.1.124' in phase else 'unknown'

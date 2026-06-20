@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.domain.abuse_worker_integration_readiness import (
     build_abuse_worker_failure_modes,
@@ -24,7 +26,7 @@ def _read(path: Path) -> str:
 
 def build_phase8_runtime_worker_integration_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     ai = _read(root / "docs/AI_PHASE_8_TASK.md")
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
     rules = _read(root / "docs/AI_CODING_RULES.md")

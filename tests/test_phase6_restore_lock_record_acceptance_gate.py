@@ -33,17 +33,17 @@ def test_service_blocked_not_accepted_and_sync_true() -> None:
 
 
 def test_blockers_for_changed_state_and_time_sync_missing(tmp_path: Path) -> None:
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "PHASE_STATUS.md").write_text(_base_text().replace("production_traffic: none", "production_traffic: yes").replace("Phase 6 farm5 Time Synchronization — Server Evidence", ""), encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(_base_text().replace("production_traffic: none", "production_traffic: yes").replace("Phase 6 farm5 Time Synchronization — Server Evidence", ""), encoding="utf-8")
     r = _report(tmp_path)
     assert "Current State does not match required gate" in r["blockers"]
     assert any("Time Synchronization" in b for b in r["blockers"])
 
 
 def test_blockers_for_time_sync_markers(tmp_path: Path) -> None:
-    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs/history").mkdir(parents=True)
     t = _base_text().replace("System clock synchronized: yes", "System clock synchronized: maybe").replace("NTPSynchronized=yes", "").replace("194.225.150.25", "")
-    (tmp_path / "docs" / "PHASE_STATUS.md").write_text(t, encoding="utf-8")
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(t, encoding="utf-8")
     r = _report(tmp_path)
     assert any("System clock synchronized: yes" in b for b in r["blockers"])
     assert any("NTPSynchronized=yes" in b for b in r["blockers"])

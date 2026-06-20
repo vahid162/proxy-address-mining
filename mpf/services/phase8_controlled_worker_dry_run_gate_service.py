@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf import __version__
 
@@ -12,7 +14,7 @@ def _read(p: Path) -> str:
 
 def build_phase8_controlled_worker_dry_run_gate_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
     gate_doc = _read(root / "docs/PHASE_8_CONTROLLED_WORKER_DRY_RUN_GATE.md")
 

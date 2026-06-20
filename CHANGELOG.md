@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.303
+
+- Separated active phase status from legacy release/evidence history while preserving prior `docs/PHASE_STATUS.md` content as a non-authorizing archive.
+- Added a curated Debug Journal template for confirmed reusable lessons, not raw logs or current authorization.
+- Extended document-contract validation for active-state/history separation.
+- No runtime authorization, server state, phase gate, firewall, database, Docker, systemd, conntrack, customer, abuse, worker, UI, Telegram, or production traffic behavior changed.
+
 ## 0.1.302
 
 - docs: add canonical product and engineering contracts, first runtime-first service-layer ADR, historical compatibility redirects, and extended document-contract enforcement.

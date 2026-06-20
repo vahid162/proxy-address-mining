@@ -110,13 +110,13 @@ def test_docs_targets_are_dry_run_evaluator_and_current_position_is_single() -> 
 
 def test_service_blockers_when_docs_stale_or_prior_contract_missing(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
-    (repo / "docs").mkdir(parents=True)
+    (repo / "docs/history").mkdir(parents=True)
     (repo / "README.md").write_text("stale", encoding="utf-8")
     (repo / "docs/INDEX.md").write_text("stale", encoding="utf-8")
     (repo / "docs/AI_CODING_RULES.md").write_text("stale", encoding="utf-8")
     (repo / "docs/AI_PHASE_8_TASK.md").write_text("stale", encoding="utf-8")
     (repo / "docs/REMAINING_PHASE_PLAN.md").write_text("stale", encoding="utf-8")
-    (repo / "docs/PHASE_STATUS.md").write_text("current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\n", encoding="utf-8")
+    (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\n", encoding="utf-8")
 
     cfg = load_config(example_config_path())
     report = build_phase8_abuse_dry_run_evaluator_report(cfg, repo_root=repo)

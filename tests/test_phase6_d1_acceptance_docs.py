@@ -31,7 +31,7 @@ def test_phase6_d1_acceptance_evidence_exists_and_contains_required_lines() -> N
 
 
 def test_phase_status_current_state_unchanged_and_phase6_d1_doce0_present() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     current_state_required = [
         "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5",
         "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness",

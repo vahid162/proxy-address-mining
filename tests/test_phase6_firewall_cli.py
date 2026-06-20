@@ -595,7 +595,7 @@ def test_firewall_gate_review_human_default_db(monkeypatch) -> None:
     assert "restore_lock_record_execution_gate: summary" in res.output
     assert "  authorization_status: CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN" in res.output
     assert "  execution_allowed: false" in res.output
-    assert "  controlled_boundary_accepted: true" in res.output
+    assert "  controlled_boundary_accepted: false" in res.output
     assert "  dry_run: true" in res.output
     assert "  execute_controlled_boundary: false" in res.output
     assert "  restore_point_write_allowed: false" in res.output

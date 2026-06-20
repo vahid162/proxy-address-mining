@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 
 
@@ -14,7 +16,7 @@ def _read(path: Path) -> str:
 
 def build_phase8_planning_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
 

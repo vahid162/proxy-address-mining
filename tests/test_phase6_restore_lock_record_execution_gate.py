@@ -72,15 +72,16 @@ def test_service_blocked_and_not_authorized() -> None:
     assert r["final_decision"] == "BLOCKED"
     assert r["authorization_status"] == "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN"
     assert r["execution_allowed"] is False
-    assert r["farm5_time_sync_resolved"] is True
-    assert r["restore_lock_record_acceptance_gate_evidence_present"] is True
+    assert r["farm5_time_sync_resolved"] is False
+    assert r["restore_lock_record_acceptance_gate_evidence_present"] is False
+    assert "restore_lock_record_controlled_execution_not_authorized_by_active_phase" in r["blockers"]
     
 
 def test_blocks_on_changed_current_state(tmp_path: Path) -> None:
     (tmp_path / "docs").mkdir()
     (tmp_path / "docs" / "PHASE_STATUS.md").write_text(_base_text().replace("production_traffic: none", "production_traffic: yes"), encoding="utf-8")
     r = firewall_restore_lock_record_execution_gate_service.build_restore_lock_record_execution_gate_report(_cfg(), repo_root=tmp_path)
-    assert "Current State does not match required gate" in r["blockers"]
+    assert "active Current State does not match required Phase 11 gate" in r["blockers"]
 
 
 def test_blocks_missing_time_sync_or_acceptance_sections(tmp_path: Path) -> None:
@@ -167,6 +168,30 @@ def test_cli_execute_missing_args_exit_nonzero() -> None:
     res3 = RUNNER.invoke(app, ["firewall", "restore-lock-record-execution-gate", "--config", "configs/mpf.example.yaml", "--execute-controlled-boundary", "--operator", "alice", "--reason", "r"])
     assert res3.exit_code != 0
 
+
+def test_archive_content_cannot_authorize_controlled_execution(tmp_path: Path) -> None:
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs").mkdir(exist_ok=True)
+    # Historical archive contains the old Phase 6 accepted boundary, but execution
+    # must be gated only by active docs/PHASE_STATUS.md.
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(_base_text(), encoding="utf-8")
+    (tmp_path / "docs/PHASE_STATUS.md").write_text(Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"), encoding="utf-8")
+    called = False
+    def writer(payload):
+        nonlocal called
+        called = True
+        raise AssertionError("archive authorized writer")
+    r = firewall_restore_lock_record_execution_gate_service.run_restore_lock_record_controlled_execution(
+        _cfg(), repo_root=tmp_path, execute_controlled_boundary=True, operator="alice", reason="test", yes=True, record_writer=writer
+    )
+    assert r["execution_allowed"] is False
+    assert r["db_mutation"] is False
+    assert r["restore_point_write_allowed"] is False
+    assert r["lock_acquisition_allowed"] is False
+    assert r["db_apply_record_write_allowed"] is False
+    assert called is False
+    assert "restore_lock_record_controlled_execution_not_authorized_by_active_phase" in r["blockers"]
+
 def test_static_safety_tokens() -> None:
     text = Path("mpf/services/firewall_restore_lock_record_execution_gate_service.py").read_text(encoding="utf-8").lower()
     forbidden = [
@@ -177,7 +202,7 @@ def test_static_safety_tokens() -> None:
 
 
 def test_phase_status_execution_gate_sync_evidence_tokens_present() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "### Phase 6 Restore/Lock/DB Apply Record Execution Gate Scaffold — Server Sync" in text
     required = [
         "pytest with venv during sync: 566 passed in 12.51s",
@@ -200,7 +225,7 @@ def test_phase_status_execution_gate_sync_evidence_tokens_present() -> None:
 
 
 def test_phase_status_current_state_block_unchanged() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     expected = """current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
 current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
@@ -217,7 +242,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only"""
 
 
 def test_phase6_controlled_execution_gate_proposal_review_section_present() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Gate — Proposal Review" in text
     required = [
         "proposal/review only",
@@ -237,7 +262,7 @@ def test_phase6_controlled_execution_gate_proposal_review_section_present() -> N
 
 
 def test_phase6_controlled_execution_gate_proposal_review_acceptance_criteria_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     required = [
         "operator approval is explicitly recorded",
         "fresh farm5 evidence is included",
@@ -261,7 +286,7 @@ def test_phase6_controlled_execution_gate_proposal_review_acceptance_criteria_to
 
 
 def test_phase6_controlled_execution_gate_proposal_review_still_forbidden_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     forbidden_listed = [
         "iptables-restore",
         "live firewall apply",
@@ -280,7 +305,7 @@ def test_phase6_controlled_execution_gate_proposal_review_still_forbidden_tokens
 
 
 def test_phase6_controlled_execution_boundary_accepted_section_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "### Phase 6 Controlled Restore/Lock/DB Apply Record Execution Boundary — Accepted" in text
     required = [
         "accepted boundary only",
@@ -307,7 +332,7 @@ def test_phase6_controlled_execution_boundary_accepted_section_tokens() -> None:
 
 
 def test_phase6_controlled_execution_boundary_accepted_still_forbidden_tokens() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     forbidden_listed = [
         "iptables-restore",
         "live firewall apply",

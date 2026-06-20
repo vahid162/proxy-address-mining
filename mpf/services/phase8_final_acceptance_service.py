@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf import __version__
 from mpf.config import MPFConfig
 
@@ -16,7 +18,7 @@ def build_phase8_final_acceptance_report(
 ) -> dict[str, object]:
     _ = cfg
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _r(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     readiness = phase_status
     evidence_doc = _r(root / "docs/PHASE_8_FINAL_ACCEPTANCE_EVIDENCE.md")
 

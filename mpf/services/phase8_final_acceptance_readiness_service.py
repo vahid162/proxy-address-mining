@@ -1,5 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
+
+from mpf.services.historical_phase_status import read_historical_phase_status
 from mpf import __version__
 from mpf.config import MPFConfig
 
@@ -9,7 +11,7 @@ def _r(p: Path) -> str:
 def build_phase8_final_acceptance_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     _ = cfg
     root = repo_root or Path(__file__).resolve().parents[2]
-    ps = _r(root/'docs/PHASE_STATUS.md')
+    ps = read_historical_phase_status(root)
     inv = True
     report = {
         'component':'phase8_final_acceptance_readiness','phase':'Phase 8 — Abuse 1h Core','gate_type':'final_acceptance_readiness_review','final_decision':'BLOCKED',

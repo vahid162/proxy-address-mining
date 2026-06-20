@@ -1,7 +1,7 @@
 from pathlib import Path
 
 EVIDENCE = Path("docs/PHASE_11_FARM5_0_1_230_OBSERVATION_FINAL_READINESS_READY.md").read_text()
-STATUS = Path("docs/PHASE_STATUS.md").read_text()
+STATUS = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
 
 def _current_state(text):
     return text.split("## Current State", 1)[1].split("```text", 1)[1].split("```", 1)[0].strip()

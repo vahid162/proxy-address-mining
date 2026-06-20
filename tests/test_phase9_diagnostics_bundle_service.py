@@ -17,8 +17,8 @@ def test_phase9_diagnostics_bundle_safe() -> None:
 
 
 def test_phase9_diagnostics_fail_closed_missing_tokens(tmp_path: Path) -> None:
-    (tmp_path / 'docs').mkdir()
-    (tmp_path / 'docs/PHASE_STATUS.md').write_text('x', encoding='utf-8')
+    (tmp_path / 'docs/history').mkdir(parents=True)
+    (tmp_path / 'docs/history/PHASE_STATUS_LEGACY_0.1.302.md').write_text('x', encoding='utf-8')
     r = build_phase9_diagnostics_bundle_report(load_config(Path('configs/mpf.example.yaml')), repo_root=tmp_path)
     assert r['final_decision'] == 'BLOCKED'
     assert r['blockers']

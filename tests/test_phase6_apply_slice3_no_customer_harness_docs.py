@@ -12,7 +12,7 @@ def test_slice3_doc_exists_and_status() -> None:
 
 
 def test_phase_status_current_state_unchanged_and_slice3_not_accepted() -> None:
-    phase_status = _read("docs/PHASE_STATUS.md")
+    phase_status = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     expected = """current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5
 current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness
 server_state: farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active
@@ -32,7 +32,7 @@ telegram_allowed: no"""
 def test_docs_alignment_and_non_authorization_bundle() -> None:
     docs = [
         "docs/PHASE_6_APPLY_SLICE_3_CONTROLLED_NO_CUSTOMER_HARNESS.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/REMAINING_PHASE_PLAN.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/INDEX.md",

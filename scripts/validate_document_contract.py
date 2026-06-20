@@ -19,11 +19,14 @@ REQUIRED_FILES = (
     "mpf/__init__.py",
     "docs/INDEX.md",
     "docs/PHASE_STATUS.md",
+    "docs/DEBUG_LOG.md",
+    "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
     "docs/PRD.md",
     "docs/GUIDELINES.md",
     "docs/SAFETY.md",
     "docs/ARCHITECTURE.md",
     "docs/ROADMAP.md",
+    "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md",
     "docs/ADR/0001-runtime-first-service-layer-boundary.md",
     ".github/PULL_REQUEST_TEMPLATE/runtime-first.md",
     ".github/workflows/ci.yml",
@@ -34,12 +37,14 @@ CANONICAL_INDEX_ROUTES = (
     "docs/PRD.md",
     "docs/GUIDELINES.md",
     "docs/ROADMAP.md",
+    "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md",
     "docs/ADR/0001-runtime-first-service-layer-boundary.md",
 )
 STATIC_CANONICAL_DOCS = (
     "docs/PRD.md",
     "docs/GUIDELINES.md",
     "docs/ROADMAP.md",
+    "docs/HISTORICAL_COMPATIBILITY_ANCHORS.md",
     "docs/ADR/0001-runtime-first-service-layer-boundary.md",
     "docs/ARCHITECTURE.md",
     "docs/SAFETY.md",
@@ -51,6 +56,11 @@ SNAPSHOT_KEYS = (
     "production_traffic",
     "customer_onboarding_allowed",
     "phase12_start_allowed",
+    "firewall_apply_allowed",
+    "abuse_automation_allowed",
+    "worker_enforcement_allowed",
+    "ui_allowed",
+    "telegram_allowed",
 )
 
 
@@ -100,6 +110,45 @@ def _version_from_init(text: str) -> str | None:
     return match.group(1) if match else None
 
 
+
+def _validate_phase_status(root_path: Path, violations: list[str]) -> None:
+    path = root_path / "docs/PHASE_STATUS.md"
+    if not path.is_file():
+        return
+    text = _read(path)
+    if not text.startswith("# PHASE STATUS\n"):
+        violations.append("docs/PHASE_STATUS.md must start with '# PHASE STATUS'")
+    first_title = text.lstrip().splitlines()[0] if text.strip() else ""
+    if first_title != "# PHASE STATUS":
+        violations.append("docs/PHASE_STATUS.md must not have release notes or historical narrative before '# PHASE STATUS'")
+    required = (
+        "Authority and scope",
+        "Repository state",
+        "Current phase and authorization",
+        "Next required step",
+        "Required evidence before runtime action",
+        "Active task documents",
+        "Historical records",
+    )
+    for heading in required:
+        if f"## {heading}" not in text:
+            violations.append(f"docs/PHASE_STATUS.md missing required heading: {heading}")
+
+
+def _validate_legacy_phase_status(root_path: Path, violations: list[str]) -> None:
+    path = root_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md"
+    if not path.is_file():
+        return
+    text = _read(path)
+    required_prefix = (
+        "# Non-authorizing historical snapshot\n\n"
+        "This file preserves the complete prior active `docs/PHASE_STATUS.md` as historical context for audit and continuity. "
+        "It is non-authorizing and must not override `AGENTS.md`, the active `docs/PHASE_STATUS.md`, or current canonical contracts.\n\n"
+        "---\n"
+    )
+    if not text.startswith(required_prefix):
+        violations.append("docs/history/PHASE_STATUS_LEGACY_0.1.302.md must begin with the non-authorizing notice and separator")
+
 def validate_document_contract(root: str | Path = ".") -> ValidationResult:
     root_path = Path(root).resolve()
     violations: list[str] = []
@@ -138,6 +187,9 @@ def validate_document_contract(root: str | Path = ".") -> ValidationResult:
         if not re.search(rf"(?m)^##\s+{re.escape(current_version)}(?:\s|$)", _read(changelog)):
             violations.append(f"CHANGELOG.md is missing a top-level heading for current version {current_version}")
 
+    _validate_phase_status(root_path, violations)
+    _validate_legacy_phase_status(root_path, violations)
+
     for rel in ENTRYPOINTS:
         path = root_path / rel
         if not path.is_file():
@@ -160,8 +212,11 @@ def validate_document_contract(root: str | Path = ".") -> ValidationResult:
         for route in CANONICAL_INDEX_ROUTES:
             if route not in index_links and route.removeprefix("docs/") not in index_links:
                 violations.append(f"docs/INDEX.md must link to canonical route: {route}")
+        for route in ("docs/DEBUG_LOG.md", "docs/history/PHASE_STATUS_LEGACY_0.1.302.md"):
+            if route not in index_links and route.removeprefix("docs/") not in index_links:
+                violations.append(f"docs/INDEX.md must link to canonical route: {route}")
 
-    for rel in STATIC_CANONICAL_DOCS:
+    for rel in (*STATIC_CANONICAL_DOCS, "docs/DEBUG_LOG.md"):
         path = root_path / rel
         if not path.is_file():
             continue

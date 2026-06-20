@@ -4,6 +4,8 @@ from dataclasses import asdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.domain.abuse_dry_run_evaluator import AbuseDryRunInput, AbuseEvidenceSnapshot, AbusePolicySnapshot, AbuseStateSnapshot, evaluate_abuse_dry_run
 from mpf.domain.abuse_transition_plan import build_db_mutation_plan, build_operator_approval_contract, build_transition_intent_from_dry_run_result
@@ -35,7 +37,7 @@ def _scenario(now: datetime, sid: str, inp: AbuseDryRunInput, expect_tables: lis
 
 def build_phase8_db_transition_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
     rules = _read(root / "docs/AI_CODING_RULES.md")

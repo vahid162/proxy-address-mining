@@ -58,14 +58,14 @@ def test_service_cli_and_blocked_defaults() -> None:
 
 def test_blockers_for_stale_docs_and_fabricated_sync_and_missing_contracts(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
-    (repo / "docs").mkdir(parents=True)
+    (repo / "docs/history").mkdir(parents=True)
     (repo / "mpf").mkdir(parents=True)
     (repo / "README.md").write_text("stale", encoding="utf-8")
     (repo / "docs/INDEX.md").write_text("stale", encoding="utf-8")
     (repo / "docs/AI_CODING_RULES.md").write_text("stale", encoding="utf-8")
     (repo / "docs/AI_PHASE_8_TASK.md").write_text("stale", encoding="utf-8")
     (repo / "docs/REMAINING_PHASE_PLAN.md").write_text("stale", encoding="utf-8")
-    (repo / "docs/PHASE_STATUS.md").write_text("""current_accepted_phase: Phase 7
+    (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("""current_accepted_phase: Phase 7
 current_working_phase: Phase 8
 synced to 0.1.110
 synced to 0.1.114
@@ -83,9 +83,9 @@ synced to 0.1.114
 
 def test_checklist_reflects_failed_prerequisites(tmp_path: Path) -> None:
     repo = tmp_path / "repo2"
-    (repo / "docs").mkdir(parents=True)
+    (repo / "docs/history").mkdir(parents=True)
     (repo / "mpf").mkdir(parents=True)
-    (repo / "docs/PHASE_STATUS.md").write_text("""current_accepted_phase: Phase 7
+    (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("""current_accepted_phase: Phase 7
 current_working_phase: Phase 8
 synced to 0.1.110
 """, encoding="utf-8")

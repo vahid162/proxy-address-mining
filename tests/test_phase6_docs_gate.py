@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def test_phase_status_gate_and_next_step_alignment() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in text
     assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in text
     assert "production_traffic: none" in text
@@ -12,14 +12,14 @@ def test_phase_status_gate_and_next_step_alignment() -> None:
 
 
 def test_next_step_mentions_phase6g_and_not_authorize_live_apply() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "## Next Planned Step" in text
     assert "Phase 6-G" in text
     assert "does not authorize live apply" in text.lower() or "live apply remains forbidden" in text.lower()
 
 
 def test_phase6_c_accepted_server_results_subsection_present() -> None:
-    text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     assert "### Phase 6-C — Offline Apply Gate Readiness/Review" in text
     assert "version accepted on farm5: 0.1.56" in text
     assert "pytest passed: 337 passed" in text

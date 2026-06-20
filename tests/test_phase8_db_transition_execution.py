@@ -76,9 +76,9 @@ def test_execution_checklist_uses_named_items() -> None:
 
 def _mk_repo(tmp_path: Path, phase_status: str, readme: str = "DB-only controlled transition execution package", index: str = "DB-only controlled transition execution", rules: str = "Phase 8 DB-only execution stop condition", remaining: str = "Current target is Phase 8 DB-only controlled transition execution package.", ai: str = "DB-Only Controlled Transition Execution") -> Path:
     repo = tmp_path / "repo"
-    (repo / "docs").mkdir(parents=True)
+    (repo / "docs/history").mkdir(parents=True)
     (repo / "README.md").write_text(readme, encoding="utf-8")
-    (repo / "docs/PHASE_STATUS.md").write_text(phase_status, encoding="utf-8")
+    (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(phase_status, encoding="utf-8")
     (repo / "docs/INDEX.md").write_text(index, encoding="utf-8")
     (repo / "docs/AI_CODING_RULES.md").write_text(rules, encoding="utf-8")
     (repo / "docs/REMAINING_PHASE_PLAN.md").write_text(remaining, encoding="utf-8")

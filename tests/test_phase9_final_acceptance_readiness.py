@@ -26,7 +26,7 @@ def test_phase9_final_acceptance_readiness_accepted() -> None:
 def test_phase9_final_acceptance_readiness_fail_closed_without_0_1_126_evidence(tmp_path: Path) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
-    phase = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8").replace("### Phase 9 farm5 0.1.127 Sync/Test Evidence", "### removed")
+    phase = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8").replace("### Phase 9 farm5 0.1.127 Sync/Test Evidence", "### removed")
     (docs / "PHASE_STATUS.md").write_text(phase, encoding="utf-8")
     r = build_phase9_final_acceptance_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"
@@ -36,7 +36,7 @@ def test_phase9_final_acceptance_readiness_fail_closed_without_0_1_126_evidence(
 def test_phase9_final_acceptance_readiness_fail_closed_without_diagnostics_status(tmp_path: Path) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
-    phase = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8").replace("phase9 diagnostics:\n  ACCEPTED", "phase9 diagnostics:\n  BLOCKED")
+    phase = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8").replace("phase9 diagnostics:\n  ACCEPTED", "phase9 diagnostics:\n  BLOCKED")
     (docs / "PHASE_STATUS.md").write_text(phase, encoding="utf-8")
     r = build_phase9_final_acceptance_readiness_report(cfg(), repo_root=tmp_path)
     assert r["final_decision"] == "BLOCKED"

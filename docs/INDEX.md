@@ -18,7 +18,8 @@ This index routes readers to authoritative documents without duplicating dynamic
 8. [`docs/ADR/`](ADR/) = architectural decisions.
 9. [`CHANGELOG.md`](../CHANGELOG.md) = release history.
    Compatibility label: `CHANGELOG.md` = release history.
-10. [`docs/history/`](history/) = non-authorizing historical context.
+10. [`docs/DEBUG_LOG.md`](DEBUG_LOG.md) = curated confirmed lessons, not raw logs and not current authority.
+11. [`docs/history/`](history/) = non-authorizing historical context.
     Compatibility label: `docs/history/` = non-authorizing historical context.
 
 If documents conflict, follow the stricter safety rule and the current dynamic state in `docs/PHASE_STATUS.md`.
@@ -41,7 +42,9 @@ For most tasks, read only the documents needed for the requested scope, in this 
 - Safety: [`docs/SAFETY.md`](SAFETY.md).
 - Long-term roadmap: [`docs/ROADMAP.md`](ROADMAP.md).
 - Architectural decisions: [`docs/ADR/`](ADR/) and [`ADR 0001`](ADR/0001-runtime-first-service-layer-boundary.md).
-- Current state, gates, and runtime authorization: [`docs/PHASE_STATUS.md`](PHASE_STATUS.md).
+- Current state, gates, and runtime authorization: [`docs/PHASE_STATUS.md`](PHASE_STATUS.md) — the only current-state authority.
+- Debugging lessons: [`docs/DEBUG_LOG.md`](DEBUG_LOG.md) — curated confirmed lessons, not raw logs and not current authority.
+- Historical compatibility anchors: [`docs/HISTORICAL_COMPATIBILITY_ANCHORS.md`](HISTORICAL_COMPATIBILITY_ANCHORS.md) — non-authorizing historical/reference-only anchors.
 - Historical material: [`docs/history/`](history/).
 - Data model: [`docs/DATA_MODEL.md`](DATA_MODEL.md).
 - Firewall policy: [`docs/FIREWALL.md`](FIREWALL.md).
@@ -69,6 +72,8 @@ For most tasks, read only the documents needed for the requested scope, in this 
 The [`docs/history/`](history/) directory preserves former active documents for audit and continuity only. These files are non-authorizing and must not override `AGENTS.md`, `docs/PHASE_STATUS.md`, `docs/SAFETY.md`, `docs/ARCHITECTURE.md`, or other current active contracts.
 
 Preserved legacy snapshots for this canonical-contract work:
+
+- [`docs/history/PHASE_STATUS_LEGACY_0.1.302.md`](history/PHASE_STATUS_LEGACY_0.1.302.md)
 
 - [`docs/history/ROADMAP_LEGACY_0.1.301.md`](history/ROADMAP_LEGACY_0.1.301.md)
 - [`docs/history/AI_CODING_RULES_LEGACY_0.1.301.md`](history/AI_CODING_RULES_LEGACY_0.1.301.md)

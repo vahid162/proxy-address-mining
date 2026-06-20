@@ -10,7 +10,7 @@ def test_phase6_g_acceptance_doc_exists() -> None:
 
 
 def test_phase_status_current_state_unchanged() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     expected = """## Current State
 
 ```text
@@ -33,7 +33,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 def test_phase_status_has_phase6g_accepted_evidence_and_conservative_next_step() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "### Phase 6-G — Controlled Live Apply Gate Planning / Pre-Apply Review" in text
     assert "version accepted on farm5: 0.1.76" in text
     assert "docs/PHASE_6_G_ACCEPTANCE_EVIDENCE.md added" in text
@@ -41,7 +41,7 @@ def test_phase_status_has_phase6g_accepted_evidence_and_conservative_next_step()
 
 
 def test_phase_status_does_not_enable_forbidden_state() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     assert "firewall_apply_allowed: yes" not in text
     assert "production_traffic: enabled" not in text
     assert "abuse_automation_allowed: yes" not in text
@@ -59,7 +59,7 @@ def test_index_includes_phase6g_acceptance_in_required_sections() -> None:
 
 def test_no_doc_authorizes_forbidden_live_behaviors_now() -> None:
     docs = [
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",

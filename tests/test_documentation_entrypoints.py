@@ -121,7 +121,7 @@ def test_phase8_services_use_phase_status_for_dynamic_state(tmp_path):
     cfg = load_config(Path("configs/mpf.example.yaml"))
 
     baseline = build_phase8_abuse_dry_run_evaluator_report(cfg, repo)["blockers"]
-    (repo / "docs/PHASE_STATUS.md").write_text("current_accepted_phase: Phase 7\n", encoding="utf-8")
+    (repo / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("current_accepted_phase: Phase 7\n", encoding="utf-8")
     changed = build_phase8_abuse_dry_run_evaluator_report(cfg, repo)["blockers"]
 
     assert baseline == []

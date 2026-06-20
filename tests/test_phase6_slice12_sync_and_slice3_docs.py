@@ -6,7 +6,7 @@ def _read(path: str) -> str:
 
 
 def test_phase_status_current_state_block_unchanged() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     expected = """## Current State
 
 ```text
@@ -29,7 +29,7 @@ restore_lock_record_execution_allowed: controlled_boundary_only
 
 
 def test_phase_status_has_slice12_sync_evidence_and_slice4_next() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     for phrase in [
         "### Phase 6 Apply Slice 1-2 — Documentation/Readiness Boundary Sync",
         "version accepted on farm5: 0.1.83",
@@ -58,7 +58,7 @@ def test_slice3_legacy_content_remains_in_archives_not_active_redirect() -> None
 
 def test_no_authorization_introduced_in_changed_docs() -> None:
     docs = [
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/REMAINING_PHASE_PLAN.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/history/README_LEGACY_0.1.299.md",

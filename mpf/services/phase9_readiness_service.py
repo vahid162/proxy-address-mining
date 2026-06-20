@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf import __version__
 from mpf.config import MPFConfig
 
@@ -12,7 +14,7 @@ def _read(path: Path) -> str:
 
 def build_phase9_readiness_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     readme = _read(root / "README.md")
 
     gate_ok = "current_accepted_phase: Phase 8 — Abuse 1h Core accepted on farm5" in phase_status and "current_working_phase: Phase 9 — Check / Report / Diagnostics planning/readiness" in phase_status

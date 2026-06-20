@@ -46,7 +46,7 @@ def test_phase6_e3_non_authorizations_and_abuse_invariant() -> None:
 
 
 def test_phase_status_remains_unchanged_and_e3_not_accepted() -> None:
-    text = _read("docs/PHASE_STATUS.md")
+    text = _read("docs/history/PHASE_STATUS_LEGACY_0.1.302.md")
     expected = """## Current State
 
 ```text
@@ -87,7 +87,7 @@ def test_index_includes_e3_doc_in_required_sections() -> None:
 def test_no_docs_authorize_phase6e3_live_apply_or_mutations() -> None:
     docs = [
         "docs/PHASE_6_E3_NON_AUTHORIZING_GATE_CHECKLIST.md",
-        "docs/PHASE_STATUS.md",
+        "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
         "docs/INDEX.md",
         "docs/AI_PHASE_6_TASK.md",
         "docs/FIREWALL.md",

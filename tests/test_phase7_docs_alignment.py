@@ -32,7 +32,7 @@ def test_readme_stale_wording_removed() -> None:
 def test_ai_coding_rules_is_redirect_without_gate_snapshots() -> None:
     t = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
     assert "Compatibility redirect" in t
-    assert "docs/PHASE_STATUS.md" in t
+    assert "docs/history/PHASE_STATUS_LEGACY_0.1.302.md" in t
     assert "docs/GUIDELINES.md" in t
     assert "accepted: Phase 7" not in t
     assert "working: Phase 11 operational completion" not in t

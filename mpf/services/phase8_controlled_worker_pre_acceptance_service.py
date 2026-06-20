@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
+from mpf.services.historical_phase_status import read_historical_phase_status
+
 from mpf.config import MPFConfig
 from mpf.domain.abuse_worker_pre_acceptance import (
     AbuseWorkerPreAcceptanceInput,
@@ -35,7 +37,7 @@ def _scenario_result(sid: str, data: AbuseWorkerPreAcceptanceInput, expect_block
 
 def build_phase8_controlled_worker_pre_acceptance_report(cfg: MPFConfig, repo_root: Path | None = None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = _read(root / "docs/PHASE_STATUS.md")
+    phase_status = read_historical_phase_status(root)
     rules = _read(root / "docs/AI_CODING_RULES.md")
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
     rem = _read(root / "docs/REMAINING_PHASE_PLAN.md")

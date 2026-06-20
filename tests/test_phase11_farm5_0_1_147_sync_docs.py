@@ -29,7 +29,7 @@ def test_phase11_farm5_0_1_147_evidence_doc_present_and_tokens() -> None:
 
 def test_readme_phase_status_and_plan_alignment_for_0_1_147() -> None:
     readme = Path("docs/history/README_LEGACY_0.1.299.md").read_text(encoding="utf-8")
-    status = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    status = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
     plan = Path("docs/REMAINING_PHASE_PLAN.md").read_text(encoding="utf-8")
 
     assert "Latest recorded farm5 sync evidence is 0.1.153." not in readme

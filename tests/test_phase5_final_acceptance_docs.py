@@ -30,7 +30,7 @@ def test_phase5_final_acceptance_doc_exists_and_contains_required_evidence() -> 
 
 
 def test_phase_status_reflects_phase5_acceptance_and_phase6_working_gate() -> None:
-    status_text = Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8")
+    status_text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8")
 
     assert "current_accepted_phase: Phase 10 — Session / Worker / Policy / Share Timeline accepted on farm5" in status_text
     assert "current_working_phase: Phase 11 — Production / Customer Activation Gate planning/readiness" in status_text
@@ -49,7 +49,7 @@ def test_runtime_artifacts_remain_forbidden_in_phase_docs() -> None:
     combined = "\n".join(
         [
             Path("docs/PHASE_5_FINAL_ACCEPTANCE.md").read_text(encoding="utf-8"),
-            Path("docs/PHASE_STATUS.md").read_text(encoding="utf-8"),
+            Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text(encoding="utf-8"),
         ]
     )
 

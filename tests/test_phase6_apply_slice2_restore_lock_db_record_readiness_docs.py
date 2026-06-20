@@ -1,7 +1,7 @@
 from pathlib import Path
 
 DOC = Path("docs/PHASE_6_APPLY_SLICE_2_RESTORE_LOCK_DB_APPLY_RECORD_READINESS.md")
-PHASE_STATUS = Path("docs/PHASE_STATUS.md").read_text()
+PHASE_STATUS = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
 INDEX = Path("docs/history/INDEX_LEGACY_0.1.299.md").read_text()
 AI_TASK = Path("docs/AI_PHASE_6_TASK.md").read_text()
 REMAINING = Path("docs/REMAINING_PHASE_PLAN.md").read_text()

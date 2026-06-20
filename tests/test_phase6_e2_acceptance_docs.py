@@ -6,7 +6,7 @@ def test_phase6_e2_acceptance_doc_exists():
 
 
 def test_phase_status_current_state_unchanged():
-    text = Path("docs/PHASE_STATUS.md").read_text()
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
     expected = """## Current State
 
 ```text
@@ -32,7 +32,7 @@ def test_phase6_e2_accepted_and_e3_next_step_and_safety():
     docs = {
         p: Path(p).read_text()
         for p in [
-            "docs/PHASE_STATUS.md",
+            "docs/history/PHASE_STATUS_LEGACY_0.1.302.md",
             "docs/history/INDEX_LEGACY_0.1.299.md",
             "docs/AI_PHASE_6_TASK.md",
             "docs/FIREWALL.md",
@@ -40,7 +40,7 @@ def test_phase6_e2_accepted_and_e3_next_step_and_safety():
             "docs/PHASE_6_E2_ACCEPTANCE_EVIDENCE.md",
         ]
     }
-    ps = docs["docs/PHASE_STATUS.md"]
+    ps = docs["docs/history/PHASE_STATUS_LEGACY_0.1.302.md"]
     assert "### Phase 6-E2 — Isolated Harness Evidence Package / Boundary Planning" in ps
     assert "version accepted on farm5: 0.1.66" in ps
     assert "Future dedicated Phase 6 apply gate remains not accepted and not authorized" in ps
@@ -74,7 +74,7 @@ def test_abuse_invariant_preserved_in_e2_acceptance_doc():
 
 
 def test_e2_block_is_inside_accepted_server_results_not_after_forbidden_now():
-    text = Path("docs/PHASE_STATUS.md").read_text()
+    text = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md").read_text()
     accepted_start = text.index("## Accepted Server Results")
     warning_start = text.index("## Current Server Warning", accepted_start)
     accepted_block = text[accepted_start:warning_start]
