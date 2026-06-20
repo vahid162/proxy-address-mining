@@ -29,10 +29,11 @@ def test_readme_stale_wording_removed() -> None:
     assert "fresh farm5 0.1.128 sync/test evidence is required after merge before Phase 10 implementation PRs" not in t
 
 
-def test_ai_coding_rules_current_gate_and_stale_sections() -> None:
+def test_ai_coding_rules_is_redirect_without_gate_snapshots() -> None:
     t = Path("docs/AI_CODING_RULES.md").read_text(encoding="utf-8")
-    assert "accepted: Phase 11 — Production / Customer Activation Gate accepted on farm5" in t
-    assert "working: Phase 11 operational completion" in t
+    assert "Compatibility redirect" in t
+    assert "docs/PHASE_STATUS.md" in t
+    assert "docs/GUIDELINES.md" in t
     assert "accepted: Phase 7" not in t
-    assert "Forbidden in current Phase 8 work:" not in t
-    assert "Phase PR bodies must use Why / What / How to test / Version / Risk + Rollback." in t
+    assert "working: Phase 11 operational completion" not in t
+    assert "production_traffic:" not in t

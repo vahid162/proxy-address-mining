@@ -4,8 +4,9 @@ This repository uses governance, safety, and runtime-first checks so every chang
 
 ## Authority and safety
 
-- Start with [`AGENTS.md`](AGENTS.md), [`docs/INDEX.md`](docs/INDEX.md), [`docs/SAFETY.md`](docs/SAFETY.md), and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for routing, safety, and architecture rules.
+- Start with [`AGENTS.md`](AGENTS.md), [`docs/INDEX.md`](docs/INDEX.md), [`docs/PRD.md`](docs/PRD.md), [`docs/GUIDELINES.md`](docs/GUIDELINES.md), [`docs/SAFETY.md`](docs/SAFETY.md), and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for routing, product scope, engineering, safety, and architecture rules.
 - Current phase, active gate, runtime authorization, and next required step live only in [`docs/PHASE_STATUS.md`](docs/PHASE_STATUS.md).
+- Long-term product evolution lives in [`docs/ROADMAP.md`](docs/ROADMAP.md), and architectural decisions live in [`docs/ADR/`](docs/ADR/).
 - Historical documents under [`docs/history/`](docs/history/) are audit context only. They are not operational authority and must not override current active documents.
 - Do not mutate production runtime, PostgreSQL, firewall, Docker, systemd, conntrack, customer state, abuse execution, workers, UI, Telegram, scheduling, or server configuration unless the active gate in `docs/PHASE_STATUS.md` explicitly authorizes that exact operation.
 - Do not directly mutate database or firewall state outside the service, repository, adapter, event, audit, planner, verifier, and restore-point boundaries defined by the architecture and safety contracts.

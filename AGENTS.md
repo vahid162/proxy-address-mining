@@ -9,8 +9,13 @@ This file is the canonical, concise GPT/Codex entrypoint for this repository. It
 - `docs/PHASE_STATUS.md` is the only authority for dynamic project state.
 - Do not infer current phase, gate, or next_required_step from README, release notes, historical evidence, archived documents, or AGENTS.md history.
 - `docs/INDEX.md` is the documentation map.
+- `docs/PRD.md` defines product scope.
+- `docs/GUIDELINES.md` defines engineering rules.
 - `docs/SAFETY.md` defines safety constraints.
 - `docs/ARCHITECTURE.md` defines architecture boundaries.
+- `docs/ROADMAP.md` defines long-term product evolution.
+- `docs/ADR/` records architectural decisions.
+- `docs/history/` is non-authorizing historical context.
 
 ## Required Reading
 
@@ -19,15 +24,15 @@ Before edits, read only the documents needed for the requested task, in this ord
 1. `AGENTS.md`
 2. `docs/PHASE_STATUS.md`
 3. `docs/INDEX.md`
-4. `docs/SAFETY.md`
-5. `docs/ARCHITECTURE.md`
-6. task-specific domain documents
-7. active gate/task documents named by `docs/PHASE_STATUS.md`
+4. task-scope contract: `docs/PRD.md`, `docs/GUIDELINES.md`, `docs/SAFETY.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, or `docs/ADR/` as relevant
+5. task-specific domain documents
+6. active gate/task documents named by `docs/PHASE_STATUS.md`
 
 Do not require every AI task to read all domain documents.
 
 ## Task Routing
 
+- Product-scope work routes to `docs/PRD.md`; engineering-rule work routes to `docs/GUIDELINES.md`; architecture work routes to `docs/ARCHITECTURE.md`; safety work routes to `docs/SAFETY.md`; roadmap work routes to `docs/ROADMAP.md`; ADR work routes to `docs/ADR/`.
 - Keep interfaces thin; route business logic through services, repositories, adapters, events, and audit.
 - For firewall, abuse, runtime, production, customer, worker, UI, Telegram, or scheduling work, follow the active gate/task documents named by `docs/PHASE_STATUS.md`, including `docs/AI_SAFE_RUNTIME_FIRST.md` when it is named by the active gate.
 - For documentation-only governance work, preserve historical context without making archived material authoritative.

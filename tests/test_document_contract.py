@@ -28,10 +28,14 @@ def make_repo(tmp_path: Path) -> Path:
         "VERSION": "1.2.3\n",
         "pyproject.toml": "[project]\nname = 'x'\nversion = '1.2.3'\n",
         "mpf/__init__.py": "__version__ = '1.2.3'\n",
-        "docs/INDEX.md": "Index routes dynamic state to docs/PHASE_STATUS.md and keeps [history](history/) non-authorizing.\n",
+        "docs/INDEX.md": "Index routes dynamic state to docs/PHASE_STATUS.md and keeps [history](history/) non-authorizing. [PRD](PRD.md) [Guidelines](GUIDELINES.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n",
         "docs/PHASE_STATUS.md": "state\n",
+        "docs/PRD.md": "product scope routes current state to docs/PHASE_STATUS.md\n",
+        "docs/GUIDELINES.md": "engineering rules route current state to docs/PHASE_STATUS.md\n",
         "docs/SAFETY.md": "safety\n",
         "docs/ARCHITECTURE.md": "architecture\n",
+        "docs/ROADMAP.md": "roadmap routes current state to docs/PHASE_STATUS.md\n",
+        "docs/ADR/0001-runtime-first-service-layer-boundary.md": "adr routes current state to docs/PHASE_STATUS.md\n",
         "docs/history/OLD.md": "old\n",
         ".github/PULL_REQUEST_TEMPLATE/runtime-first.md": "template\n",
         ".github/workflows/ci.yml": "name: CI\n",
@@ -54,6 +58,27 @@ def test_missing_required_file_fails(tmp_path: Path) -> None:
     root = make_repo(tmp_path)
     (root / "README.md").unlink()
     assert any("Missing required canonical file: README.md" in v for v in violations(root))
+
+
+def test_missing_prd_or_guidelines_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    (root / "docs/PRD.md").unlink()
+    assert any("Missing required canonical file: docs/PRD.md" in v for v in violations(root))
+    root = make_repo(tmp_path / "second")
+    (root / "docs/GUIDELINES.md").unlink()
+    assert any("Missing required canonical file: docs/GUIDELINES.md" in v for v in violations(root))
+
+
+def test_index_missing_canonical_route_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/INDEX.md", "Index routes dynamic state to docs/PHASE_STATUS.md. [PRD](PRD.md) [Roadmap](ROADMAP.md) [ADR](ADR/0001-runtime-first-service-layer-boundary.md)\n")
+    assert any("docs/INDEX.md must link to canonical route: docs/GUIDELINES.md" in v for v in violations(root))
+
+
+def test_dynamic_state_assignment_in_static_canonical_contract_fails(tmp_path: Path) -> None:
+    root = make_repo(tmp_path)
+    write(root / "docs/PRD.md", "Product scope.\nproduction_traffic: open\n")
+    assert any("docs/PRD.md:2" in v and "dynamic-state assignment" in v for v in violations(root))
 
 
 def test_version_mismatch_fails(tmp_path: Path) -> None:
