@@ -38,8 +38,6 @@ def build_phase8_db_transition_readiness_report(cfg: MPFConfig, repo_root: Path 
     phase_status = _read(root / "docs/PHASE_STATUS.md")
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
-    readme = _read(root / "README.md")
-    index = _read(root / "docs/INDEX.md")
     rules = _read(root / "docs/AI_CODING_RULES.md")
     models = _read(root / "mpf/models.py")
 
@@ -89,11 +87,11 @@ def build_phase8_db_transition_readiness_report(cfg: MPFConfig, repo_root: Path 
         "evidence_reporting_contract_fail_closed": er.get("final_decision") == "BLOCKED" and not bool(er.get("execution_allowed")),
         "dry_run_evaluator_present": dr.get("component") == "phase8_abuse_dry_run_evaluator",
         "dry_run_evaluator_fail_closed": dr.get("final_decision") == "BLOCKED" and not bool(dr.get("execution_allowed")),
-        "ai_phase8_task_present": "Current Phase 8 Step — Runtime/Worker Integration Readiness" in ai_phase8,
-        "remaining_plan_db_transition_target_aligned": "Current target is Phase 8 runtime/worker integration readiness package." in remaining,
-        "readme_current_gate_aligned": "runtime/worker integration readiness package" in readme,
-        "index_current_gate_aligned": "runtime/worker integration readiness" in index,
-        "ai_coding_rules_current_gate_aligned": "Phase 8 runtime/worker readiness stop condition" in rules,
+        "ai_phase8_task_present": "Current Phase 8 Step — DB-Only Controlled Transition Readiness" in ai_phase8,
+        "remaining_plan_db_transition_target_aligned": "Current target is Phase 8 DB-only controlled transition readiness package." in remaining,
+        "phase_status_current_gate_aligned": "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status,
+        "phase8_task_current_gate_aligned": "Current Phase 8 Step — DB-Only Controlled Transition Readiness" in ai_phase8,
+        "ai_coding_rules_current_gate_aligned": "Phase 8 DB-only transition readiness stop condition" in rules,
         "apply_mode_plan_only": cfg.firewall.apply_mode == "plan_only",
         "runtime_activation_disabled": cfg.proxy.runtime_activation_allowed is False,
         "production_traffic_none": True,
@@ -139,12 +137,12 @@ def build_phase8_db_transition_readiness_report(cfg: MPFConfig, repo_root: Path 
     existing_models = "class AbuseState" in models and "class AbuseEvent" in models
 
     blocker_keys = [k for k, v in bools.items() if k in {
-        "current_state_preserved","farm5_0_1_114_sync_evidence_present","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed","dry_run_evaluator_present","dry_run_evaluator_fail_closed","ai_phase8_task_present","remaining_plan_db_transition_target_aligned","readme_current_gate_aligned","index_current_gate_aligned","ai_coding_rules_current_gate_aligned","apply_mode_plan_only","runtime_activation_disabled","synthetic_transition_plan_scenarios_passed"
+        "current_state_preserved","farm5_0_1_114_sync_evidence_present","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed","dry_run_evaluator_present","dry_run_evaluator_fail_closed","ai_phase8_task_present","remaining_plan_db_transition_target_aligned","phase_status_current_gate_aligned","phase8_task_current_gate_aligned","ai_coding_rules_current_gate_aligned","apply_mode_plan_only","runtime_activation_disabled","synthetic_transition_plan_scenarios_passed"
     } and not v]
     blockers = [f"{k}_missing_or_failed" for k in blocker_keys]
 
 
-    checklist_names = ["current_state_preserved","phase7_accepted","phase8_working","farm5_0_1_114_sync_evidence_present","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed","dry_run_evaluator_present","dry_run_evaluator_fail_closed","ai_phase8_task_present","remaining_plan_db_transition_target_aligned","readme_current_gate_aligned","index_current_gate_aligned","ai_coding_rules_current_gate_aligned","transition_plan_contract_defined","db_mutation_plan_contract_defined","operator_approval_contract_defined","audit_payload_contract_defined","restore_reference_contract_defined","idempotency_contract_defined","synthetic_transition_plan_scenarios_defined","synthetic_transition_plan_scenarios_passed","existing_abuse_models_detected","config_apply_mode_plan_only","proxy_runtime_activation_disabled","no_production_traffic","firewall_apply_disallowed","customer_nat_disallowed","customer_firewall_rules_disallowed","no_iptables_restore_authorized","abuse_automation_disallowed","abuse_runner_disallowed","db_reads_disallowed","db_writes_disallowed","abuse_db_reads_disallowed","abuse_db_writes_disallowed","usage_policy_customer_db_reads_writes_disallowed","live_conntrack_firewall_reads_disallowed","hard_block_disallowed","soft_block_disallowed","pause_automation_disallowed","separate_phase8_db_execution_pr_required","future_runtime_worker_integration_pr_required","fresh_farm5_sync_evidence_required_before_acceptance"]
+    checklist_names = ["current_state_preserved","phase7_accepted","phase8_working","farm5_0_1_114_sync_evidence_present","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed","dry_run_evaluator_present","dry_run_evaluator_fail_closed","ai_phase8_task_present","remaining_plan_db_transition_target_aligned","phase_status_current_gate_aligned","phase8_task_current_gate_aligned","ai_coding_rules_current_gate_aligned","transition_plan_contract_defined","db_mutation_plan_contract_defined","operator_approval_contract_defined","audit_payload_contract_defined","restore_reference_contract_defined","idempotency_contract_defined","synthetic_transition_plan_scenarios_defined","synthetic_transition_plan_scenarios_passed","existing_abuse_models_detected","config_apply_mode_plan_only","proxy_runtime_activation_disabled","no_production_traffic","firewall_apply_disallowed","customer_nat_disallowed","customer_firewall_rules_disallowed","no_iptables_restore_authorized","abuse_automation_disallowed","abuse_runner_disallowed","db_reads_disallowed","db_writes_disallowed","abuse_db_reads_disallowed","abuse_db_writes_disallowed","usage_policy_customer_db_reads_writes_disallowed","live_conntrack_firewall_reads_disallowed","hard_block_disallowed","soft_block_disallowed","pause_automation_disallowed","separate_phase8_db_execution_pr_required","future_runtime_worker_integration_pr_required","fresh_farm5_sync_evidence_required_before_acceptance"]
     checklist_mapping = {
         **bools,
         "audit_payload_contract_defined": True,

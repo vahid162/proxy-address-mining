@@ -46,7 +46,7 @@ def test_service_cli_and_blocked_defaults() -> None:
     assert r["db_reads_authorized"] is False
     assert r["db_writes_authorized"] is False
     assert r["farm5_0_1_114_sync_evidence_present"] is True
-    assert r["blockers"] == ["readme_current_gate_aligned_missing_or_failed", "index_current_gate_aligned_missing_or_failed"]
+    assert r["blockers"] == []
     assert r["synthetic_transition_plan_scenarios_passed"] is True
 
     runner = CliRunner()
@@ -74,8 +74,8 @@ synced to 0.1.114
 
     cfg = load_config(cfg_path())
     report = build_phase8_db_transition_readiness_report(cfg, repo_root=repo)
-    assert "readme_current_gate_aligned_missing_or_failed" in report["blockers"]
-    assert "index_current_gate_aligned_missing_or_failed" in report["blockers"]
+    assert "readme_current_gate_aligned_missing_or_failed" not in report["blockers"]
+    assert "index_current_gate_aligned_missing_or_failed" not in report["blockers"]
     assert "ai_coding_rules_current_gate_aligned_missing_or_failed" in report["blockers"]
     assert "remaining_plan_db_transition_target_aligned_missing_or_failed" in report["blockers"]
     assert "farm5_0_1_114_sync_evidence_present_missing_or_failed" not in report["blockers"]

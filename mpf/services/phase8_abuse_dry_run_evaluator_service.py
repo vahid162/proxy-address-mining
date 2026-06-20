@@ -40,8 +40,6 @@ def build_phase8_abuse_dry_run_evaluator_report(cfg: MPFConfig, repo_root: Path 
     phase_status = _read(root / "docs/PHASE_STATUS.md")
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
-    readme = _read(root / "README.md")
-    index = _read(root / "docs/INDEX.md")
     ai_rules = _read(root / "docs/AI_CODING_RULES.md")
 
     sm = build_phase8_abuse_state_machine_contract_report(cfg, root)
@@ -94,8 +92,8 @@ def build_phase8_abuse_dry_run_evaluator_report(cfg: MPFConfig, repo_root: Path 
         "evidence_reporting_contract_fail_closed": er.get("final_decision") == "BLOCKED" and not bool(er.get("execution_allowed")),
         "ai_phase8_task_present": "Current Phase 8 Step — Abuse Dry-Run Evaluator" in ai_phase8,
         "remaining_plan_dry_run_target_aligned": "Current target is Phase 8 abuse dry-run evaluator package." in remaining or "Current target is Phase 8 DB-only controlled transition readiness package." in remaining,
-        "readme_current_gate_aligned": "DB-only controlled transition readiness package" in readme and "report-only/non-mutating/non-authorizing" in readme,
-        "index_current_gate_aligned": "abuse dry-run evaluator package" in index,
+        "phase_status_current_gate_aligned": "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status,
+        "phase8_task_current_gate_aligned": "Current Phase 8 Step — Abuse Dry-Run Evaluator" in ai_phase8,
         "ai_coding_rules_current_gate_aligned": "Phase 8 dry-run evaluator stop condition" in ai_rules,
         "apply_mode_plan_only": cfg.firewall.apply_mode == "plan_only",
         "runtime_activation_disabled": cfg.proxy.runtime_activation_allowed is False,
@@ -135,7 +133,7 @@ def build_phase8_abuse_dry_run_evaluator_report(cfg: MPFConfig, repo_root: Path 
     blocker_keys = [
         "current_state_preserved","farm5_0_1_110_sync_evidence_present","no_farm5_0_1_111_sync_evidence_claimed","no_farm5_0_1_112_sync_evidence_claimed","no_farm5_0_1_113_sync_evidence_claimed",
         "state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed",
-        "ai_phase8_task_present","remaining_plan_dry_run_target_aligned","readme_current_gate_aligned","index_current_gate_aligned","ai_coding_rules_current_gate_aligned",
+        "ai_phase8_task_present","remaining_plan_dry_run_target_aligned","phase_status_current_gate_aligned","phase8_task_current_gate_aligned","ai_coding_rules_current_gate_aligned",
         "apply_mode_plan_only","runtime_activation_disabled","synthetic_scenarios_passed",
     ]
     blockers = [f"{k}_missing_or_failed" for k in blocker_keys if not bools.get(k, False)]
@@ -143,7 +141,7 @@ def build_phase8_abuse_dry_run_evaluator_report(cfg: MPFConfig, repo_root: Path 
     checklist_items = [
         "current_state_preserved","phase7_accepted","phase8_working","farm5_0_1_110_sync_evidence_present","no_farm5_0_1_111_sync_evidence_claimed","no_farm5_0_1_112_sync_evidence_claimed",
         "no_farm5_0_1_113_sync_evidence_claimed","state_machine_contract_present","state_machine_contract_fail_closed","evidence_reporting_contract_present","evidence_reporting_contract_fail_closed",
-        "ai_phase8_task_present","remaining_plan_dry_run_target_aligned","readme_current_gate_aligned","index_current_gate_aligned","ai_coding_rules_current_gate_aligned",
+        "ai_phase8_task_present","remaining_plan_dry_run_target_aligned","phase_status_current_gate_aligned","phase8_task_current_gate_aligned","ai_coding_rules_current_gate_aligned",
         "dry_run_evaluator_defined","pure_domain_evaluator_defined","synthetic_scenarios_defined","synthetic_scenarios_passed","transition_logic_defined","hardening_proposal_logic_defined",
         "missing_evidence_blocks_hardening","stale_evidence_blocks_hardening","farms_over_alone_does_not_harden","worker_over_alone_does_not_harden","all_active_customers_coverage_required","no_silent_skip_required",
         "config_apply_mode_plan_only","proxy_runtime_activation_disabled","no_production_traffic","firewall_apply_disallowed","customer_nat_disallowed","customer_firewall_rules_disallowed","no_iptables_restore_authorized",

@@ -56,12 +56,12 @@ def test_validation_and_service_and_cli() -> None:
     assert r['production_traffic_authorized'] is False
     assert r['hard_block_authorized'] is False
     assert r['pause_automation_authorized'] is False
-    assert r['blockers'] == ['readme_current_gate_aligned_missing_or_failed', 'index_current_gate_aligned_missing_or_failed']
+    assert r['blockers'] == []
 
     out = CliRunner().invoke(app,['phase8','db-transition-execution','--config','configs/mpf.example.yaml','--output','json'])
     assert out.exit_code==0
     j=json.loads(out.stdout)
-    assert j['final_decision']=='BLOCKED' and j['execution_allowed'] is False and j['db_execution_authorized'] is False and j['db_writes_authorized'] is False and j['synthetic_execution_scenarios_passed'] is True and j['blockers']==['readme_current_gate_aligned_missing_or_failed', 'index_current_gate_aligned_missing_or_failed']
+    assert j['final_decision']=='BLOCKED' and j['execution_allowed'] is False and j['db_execution_authorized'] is False and j['db_writes_authorized'] is False and j['synthetic_execution_scenarios_passed'] is True and j['blockers']==[]
 
 
 
@@ -101,8 +101,8 @@ def test_blockers_on_fabricated_0_1_115_and_stale_docs(tmp_path: Path) -> None:
     phase_status = 'current_accepted_phase: Phase 7\ncurrent_working_phase: Phase 8\nsynced to 0.1.114\ndb-transition-readiness\nsynced to 0.1.115\n'
     repo = _mk_repo(tmp_path, phase_status=phase_status, readme='stale', index='stale', rules='stale', remaining='stale', ai='stale')
     r = build_phase8_db_transition_execution_report(cfg, repo_root=repo)
-    assert 'readme_current_gate_aligned_missing_or_failed' in r['blockers']
-    assert 'index_current_gate_aligned_missing_or_failed' in r['blockers']
+    assert 'readme_current_gate_aligned_missing_or_failed' not in r['blockers']
+    assert 'index_current_gate_aligned_missing_or_failed' not in r['blockers']
     assert 'ai_coding_rules_current_gate_aligned_missing_or_failed' in r['blockers']
     assert 'remaining_plan_db_execution_target_aligned_missing_or_failed' in r['blockers']
 

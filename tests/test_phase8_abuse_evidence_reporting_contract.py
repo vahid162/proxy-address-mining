@@ -31,7 +31,7 @@ def test_phase8_abuse_evidence_reporting_service_and_contract() -> None:
     assert r["hard_block_authorized"] is False
     assert r["soft_block_authorized"] is False
     assert r["pause_automation_authorized"] is False
-    assert r["blockers"] == ["readme_current_gate_aligned_missing_or_failed", "index_current_gate_aligned_missing_or_failed"]
+    assert r["blockers"] == []
 
     c = r["abuse_evidence_reporting_contract"]
     assert c["evidence_sources"]["allowed_in_this_pr"] == ["repository_docs", "static_contracts", "config_read_only"]
@@ -60,7 +60,7 @@ def test_phase8_abuse_evidence_reporting_cli_and_blockers() -> None:
     assert j["hard_block_authorized"] is False
     assert j["soft_block_authorized"] is False
     assert j["pause_automation_authorized"] is False
-    assert j["blockers"] == ["readme_current_gate_aligned_missing_or_failed", "index_current_gate_aligned_missing_or_failed"]
+    assert j["blockers"] == []
 
     cfg = load_config(example_config_path())
     cfg.firewall.apply_mode = "manual_apply"

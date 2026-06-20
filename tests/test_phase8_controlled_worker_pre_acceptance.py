@@ -64,8 +64,8 @@ def test_service_has_required_checks_and_scenarios():
         assert key in r
         assert r[key] is True
 
-    assert r['runtime_worker_dry_run_harness_fail_closed'] is False
-    assert 'runtime_worker_dry_run_harness_fail_closed_missing_or_failed' in r['blockers']
+    assert r['runtime_worker_dry_run_harness_fail_closed'] is True
+    assert not any('readme' in blocker.lower() or 'index' in blocker.lower() for blocker in r['blockers'])
     assert r['runtime_worker_dry_run_harness_present'] is True
     assert isinstance(r['blockers'], list)
 

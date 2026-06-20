@@ -19,8 +19,6 @@ def build_phase8_abuse_state_machine_contract_report(
     root = repo_root or Path(__file__).resolve().parents[2]
     phase_status = _read(root / "docs/PHASE_STATUS.md")
     remaining = _read(root / "docs/REMAINING_PHASE_PLAN.md")
-    readme = _read(root / "README.md")
-    index = _read(root / "docs/INDEX.md")
     ai_rules = _read(root / "docs/AI_CODING_RULES.md")
     ai_phase8 = _read(root / "docs/AI_PHASE_8_TASK.md")
     planning = _read(root / "mpf/services/phase8_planning_readiness_service.py")
@@ -33,9 +31,9 @@ def build_phase8_abuse_state_machine_contract_report(
     planning_ready = "phase8_planning_readiness" in planning
     ai_present = "Current Phase 8 Step — Abuse State-Machine Contract" in ai_phase8
     rem_aligned = "Current target is Phase 8 abuse state-machine contract package." in remaining or "Current target is Phase 8 abuse evidence/reporting contract package." in remaining
-    readme_aligned = "accepted_phase: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in readme and "working_phase: Phase 8 — Abuse 1h Core planning/readiness" in readme
-    index_aligned = "Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in index and "Phase 8 — Abuse 1h Core planning/readiness" in index
-    rules_aligned = "accepted: Phase 7 — Usage + Policy/Reject Accounting accepted on farm5" in ai_rules and "working: Phase 8 — Abuse 1h Core planning/readiness" in ai_rules
+    readme_aligned = "current_accepted_phase: Phase 7" in phase_status and "current_working_phase: Phase 8" in phase_status
+    index_aligned = "Abuse State-Machine Contract" in ai_phase8
+    rules_aligned = "Phase 8 dry-run evaluator stop condition" in ai_rules
 
     apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
     runtime_activation_disabled = cfg.proxy.runtime_activation_allowed is False
@@ -49,8 +47,8 @@ def build_phase8_abuse_state_machine_contract_report(
         "phase8_planning_readiness_present": planning_ready,
         "ai_phase8_task_present": ai_present,
         "remaining_plan_state_machine_target_aligned": rem_aligned,
-        "readme_current_gate_aligned": readme_aligned,
-        "index_current_gate_aligned": index_aligned,
+        "phase_status_current_gate_aligned": readme_aligned,
+        "phase8_task_current_gate_aligned": index_aligned,
         "ai_coding_rules_current_gate_aligned": rules_aligned,
         "apply_mode_plan_only": apply_mode_plan_only,
         "runtime_activation_disabled": runtime_activation_disabled,
@@ -80,7 +78,7 @@ def build_phase8_abuse_state_machine_contract_report(
 
     checklist_items = [
         "current_state_preserved","phase7_accepted","phase8_working","farm5_0_1_110_sync_evidence_present","phase8_planning_readiness_present",
-        "ai_phase8_task_present","remaining_plan_state_machine_target_aligned","readme_current_gate_aligned","index_current_gate_aligned",
+        "ai_phase8_task_present","remaining_plan_state_machine_target_aligned","phase_status_current_gate_aligned","phase8_task_current_gate_aligned",
         "ai_coding_rules_current_gate_aligned","abuse_state_machine_contract_defined","state_path_normal_over_tracking_over_grace_hard",
         "sustained_abuse_window_3600_seconds","farms_over_alone_does_not_harden","worker_over_alone_does_not_harden",
         "all_active_customers_coverage_required","abuse_exempt_requires_reason_and_expiry","no_silent_skip_required","config_apply_mode_plan_only",

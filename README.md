@@ -1,6 +1,8 @@
 # Proxy Address Mining
 
-Proxy Address Mining is a Python-first control plane for a customer-facing mining gateway. This README is intentionally concise for human orientation only; it does not define current phase state, runtime authorization, or operational gates.
+Proxy Address Mining is a Python-first control plane for a customer-facing mining gateway. It is intended to route customer mining ports through service-layer validated planning, auditing, and safety boundaries.
+
+It is not a shell-script migration, an unrestricted production traffic switch, a public web panel, or a source of runtime authorization. Current phase state and operational permission live only in the authoritative documents linked below.
 
 ## Start here
 
@@ -12,8 +14,20 @@ Proxy Address Mining is a Python-first control plane for a customer-facing minin
 - [Changelog](CHANGELOG.md) — release history.
 - [Version](VERSION) — current package/version metadata.
 
+## Development checks
+
+Verified repository checks used by this documentation contract:
+
+```bash
+git diff --check
+python -m pytest -q
+python scripts/validate_runtime_first_pr_body.py /tmp/pr_body.md
+```
+
+Use narrower pytest selections when a task only changes focused documentation or tests, then run the full suite before delivery.
+
 ## Contribution orientation
 
-Before making changes, follow the authority order in [docs/INDEX.md](docs/INDEX.md) and the safety constraints in [docs/SAFETY.md](docs/SAFETY.md). Keep interfaces thin and route behavior through the documented service, repository, adapter, event, and audit boundaries.
+Before making changes, follow the authority order in [docs/INDEX.md](docs/INDEX.md) and the safety constraints in [docs/SAFETY.md](docs/SAFETY.md). Keep interfaces thin and route behavior through documented service, repository, adapter, event, and audit boundaries.
 
 Historical README content is preserved as non-authorizing context in [docs/history/README_LEGACY_0.1.299.md](docs/history/README_LEGACY_0.1.299.md).

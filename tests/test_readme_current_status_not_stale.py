@@ -20,6 +20,9 @@ def test_readme_is_concise_human_entrypoint_without_dynamic_state():
         "[Version](VERSION)",
     ):
         assert link in text
+    assert "It is not a shell-script migration" in text
+    assert "git diff --check" in text
+    assert "python -m pytest -q" in text
     for forbidden in (
         "next_required_step",
         "farm evidence",

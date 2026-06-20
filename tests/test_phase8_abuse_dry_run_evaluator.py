@@ -78,7 +78,7 @@ def test_service_and_cli_and_blockers() -> None:
     assert report["execution_allowed"] is False
     assert report["phase8_acceptance_allowed"] is False
     assert report["synthetic_scenarios_passed"] is True
-    assert report["blockers"] == ["readme_current_gate_aligned_missing_or_failed", "index_current_gate_aligned_missing_or_failed"]
+    assert report["blockers"] == []
     assert len(report["phase8_abuse_dry_run_evaluator_checklist"]) >= 46
 
     runner = CliRunner()
@@ -120,8 +120,8 @@ def test_service_blockers_when_docs_stale_or_prior_contract_missing(tmp_path: Pa
 
     cfg = load_config(example_config_path())
     report = build_phase8_abuse_dry_run_evaluator_report(cfg, repo_root=repo)
-    assert "readme_current_gate_aligned_missing_or_failed" in report["blockers"]
-    assert "index_current_gate_aligned_missing_or_failed" in report["blockers"]
+    assert "readme_current_gate_aligned_missing_or_failed" not in report["blockers"]
+    assert "index_current_gate_aligned_missing_or_failed" not in report["blockers"]
     assert "ai_coding_rules_current_gate_aligned_missing_or_failed" in report["blockers"]
 
 
