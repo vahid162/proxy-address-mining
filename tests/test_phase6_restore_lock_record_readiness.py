@@ -37,29 +37,29 @@ def test_service_confirms_proposal_boundary_and_evidence() -> None:
 
 
 def test_service_blocks_on_changed_current_state(tmp_path: Path) -> None:
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "PHASE_STATUS.md").write_text("## Current State\n```text\nproduction_traffic: yes\n```", encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("## Current State\n```text\nproduction_traffic: yes\n```", encoding="utf-8")
     report = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(_cfg(), repo_root=tmp_path)
     assert "Current State does not match required gate" in report["blockers"]
 
 
 def test_service_blocks_when_sections_missing(tmp_path: Path) -> None:
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "PHASE_STATUS.md").write_text(_good_phase_status().replace("Phase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary", ""), encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(_good_phase_status().replace("Phase 6 Restore/Lock/DB Apply Record Gate — Proposal Boundary", ""), encoding="utf-8")
     report = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(_cfg(), repo_root=tmp_path)
     assert any("Proposal Boundary" in b for b in report["blockers"])
 
 
 def test_service_blocks_when_snapshot_section_missing(tmp_path: Path) -> None:
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "PHASE_STATUS.md").write_text(_good_phase_status().replace("Phase 6 Read-Only iptables-save Snapshot — Server Evidence", ""), encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(_good_phase_status().replace("Phase 6 Read-Only iptables-save Snapshot — Server Evidence", ""), encoding="utf-8")
     report = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(_cfg(), repo_root=tmp_path)
     assert any("Read-Only iptables-save Snapshot" in b for b in report["blockers"])
 
 
 def test_service_blocks_when_readiness_section_missing(tmp_path: Path) -> None:
-    (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "PHASE_STATUS.md").write_text(_good_phase_status().replace("Phase 6 Restore/Lock/DB Apply Record Readiness — Server Sync", ""), encoding="utf-8")
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text(_good_phase_status().replace("Phase 6 Restore/Lock/DB Apply Record Readiness — Server Sync", ""), encoding="utf-8")
     report = firewall_restore_lock_record_gate_service.build_restore_lock_record_gate_report(_cfg(), repo_root=tmp_path)
     assert any("Readiness" in b for b in report["blockers"])
 

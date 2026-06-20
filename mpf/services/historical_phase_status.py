@@ -7,13 +7,7 @@ HISTORICAL_PHASE_STATUS_PATH = Path("docs/history/PHASE_STATUS_LEGACY_0.1.302.md
 
 
 def historical_phase_status_path(root: Path) -> Path:
-    archive = root / HISTORICAL_PHASE_STATUS_PATH
-    if archive.exists():
-        return archive
-    # Test fixtures for old historical services may provide only a synthetic
-    # PHASE_STATUS file; production/current authorization checks must not use
-    # this helper.
-    return root / "docs/PHASE_STATUS.md"
+    return root / HISTORICAL_PHASE_STATUS_PATH
 
 
 def read_historical_phase_status(root: Path) -> str:

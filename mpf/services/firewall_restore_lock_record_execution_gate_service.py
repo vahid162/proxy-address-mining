@@ -5,25 +5,22 @@ import hashlib
 import json
 from pathlib import Path
 
-from mpf.services.historical_phase_status import historical_phase_status_path, read_historical_phase_status
 import uuid
 
 from mpf.config import MPFConfig
 from mpf.db import _local_peer_dbname, write_controlled_execution_records_local_peer_as_mpf
 
-_EXPECTED_CURRENT_STATE = {
-    "current_accepted_phase": "Phase 5 — Customer CRUD in DB Only accepted on farm5",
-    "current_working_phase": "Phase 6 — Firewall Planner",
-    "server_state": "farm5 limited Phase 4 proxy runtime is running and accepted; no production customer traffic is active",
-    "production_traffic": "none",
-    "firewall_apply_allowed": "no",
-    "abuse_automation_allowed": "no",
-    "customer_onboarding_allowed": "db_only",
-    "proxy_data_plane_allowed": "limited_runtime_local_only",
+_ACTIVE_CURRENT_STATE_REQUIREMENTS = {
+    "current_accepted_phase": "Phase 11 — Production / Customer Activation Gate accepted on farm5",
+    "current_working_phase": "Phase 11 operational completion — Full CLI Production Operations",
+    "production_traffic": "controlled_cli_limited",
+    "firewall_apply_allowed": "controlled",
+    "abuse_automation_allowed": "controlled_operator_gated",
+    "customer_onboarding_allowed": "controlled_cli_limited",
+    "worker_enforcement_allowed": "no",
     "ui_allowed": "no",
     "telegram_allowed": "no",
-    "live_snapshot_read_allowed": "iptables_save_read_only",
-    "restore_lock_record_execution_allowed": "controlled_boundary_only",
+    "phase12_start_allowed": "no",
 }
 
 def _parse_current_state_block(text: str) -> dict[str, str] | None:
@@ -136,13 +133,13 @@ def _default_record_writer(cfg: MPFConfig, payload: dict[str, object]) -> dict[s
 
 def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path | None = None, *, execute_controlled_boundary: bool = False, operator: str | None = None, reason: str | None = None, yes: bool = False, record_writer=None, connection_factory=None) -> dict[str, object]:
     root = repo_root or Path(__file__).resolve().parents[2]
-    phase_status = historical_phase_status_path(root)
+    phase_status = root / "docs" / "PHASE_STATUS.md"
     blockers: list[str] = []
     warnings: list[str] = []
     errors: list[str] = []
     text = phase_status.read_text(encoding="utf-8") if phase_status.exists() else ""
     current_state = _parse_current_state_block(text) or {}
-    current_state_preserved = all(current_state.get(k) == v for k, v in _EXPECTED_CURRENT_STATE.items())
+    current_state_preserved = all(current_state.get(k) == v for k, v in _ACTIVE_CURRENT_STATE_REQUIREMENTS.items())
     required_tokens = {
         "read_only_snapshot_evidence_present": "Phase 6 Read-Only iptables-save Snapshot — Server Evidence",
         "farm5_time_sync_evidence_present": "Phase 6 farm5 Time Synchronization — Server Evidence",
@@ -157,7 +154,8 @@ def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path
     farm5_time_sync_resolved = all(tok in text for tok in ("System clock synchronized: yes","NTPSynchronized=yes","194.225.150.25"))
     apply_mode_plan_only = cfg.firewall.apply_mode == "plan_only"
     runtime_activation_allowed = bool(cfg.proxy.runtime_activation_allowed)
-    if not current_state_preserved: blockers.append("Current State does not match required gate")
+    if not current_state_preserved: blockers.append("active Current State does not match required Phase 11 gate")
+    blockers.append("restore_lock_record_controlled_execution_not_authorized_by_active_phase")
     if not apply_mode_plan_only: blockers.append("firewall.apply_mode is not plan_only")
     if runtime_activation_allowed: blockers.append("proxy.runtime_activation_allowed is true")
     missing_map={
@@ -172,12 +170,12 @@ def run_restore_lock_record_controlled_execution(cfg: MPFConfig, repo_root: Path
     if execute_controlled_boundary and not reason: blockers.append("reason is required for controlled execution")
     if execute_controlled_boundary and not yes: blockers.append("--yes is required for controlled execution")
     dry_run=not execute_controlled_boundary
-    execution_allowed=execute_controlled_boundary and not blockers
+    execution_allowed=False
     correlation_id=str(uuid.uuid4())
     metadata={"controlled_boundary":True,"source":"restore_lock_record_execution_gate","apply_decision":"BLOCKED","firewall_apply_allowed":"no","production_traffic":"none","operator":operator or "-","reason":reason or "-","correlation_id":correlation_id}
     checksum=hashlib.sha256(json.dumps(metadata, sort_keys=True).encode()).hexdigest()
-    report={"component":"firewall_restore_lock_record_execution_gate","phase":"Phase 6 — Firewall Planner","final_decision":"BLOCKED","gate_status":"CONTROLLED_BOUNDARY_READY" if evidence["controlled_execution_boundary_accepted_present"] else "EXECUTION_GATE_SCAFFOLD_READY","authorization_status":"CONTROLLED_BOUNDARY_EXECUTED" if execution_allowed else "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN","inspection_only":not execution_allowed,"report_only":not execution_allowed,"preflight_only":not execution_allowed,"dry_run":dry_run,"execute_controlled_boundary":execute_controlled_boundary,"execution_allowed":execution_allowed,"controlled_boundary_accepted":evidence["controlled_execution_boundary_accepted_present"],"operator":operator or "-","reason":reason or "-","correlation_id":correlation_id,"current_state_preserved":current_state_preserved,"restore_lock_record_execution_allowed":current_state.get("restore_lock_record_execution_allowed",""),"apply_mode_plan_only":apply_mode_plan_only,"runtime_activation_allowed":runtime_activation_allowed,"production_traffic":"none","firewall_apply_allowed":"no","abuse_automation_allowed":"no","live_snapshot_read_allowed":"iptables_save_read_only",**evidence,"farm5_time_sync_resolved":farm5_time_sync_resolved,"restore_point_write_allowed":execution_allowed,"restore_point_written":False,"restore_point_id":None,"restore_point_artifact_written":False,"restore_point_artifact_path":"-","restore_point_checksum":checksum,"lock_acquisition_allowed":execution_allowed,"lock_acquired":False,"lock_name":"phase6_restore_lock_record_execution","lock_owner":operator or "-","lock_expires_at":"-","db_apply_record_write_allowed":execution_allowed,"db_apply_record_written":False,"firewall_apply_id":None,"db_mutation":False,"firewall_snapshot_write_allowed":False,"firewall_snapshot_written":False,"live_firewall_read_allowed":False,"live_firewall_read_executed":False,"iptables_save_allowed":False,"iptables_save_executed":False,"live_firewall_write_allowed":False,"live_firewall_apply_allowed":False,"live_firewall_rollback_allowed":False,"live_firewall_verify_allowed":False,"iptables_restore_allowed":False,"iptables_restore_executed":False,"customer_nat_allowed":False,"customer_nat_changed":False,"customer_firewall_rules_allowed":False,"customer_firewall_rules_changed":False,"production_traffic_changed":False,"usage_automation_allowed":False,"abuse_automation_allowed_runtime":False,"ui_allowed_runtime":False,"telegram_allowed_runtime":False,"apply_decision":"BLOCKED","next_required_gate":"Future Dedicated Phase 6 Apply Gate Proposal/Review","blockers":blockers,"warnings":warnings,"errors":errors}
-    if execution_allowed:
+    report={"component":"firewall_restore_lock_record_execution_gate","phase":"Phase 6 — Firewall Planner","final_decision":"BLOCKED","gate_status":"CONTROLLED_BOUNDARY_READY" if evidence["controlled_execution_boundary_accepted_present"] else "EXECUTION_GATE_SCAFFOLD_READY","authorization_status":"CONTROLLED_BOUNDARY_EXECUTED" if execution_allowed else "CONTROLLED_BOUNDARY_ACCEPTED_DRY_RUN","inspection_only":not execution_allowed,"report_only":not execution_allowed,"preflight_only":not execution_allowed,"dry_run":dry_run,"execute_controlled_boundary":execute_controlled_boundary,"execution_allowed":execution_allowed,"controlled_boundary_accepted":evidence["controlled_execution_boundary_accepted_present"],"operator":operator or "-","reason":reason or "-","correlation_id":correlation_id,"current_state_preserved":current_state_preserved,"restore_lock_record_execution_allowed":current_state.get("restore_lock_record_execution_allowed",""),"apply_mode_plan_only":apply_mode_plan_only,"runtime_activation_allowed":runtime_activation_allowed,"production_traffic":"none","firewall_apply_allowed":"no","abuse_automation_allowed":"no","live_snapshot_read_allowed":"iptables_save_read_only",**evidence,"farm5_time_sync_resolved":farm5_time_sync_resolved,"restore_point_write_allowed":False,"restore_point_written":False,"restore_point_id":None,"restore_point_artifact_written":False,"restore_point_artifact_path":"-","restore_point_checksum":checksum,"lock_acquisition_allowed":False,"lock_acquired":False,"lock_name":"phase6_restore_lock_record_execution","lock_owner":operator or "-","lock_expires_at":"-","db_apply_record_write_allowed":False,"db_apply_record_written":False,"firewall_apply_id":None,"db_mutation":False,"firewall_snapshot_write_allowed":False,"firewall_snapshot_written":False,"live_firewall_read_allowed":False,"live_firewall_read_executed":False,"iptables_save_allowed":False,"iptables_save_executed":False,"live_firewall_write_allowed":False,"live_firewall_apply_allowed":False,"live_firewall_rollback_allowed":False,"live_firewall_verify_allowed":False,"iptables_restore_allowed":False,"iptables_restore_executed":False,"customer_nat_allowed":False,"customer_nat_changed":False,"customer_firewall_rules_allowed":False,"customer_firewall_rules_changed":False,"production_traffic_changed":False,"usage_automation_allowed":False,"abuse_automation_allowed_runtime":False,"ui_allowed_runtime":False,"telegram_allowed_runtime":False,"apply_decision":"BLOCKED","next_required_gate":"Future Dedicated Phase 6 Apply Gate Proposal/Review","blockers":blockers,"warnings":warnings,"errors":errors}
+    if False:
         if record_writer is None:
             if connection_factory is None:
                 record_writer = lambda payload: _default_record_writer(cfg, payload)

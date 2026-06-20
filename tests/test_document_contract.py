@@ -236,3 +236,16 @@ def test_historical_compatibility_anchors_do_not_masquerade_as_current_state() -
         "phase12_start_allowed:",
     )
     assert not any(token in text for token in forbidden)
+
+
+def test_historical_phase_status_helper_never_falls_back_to_active(tmp_path: Path) -> None:
+    from mpf.services.historical_phase_status import historical_phase_status_path, read_historical_phase_status
+
+    (tmp_path / "docs").mkdir(parents=True)
+    (tmp_path / "docs/PHASE_STATUS.md").write_text("# PHASE STATUS\nactive-only\n", encoding="utf-8")
+    assert historical_phase_status_path(tmp_path) == tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md"
+    assert read_historical_phase_status(tmp_path) == ""
+
+    (tmp_path / "docs/history").mkdir(parents=True)
+    (tmp_path / "docs/history/PHASE_STATUS_LEGACY_0.1.302.md").write_text("legacy", encoding="utf-8")
+    assert read_historical_phase_status(tmp_path) == "legacy"
